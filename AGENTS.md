@@ -41,7 +41,9 @@ Architecture and product locks live in the operator’s decision store and the p
 
 ## Distribution and hygiene (intent)
 
-- **Canonical history** for this application lives on the operator’s LAN forge hub. Build machines push there first. Public forges are mirrors and discovery, not the source of truth.
+- **Canonical history** for this application lives on the operator’s LAN forge hub (Umbrel Forgejo). Build machines push there first. Public forges are mirrors and discovery, not the source of truth.
+- **Git one-pager (companion):** `steakOS-dev/docs/installation/STEAKOS-GIT.md` — remotes, daily loop, pull/push habits.
+- **Session habit:** at session start and on **EXIT** / wrap-up, remind the operator to **`git pull --ff-only`** before work and **`git push`** when done (both trees if both changed). Auth: `source ~/.config/forgejo/load.sh`.
 - **Secrets never enter Git.** Use env vars, host secret stores, and local files outside the monorepo. Commit only `.env.example` / templates / variable names. Fail closed if a required secret is missing.
 - **Do not commit** live credentials, key material, wallet files, or local override configs. Prefer the root `.gitignore` secrets block.
 - **Signing keys (nsec / seeds)** stay on the user device or browser extension — never in the monorepo or agent memory.
@@ -180,6 +182,7 @@ Show boot logs when starting servers. Stop cleanly when asked.
 8. **Destructive ops:** confirm before dropping DBs, force-push, or deleting large trees
 9. **UI changes:** verify in the browser when SPA behavior or layout changed
 10. **Typos in product labels:** ask before “fixing” DE menu names or branded strings
+11. **Hub sync:** remind pull at start and push on EXIT / when finishing work — Forgejo is SSoT (see `.grok/rules/steakos-git.md`)
 
 ## Closed-beta framing (when relevant)
 
@@ -205,3 +208,4 @@ Bronze pack, invite-only (small group). Live Bitcoin settlement required on LIVE
 | SPA | `frontend/src` |
 | Run | ports table + `./gradlew bootRun` + Vite |
 | Design / metals / backlog | Private companion `steakOS-dev` + decision store |
+| Git / hub workflow | Companion `docs/installation/STEAKOS-GIT.md` · `.grok/rules/steakos-git.md` |
