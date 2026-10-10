@@ -1,0 +1,167 @@
+{
+  "core": {
+    "Task": "Task"
+  },
+  "sales": {
+    "Customer": "Customer",
+    "CustomerQuote": "Customer quote",
+    "QuoteLine": "Quote line",
+    "SalesOrder": "Sales order",
+    "OrderLine": "Order line",
+    "GoToMarket": "Go-to-market",
+    "Market": "Market",
+    "SalesPlan": "Sales plan"
+  },
+  "procurement": {
+    "Vendor": "Vendor",
+    "PurchaseOrder": "Purchase order",
+    "PurchaseOrderLine": "PO line",
+    "Receipt": "Receipt",
+    "ReceiptLine": "Receipt line",
+    "Contract": "Contract",
+    "SourcingCategory": "Sourcing category",
+    "SourcingPlan": "Sourcing plan"
+  },
+  "production": {
+    "Product": "Product",
+    "Component": "Component",
+    "CatalogueItem": "Catalogue item",
+    "BillOfMaterials": "Bill of materials",
+    "BomItem": "BOM item",
+    "ProductionOrder": "Production order",
+    "Lot": "Lot",
+    "Check": "Check",
+    "StockMove": "Stock move"
+  },
+  "delivery": {
+    "Service": "Service",
+    "Resource": "Resource",
+    "ServiceOrder": "Service order",
+    "ServiceOrderLine": "Service order line"
+  },
+  "service": {
+    "Claims": "Claims",
+    "Inquiry": "Inquiry",
+    "Rma": "RMA",
+    "Satisfaction": "Satisfaction",
+    "ServiceLevel": "Service level",
+    "Warranty": "Warranty"
+  },
+  "human": {
+    "Candidate": "Candidate",
+    "Goal": "Goal",
+    "HRFile": "HR file",
+    "HeadcountPlan": "Headcount plan",
+    "PartyAccess": "Party access",
+    "Payroll": "Payroll",
+    "Policy": "Policy",
+    "TimeTrack": "Time track"
+  },
+  "digital": {
+    "ConfigItem": "Config item",
+    "Data": "Data",
+    "ITChange": "IT change",
+    "ItTicket": "IT ticket",
+    "Solution": "Solution",
+    "System": "System"
+  },
+  "finance": {
+    "Account": "Account",
+    "Budget": "Budget",
+    "Invoice": "Invoice",
+    "JournalEntry": "Journal entry",
+    "JournalLine": "Journal line",
+    "Payable": "Payable",
+    "Payment": "Payment",
+    "PaymentOption": "Payment option",
+    "PayrollItem": "Payroll item",
+    "Tax": "Tax",
+    "Treasury": "Treasury",
+    "TaxCode": "Tax Code"
+  },
+  "capability": {
+    "Change": "Change",
+    "ChangeItem": "Change item",
+    "KnowledgeArea": "Knowledge area",
+    "Portfolio": "Portfolio",
+    "Procedure": "Procedure",
+    "Process": "Process",
+    "ProcessStep": "Process step",
+    "Program": "Program",
+    "Project": "Project",
+    "ProjectItem": "Project item",
+    "Quality": "Quality",
+    "QualityItem": "Quality item",
+    "Standard": "Standard"
+  },
+  "agents": {
+    "Agent": "Agent",
+    "AgentHumanLink": "Agent–human link",
+    "Approval": "Approval",
+    "Hive": "Hive",
+    "Memory": "Memory"
+  },
+  "generic": {
+    "Content": "Content",
+    "ContentType": "Content type",
+    "ContentTypeConfig": "Content type config",
+    "ContentBlob": "Content Blob",
+    "ObjectContent": "Object Content",
+    "ObjectContentProfile": "Object Content Profile"
+  },
+  "configuration": {
+    "GlobalConfig": "Global configuration",
+    "UserConfig": "User configuration",
+    "BankAccount": "Bank Account",
+    "CompanyCurrency": "Company Currency",
+    "CompanySetting": "Company Setting",
+    "CompanyTaxCode": "Company Tax Code",
+    "HelpTopic": "Help Topic",
+    "ImportJob": "Import Job",
+    "LegalEntity": "Legal Entity",
+    "SetupState": "Setup State",
+    "Site": "Site",
+    "UserCompanyMembership": "User Company Membership",
+    "UserPreference": "User Preference"
+  },
+  "helper": {
+    "Address": "Address",
+    "Classification": "Classification",
+    "Countries": "Countries",
+    "Currencies": "Currencies",
+    "SimpleClass": "Class codes",
+    "SimpleStatus": "Status codes",
+    "SimpleType": "Type codes",
+    "SimpleUnit": "Units",
+    "SupportedLocale": "Supported locales",
+    "Tag": "Tags"
+  },
+  "listTitle": "{{resource}}",
+  "newTitle": "New {{resource}}",
+  "editTitle": "Edit {{resource}}",
+  "strategy": {
+    "Competitor": "Competitor",
+    "StrategyItem": "Strategy item"
+  },
+  "development": {
+    "DevelopmentProject": "Development project"
+  },
+  "asset": {
+    "PhysicalAsset": "Physical asset"
+  },
+  "catalogue": {
+    "CatalogueItem": "Catalogue item"
+  },
+  "money": {
+    "amountPrimary": "Amount (primary)"
+  },
+  "agent": {
+    "AgentApiToken": "Agent API Token"
+  },
+  "security": {
+    "RoleProfile": "Role Profile"
+  },
+  "supplychain": {
+    "StockMove": "Stock move"
+  }
+}

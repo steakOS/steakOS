@@ -1,0 +1,208 @@
+{
+  "ui": {
+    "openBrowser": "Prozessbrowser öffnen",
+    "seedHint": "SYSTEM-Prozesse in den Einstellungen seeden, falls der Katalog leer ist.",
+    "hoverHint": "Schritt oder Fokus auf einen Schritt für Was / Wer / Wo. Auf Touch tippen, um den Hinweis anzuheften. Esc schließt.",
+    "tipWhat": "Was",
+    "tipWho": "Wer",
+    "tipWhere": "Wo",
+    "tipPitfall": "Fallstrick",
+    "tipStub": "geplant / Stub",
+    "noTip": "Noch kein Hinweistext — SYSTEM-Prozesse nach Tipps neu seeden.",
+    "helpKey": "Hilfe-Schlüssel",
+    "helpCenter": "Hilfezentrum",
+    "openDesk": "Öffnen",
+    "flow": "Ablauf",
+    "stepsHeading": "Schritte",
+    "systemReadonly": "SYSTEM-Prozessschritte sind schreibgeschützt. Als HUMAN-Prozess klonen, um anzupassen.",
+    "diagramAria": "Prozessablaufdiagramm",
+    "stepAria": "Prozessschritt {{stepNo}}",
+    "stepTipAria": "Hinweis zu Schritt {{stepNo}}",
+    "renderError": "Diagramm konnte nicht gerendert werden",
+    "noSteps": "Keine Schritte",
+    "closeTip": "Hinweis schließen"
+  },
+  "labels": {
+    "AS_INQUIRY": "Anfrageprozess",
+    "SCM_PO_FULFILL": "Bestellprozess",
+    "SCM_MAKE_TO_STOCK": "Fertigung→Lager-Prozess",
+    "SALES_QUOTE_TO_ORDER": "Angebot→Auftrag-Prozess",
+    "FIN_INVOICE_SETTLE": "Rechnungsprozess",
+    "DEL_SERVICE_ORDER": "Serviceauftragsprozess",
+    "HR_CANDIDATE_HIRE": "Einstellungsprozess",
+    "CAP_PROJECT": "Projektprozess",
+    "AR_HITL_APPROVAL": "HITL-Prozess"
+  },
+  "catalogue": {
+    "SCM_PO_FULFILL": {
+      "name": "Bestellung",
+      "description": "Happy Path: Bestellung anlegen → senden → Wareneingang bestätigen → Verbindlichkeit → Zahlung → Lieferant bezahlt. Im SCM-Dashboard umgesetzt.",
+      "steps": {
+        "scm.po.create": { "name": "Bestellung anlegen (Entwurf)" },
+        "scm.po.send": { "name": "Bestellung senden" },
+        "scm.po.receive": { "name": "Wareneingang bestätigen" },
+        "scm.po.payable": { "name": "Verbindlichkeit" },
+        "scm.po.pay": { "name": "Zahlungslauf / zahlen" },
+        "scm.po.paid": { "name": "Lieferantenzahlung bestätigt" }
+      }
+    },
+    "SCM_MAKE_TO_STOCK": {
+      "name": "Fertigung auf Lager",
+      "description": "Freigeben → starten → abschließen (OPEN-Lot) → Qualitätsprüfung → PASS bucht Bestand. Shop Floor.",
+      "steps": {
+        "scm.prod.release": {
+          "name": "Fertigungsauftrag freigeben",
+          "tipWhat": "Entwurf freigeben, damit die Fertigung starten kann.",
+          "tipWho": "Shop Floor / Planung",
+          "tipWhere": "Shop Floor → Produktion",
+          "tipPitfall": "Abschluss ohne Freigabe überspringt die geplante Reihenfolge, ist ab DRAFT aber erlaubt."
+        },
+        "scm.prod.start": {
+          "name": "Fertigung starten",
+          "tipWhat": "Auftrag als in Arbeit markieren.",
+          "tipWho": "Shop Floor",
+          "tipWhere": "Shop Floor → Produktion",
+          "tipPitfall": "Start bei storniertem Auftrag ist gesperrt."
+        },
+        "scm.prod.complete": {
+          "name": "Fertigung abschließen (Lot anlegen)",
+          "tipWhat": "Make-Auftrag beenden. Bei Waren entsteht ein OPEN-Lot — Bestand wird noch nicht gebucht.",
+          "tipWho": "Shop Floor",
+          "tipWhere": "Shop Floor → Produktion",
+          "tipPitfall": "Bestand steigt erst nach QA PASS, nicht schon beim Abschluss."
+        },
+        "scm.qa.check": {
+          "name": "Qualitätsprüfung (PASS / FAIL / HOLD)",
+          "tipWhat": "Lot prüfen. PASS bucht Menge ins Lager; FAIL verwirft; HOLD quarantänisiert.",
+          "tipWho": "Qualität / Shop Floor",
+          "tipWhere": "Shop Floor → Qualität",
+          "tipPitfall": "Ohne QA bleibt Fertigware unsichtbar im Bestand."
+        },
+        "scm.inv.available": {
+          "name": "Bestand verfügbar",
+          "tipWhat": "Nach PASS wird eine PRODUCTION-Lagerbewegung gebucht und der Bestand steigt.",
+          "tipWho": "System",
+          "tipWhere": "Shop Floor → Lager",
+          "tipPitfall": "Manuelle Lots für bereits vorhandenen Bestand buchen bei PASS keinen zweiten Zugang."
+        }
+      }
+    },
+    "SALES_QUOTE_TO_ORDER": {
+      "name": "Angebot zu Kundenauftrag",
+      "description": "Angebot anlegen → senden → annehmen → Kundenauftrag bestätigen (optional Rechnungsentwurf). Innendienst.",
+      "steps": {
+        "sales.quote.create": {
+          "name": "Kundenangebot anlegen",
+          "tipWhat": "Angebot für einen Kunden mit Positionen und Beträgen starten.",
+          "tipWho": "Vertrieb / Innendienst",
+          "tipWhere": "Innendienst",
+          "tipPitfall": "Fehlender Kunde oder leere Positionen blockieren das Senden."
+        },
+        "sales.quote.send": {
+          "name": "Angebot senden",
+          "tipWhat": "Angebot als gesendet markieren, damit der Kunde reagieren kann.",
+          "tipWho": "Vertrieb / Innendienst",
+          "tipWhere": "Innendienst",
+          "tipPitfall": "Bearbeiten nach dem Senden kann den Annahmestatus verwirren."
+        },
+        "sales.quote.accept": {
+          "name": "Angebot annehmen",
+          "tipWhat": "Kundenannahme des Angebots erfassen.",
+          "tipWho": "Vertrieb / Innendienst",
+          "tipWhere": "Innendienst",
+          "tipPitfall": "Falsche Angebotsversion annehmen."
+        },
+        "sales.order.confirm": {
+          "name": "Kundenauftrag bestätigen",
+          "tipWhat": "Kundenauftrag aus dem angenommenen Angebot bestätigen.",
+          "tipWho": "Vertrieb / Operations",
+          "tipWhere": "Innendienst",
+          "tipPitfall": "Bestätigen vor Annahme überspringt den kommerziellen Handshake."
+        },
+        "sales.order.invoice": {
+          "name": "Optionaler Rechnungsentwurf",
+          "tipWhat": "Optional einen Rechnungsentwurf für Finance öffnen.",
+          "tipWho": "System / Finance",
+          "tipWhere": "Finance → Rechnungen",
+          "tipPitfall": "Entwurf ist keine Zahlung — weiterhin in Finance ausstellen und ausgleichen."
+        }
+      }
+    },
+    "FIN_INVOICE_SETTLE": {
+      "name": "Kundenrechnung ausgleichen",
+      "description": "Rechnung anlegen → ausstellen → über Zahlungswege ausgleichen. Finance-Umsatzdesk.",
+      "steps": {
+        "fin.inv.create": {
+          "name": "Rechnung anlegen (Entwurf)",
+          "tipWhat": "Rechnungsentwurf für den Kundenbetrag anlegen.",
+          "tipWho": "Finance / Umsatzverantwortliche",
+          "tipWhere": "Finance → Rechnungen",
+          "tipPitfall": "Ausgleich vor Ausstellung hinterlässt inkonsistente Zahlungswege."
+        },
+        "fin.inv.issue": {
+          "name": "Rechnung ausstellen",
+          "tipWhat": "Entwurf ausstellen, damit der Kunde zahlen kann (Schienen / PDF).",
+          "tipWho": "Finance / Umsatzverantwortliche",
+          "tipWhere": "Finance → Rechnungen",
+          "tipPitfall": "Ausstellen ohne Betrag oder Kundennamen zu prüfen."
+        },
+        "fin.inv.settle": {
+          "name": "Ausgleichen / Zahlung erfassen",
+          "tipWhat": "Zahlung erfassen (Fiat-Ausgleich, Wallet-Adresse oder Live-BTCPay bei LIVE-Firma).",
+          "tipWho": "Finance (Mensch — Agenten brauchen HITL)",
+          "tipWhere": "Finance → Rechnungen / Zahlungen",
+          "tipPitfall": "DEMO-Firmen erzwingen Mock-Ausgleich; Live-BTCPay nur bei LIVE."
+        }
+      }
+    },
+    "DEL_SERVICE_ORDER": {
+      "name": "Serviceauftrag erfüllen",
+      "description": "Serviceauftrag anlegen → planen/zuweisen → starten → abschließen. Auslieferungs-Dashboard.",
+      "steps": {
+        "del.so.create": { "name": "Serviceauftrag anlegen" },
+        "del.so.assign": { "name": "Ressource planen / zuweisen" },
+        "del.so.start": { "name": "Service starten" },
+        "del.so.complete": { "name": "Serviceauftrag abschließen" }
+      }
+    },
+    "AS_INQUIRY": {
+      "name": "Kundenanfrage",
+      "description": "Anfrage anlegen → Arbeit starten → erledigen → schließen. After-Sales-Dashboard.",
+      "steps": {
+        "as.inq.create": { "name": "Anfrage anlegen" },
+        "as.inq.start": { "name": "Arbeit starten" },
+        "as.inq.resolve": { "name": "Anfrage erledigen" },
+        "as.inq.close": { "name": "Anfrage schließen" }
+      }
+    },
+    "HR_CANDIDATE_HIRE": {
+      "name": "Kandidat einstellen",
+      "description": "Kandidat anlegen → Stufen voran → einstellen → HR-Akte. HR-Dashboard.",
+      "steps": {
+        "hr.cand.create": { "name": "Kandidat anlegen" },
+        "hr.cand.advance": { "name": "Einstellungsstufe voran" },
+        "hr.cand.hire": { "name": "Kandidat einstellen" },
+        "hr.file.open": { "name": "HR-Akte öffnen" }
+      }
+    },
+    "CAP_PROJECT": {
+      "name": "Projektlebenszyklus",
+      "description": "Projekt anlegen → starten → abschließen oder abbrechen. Capability-Hub.",
+      "steps": {
+        "cap.proj.create": { "name": "Projekt anlegen (Entwurf)" },
+        "cap.proj.start": { "name": "Projekt starten" },
+        "cap.proj.complete": { "name": "Projekt abschließen" },
+        "cap.proj.cancel": { "name": "Oder Projekt abbrechen" }
+      }
+    },
+    "AR_HITL_APPROVAL": {
+      "name": "HITL-Freigabe",
+      "description": "Agentenvorschlag einreichen → Mensch genehmigt oder lehnt ab. Agenten-Hub.",
+      "steps": {
+        "ar.hitl.submit": { "name": "Vorschlag einreichen" },
+        "ar.hitl.approve": { "name": "Vorschlag genehmigen" },
+        "ar.hitl.reject": { "name": "Oder Vorschlag ablehnen" }
+      }
+    }
+  }
+}

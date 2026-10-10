@@ -1,0 +1,26 @@
+{
+  "title": "Ihre steakOS-Reise",
+  "pages": [
+    {
+      "title": "Ihre steakOS-Reise",
+      "icon": "🛤️",
+      "text": "Der Weg ist klar und lohnend:\n1. Die großen Ideen verstehen (diese Tour)\n2. System mit dem einfachen Assistenten einrichten\n3. Erste echte Buchung ausprobieren\n4. Täglich mit smarter Hilfe arbeiten\n5. Mit dem Unternehmen mitwachsen",
+      "examples": [
+        "Tag 1: Erste Rechnung senden und den Erfolg spüren",
+        "Woche 2: Das System gibt automatisch nützliche Vorschläge",
+        "Monat 3: Neue Funktionen ergänzen, wenn das Geschäft sie braucht"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Was nach der Tour kommt",
+      "icon": "🚀",
+      "text": "Nach dieser Tour starten Sie den Einrichtungsassistenten. Er stellt einfache Fragen und richtet Ihr System danach ein. Anschließend sind Sie bereit für die erste echte Buchung.",
+      "examples": [
+        "Ein kleiner Laden hat am selben Tag den ersten Verkauf gebucht",
+        "Eine Beratungsfirma hatte die erste Kundenrechnung in unter 10 Minuten fertig"
+      ],
+      "canSkip": true
+    }
+  ]
+}

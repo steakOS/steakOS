@@ -1,0 +1,56 @@
+{
+  "title": "Kernkonzepte des Systems",
+  "pages": [
+    {
+      "title": "Kernkonzepte: Mehrsprachigkeit",
+      "icon": "🌍",
+      "text": "steakOS kann in mehreren Sprachen gleichzeitig arbeiten. Teammitglieder oder Kunden nutzen das System in der Sprache, die sie bevorzugen.\n\nAuch kleine Unternehmen profitieren davon bei internationalen Kunden oder wenn Teammitglieder in einer anderen Sprache sicherer sind.",
+      "examples": [
+        "Ein kleiner Onlineshop bedient Kunden auf Englisch und Deutsch — ohne zwei getrennte Systeme",
+        "Ein wachsendes Unternehmen hat Teammitglieder in verschiedenen Ländern, die steakOS jeweils in ihrer Muttersprache nutzen"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Mehrere Unternehmen & Standorte",
+      "icon": "🏢",
+      "text": "Sie können mehr als ein Unternehmen oder mehr als einen Standort im selben steakOS-System verwalten.\n\nDas ist nützlich bei mehreren Rechtseinheiten, Filialen, Läden, Lagern oder Service-Standorten. Alles bleibt an einem Ort organisiert, die Daten bleiben bei Bedarf klar getrennt.",
+      "examples": [
+        "Eine Inhaberin führt zwei getrennte Firmen und verwaltet beide mit einem Login",
+        "Ein Unternehmen mit drei physischen Standorten sieht Bestände und Verkäufe aller Sites in einer Ansicht"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Mehrwährungsfähigkeit",
+      "icon": "💱",
+      "text": "Neben Bitcoin unterstützt steakOS mehrere Währungen und kann Umrechnungen automatisch handhaben. Das hilft besonders, wenn Sie in verschiedene Länder verkaufen oder mit internationalen Lieferanten arbeiten.\n\nSie sehen Berichte in Ihrer Hauptwährung und arbeiten bei Bedarf mit anderen Währungen.",
+      "examples": [
+        "Eine Freelancerin stellt in EUR, USD und CHF Rechnung und sieht alles in die Heimatwährung umgerechnet",
+        "Ein kleiner Hersteller kauft Material in einer Währung und verkauft in einer anderen — ohne manuelle Umrechnung"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Unterschiedliche Rechtsordnungen und Steuern",
+      "icon": "⚖️",
+      "text": "Jedes Land und jede Region hat eigene Regeln für Steuern, Rechnungen, Reporting, Datenschutz und mehr. steakOS ist darauf ausgelegt, unterschiedliche rechtliche Anforderungen zu unterstützen, damit Compliance leichter fällt.\n\nDas wird besonders wichtig, wenn Ihr Business grenzüberschreitend wächst oder Vorschriften sich ändern.",
+      "examples": [
+        "Ein Kleinunternehmen in zwei Ländern handhabt unterschiedliche MwSt.-Regeln ohne Chaos",
+        "Ein wachsendes Unternehmen passt sich leichter an, wenn sich Steuerregeln in einem Land ändern",
+        "Ein wachsendes Unternehmen muss ein Compliance- und Risikomanagement-Framework nachweisen können"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Warum das auch für Kleine zählt",
+      "icon": "🚀",
+      "text": "Features wie Multi-Company oder Multi-Currency wirken oft „nur für Große“. In Wahrheit machen sie Ihr Business zukunftssicher.\n\nAuch wenn Sie klein starten: Diese Fähigkeiten von Anfang an bedeuten, dass Sie später nicht das System wechseln müssen, wenn Sie wachsen oder internationaler werden.",
+      "examples": [
+        "Eine Freelancerin, die mit internationalen Kunden startet, muss später nicht das Tool wechseln",
+        "Ein kleines Team mit einem zweiten Standort nutzt dasselbe System ohne große Umbauten"
+      ],
+      "canSkip": true
+    }
+  ]
+}

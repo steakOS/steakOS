@@ -1,0 +1,56 @@
+{
+  "title": "Core System Concepts",
+  "pages": [
+    {
+      "title": "Core Concepts: Multi-Language Support",
+      "icon": "🌍",
+      "text": "SteakOS can work in multiple languages at the same time. This means different team members or customers can use the system in the language they prefer.\n\nEven small businesses benefit from this when they work with international clients or have team members who are more comfortable in another language.",
+      "examples": [
+        "A small online shop serves customers in both English and German without needing two separate systems",
+        "A growing company has team members in different countries who each use SteakOS in their native language"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Multi-Company & Multi-Site Support",
+      "icon": "🏢",
+      "text": "You can manage more than one company or more than one location inside the same SteakOS system.\n\nThis is useful if you have multiple legal entities, different branches, shops, warehouses, or service locations. Everything stays organized in one place while still keeping the data clearly separated when needed.",
+      "examples": [
+        "A small business owner runs two separate companies and manages both from one login",
+        "A company with three physical locations can see stock levels and sales across all sites in one view"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Multi-Currency Support",
+      "icon": "💱",
+      "text": "Alongside Bitcoin, SteakOS supports multiple currencies and can automatically handle conversions. This is especially helpful if you sell to customers in different countries or work with international suppliers.\n\nYou can see reports in your main currency while still working with other currencies when needed.",
+      "examples": [
+        "A freelancer invoices clients in EUR, USD, and CHF and sees everything converted to their home currency",
+        "A small manufacturer buys materials in one currency and sells products in another without manual calculations"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Support for Different Legislations and Taxes",
+      "icon": "⚖️",
+      "text": "Every country and region has its own rules for taxes, invoicing, reporting, and data protection, privacy protection and more. SteakOS is designed to support different legal requirements so you can stay compliant more easily.\n\nThis becomes especially important when your business grows across borders or when regulations change.",
+      "examples": [
+        "A small business operating in two countries can handle different VAT rules without confusion",
+        "A growing company can adapt more easily when tax rules change in one of the countries where it operates",
+        "A growing company has to prove a compliance framework and risk management system are in place for the company"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Why These Features Matter Even for Small Businesses",
+      "icon": "🚀",
+      "text": "You might think features like multi-company or multi-currency are only for big companies. In reality, they help future-proof your business.\n\nEven if you start small, having these capabilities from the beginning means you won’t have to change systems later when your business grows or becomes more international.",
+      "examples": [
+        "A freelancer who starts working with international clients doesn’t need to switch tools later",
+        "A small team that opens a second location can continue using the same system without major changes"
+      ],
+      "canSkip": true
+    }
+  ]
+}

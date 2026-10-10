@@ -1,0 +1,392 @@
+{
+  "company": "Orange Steak House",
+  "base": "http://127.0.0.1:9001",
+  "user": "admin",
+  "customer": "Film Guest 272508",
+  "shots": [
+    {
+      "step": 1,
+      "title": "Open steakOS login",
+      "hint": "Admin sign-in for a full write walkthrough on the restaurant demo",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-01.png"
+    },
+    {
+      "step": 2,
+      "title": "Focus username",
+      "hint": "Type the Admin username",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-02.png"
+    },
+    {
+      "step": 3,
+      "title": "Username filled",
+      "hint": "Signed in as admin",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-03.png"
+    },
+    {
+      "step": 4,
+      "title": "Focus password",
+      "hint": "Dev password meets the 12+ mixed complexity policy",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-04.png"
+    },
+    {
+      "step": 5,
+      "title": "Credentials ready",
+      "hint": "Submit to authenticate \u2014 TOTP off for filming only",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-05.png"
+    },
+    {
+      "step": 6,
+      "title": "Login submitted",
+      "hint": "Waiting for company picker or app shell",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-06.png"
+    },
+    {
+      "step": 7,
+      "title": "Company picker",
+      "hint": "This install has multiple companies \u2014 pick the safe demo",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-07.png"
+    },
+    {
+      "step": 8,
+      "title": "Orange Steak House option",
+      "hint": "Demo \u00b7 Restaurant \u2014 kitchen-sink seed, not live books",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-08.png"
+    },
+    {
+      "step": 9,
+      "title": "Company selected",
+      "hint": "Session scoped to Orange Steak House",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-09.png"
+    },
+    {
+      "step": 10,
+      "title": "Demo shell loaded",
+      "hint": "Banner / context confirms restaurant showcase data",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-10.png"
+    },
+    {
+      "step": 11,
+      "title": "Sales desk",
+      "hint": "Commercial rail: customers, quotes, orders",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-11.png"
+    },
+    {
+      "step": 12,
+      "title": "Open Customers tab",
+      "hint": "Create a new guest for this private dining story",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-12.png"
+    },
+    {
+      "step": 13,
+      "title": "Customers list",
+      "hint": "Form above the table creates a new customer",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-13.png"
+    },
+    {
+      "step": 14,
+      "title": "Customer form empty",
+      "hint": "Fill name (and email if present) then save",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-14.png"
+    },
+    {
+      "step": 15,
+      "title": "Name field focused",
+      "hint": "Guest name for the Friday private dining pack",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-15.png"
+    },
+    {
+      "step": 16,
+      "title": "Guest name entered",
+      "hint": "Name: Film Guest 272508",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-16.png"
+    },
+    {
+      "step": 17,
+      "title": "Email entered",
+      "hint": "Optional contact on the customer record",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-17.png"
+    },
+    {
+      "step": 18,
+      "title": "Ready to save customer",
+      "hint": "Submit creates the customer in this demo only",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-18.png"
+    },
+    {
+      "step": 19,
+      "title": "Customer created",
+      "hint": "Guest appears in the list \u2014 next: Quotes",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-19.png"
+    },
+    {
+      "step": 20,
+      "title": "Open Quotes tab",
+      "hint": "Build a quote with 2 goods + 1 service",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-20.png"
+    },
+    {
+      "step": 21,
+      "title": "Quote form",
+      "hint": "Pick customer, name the quote, add catalogue lines",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-21.png"
+    },
+    {
+      "step": 22,
+      "title": "New quote canvas",
+      "hint": "Wire customer + lines before saving the draft",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-22.png"
+    },
+    {
+      "step": 23,
+      "title": "Customer picker open",
+      "hint": "Search for the film guest just created",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-23.png"
+    },
+    {
+      "step": 24,
+      "title": "Customer search",
+      "hint": "Filtering for Film Guest 2\u2026",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-24.png"
+    },
+    {
+      "step": 25,
+      "title": "Highlight customer",
+      "hint": "Press Enter to bind the customer to this quote",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-25.png"
+    },
+    {
+      "step": 26,
+      "title": "Customer on quote",
+      "hint": "Quote is owned by the film guest",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-26.png"
+    },
+    {
+      "step": 27,
+      "title": "Quote named",
+      "hint": "Private dining Friday \u2014 film pack",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-27.png"
+    },
+    {
+      "step": 28,
+      "title": "Add line control",
+      "hint": "Grow the quote to three commercial lines",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-28.png"
+    },
+    {
+      "step": 29,
+      "title": "Second line added",
+      "hint": "One more line for the service pairing",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-29.png"
+    },
+    {
+      "step": 30,
+      "title": "Three lines ready",
+      "hint": "Fill catalogue / qty / price on each card",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-30.png"
+    },
+    {
+      "step": 31,
+      "title": "Line 1 empty",
+      "hint": "Fill Ribeye Steak 300g",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-31.png"
+    },
+    {
+      "step": 32,
+      "title": "Line 1 catalogue search",
+      "hint": "Looking up Ribeye",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-32.png"
+    },
+    {
+      "step": 33,
+      "title": "Line 1 catalogue picked",
+      "hint": "Ribeye Steak 300g",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-33.png"
+    },
+    {
+      "step": 34,
+      "title": "Line 1 qty & price",
+      "hint": "Qty 4 @ 42",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-34.png"
+    },
+    {
+      "step": 35,
+      "title": "Line 2 empty",
+      "hint": "Fill Filet Mignon 200g",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-35.png"
+    },
+    {
+      "step": 36,
+      "title": "Line 2 catalogue search",
+      "hint": "Looking up Filet",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-36.png"
+    },
+    {
+      "step": 37,
+      "title": "Line 2 catalogue picked",
+      "hint": "Filet Mignon 200g",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-37.png"
+    },
+    {
+      "step": 38,
+      "title": "Line 2 qty & price",
+      "hint": "Qty 2 @ 48",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-38.png"
+    },
+    {
+      "step": 39,
+      "title": "Line 3 empty",
+      "hint": "Fill Wine Pairing Flight",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-39.png"
+    },
+    {
+      "step": 40,
+      "title": "Line 3 catalogue search",
+      "hint": "Looking up Wine Pairing",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-40.png"
+    },
+    {
+      "step": 41,
+      "title": "Line 3 catalogue picked",
+      "hint": "Wine Pairing Flight",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-41.png"
+    },
+    {
+      "step": 42,
+      "title": "Line 3 qty & price",
+      "hint": "Qty 1 @ 55",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-42.png"
+    },
+    {
+      "step": 43,
+      "title": "Quote complete (2 goods + 1 service)",
+      "hint": "Ribeye, Filet (goods) + Wine Pairing (service) \u2014 save draft",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-43.png"
+    },
+    {
+      "step": 44,
+      "title": "Quote saved",
+      "hint": "Draft quote is selected \u2014 next Accept \u2192 Order",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-44.png"
+    },
+    {
+      "step": 45,
+      "title": "Accept quote",
+      "hint": "Converts the quote into a DRAFT sales order",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-45.png"
+    },
+    {
+      "step": 46,
+      "title": "Quote accepted",
+      "hint": "Order created \u2014 open Orders to confirm",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-46.png"
+    },
+    {
+      "step": 47,
+      "title": "Open Orders",
+      "hint": "Confirm order to create a Finance draft invoice",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-47.png"
+    },
+    {
+      "step": 48,
+      "title": "Orders list",
+      "hint": "Select the draft order from Accept",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-48.png"
+    },
+    {
+      "step": 49,
+      "title": "Order row visible",
+      "hint": "Click the draft order to load actions",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-49.png"
+    },
+    {
+      "step": 50,
+      "title": "Order detail",
+      "hint": "Confirm = commercial hand-off to Finance",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-50.png"
+    },
+    {
+      "step": 51,
+      "title": "Confirm order",
+      "hint": "Creates DRAFT invoice \u2014 settlement comes next in Finance",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-51.png"
+    },
+    {
+      "step": 52,
+      "title": "Order confirmed",
+      "hint": "Finance invoice link appears when the draft is ready",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-52.png"
+    },
+    {
+      "step": 53,
+      "title": "Post-confirm sales",
+      "hint": "Commercial path complete \u2014 optional Delivery desk, then Finance",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-53.png"
+    },
+    {
+      "step": 54,
+      "title": "Delivery desk (context)",
+      "hint": "Service-order fulfillment lives here; Sales Confirm already handed commercial docs to Finance",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-54.png"
+    },
+    {
+      "step": 55,
+      "title": "Delivery honesty note",
+      "hint": "No separate Sales\u2192Delivery auto SO in this cut \u2014 Confirm is the product hand-off",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-55.png"
+    },
+    {
+      "step": 56,
+      "title": "Finance invoices",
+      "hint": "Open the draft created from the sales order",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-56.png"
+    },
+    {
+      "step": 57,
+      "title": "Invoice list loaded",
+      "hint": "Newest draft should be the film pack",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-57.png"
+    },
+    {
+      "step": 58,
+      "title": "Draft invoice selected",
+      "hint": "Issue opens payment rails, then settle posts the journal",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-58.png"
+    },
+    {
+      "step": 59,
+      "title": "Issue invoice",
+      "hint": "Customer can now be marked paid on a mock/SEPA rail",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-59.png"
+    },
+    {
+      "step": 60,
+      "title": "Invoice issued",
+      "hint": "Settle / record payment is available",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-60.png"
+    },
+    {
+      "step": 61,
+      "title": "Settle form",
+      "hint": "Mock rail posts Dr cash / Cr revenue automatically",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-61.png"
+    },
+    {
+      "step": 62,
+      "title": "Payment settled",
+      "hint": "Journal entry created \u2014 books updated for Orange Steak House only",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-62.png"
+    },
+    {
+      "step": 63,
+      "title": "Back on Sales",
+      "hint": "Full Quote \u2192 Order \u2192 Invoice \u2192 Settle path filmed",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-63.png"
+    },
+    {
+      "step": 64,
+      "title": "Walkthrough complete",
+      "hint": "Demo only \u2014 Admin can Reset Orange Steak House anytime in Settings",
+      "file": "/home/matt/Dev/grails/steakOS/demos/steakhouse/frames/step-64.png"
+    }
+  ]
+}

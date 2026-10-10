@@ -1,0 +1,86 @@
+{
+  "title": "Bronze Template",
+  "description": "For small teams (4–20 people)",
+  "pages": [
+    {
+      "title": "Strategy & Initiatives – Planning and Executing Goals",
+      "icon": "🎯",
+      "text": "Strategy is deciding where you want to go. Initiatives are the concrete projects or actions you take to move in that direction. Bronze helps small teams keep track of both the big goals and the actual work needed to achieve them.",
+      "examples": [
+        "A 12-person marketing agency defines yearly goals and breaks them down into quarterly projects everyone can see"
+      ]
+    },
+    {
+      "title": "Development & Innovation – Creating New Things",
+      "icon": "💡",
+      "text": "Development means improving or creating new products and services. Innovation is about finding new and better ways of doing things. Bronze gives small teams simple tools to manage new ideas and development work.",
+      "examples": [
+        "A small product company tracks new feature ideas and development tasks in one shared place"
+      ]
+    },
+    {
+      "title": "Sales & Sales Planning – Finding and Winning Customers",
+      "icon": "💼",
+      "text": "Sales is the process of finding customers and convincing them to buy. Sales planning means thinking ahead about how you will reach your sales targets. Bronze helps teams coordinate sales activities better.",
+      "examples": [
+        "A small B2B company keeps track of sales conversations and plans monthly sales targets together"
+      ]
+    },
+    {
+      "title": "Supply & Supply Chain – Getting What You Need",
+      "icon": "📦",
+      "text": "Supply and supply chain is about making sure you have the materials, products, or services you need to deliver to your customers. Bronze helps small teams manage basic ordering and supplier information.",
+      "examples": [
+        "A small bakery tracks ingredient orders and supplier contacts so they don’t run out of stock"
+      ]
+    },
+    {
+      "title": "Procurement – Buying What the Business Needs",
+      "icon": "🛒",
+      "text": "Procurement is the process of finding and buying goods and services for your business. Bronze gives small teams simple tools to manage purchases and supplier relationships.",
+      "examples": [
+        "A small office team keeps track of office supply orders and compares prices from different suppliers"
+      ]
+    },
+    {
+      "title": "Services & Customer Service – Delivering and Supporting Customers",
+      "icon": "🤝",
+      "text": "This covers delivering your service to customers and helping them when they have questions or problems. Bronze helps teams coordinate service delivery and customer support more consistently.",
+      "examples": [
+        "A small IT support company tracks customer requests and makes sure nothing falls through the cracks"
+      ]
+    },
+    {
+      "title": "Human Resources – Finding and Supporting People",
+      "icon": "👥",
+      "text": "Human Resources includes recruiting new people, onboarding them, and managing basic employee information. Bronze gives small teams simple tools to handle these tasks without complexity.",
+      "examples": [
+        "A growing 15-person company keeps employee information, contracts, and onboarding checklists in one place"
+      ]
+    },
+    {
+      "title": "Finance Basics – Managing Money Simply",
+      "icon": "💰",
+      "text": "Finance in Bronze covers the basics: invoicing, tracking money coming in and going out, and simple reporting. It helps small teams stay on top of their financial situation without needing an accountant for everything.",
+      "examples": [
+        "A small team sees at a glance which invoices are paid and which are still outstanding"
+      ]
+    },
+    {
+      "title": "Analytics – Understanding What’s Happening",
+      "icon": "📈",
+      "text": "Analytics helps you look at your business numbers so you can make better decisions. Bronze gives small teams better reporting and visibility across the whole team.",
+      "examples": [
+        "A small company sees which services are most profitable and which customers are most valuable"
+      ]
+    },
+    {
+      "title": "Agents – AI That Helps the Whole Team",
+      "icon": "🤖",
+      "text": "Bronze gives you more AI agents that can help across different areas of the business. These agents can assist multiple team members with routine tasks.",
+      "examples": [
+        "An AI agent helps the team by automatically creating follow-up tasks when a project stage is completed"
+      ]
+    }
+  ]
+}

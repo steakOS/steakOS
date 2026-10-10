@@ -1,0 +1,36 @@
+{
+  "title": "AI Support – The Hives",
+  "pages": [
+    {
+      "title": "How is steakOS using AI: Hives vs AI Agents",
+      "icon": "🐝",
+      "text": "In SteakOS, we use two related but different concepts:\n\n• A **Hive** is a group of AI agents that work together in one specific area of your business (for example, Finance or Operations). Each Hive has an **agentic manager** that coordinates the team.\n\n• **AI Agents** are the individual specialists inside a Hive. They are experts in narrow tasks (like bookkeeping, sending reminders, or checking quality).\n\nThink of it like this: A Hive is a small specialized team. The individual AI Agents are the team members with specific skills.",
+      "examples": [
+        "The Finance Hive contains agents that handle invoicing, payments, and reporting — coordinated by a Finance Manager agent",
+        "The Operations Hive contains agents focused on shipping, suppliers, and production planning"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "How a Hive Works",
+      "icon": "👥",
+      "text": "Each Hive is built like a small professional team:\n\n• **Agentic Manager**: The coordinator of the Hive. It assigns tasks, reviews results, and communicates with you.\n• **Specialist Agents**: Individual AI agents that are very good at one specific job (e.g. creating invoices, checking payments, or analyzing delays).\n\nWhen you ask for help in a certain area, the Hive’s manager activates the right specialist agents and brings their work together before presenting it to you.",
+      "mermaid": "graph TD\n    User[You] -->|Request| HiveManager[Agentic Manager]\n    HiveManager -->|Assigns task| Specialist1[Specialist Agent 1]\n    HiveManager -->|Assigns task| Specialist2[Specialist Agent 2]\n    Specialist1 -->|Result| HiveManager\n    Specialist2 -->|Result| HiveManager\n    HiveManager -->|Summarizes & Presents| User",
+      "examples": [
+        "You ask the Finance Hive to “check overdue invoices”. The manager activates the right agents and returns a clear summary with suggested actions",
+        "You ask the Operations Hive about shipping delays. The manager coordinates several specialist agents and gives you a clear overview"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Human-in-the-Loop – You Stay in Control",
+      "icon": "🛡️",
+      "text": "One of the most important rules in SteakOS is that AI never makes final decisions on important matters without you.\n\nHives and their agents can prepare suggestions, draft messages, analyze data, and recommend actions — but you always have the final say. This is called “human-in-the-loop” and it keeps you fully in control while still benefiting from smart assistance.",
+      "examples": [
+        "A Hive can draft a polite payment reminder, but you decide whether and when to send it",
+        "A Hive can suggest switching to a cheaper supplier, but you make the final decision"
+      ],
+      "canSkip": true
+    }
+  ]
+}

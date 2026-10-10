@@ -1,0 +1,410 @@
+{
+  "company": "Heard & Cook Architects",
+  "base": "http://127.0.0.1:9001",
+  "user": "admin",
+  "client": "Estate of Sand Key (UHNW)",
+  "shots": [
+    {
+      "step": 1,
+      "title": "Open steakOS login",
+      "hint": "Admin sign-in to film the architecture demo company",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-01.png"
+    },
+    {
+      "step": 2,
+      "title": "Focus username",
+      "hint": "Same install credentials \u2014 separate company data",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-02.png"
+    },
+    {
+      "step": 3,
+      "title": "Username filled",
+      "hint": "Signed in as admin",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-03.png"
+    },
+    {
+      "step": 4,
+      "title": "Focus password",
+      "hint": "Dev password meets the 12+ mixed complexity policy",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-04.png"
+    },
+    {
+      "step": 5,
+      "title": "Credentials ready",
+      "hint": "Submit \u2014 TOTP disabled for filming only",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-05.png"
+    },
+    {
+      "step": 6,
+      "title": "Login submitted",
+      "hint": "Waiting for company picker or app shell",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-06.png"
+    },
+    {
+      "step": 7,
+      "title": "Company picker",
+      "hint": "Multiple companies on this install \u2014 pick the architecture demo",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-07.png"
+    },
+    {
+      "step": 8,
+      "title": "Heard & Cook option",
+      "hint": "Demo \u00b7 Architecture \u2014 IRB studio seed, separate from the restaurant",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-08.png"
+    },
+    {
+      "step": 9,
+      "title": "Company selected",
+      "hint": "Session scoped to Heard & Cook Architects",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-09.png"
+    },
+    {
+      "step": 10,
+      "title": "Architecture demo loaded",
+      "hint": "Banner / top bar shows Heard & Cook Architects (IRB, FL \u00b7 USD books)",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-10.png"
+    },
+    {
+      "step": 11,
+      "title": "Capability \u00b7 Projects",
+      "hint": "Seeded studio projects for the architecture kitchen-sink",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-11.png"
+    },
+    {
+      "step": 12,
+      "title": "Project list",
+      "hint": "Billionaire Kitchen Studio + Gulf Blvd Retail Pavilion",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-12.png"
+    },
+    {
+      "step": 13,
+      "title": "Billionaire Kitchen row",
+      "hint": "Active UHNW kitchen concept project",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-13.png"
+    },
+    {
+      "step": 14,
+      "title": "Billionaire Kitchen Studio",
+      "hint": "Project detail for the Sand Key kitchen story",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-14.png"
+    },
+    {
+      "step": 15,
+      "title": "Project context set",
+      "hint": "Sales quote will use the matching UHNW client next",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-15.png"
+    },
+    {
+      "step": 16,
+      "title": "HR desk",
+      "hint": "Studio roster lives under Candidates (hired, no logins)",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-16.png"
+    },
+    {
+      "step": 17,
+      "title": "Studio personas",
+      "hint": "Architecture office story cast for eval demos",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-17.png"
+    },
+    {
+      "step": 18,
+      "title": "Sales desk",
+      "hint": "Architecture commercial rail \u2014 clients, quotes, orders (USD)",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-18.png"
+    },
+    {
+      "step": 19,
+      "title": "Open Customers",
+      "hint": "Use seeded Estate of Sand Key or create a film client",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-19.png"
+    },
+    {
+      "step": 20,
+      "title": "Customers list",
+      "hint": "Seed includes Clearwater Bay, Sand Key, Gulf Blvd\u2026",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-20.png"
+    },
+    {
+      "step": 21,
+      "title": "Sand Key in list",
+      "hint": "UHNW kitchen client from the demo seed pack",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-21.png"
+    },
+    {
+      "step": 22,
+      "title": "Estate of Sand Key selected",
+      "hint": "Family office client for the Billionaire Kitchen quote",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-22.png"
+    },
+    {
+      "step": 23,
+      "title": "Open Quotes",
+      "hint": "Kitchen concept + layout services + Project Demo Video DVD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-23.png"
+    },
+    {
+      "step": 24,
+      "title": "Quote form",
+      "hint": "Bind Sand Key, name the pack, add three lines",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-24.png"
+    },
+    {
+      "step": 25,
+      "title": "New quote canvas",
+      "hint": "Architecture quote \u2014 services + media product",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-25.png"
+    },
+    {
+      "step": 26,
+      "title": "Customer picker open",
+      "hint": "Search Estate of Sand Key",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-26.png"
+    },
+    {
+      "step": 27,
+      "title": "Customer search",
+      "hint": "Filtering for Estate of Sand\u2026",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-27.png"
+    },
+    {
+      "step": 28,
+      "title": "Highlight client",
+      "hint": "Enter to bind the UHNW client",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-28.png"
+    },
+    {
+      "step": 29,
+      "title": "Client on quote",
+      "hint": "Quote owned by Estate of Sand Key",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-29.png"
+    },
+    {
+      "step": 30,
+      "title": "Quote named",
+      "hint": "Sand Key \u2014 Billionaire Kitchen film pack",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-30.png"
+    },
+    {
+      "step": 31,
+      "title": "Add line control",
+      "hint": "Grow to three lines: 2 services + 1 goods DVD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-31.png"
+    },
+    {
+      "step": 32,
+      "title": "Second line added",
+      "hint": "Next: third line for the video DVD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-32.png"
+    },
+    {
+      "step": 33,
+      "title": "Three lines ready",
+      "hint": "Fill catalogue / qty / price on each card",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-33.png"
+    },
+    {
+      "step": 34,
+      "title": "Line 1 empty",
+      "hint": "Fill Billionaire Kitchen Concept Studio",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-34.png"
+    },
+    {
+      "step": 35,
+      "title": "Line 1 catalogue search",
+      "hint": "Looking up Billionaire Kitchen Concept",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-35.png"
+    },
+    {
+      "step": 36,
+      "title": "Line 1 catalogue picked",
+      "hint": "Billionaire Kitchen Concept Studio",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-36.png"
+    },
+    {
+      "step": 37,
+      "title": "Line 1 qty & price",
+      "hint": "Qty 1 @ 95000 USD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-37.png"
+    },
+    {
+      "step": 38,
+      "title": "Line 2 empty",
+      "hint": "Fill Kitchen Layout & Millwork Narrative",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-38.png"
+    },
+    {
+      "step": 39,
+      "title": "Line 2 catalogue search",
+      "hint": "Looking up Kitchen Layout",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-39.png"
+    },
+    {
+      "step": 40,
+      "title": "Line 2 catalogue picked",
+      "hint": "Kitchen Layout & Millwork Narrative",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-40.png"
+    },
+    {
+      "step": 41,
+      "title": "Line 2 qty & price",
+      "hint": "Qty 1 @ 22000 USD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-41.png"
+    },
+    {
+      "step": 42,
+      "title": "Line 3 empty",
+      "hint": "Fill Project Demo Video DVD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-42.png"
+    },
+    {
+      "step": 43,
+      "title": "Line 3 catalogue search",
+      "hint": "Looking up Project Demo Video",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-43.png"
+    },
+    {
+      "step": 44,
+      "title": "Line 3 catalogue picked",
+      "hint": "Project Demo Video DVD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-44.png"
+    },
+    {
+      "step": 45,
+      "title": "Line 3 qty & price",
+      "hint": "Qty 2 @ 49 USD",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-45.png"
+    },
+    {
+      "step": 46,
+      "title": "Quote complete (2 services + 1 product)",
+      "hint": "Kitchen Concept + Layout + Video DVD \u2014 save draft",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-46.png"
+    },
+    {
+      "step": 47,
+      "title": "Quote saved",
+      "hint": "Draft quote selected \u2014 next Accept \u2192 Order",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-47.png"
+    },
+    {
+      "step": 48,
+      "title": "Accept quote",
+      "hint": "Converts the architecture quote into a DRAFT sales order",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-48.png"
+    },
+    {
+      "step": 49,
+      "title": "Quote accepted",
+      "hint": "Order created \u2014 open Orders to confirm",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-49.png"
+    },
+    {
+      "step": 50,
+      "title": "Open Orders",
+      "hint": "Confirm order to create a Finance draft invoice",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-50.png"
+    },
+    {
+      "step": 51,
+      "title": "Orders list",
+      "hint": "Select the draft from Accept",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-51.png"
+    },
+    {
+      "step": 52,
+      "title": "Order row visible",
+      "hint": "Click the draft order to load Confirm",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-52.png"
+    },
+    {
+      "step": 53,
+      "title": "Order detail",
+      "hint": "Confirm = commercial hand-off to Finance (USD)",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-53.png"
+    },
+    {
+      "step": 54,
+      "title": "Confirm order",
+      "hint": "Creates DRAFT invoice \u2014 settlement is next in Finance",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-54.png"
+    },
+    {
+      "step": 55,
+      "title": "Order confirmed",
+      "hint": "Finance invoice link appears when ready",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-55.png"
+    },
+    {
+      "step": 56,
+      "title": "Post-confirm sales",
+      "hint": "Commercial path complete \u2014 Delivery context, then Finance settle",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-56.png"
+    },
+    {
+      "step": 57,
+      "title": "Delivery desk (context)",
+      "hint": "Service fulfillment lives here; Sales Confirm already handed docs to Finance",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-57.png"
+    },
+    {
+      "step": 58,
+      "title": "Delivery honesty note",
+      "hint": "No separate auto Service Order in this cut \u2014 Confirm is the product hand-off",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-58.png"
+    },
+    {
+      "step": 59,
+      "title": "Finance invoices (USD)",
+      "hint": "Open the draft created from the sales order",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-59.png"
+    },
+    {
+      "step": 60,
+      "title": "Invoice list loaded",
+      "hint": "Newest draft should be the Sand Key film pack",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-60.png"
+    },
+    {
+      "step": 61,
+      "title": "Draft invoice selected",
+      "hint": "Issue opens payment rails, then settle posts the journal",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-61.png"
+    },
+    {
+      "step": 62,
+      "title": "Issue invoice",
+      "hint": "Client can now be marked paid on a mock/SEPA rail",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-62.png"
+    },
+    {
+      "step": 63,
+      "title": "Invoice issued",
+      "hint": "Settle / record payment is available",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-63.png"
+    },
+    {
+      "step": 64,
+      "title": "Settle form",
+      "hint": "Mock rail posts Dr cash / Cr revenue for Heard & Cook only",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-64.png"
+    },
+    {
+      "step": 65,
+      "title": "Payment settled",
+      "hint": "Journal entry created \u2014 books updated for Heard & Cook Architects only",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-65.png"
+    },
+    {
+      "step": 66,
+      "title": "Back on Projects",
+      "hint": "Architecture story arc complete for this film",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-66.png"
+    },
+    {
+      "step": 67,
+      "title": "Walkthrough complete",
+      "hint": "Demo only \u2014 Reset Heard & Cook anytime in Settings (Orange Steak House untouched)",
+      "file": "/home/matt/Dev/grails/steakOS/demos/architects/frames/step-67.png"
+    }
+  ]
+}

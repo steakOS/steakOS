@@ -1,0 +1,8 @@
+# steakOS security contact (RFC 9116)
+# Also shipped under src/main/resources/static/.well-known/security.txt for the running app.
+# Process: docs/installation/SECURITY-DISCLOSURE.md · SECURITY.md
+
+Contact: mailto:security@steakos.org
+Preferred-Languages: en, de
+Expires: 2027-08-22T00:00:00.000Z
+# Policy: docs/installation/SECURITY-DISCLOSURE.md (in the steakOS repository)

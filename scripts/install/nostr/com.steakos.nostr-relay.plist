@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  SPDX-License-Identifier: Apache-2.0
+  launchd plist for steakOS private nostr-rs-relay (OI-NOSTR01 / D2 macOS)
+
+  Install (user agent — no root):
+    mkdir -p ~/Library/LaunchAgents
+    cp com.steakos.nostr-relay.plist ~/Library/LaunchAgents/
+    # Edit ProgramArguments paths to match your prefix
+    launchctl load ~/Library/LaunchAgents/com.steakos.nostr-relay.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.steakos.nostr-relay</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/nostr-rs-relay</string>
+    <string>--config</string>
+    <string>/usr/local/var/steakos/nostr/config.toml</string>
+    <string>--db</string>
+    <string>/usr/local/var/steakos/nostr</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/usr/local/var/steakos/nostr</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/usr/local/var/steakos/nostr/relay.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/usr/local/var/steakos/nostr/relay.err.log</string>
+</dict>
+</plist>

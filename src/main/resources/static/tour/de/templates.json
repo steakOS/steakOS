@@ -1,0 +1,27 @@
+{
+  "title": "Startgröße wählen",
+  "pages": [
+    {
+      "title": "Startgröße wählen",
+      "icon": "📏",
+      "text": "Es gibt fertige Startvorlagen, damit Sie nicht alles von Grund auf bauen müssen.\n\n**Bronze** ist das Team-Paket, das heute offen ist. Silver und Gold sind die Wachstumsleiter, sobald diese Packs kommen. Später können Sie jederzeit erweitern.",
+      "examples": [
+        "Kleines Team mit etabliertem Portfolio (ca. 5–20 Personen) -> Bronze (empfohlener Start)",
+        "Wachsendes Unternehmen mit mehr Standorten und Prozessen -> Silver (demnächst)",
+        "Große / Multi-Entity-Organisation -> Gold (demnächst)"
+      ],
+      "choices": [
+        "Bronze-Vorlage: Kleines Team mit Produktportfolio, ca. 5–20 Mitarbeitende (empfohlen)",
+        "Silver-Vorlage: Wachsendes Unternehmen, mehr Standorte, bis ca. 100 Mitarbeitende (demnächst)",
+        "Gold-Vorlage: Großunternehmen / Multi-Company-Komplexität (demnächst)"
+      ],
+      "contentchoice": [
+        "templates/bronze.json",
+        "templates/silver.json",
+        "templates/gold.json"
+      ],
+      "tierCodes": ["BRONZE", "SILVER", "GOLD"],
+      "canSkip": false
+    }
+  ]
+}

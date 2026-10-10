@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Configure steakOS for privacy</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.4rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.5rem; text-align: left; font-size: 0.9rem; }
+    .muted { color: #555; font-size: 0.9rem; }
+    code { font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <h1>Configure steakOS for privacy</h1>
+  <p class="muted"><strong>Not legal advice.</strong> You (the operator) are the controller for personal data on this self-hosted instance. steakOS does not certify your compliance.</p>
+
+  <h2>Controller role</h2>
+  <ul>
+    <li>You run the instance and hold keys (self-host / appliance).</li>
+    <li>Enable people (HR) only if you need it — or stay on Copper without HR.</li>
+    <li>Setup requires a privacy acknowledgement before HR is enabled.</li>
+  </ul>
+
+  <h2>Where data lives</h2>
+  <table>
+    <tr><th>Area</th><th>Examples</th></tr>
+    <tr><td>HR / people</td><td>HR file, candidates, time, payroll lines</td></tr>
+    <tr><td>Sales</td><td>Customer names, contacts</td></tr>
+    <tr><td>Users</td><td>Login accounts, roles</td></tr>
+    <tr><td>Agents</td><td>Keep bulk HR denied; human approval for risky actions</td></tr>
+  </table>
+
+  <h2>Practical checklist</h2>
+  <ol>
+    <li>Change default admin password on shared networks.</li>
+    <li>Few admin accounts; limit who sees HR.</li>
+    <li>Collect only data you need for employment and operations.</li>
+    <li>Backup the database; test restore.</li>
+    <li>For access requests: export one person from HR desks; finance retention may limit full erase.</li>
+  </ol>
+
+  <p class="muted">Full guide in the repository: <code>docs/installation/GDPR-CONFIGURE-STEAKOS.md</code> · Trust runbook: <code>docs/installation/OPERATOR-TRUST-RUNBOOK.md</code></p>
+  <p><a href="operator-trust-runbook.html">Operator trust runbook (short)</a></p>
+</body>
+</html>

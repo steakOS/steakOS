@@ -1,0 +1,43 @@
+{
+  "title": "Welcome to steakOS",
+  "pages": [
+    {
+      "title": "Welcome to steakOS",
+      "icon": "🥩",
+      "text": "Hi!\n\n**steakOS** is short for:\n\n{{S}}overeign {{T}}ransactional {{E}}nterprise {{A}}utomation {{K}}ernel {{O}}rchestration {{S}}ystem (aka steakOS)\n\nThat is the official meaning of the name: software you control for real business transactions, automation, and coordinated operations — not a pile of disconnected tools.\n\nIf you're running a business — whether you're a solo freelancer, a small team, or leading a larger company — you probably know how frustrating business software can be. Complicated systems, endless spreadsheets, and tools that feel like they were built for someone else.\n\n**steakOS is different.**\n\nIt was built to be simple enough for one person and powerful enough for growing teams. This tour will show you, in plain English, how it works and why it might be exactly what you need.\n\nClick Next to get started!",
+      "canSkip": false
+    },
+    {
+      "title": "Why This Tour Matters",
+      "icon": "💡",
+      "text": "Most business software forces you to adapt to the tool. steakOS was designed the other way around — the tool adapts to how real businesses actually work.\n\nIn the next hour or so, you will learn the core ideas behind steakOS so you can make good decisions when setting it up. You don’t need to become a technical expert. You just need to understand the big picture.",
+      "examples": [
+        "You will understand why some tools create more work instead of less",
+        "You will see how modern technologies (AI, Bitcoin, and decentralized systems) can give you the freedom choice and make your life quite easy",
+        "You will learn to differentiate between both examples above and make much smarter choices."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "What You Will Learn in This Tour",
+      "icon": "📚",
+      "text": "By the end of this tour you will understand:\n\n• How business processes actually work\n• What “process automation” really means in practice\n• The international APQC framework that keeps everything organized\n• How AI can help you without taking control\n• How Bitcoin and Nostr can be used in business (and how much you want to use them)\n• The core concepts that make steakOS flexible for any size of business",
+      "examples": [
+        "A small business owner who finally understands why their current tools feel so painful",
+        "A CEO who wants to modernize their company without making it overly complicated"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Your Journey with steakOS",
+      "icon": "🛤️",
+      "text": "Here’s the simple path we will follow together:\n\n1. Learn the big ideas (this tour)\n2. Run the configuration wizard (you answer simple questions)\n3. Post your first real transaction\n4. Use steakOS every day with smart AI help\n5. Grow and add new features whenever you need them",
+      "mermaid": "graph TD\n    A[Learn the Concepts] --> B[Run Configuration Wizard]\n    B --> C[Post First Transaction]\n    C --> D[Daily Use with AI Help]\n    D --> E[Grow & Add Features]\n    style A fill:#1f2937,stroke:#fbbf24,stroke-width:3px,color:#ffffff\n    style E fill:#1f2937,stroke:#fbbf24,stroke-width:3px,color:#ffffff",
+      "examples": [
+        "Many people finish this tour and feel ready to start the same day",
+        "Others take their time, skip some sections, and come back later"
+      ],
+      "canSkip": true
+    }
+  ]
+}

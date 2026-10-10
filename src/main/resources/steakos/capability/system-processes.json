@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "processes": [
+    {
+      "processCode": "SCM_PO_FULFILL",
+      "name": "Purchase order",
+      "description": "Happy path: create PO → send → confirm receipt → payable → payment → vendor paid. Implemented on the SCM desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "steps": [
+        { "stepNo": 1, "name": "Create purchase order (draft)", "stepCode": "scm.po.create", "deskHint": "/scm", "outcomeStatus": "DRAFT", "actorHint": "HUMAN" },
+        { "stepNo": 2, "name": "Send purchase order", "stepCode": "scm.po.send", "deskHint": "/scm", "outcomeStatus": "SENT", "actorHint": "HUMAN", "predecessorStepNo": 1 },
+        { "stepNo": 3, "name": "Confirm receipt", "stepCode": "scm.po.receive", "deskHint": "/scm", "outcomeStatus": "RECEIVED", "actorHint": "HUMAN", "predecessorStepNo": 2 },
+        { "stepNo": 4, "name": "Payable item", "stepCode": "scm.po.payable", "deskHint": "/finance/payables", "outcomeStatus": "PAYABLE", "actorHint": "SYSTEM", "predecessorStepNo": 3 },
+        { "stepNo": 5, "name": "Payment run / pay", "stepCode": "scm.po.pay", "deskHint": "/finance/payables", "outcomeStatus": "PAID", "actorHint": "HUMAN", "predecessorStepNo": 4 },
+        { "stepNo": 6, "name": "Confirmed vendor payment", "stepCode": "scm.po.paid", "deskHint": "/finance/payables", "outcomeStatus": "CLOSED", "actorHint": "SYSTEM", "predecessorStepNo": 5 }
+      ]
+    },
+    {
+      "processCode": "SCM_MAKE_TO_STOCK",
+      "name": "Make to stock",
+      "description": "Release production → start → complete (OPEN lot) → quality check → PASS releases stock. Shop floor.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "steps": [
+        {
+          "stepNo": 1, "name": "Release production order", "stepCode": "scm.prod.release",
+          "deskHint": "/scm/shopfloor", "outcomeStatus": "RELEASED", "actorHint": "HUMAN",
+          "tipWhat": "Release a draft production order so the floor can start it.",
+          "tipWho": "Shop floor / planner", "tipWhere": "Shop floor → Production",
+          "tipPitfall": "Completing without release skips the planned sequence but is still allowed from DRAFT.",
+          "stub": false, "helpKey": "scm.shopfloor"
+        },
+        {
+          "stepNo": 2, "name": "Start production", "stepCode": "scm.prod.start",
+          "deskHint": "/scm/shopfloor", "outcomeStatus": "IN_PROGRESS", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Mark the order in progress on the floor.",
+          "tipWho": "Shop floor", "tipWhere": "Shop floor → Production",
+          "tipPitfall": "Starting a cancelled order is blocked.",
+          "stub": false, "helpKey": "scm.shopfloor"
+        },
+        {
+          "stepNo": 3, "name": "Complete production (create lot)", "stepCode": "scm.prod.complete",
+          "deskHint": "/scm/shopfloor", "outcomeStatus": "COMPLETED", "actorHint": "HUMAN", "predecessorStepNo": 2,
+          "tipWhat": "Finish the make order. For goods this creates an OPEN lot — stock is not posted yet.",
+          "tipWho": "Shop floor", "tipWhere": "Shop floor → Production",
+          "tipPitfall": "Expecting on-hand to rise at complete — it rises only after QA PASS.",
+          "stub": false, "helpKey": "scm.shopfloor"
+        },
+        {
+          "stepNo": 4, "name": "Quality check (PASS / FAIL / HOLD)", "stepCode": "scm.qa.check",
+          "deskHint": "/scm/shopfloor", "outcomeStatus": "RELEASED", "actorHint": "HUMAN", "predecessorStepNo": 3,
+          "tipWhat": "Inspect the lot. PASS releases quantity into stock; FAIL rejects; HOLD quarantines.",
+          "tipWho": "Quality / shop floor", "tipWhere": "Shop floor → Quality",
+          "tipPitfall": "Skipping QA leaves finished goods invisible in on-hand.",
+          "stub": false, "helpKey": "scm.shopfloor"
+        },
+        {
+          "stepNo": 5, "name": "Stock available (on hand)", "stepCode": "scm.inv.available",
+          "deskHint": "/scm/shopfloor", "outcomeStatus": "POSTED", "actorHint": "SYSTEM", "predecessorStepNo": 4,
+          "tipWhat": "After PASS, a PRODUCTION stock move posts and on-hand increases.",
+          "tipWho": "System", "tipWhere": "Shop floor → Inventory",
+          "tipPitfall": "Manual lots for stock already on hand do not post a second receipt on PASS.",
+          "stub": false, "helpKey": "scm.shopfloor"
+        }
+      ]
+    },
+    {
+      "processCode": "SALES_QUOTE_TO_ORDER",
+      "name": "Quote to sales order",
+      "description": "Create quote → send → accept → confirm sales order (optional draft invoice). Sales desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.1",
+      "steps": [
+        { "stepNo": 1, "name": "Create customer quote", "stepCode": "sales.quote.create", "deskHint": "/sales", "outcomeStatus": "DRAFT", "actorHint": "HUMAN",
+          "tipWhat": "Start a quote for a customer with lines and amounts.", "tipWho": "Sales / office", "tipWhere": "Sales desk", "tipPitfall": "Missing customer or empty lines block sending.", "stub": false, "helpKey": "sales.desk" },
+        { "stepNo": 2, "name": "Send quote", "stepCode": "sales.quote.send", "deskHint": "/sales", "outcomeStatus": "SENT", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Mark the quote sent so the customer can respond.", "tipWho": "Sales / office", "tipWhere": "Sales desk", "tipPitfall": "Editing after send can confuse acceptance state.", "stub": false, "helpKey": "sales.desk" },
+        { "stepNo": 3, "name": "Accept quote", "stepCode": "sales.quote.accept", "deskHint": "/sales", "outcomeStatus": "ACCEPTED", "actorHint": "HUMAN", "predecessorStepNo": 2,
+          "tipWhat": "Record customer acceptance of the quote.", "tipWho": "Sales / office", "tipWhere": "Sales desk", "tipPitfall": "Accepting the wrong quote version.", "stub": false, "helpKey": "sales.desk" },
+        { "stepNo": 4, "name": "Confirm sales order", "stepCode": "sales.order.confirm", "deskHint": "/sales", "outcomeStatus": "CONFIRMED", "actorHint": "HUMAN", "predecessorStepNo": 3,
+          "tipWhat": "Confirm the sales order from the accepted quote.", "tipWho": "Sales / ops", "tipWhere": "Sales desk", "tipPitfall": "Confirming before acceptance skips the commercial handshake.", "stub": false, "helpKey": "sales.desk" },
+        { "stepNo": 5, "name": "Optional draft invoice", "stepCode": "sales.order.invoice", "deskHint": "/finance/invoices", "outcomeStatus": "DRAFT", "actorHint": "SYSTEM", "predecessorStepNo": 4,
+          "tipWhat": "Optionally open a draft invoice for Finance to issue.", "tipWho": "System / Finance", "tipWhere": "Finance → Invoices", "tipPitfall": "Draft is not payment — still issue and settle in Finance.", "stub": false, "helpKey": "finance.invoices" }
+      ]
+    },
+    {
+      "processCode": "FIN_INVOICE_SETTLE",
+      "name": "Customer invoice settle",
+      "description": "Create invoice → issue → settle via payment rails. Finance revenue desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.1",
+      "steps": [
+        { "stepNo": 1, "name": "Create invoice (draft)", "stepCode": "fin.inv.create", "deskHint": "/finance/invoices", "outcomeStatus": "DRAFT", "actorHint": "HUMAN",
+          "tipWhat": "Create a draft invoice for the customer amount.", "tipWho": "Finance / revenue owner", "tipWhere": "Finance → Invoices", "tipPitfall": "Settling a draft before issue leaves rails inconsistent.", "stub": false, "helpKey": "finance.invoices" },
+        { "stepNo": 2, "name": "Issue invoice", "stepCode": "fin.inv.issue", "deskHint": "/finance/invoices", "outcomeStatus": "ISSUED", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Issue the draft so the customer can pay (rails / PDF).", "tipWho": "Finance / revenue owner", "tipWhere": "Finance → Invoices", "tipPitfall": "Issuing without checking amount or customer name.", "stub": false, "helpKey": "finance.invoices" },
+        { "stepNo": 3, "name": "Settle / record payment", "stepCode": "fin.inv.settle", "deskHint": "/finance/invoices", "outcomeStatus": "SETTLED", "actorHint": "HUMAN", "predecessorStepNo": 2,
+          "tipWhat": "Record payment (fiat settle, wallet address, or live BTCPay on LIVE company).", "tipWho": "Finance (human — agents need HITL)", "tipWhere": "Finance → Invoices / Payments", "tipPitfall": "DEMO companies force mock settle; live BTCPay is LIVE-only.", "stub": false, "helpKey": "finance.payments.live" }
+      ]
+    },
+    {
+      "processCode": "DEL_SERVICE_ORDER",
+      "name": "Service order fulfillment",
+      "description": "Create service order → schedule/assign → start → complete. Delivery desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "steps": [
+        { "stepNo": 1, "name": "Create service order", "stepCode": "del.so.create", "deskHint": "/delivery", "outcomeStatus": "DRAFT", "actorHint": "HUMAN" },
+        { "stepNo": 2, "name": "Schedule / assign resource", "stepCode": "del.so.assign", "deskHint": "/delivery", "outcomeStatus": "SCHEDULED", "actorHint": "HUMAN", "predecessorStepNo": 1 },
+        { "stepNo": 3, "name": "Start service", "stepCode": "del.so.start", "deskHint": "/delivery", "outcomeStatus": "IN_PROGRESS", "actorHint": "HUMAN", "predecessorStepNo": 2 },
+        { "stepNo": 4, "name": "Complete service order", "stepCode": "del.so.complete", "deskHint": "/delivery", "outcomeStatus": "COMPLETED", "actorHint": "HUMAN", "predecessorStepNo": 3 }
+      ]
+    },
+    {
+      "processCode": "AS_INQUIRY",
+      "name": "Customer inquiry",
+      "description": "Create inquiry → start work → resolve → close. After-sales desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "steps": [
+        { "stepNo": 1, "name": "Create inquiry", "stepCode": "as.inq.create", "deskHint": "/aftersales", "outcomeStatus": "OPEN", "actorHint": "HUMAN" },
+        { "stepNo": 2, "name": "Start work", "stepCode": "as.inq.start", "deskHint": "/aftersales", "outcomeStatus": "IN_PROGRESS", "actorHint": "HUMAN", "predecessorStepNo": 1 },
+        { "stepNo": 3, "name": "Resolve inquiry", "stepCode": "as.inq.resolve", "deskHint": "/aftersales", "outcomeStatus": "RESOLVED", "actorHint": "HUMAN", "predecessorStepNo": 2 },
+        { "stepNo": 4, "name": "Close inquiry", "stepCode": "as.inq.close", "deskHint": "/aftersales", "outcomeStatus": "CLOSED", "actorHint": "HUMAN", "predecessorStepNo": 3 }
+      ]
+    },
+    {
+      "processCode": "HR_CANDIDATE_HIRE",
+      "name": "Hire candidate",
+      "description": "Create candidate → advance stages → hire → HR file. HR desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "steps": [
+        { "stepNo": 1, "name": "Create candidate", "stepCode": "hr.cand.create", "deskHint": "/hr", "outcomeStatus": "APPLIED", "actorHint": "HUMAN" },
+        { "stepNo": 2, "name": "Advance hiring stage", "stepCode": "hr.cand.advance", "deskHint": "/hr", "outcomeStatus": "INTERVIEW", "actorHint": "HUMAN", "predecessorStepNo": 1 },
+        { "stepNo": 3, "name": "Hire candidate", "stepCode": "hr.cand.hire", "deskHint": "/hr", "outcomeStatus": "HIRED", "actorHint": "HUMAN", "predecessorStepNo": 2 },
+        { "stepNo": 4, "name": "Open HR file", "stepCode": "hr.file.open", "deskHint": "/hr", "outcomeStatus": "ACTIVE", "actorHint": "SYSTEM", "predecessorStepNo": 3 }
+      ]
+    },
+    {
+      "processCode": "CAP_PROJECT",
+      "name": "Project lifecycle",
+      "description": "Create project → start → complete or cancel. Capability hub.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "steps": [
+        { "stepNo": 1, "name": "Create project (draft)", "stepCode": "cap.proj.create", "deskHint": "/capability/projects", "outcomeStatus": "DRAFT", "actorHint": "HUMAN" },
+        { "stepNo": 2, "name": "Start project", "stepCode": "cap.proj.start", "deskHint": "/capability/projects", "outcomeStatus": "ACTIVE", "actorHint": "HUMAN", "predecessorStepNo": 1 },
+        { "stepNo": 3, "name": "Complete project", "stepCode": "cap.proj.complete", "deskHint": "/capability/projects", "outcomeStatus": "COMPLETED", "actorHint": "HUMAN", "predecessorStepNo": 2 },
+        { "stepNo": 4, "name": "Or cancel project", "stepCode": "cap.proj.cancel", "deskHint": "/capability/projects", "outcomeStatus": "CANCELLED", "actorHint": "HUMAN", "predecessorStepNo": 1 }
+      ]
+    },
+    {
+      "processCode": "AR_HITL_APPROVAL",
+      "name": "HITL approval",
+      "description": "Submit agent proposal → human approve or reject. Agents hub.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "steps": [
+        { "stepNo": 1, "name": "Submit proposal", "stepCode": "ar.hitl.submit", "deskHint": "/agents/hitl", "outcomeStatus": "PENDING", "actorHint": "AGENT" },
+        { "stepNo": 2, "name": "Approve proposal", "stepCode": "ar.hitl.approve", "deskHint": "/agents/hitl", "outcomeStatus": "APPROVED", "actorHint": "HUMAN", "predecessorStepNo": 1 },
+        { "stepNo": 3, "name": "Or reject proposal", "stepCode": "ar.hitl.reject", "deskHint": "/agents/hitl", "outcomeStatus": "REJECTED", "actorHint": "HUMAN", "predecessorStepNo": 1 }
+      ]
+    }
+  ]
+}

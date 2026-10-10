@@ -1,0 +1,208 @@
+{
+  "ui": {
+    "openBrowser": "Open process browser",
+    "seedHint": "Seed SYSTEM processes from Settings if the catalogue is empty.",
+    "hoverHint": "Hover or focus a step for What / Who / Where. On touch, tap to pin the tip. Esc closes.",
+    "tipWhat": "What",
+    "tipWho": "Who",
+    "tipWhere": "Where",
+    "tipPitfall": "Pitfall",
+    "tipStub": "planned / stub",
+    "noTip": "No tip text yet — reseed SYSTEM processes after tips land.",
+    "helpKey": "Help key",
+    "helpCenter": "Help center",
+    "openDesk": "Open",
+    "flow": "Flow",
+    "stepsHeading": "Steps",
+    "systemReadonly": "SYSTEM process steps are read-only. Clone as a HUMAN process to customize.",
+    "diagramAria": "Process flowchart",
+    "stepAria": "Process step {{stepNo}}",
+    "stepTipAria": "Step {{stepNo}} tip",
+    "renderError": "Could not render diagram",
+    "noSteps": "No steps",
+    "closeTip": "Close tip"
+  },
+  "labels": {
+    "AS_INQUIRY": "Inquiry process",
+    "SCM_PO_FULFILL": "PO process",
+    "SCM_MAKE_TO_STOCK": "Make→stock process",
+    "SALES_QUOTE_TO_ORDER": "Quote→Order process",
+    "FIN_INVOICE_SETTLE": "Invoice process",
+    "DEL_SERVICE_ORDER": "Service order process",
+    "HR_CANDIDATE_HIRE": "Hire process",
+    "CAP_PROJECT": "Project process",
+    "AR_HITL_APPROVAL": "HITL process"
+  },
+  "catalogue": {
+    "SCM_PO_FULFILL": {
+      "name": "Purchase order",
+      "description": "Happy path: create PO → send → confirm receipt → payable → payment → vendor paid. Implemented on the SCM desk.",
+      "steps": {
+        "scm.po.create": { "name": "Create purchase order (draft)" },
+        "scm.po.send": { "name": "Send purchase order" },
+        "scm.po.receive": { "name": "Confirm receipt" },
+        "scm.po.payable": { "name": "Payable item" },
+        "scm.po.pay": { "name": "Payment run / pay" },
+        "scm.po.paid": { "name": "Confirmed vendor payment" }
+      }
+    },
+    "SCM_MAKE_TO_STOCK": {
+      "name": "Make to stock",
+      "description": "Release → start → complete (OPEN lot) → quality check → PASS posts stock. Shop floor.",
+      "steps": {
+        "scm.prod.release": {
+          "name": "Release production order",
+          "tipWhat": "Release a draft production order so the floor can start it.",
+          "tipWho": "Shop floor / planner",
+          "tipWhere": "Shop floor → Production",
+          "tipPitfall": "Completing without release skips the planned sequence but is still allowed from DRAFT."
+        },
+        "scm.prod.start": {
+          "name": "Start production",
+          "tipWhat": "Mark the order in progress on the floor.",
+          "tipWho": "Shop floor",
+          "tipWhere": "Shop floor → Production",
+          "tipPitfall": "Starting a cancelled order is blocked."
+        },
+        "scm.prod.complete": {
+          "name": "Complete production (create lot)",
+          "tipWhat": "Finish the make order. For goods this creates an OPEN lot — stock is not posted yet.",
+          "tipWho": "Shop floor",
+          "tipWhere": "Shop floor → Production",
+          "tipPitfall": "Expecting on-hand to rise at complete — it rises only after QA PASS."
+        },
+        "scm.qa.check": {
+          "name": "Quality check (PASS / FAIL / HOLD)",
+          "tipWhat": "Inspect the lot. PASS releases quantity into stock; FAIL rejects; HOLD quarantines.",
+          "tipWho": "Quality / shop floor",
+          "tipWhere": "Shop floor → Quality",
+          "tipPitfall": "Skipping QA leaves finished goods invisible in on-hand."
+        },
+        "scm.inv.available": {
+          "name": "Stock available (on hand)",
+          "tipWhat": "After PASS, a PRODUCTION stock move posts and on-hand increases.",
+          "tipWho": "System",
+          "tipWhere": "Shop floor → Inventory",
+          "tipPitfall": "Manual lots for stock already on hand do not post a second receipt on PASS."
+        }
+      }
+    },
+    "SALES_QUOTE_TO_ORDER": {
+      "name": "Quote to sales order",
+      "description": "Create quote → send → accept → confirm sales order (optional draft invoice). Sales desk.",
+      "steps": {
+        "sales.quote.create": {
+          "name": "Create customer quote",
+          "tipWhat": "Start a quote for a customer with lines and amounts.",
+          "tipWho": "Sales / office",
+          "tipWhere": "Sales desk",
+          "tipPitfall": "Missing customer or empty lines block sending."
+        },
+        "sales.quote.send": {
+          "name": "Send quote",
+          "tipWhat": "Mark the quote sent so the customer can respond.",
+          "tipWho": "Sales / office",
+          "tipWhere": "Sales desk",
+          "tipPitfall": "Editing after send can confuse acceptance state."
+        },
+        "sales.quote.accept": {
+          "name": "Accept quote",
+          "tipWhat": "Record customer acceptance of the quote.",
+          "tipWho": "Sales / office",
+          "tipWhere": "Sales desk",
+          "tipPitfall": "Accepting the wrong quote version."
+        },
+        "sales.order.confirm": {
+          "name": "Confirm sales order",
+          "tipWhat": "Confirm the sales order from the accepted quote.",
+          "tipWho": "Sales / ops",
+          "tipWhere": "Sales desk",
+          "tipPitfall": "Confirming before acceptance skips the commercial handshake."
+        },
+        "sales.order.invoice": {
+          "name": "Optional draft invoice",
+          "tipWhat": "Optionally open a draft invoice for Finance to issue.",
+          "tipWho": "System / Finance",
+          "tipWhere": "Finance → Invoices",
+          "tipPitfall": "Draft is not payment — still issue and settle in Finance."
+        }
+      }
+    },
+    "FIN_INVOICE_SETTLE": {
+      "name": "Customer invoice settle",
+      "description": "Create invoice → issue → settle via payment rails. Finance revenue desk.",
+      "steps": {
+        "fin.inv.create": {
+          "name": "Create invoice (draft)",
+          "tipWhat": "Create a draft invoice for the customer amount.",
+          "tipWho": "Finance / revenue owner",
+          "tipWhere": "Finance → Invoices",
+          "tipPitfall": "Settling a draft before issue leaves rails inconsistent."
+        },
+        "fin.inv.issue": {
+          "name": "Issue invoice",
+          "tipWhat": "Issue the draft so the customer can pay (rails / PDF).",
+          "tipWho": "Finance / revenue owner",
+          "tipWhere": "Finance → Invoices",
+          "tipPitfall": "Issuing without checking amount or customer name."
+        },
+        "fin.inv.settle": {
+          "name": "Settle / record payment",
+          "tipWhat": "Record payment (fiat settle, wallet address, or live BTCPay on LIVE company).",
+          "tipWho": "Finance (human — agents need HITL)",
+          "tipWhere": "Finance → Invoices / Payments",
+          "tipPitfall": "DEMO companies force mock settle; live BTCPay is LIVE-only."
+        }
+      }
+    },
+    "DEL_SERVICE_ORDER": {
+      "name": "Service order fulfillment",
+      "description": "Create service order → schedule/assign → start → complete. Delivery desk.",
+      "steps": {
+        "del.so.create": { "name": "Create service order" },
+        "del.so.assign": { "name": "Schedule / assign resource" },
+        "del.so.start": { "name": "Start service" },
+        "del.so.complete": { "name": "Complete service order" }
+      }
+    },
+    "AS_INQUIRY": {
+      "name": "Customer inquiry",
+      "description": "Create inquiry → start work → resolve → close. After-sales desk.",
+      "steps": {
+        "as.inq.create": { "name": "Create inquiry" },
+        "as.inq.start": { "name": "Start work" },
+        "as.inq.resolve": { "name": "Resolve inquiry" },
+        "as.inq.close": { "name": "Close inquiry" }
+      }
+    },
+    "HR_CANDIDATE_HIRE": {
+      "name": "Hire candidate",
+      "description": "Create candidate → advance stages → hire → HR file. HR desk.",
+      "steps": {
+        "hr.cand.create": { "name": "Create candidate" },
+        "hr.cand.advance": { "name": "Advance hiring stage" },
+        "hr.cand.hire": { "name": "Hire candidate" },
+        "hr.file.open": { "name": "Open HR file" }
+      }
+    },
+    "CAP_PROJECT": {
+      "name": "Project lifecycle",
+      "description": "Create project → start → complete or cancel. Capability hub.",
+      "steps": {
+        "cap.proj.create": { "name": "Create project (draft)" },
+        "cap.proj.start": { "name": "Start project" },
+        "cap.proj.complete": { "name": "Complete project" },
+        "cap.proj.cancel": { "name": "Or cancel project" }
+      }
+    },
+    "AR_HITL_APPROVAL": {
+      "name": "HITL approval",
+      "description": "Submit agent proposal → human approve or reject. Agents hub.",
+      "steps": {
+        "ar.hitl.submit": { "name": "Submit proposal" },
+        "ar.hitl.approve": { "name": "Approve proposal" },
+        "ar.hitl.reject": { "name": "Or reject proposal" }
+      }
+    }
+  }
+}

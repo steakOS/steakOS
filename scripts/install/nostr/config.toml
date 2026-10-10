@@ -1,0 +1,46 @@
+# steakOS private Nostr relay (nostr-rs-relay) — OI-NOSTR01 / D1–D5
+# Default: loopback only (D3). Not a public relay (D16/D17).
+# Edit pubkey_whitelist after you know company / Admin hex pubkeys.
+
+[info]
+relay_url = "ws://127.0.0.1:7777/"
+name = "steakOS private relay"
+description = "Operator-run private relay for steakOS audit / notify. Not public."
+
+[database]
+engine = "sqlite"
+# Absolute path preferred in production (/var/lib/steakos/nostr).
+# Dev default is overridden by install script --db flag.
+data_directory = "."
+
+[network]
+address = "127.0.0.1"
+port = 7777
+
+[options]
+reject_future_seconds = 1800
+
+[limits]
+messages_per_sec = 20
+subscriptions_per_min = 30
+max_event_bytes = 131072
+# Audit + replaceable + legacy DM + giftwrap (NIP-17) — expand later if needed
+event_kind_allowlist = [
+    0, 1, 3, 4, 5, 7,
+    1984,
+    10002,
+    1059,
+    30023, 30078,
+]
+
+[authorization]
+# Empty whitelist = any authenticated client may write until you lock it down.
+# Prefer filling hex pubkeys (not npub) for company bot + operators.
+# pubkey_whitelist = [
+#   "YOUR_COMPANY_BOT_HEX_PUBKEY",
+# ]
+nip42_auth = true
+nip42_dms = true
+
+[verified_users]
+mode = "disabled"

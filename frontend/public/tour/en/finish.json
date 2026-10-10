@@ -1,0 +1,15 @@
+{
+  "title": "Congratulations!",
+  "pages": [
+    {
+      "title": "You've Completed the Onboarding Tour",
+      "icon": "🎉",
+      "text": "Congratulations! You have completed the steakOS onboarding tour.\n\nYou understand the journey from concepts to daily use: templates (Bronze → Gold), AI helpers, Bitcoin, Nostr, and the APQC process map.\n\n**Next step:** run the configuration wizard in the app. It asks a few simple questions, creates your company setup, and turns on the Bronze team desks.\n\nUse the buttons below — no separate training server needed.",
+      "examples": [
+        "Continue to the setup wizard in this browser",
+        "Or open the dashboard if you already finished setup"
+      ],
+      "canSkip": false
+    }
+  ]
+}

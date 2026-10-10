@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteakOS Onboarding Tour</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        html, body { height: 100%; }
+        body { font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+        .heading { font-family: 'Space Grotesk', sans-serif; }
+        .progress-bar { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .choice-card { transition: all 0.3s; }
+        .choice-card:hover { transform: scale(1.03); border-color: #fbbf24; }
+        /* Compact density for ~1680×1024: most pages fit without page scroll */
+        .tour-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+            box-sizing: border-box;
+            padding: 0.75rem 1.25rem 0.75rem;
+        }
+        .tour-header { flex: 0 0 auto; margin-bottom: 0.5rem; }
+        #content-area {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+        }
+        .tour-nav {
+            flex: 0 0 auto;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #27272a;
+        }
+        .tour-page { margin-bottom: 0; }
+        .tour-title-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            background: #18181b;
+            padding: 0.35rem 0.85rem;
+            border-radius: 1rem;
+            margin-bottom: 0.65rem;
+        }
+        .tour-title-row .tour-icon { font-size: 1.75rem; line-height: 1; }
+        .tour-title-row .tour-title { font-size: 1.35rem; font-weight: 600; }
+        /* Examples slightly larger than body; tight gaps */
+        .tour-examples { margin: 0 0 0.65rem; }
+        .tour-examples-label { margin-bottom: 0.35rem; }
+        .tour-examples-list { display: flex; flex-direction: column; gap: 0.35rem; }
+        .tour-example { font-size: 1.2rem; line-height: 1.3; margin: 0; }
+        .tour-body { font-size: 1.05rem; line-height: 1.4; margin: 0; }
+        .tour-section { margin-top: 0.65rem; }
+        .tour-section-label { margin-bottom: 0.35rem; }
+        .acronym-letter {
+            color: #fbbf24;
+            font-weight: 700;
+            font-size: 1.1em;
+            letter-spacing: 0.02em;
+        }
+        @media (max-width: 640px) {
+            .tour-shell { padding: 0.5rem 0.75rem; }
+            .tour-example { font-size: 1.05rem; }
+            .tour-body { font-size: 0.95rem; }
+            .tour-title-row .tour-title { font-size: 1.15rem; }
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100">
+    <div class="tour-shell max-w-4xl mx-auto w-full">
+        <!-- Header - only once -->
+        <div class="tour-header flex justify-between items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-amber-500 rounded-2xl flex items-center justify-center text-2xl">🥩</div>
+                <div>
+                    <div class="heading text-xl font-bold leading-tight">steakOS</div>
+                    <div class="text-[10px] text-zinc-500 leading-tight">In-app onboarding tour</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="/setup" class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400">Setup wizard</a>
+                <a href="/dashboard" class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400">App dashboard</a>
+
+                <div class="w-40 sm:w-56 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="progress-bar h-full bg-amber-500 w-0"></div>
+                </div>
+                <div class="text-right">
+                    <div id="progress-text" class="text-zinc-400 text-sm font-medium leading-tight">Section 1/11</div>
+                    <div id="section-detail" class="text-[10px] text-zinc-500 leading-tight"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-area"></div>
+
+        <!-- Navigation - pinned in viewport -->
+        <div class="tour-nav flex justify-between items-center gap-3">
+            <button onclick="prevStep()" class="px-5 py-2 border border-zinc-700 hover:bg-zinc-900 rounded-2xl flex items-center gap-2 font-medium text-sm">← Previous</button>
+            <div class="flex items-center gap-2">
+                <button onclick="skipSection()" id="btn-skip" class="hidden px-4 py-2 border border-zinc-700 hover:bg-zinc-900 rounded-2xl font-medium text-sm">Skip this section</button>
+                <button onclick="nextStep()" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-2xl flex items-center gap-2 text-sm">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSectionIndex = 0;
+        let currentPage = 0;
+        let currentSectionData = {};
+        let currentTemplateData = null;
+        let isInTemplateMode = false;
+        let currentTemplateName = "";
+        let tourLang = 'en';
+
+        const LOCALE_KEY = 'steakos.ui.locale';
+        const LOCALE_OPTIONS = [
+            { code: 'en_US', label: 'English (United States)' },
+            { code: 'en_SG', label: 'English (Singapore)' },
+            { code: 'de_DE', label: 'Deutsch (Deutschland)' },
+            { code: 'de_AT', label: 'Deutsch (Österreich)' },
+            { code: 'de_CH', label: 'Deutsch (Schweiz)' },
+        ];
+
+        function langFromLocale(code) {
+            if (!code) return 'en';
+            return String(code).toLowerCase().startsWith('de') ? 'de' : 'en';
+        }
+
+        function initTourLang() {
+            try {
+                const stored = localStorage.getItem(LOCALE_KEY);
+                if (stored) tourLang = langFromLocale(stored);
+            } catch (e) {}
+        }
+        initTourLang();
+
+        const sections = [
+            { file: "locale.json", name: "Language", nameDe: "Sprache" },
+            { file: "welcome.json", name: "Welcome", nameDe: "Willkommen" },
+            { file: "journey.json", name: "Your Journey", nameDe: "Ihre Reise" },
+            { file: "processes.json", name: "Business Processes", nameDe: "Prozesse" },
+            { file: "apqc.json", name: "APQC Framework", nameDe: "APQC" },
+            { file: "ai.json", name: "AI Support", nameDe: "KI" },
+            { file: "bitcoin.json", name: "Bitcoin", nameDe: "Bitcoin" },
+            { file: "nostr.json", name: "Nostr", nameDe: "Nostr" },
+            { file: "core-concepts.json", name: "Core Concepts", nameDe: "Kernkonzepte" },
+            { file: "templates.json", name: "Choose Template", nameDe: "Vorlage" },
+            { file: "architecture.json", name: "Architecture", nameDe: "Architektur" },
+            { file: "finish.json", name: "Finish", nameDe: "Abschluss" }
+        ];
+
+        function sectionFile(file) {
+            return tourLang + '/' + file;
+        }
+
+        async function loadSection(index) {
+            const section = sections[index];
+            try {
+                let res = await fetch(sectionFile(section.file));
+                if (!res.ok) res = await fetch(section.file);
+                currentSectionData = await res.json();
+                currentPage = 0;
+                isInTemplateMode = false;
+                currentTemplateName = "";
+                renderPage();
+                // chrome language
+                const nextBtn = document.querySelector('button[onclick="nextStep()"]');
+                const prevBtn = document.querySelector('button[onclick="prevStep()"]');
+                const skipBtn = document.getElementById('btn-skip');
+                if (nextBtn) nextBtn.innerHTML = tourLang === 'de' ? 'Weiter →' : 'Next →';
+                if (prevBtn) prevBtn.innerHTML = tourLang === 'de' ? '← Zurück' : '← Previous';
+                if (skipBtn) skipBtn.textContent = tourLang === 'de' ? 'Abschnitt überspringen' : 'Skip this section';
+            } catch (e) {
+                console.error('Failed to load', section.file, e);
+            }
+        }
+
+        function formatText(text) {
+            if (!text) return '';
+            // Tighten blank lines so pages fit ~1024px height more often
+            text = text.replace(/\n{3,}/g, '\n\n');
+            // {{S}}overeign → highlighted acronym letter (PDR-002 backronym)
+            text = text.replace(/\{\{([A-Za-z])\}\}/g, '<span class="acronym-letter">$1</span>');
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+            return text;
+        }
+
+        function updateProgress() {
+            const totalSections = sections.length;
+            const sectionLabel = tourLang === 'de' ? 'Abschnitt' : 'Section';
+            const pageOf = tourLang === 'de' ? 'Seite' : 'Page';
+            const pageOfMid = tourLang === 'de' ? 'von' : 'of';
+            const templateWord = tourLang === 'de' ? 'Vorlage' : 'Template';
+            document.getElementById('progress-bar').style.width = `${((currentSectionIndex + 1) / totalSections) * 100}%`;
+            document.getElementById('progress-text').textContent = `${sectionLabel} ${currentSectionIndex + 1}/${totalSections}`;
+
+            let detailText = "";
+            if (isInTemplateMode && currentTemplateName) {
+                const total = currentTemplateData.pages ? currentTemplateData.pages.length : 1;
+                detailText = `${currentTemplateName} ${templateWord} • ${pageOf} ${currentPage + 1} ${pageOfMid} ${total}`;
+            } else {
+                const name = currentSectionData.title || (tourLang === 'de' ? sections[currentSectionIndex].nameDe : sections[currentSectionIndex].name);
+                const total = currentSectionData.pages ? currentSectionData.pages.length : 1;
+                detailText = `${name} • ${pageOf} ${currentPage + 1} ${pageOfMid} ${total}`;
+            }
+            document.getElementById('section-detail').textContent = detailText;
+        }
+
+        function renderPage() {
+            const area = document.getElementById('content-area');
+            let page;
+
+            if (isInTemplateMode && currentTemplateData && currentTemplateData.pages) {
+                page = currentTemplateData.pages[currentPage];
+            } else {
+                page = currentSectionData.pages ? currentSectionData.pages[currentPage] : {title: "Page", text: "Content loaded!"};
+            }
+
+            let examplesHtml = '';
+            if (page.examples && page.examples.length > 0) {
+                // No bordered cards — examples sit above body text at a slightly larger size
+                examplesHtml = `
+                    <div class="tour-examples">
+                        <div class="tour-examples-label text-amber-400 text-xs font-medium tracking-wide">${tourLang === 'de' ? '💡 BEISPIELE' : '💡 EXAMPLES'}</div>
+                        <div class="tour-examples-list">
+                            ${page.examples.map(ex => `
+                                <p class="tour-example text-zinc-100 font-medium whitespace-pre-line">${formatText(ex)}</p>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let choicesHtml = '';
+            if (page.localePicker) {
+                let current = 'en_US';
+                try { current = localStorage.getItem(LOCALE_KEY) || current; } catch (e) {}
+                choicesHtml = `
+                    <div class="tour-section">
+                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourLang === 'de' ? 'Locale wählen' : 'Choose locale'}</div>
+                        <select id="tour-locale-select" class="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-base"
+                            onchange="onTourLocaleChange(this.value)">
+                            ${LOCALE_OPTIONS.map(o => `<option value="${o.code}" ${o.code === current ? 'selected' : ''}>${o.label}</option>`).join('')}
+                        </select>
+                        <p class="text-zinc-500 text-xs mt-2">${tourLang === 'de' ? 'Wird im Browser gespeichert und nach dem Login übernommen.' : 'Stored in the browser and applied after login.'}</p>
+                    </div>
+                `;
+            } else if (page.choices && page.choices.length > 0) {
+                choicesHtml = `
+                    <div class="tour-section">
+                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourLang === 'de' ? 'Treffen Sie Ihre Wahl' : 'Make your choice'}</div>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            ${page.choices.map((choice, i) => `
+                                <div onclick="makeChoice(${i})" class="choice-card cursor-pointer bg-zinc-900 p-4 rounded-2xl border-2 border-transparent hover:border-amber-500 text-sm leading-snug">
+                                    ${formatText(choice)}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let mermaidHtml = '';
+            if (page.mermaid) {
+                mermaidHtml = `
+                    <div class="tour-section">
+                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourLang === 'de' ? '📊 ÜBERSICHT' : '📊 VISUAL OVERVIEW'}</div>
+                        <div class="mermaid bg-zinc-900 p-3 rounded-2xl border border-zinc-700 text-sm">
+                            ${page.mermaid}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <div class="tour-page">
+                    <div class="tour-title-row">
+                        <span class="tour-icon">${page.icon || '📍'}</span>
+                        <span class="tour-title">${page.title}</span>
+                    </div>
+                    ${examplesHtml}
+                    <div class="tour-body text-zinc-300 whitespace-pre-line">${formatText(page.text || '')}</div>
+                    ${mermaidHtml}
+                    ${choicesHtml}
+                </div>
+            `;
+            area.innerHTML = html;
+
+            if (page.mermaid) {
+                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+            }
+
+            updateProgress();
+
+            const skipBtn = document.getElementById('btn-skip');
+            skipBtn.classList.toggle('hidden', !page.canSkip);
+        }
+
+        async function onTourLocaleChange(code) {
+            try { localStorage.setItem(LOCALE_KEY, code); } catch (e) {}
+            const nextLang = langFromLocale(code);
+            if (nextLang !== tourLang) {
+                tourLang = nextLang;
+                await loadSection(currentSectionIndex);
+            }
+        }
+
+        async function makeChoice(choiceIndex) {
+            const page = currentSectionData.pages[currentPage];
+            if (page.contentchoice && page.contentchoice[choiceIndex]) {
+                const chosenFile = page.contentchoice[choiceIndex];
+                try {
+                    // Remember for config wizard handshake (SetupWizard reads preferredTemplate)
+                    const tierCodes = page.tierCodes || [];
+                    if (tierCodes[choiceIndex]) {
+                        try {
+                            localStorage.setItem('steakos.preferredTemplate', tierCodes[choiceIndex]);
+                        } catch (e) { /* private mode */ }
+                    }
+                    // Prefer language-specific path (e.g. de/templates/iron.json), then root fallback
+                    let res = await fetch(sectionFile(chosenFile));
+                    if (!res.ok) res = await fetch(chosenFile);
+                    if (!res.ok) throw new Error('template not found');
+                    currentTemplateData = await res.json();
+                    isInTemplateMode = true;
+                    currentPage = 0;
+                    currentTemplateName = page.choices[choiceIndex].split(":")[0].trim();
+                    renderPage();
+                } catch (e) {
+                    alert((tourLang === 'de' ? 'Konnte nicht laden: ' : 'Failed to load ') + chosenFile);
+                }
+            } else {
+                nextStep();
+            }
+        }
+
+        function nextStep() {
+            if (isInTemplateMode) {
+                const totalPages = currentTemplateData.pages ? currentTemplateData.pages.length : 1;
+                if (currentPage < totalPages - 1) {
+                    currentPage++;
+                    renderPage();
+                    return;
+                }
+            }
+
+            const totalPages = currentSectionData.pages ? currentSectionData.pages.length : 1;
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                renderPage();
+            } else if (currentSectionIndex < sections.length - 1) {
+                currentSectionIndex++;
+                loadSection(currentSectionIndex);
+            } else {
+                // End of tour — offer next steps in-app (same origin, no extra server)
+                const area = document.getElementById('content-area');
+                area.innerHTML = `
+                    <div class="text-center py-6">
+                        <div class="text-4xl mb-3">🎉</div>
+                        <h2 class="heading text-2xl font-bold mb-2">Tour complete</h2>
+                        <p class="text-zinc-400 text-sm mb-5 max-w-xl mx-auto leading-snug">
+                            Continue in steakOS — the configuration wizard sets up your company.
+                            Your template choice (if any) is remembered for the wizard.
+                        </p>
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <a href="/setup" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-2xl text-sm">Open setup wizard</a>
+                            <a href="/dashboard" class="px-6 py-2 border border-zinc-600 hover:bg-zinc-900 rounded-2xl font-medium text-sm">Go to dashboard</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function prevStep() {
+            if (isInTemplateMode) {
+                if (currentPage > 0) {
+                    currentPage--;
+                    renderPage();
+                    return;
+                }
+            }
+
+            if (currentPage > 0) {
+                currentPage--;
+                renderPage();
+            } else if (currentSectionIndex > 0) {
+                currentSectionIndex--;
+                loadSection(currentSectionIndex);
+            }
+        }
+
+        function skipSection() {
+            if (currentSectionIndex < sections.length - 1) {
+                currentSectionIndex++;
+                loadSection(currentSectionIndex);
+            }
+        }
+
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'dark',
+            securityLevel: 'loose'
+        });
+
+        loadSection(0);
+    </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+{
+  "title": "The APQC Framework",
+  "pages": [
+    {
+      "title": "What is APQC?",
+      "icon": "📋",
+      "text": "APQC stands for American Productivity & Quality Center. It created a widely used international framework that organizes business processes into clear categories.\n\nWhy does this matter? Because it gives businesses a common language and structure. Instead of everyone inventing their own way of organizing work, APQC provides a proven model that works for companies of all sizes.",
+      "examples": [
+        "Think of it like having a standard map for business activities instead of everyone drawing their own map"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Why SteakOS Uses APQC",
+      "icon": "🗺️",
+      "text": "SteakOS is built around the APQC framework because it helps keep everything organized and consistent — even when your business grows or becomes more complex.\n\nYou don’t need to memorize all 13 areas. The important thing is to understand that your business has different types of activities, and organizing them clearly makes everything easier.",
+      "examples": [
+        "A small business owner can start simple and still benefit from a clear structure",
+        "A growing company can scale without the processes becoming chaotic"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "1. Strategy",
+      "icon": "🎯",
+      "text": "Strategy is about deciding where your business is going and how it will get there.\n\nThis includes setting goals, understanding your market, planning for the future, and making big decisions about direction.",
+      "examples": [
+        "A freelancer deciding whether to specialize in one type of client or offer many services",
+        "A company deciding whether to expand into new countries or focus on its current market"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "2. Marketing & Sales",
+      "icon": "📣",
+      "text": "This area covers everything related to attracting customers and closing sales.\n\nIt includes marketing activities, lead generation, sales processes, pricing, and customer acquisition.",
+      "examples": [
+        "A small business running social media campaigns to find new customers",
+        "A larger company with a structured sales process and CRM system"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "3. Product Development",
+      "icon": "💡",
+      "text": "This covers creating and improving the products or services you sell.\n\nIt includes research, design, development, testing, and launching new offerings.",
+      "examples": [
+        "A freelancer developing a new service package for clients",
+        "A software company building and releasing new features"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "4. Operations",
+      "icon": "🏭",
+      "text": "Operations is about actually delivering your product or service.\n\nThis includes production, service delivery, quality control, and day-to-day execution of work.",
+      "examples": [
+        "A bakery producing bread and pastries every day",
+        "A consulting firm delivering projects for clients"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "5. Finance",
+      "icon": "💰",
+      "text": "Finance covers all money-related activities in your business.\n\nThis includes invoicing, paying bills, bookkeeping, financial reporting, cash flow management, and financial planning.",
+      "examples": [
+        "A freelancer tracking income and expenses to know how much tax to pay",
+        "A company preparing monthly financial reports for management and investors"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "6. Human Resources",
+      "icon": "👥",
+      "text": "Human Resources is about finding, developing, and supporting the people in your business.\n\nThis includes recruiting, onboarding, training, performance management, and employee well-being.",
+      "examples": [
+        "A small business owner hiring their first employee and creating a simple onboarding process",
+        "A larger company with structured recruitment, training programs, and career development"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "7. Information Technology",
+      "icon": "💻",
+      "text": "This area covers all the technology and systems your business uses.\n\nIt includes software, hardware, data management, cybersecurity, and technical support.",
+      "examples": [
+        "A freelancer choosing good tools for invoicing and communication",
+        "A company managing multiple systems, data security, and IT support for employees"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "8. Procurement",
+      "icon": "🛒",
+      "text": "Procurement is about buying goods and services from suppliers.\n\nThis includes finding suppliers, negotiating prices, placing orders, and managing supplier relationships.",
+      "examples": [
+        "A small shop owner ordering stock from wholesalers",
+        "A manufacturing company managing relationships with dozens of suppliers"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "9. Logistics & Supply Chain",
+      "icon": "🚚",
+      "text": "This area covers moving goods and managing the flow from suppliers to customers.\n\nIt includes warehousing, shipping, inventory management, and supply chain coordination.",
+      "examples": [
+        "An online store managing inventory and shipping products to customers",
+        "A company coordinating complex international supply chains"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "10. Customer Service",
+      "icon": "🤝",
+      "text": "Customer Service is about supporting customers after they buy and keeping them happy.\n\nThis includes answering questions, handling complaints, providing support, and building long-term relationships.",
+      "examples": [
+        "A freelancer responding personally to client emails and questions",
+        "A company with a dedicated support team and structured processes for handling issues"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "11. Quality Management",
+      "icon": "✅",
+      "text": "Quality Management is about making sure your products or services meet the standards you promise.\n\nThis includes checking quality, improving processes, and preventing mistakes.",
+      "examples": [
+        "A baker checking that every loaf meets their quality standards",
+        "A company running regular quality checks and improvement programs"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "12. Risk Management",
+      "icon": "⚠️",
+      "text": "Risk Management is about identifying and handling potential problems before they become serious.\n\nThis includes financial risks, operational risks, legal risks, and planning for unexpected events.",
+      "examples": [
+        "A freelancer having backup plans when a big client is late paying",
+        "A company having insurance, contracts, and contingency plans for major risks"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "13. Governance & Compliance",
+      "icon": "⚖️",
+      "text": "This area covers how your business is controlled and how it follows laws and regulations.\n\nIt includes legal compliance, tax obligations, data protection, ethical standards, and internal controls.",
+      "examples": [
+        "A small business making sure it files taxes correctly and protects customer data",
+        "A larger company having formal governance structures and compliance processes"
+      ],
+      "canSkip": true
+    }
+  ]
+}

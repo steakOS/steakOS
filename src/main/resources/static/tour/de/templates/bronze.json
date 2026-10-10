@@ -1,0 +1,86 @@
+{
+  "title": "Bronze-Vorlage",
+  "description": "Für kleine Teams (4–20 Personen)",
+  "pages": [
+    {
+      "title": "Strategie & Initiativen – Ziele planen und umsetzen",
+      "icon": "🎯",
+      "text": "Strategie entscheidet, wohin Sie wollen. Initiativen sind konkrete Projekte oder Aktionen auf dem Weg dorthin. Bronze hilft kleinen Teams, große Ziele und die tatsächliche Arbeit im Blick zu behalten.",
+      "examples": [
+        "Eine 12-köpfige Marketing-Agentur definiert Jahresziele und bricht sie in quartalsweise Projekte herunter, die alle sehen"
+      ]
+    },
+    {
+      "title": "Entwicklung & Innovation – Neues schaffen",
+      "icon": "💡",
+      "text": "Entwicklung heißt, Produkte und Services zu verbessern oder neu zu schaffen. Innovation sucht bessere Wege. Bronze gibt kleinen Teams schlanke Tools für Ideen und Entwicklungsarbeit.",
+      "examples": [
+        "Ein kleines Produktunternehmen trackt Feature-Ideen und Entwicklungsaufgaben an einem gemeinsamen Ort"
+      ]
+    },
+    {
+      "title": "Vertrieb & Vertriebsplanung – Kunden finden und gewinnen",
+      "icon": "💼",
+      "text": "Vertrieb ist der Prozess, Kunden zu finden und zum Kauf zu bewegen. Vertriebsplanung denkt voraus, wie Sie Ziele erreichen. Bronze hilft Teams, Vertriebsaktivitäten besser zu koordinieren.",
+      "examples": [
+        "Ein kleines B2B-Unternehmen trackt Vertriebsgespräche und plant monatliche Ziele gemeinsam"
+      ]
+    },
+    {
+      "title": "Supply & Supply Chain – bekommen, was Sie brauchen",
+      "icon": "📦",
+      "text": "Supply und Supply Chain stellen sicher, dass Material, Produkte oder Services für die Kundenlieferung da sind. Bronze hilft kleinen Teams bei grundlegender Bestellung und Lieferanteninfo.",
+      "examples": [
+        "Eine kleine Bäckerei trackt Zutatenbestellungen und Lieferantenkontakte, damit nichts ausgeht"
+      ]
+    },
+    {
+      "title": "Beschaffung – kaufen, was das Business braucht",
+      "icon": "🛒",
+      "text": "Beschaffung ist der Prozess, Waren und Dienstleistungen fürs Unternehmen zu finden und zu kaufen. Bronze gibt kleinen Teams schlanke Tools für Einkäufe und Lieferantenbeziehungen.",
+      "examples": [
+        "Ein kleines Büroteam trackt Büromaterial-Bestellungen und vergleicht Preise mehrerer Lieferanten"
+      ]
+    },
+    {
+      "title": "Services & Kundenservice – liefern und unterstützen",
+      "icon": "🤝",
+      "text": "Hier geht es um Leistungserbringung und Hilfe bei Fragen oder Problemen. Bronze hilft Teams, Service und Support konsistenter zu koordinieren.",
+      "examples": [
+        "Ein kleines IT-Support-Unternehmen trackt Kundenanfragen, damit nichts untergeht"
+      ]
+    },
+    {
+      "title": "Personal – Menschen finden und unterstützen",
+      "icon": "👥",
+      "text": "Personal umfasst Recruiting, Onboarding und grundlegende Mitarbeitenden-Infos. Bronze gibt kleinen Teams schlanke Tools ohne unnötige Komplexität.",
+      "examples": [
+        "Ein wachsendes 15-Personen-Unternehmen hält Verträge, Onboarding-Checklisten und Personaldaten an einem Ort"
+      ]
+    },
+    {
+      "title": "Finanz-Basics – Geld einfach managen",
+      "icon": "💰",
+      "text": "Finanzen in Bronze decken die Basics ab: Rechnungen, Geld rein und raus, einfaches Reporting. Kleine Teams behalten die Finanzlage im Blick, ohne für alles die Buchhaltung zu brauchen.",
+      "examples": [
+        "Ein kleines Team sieht auf einen Blick, welche Rechnungen bezahlt und welche offen sind"
+      ]
+    },
+    {
+      "title": "Analytics – verstehen, was passiert",
+      "icon": "📈",
+      "text": "Analytics hilft, Zahlen zu betrachten und bessere Entscheidungen zu treffen. Bronze gibt kleinen Teams besseres Reporting und Sichtbarkeit im ganzen Team.",
+      "examples": [
+        "Ein kleines Unternehmen sieht, welche Services am profitabelsten und welche Kunden am wertvollsten sind"
+      ]
+    },
+    {
+      "title": "Agenten – KI, die dem ganzen Team hilft",
+      "icon": "🤖",
+      "text": "Bronze gibt Ihnen mehr KI-Agenten in verschiedenen Bereichen. Diese Agenten unterstützen mehrere Teammitglieder bei Routineaufgaben.",
+      "examples": [
+        "Ein KI-Agent legt automatisch Follow-up-Aufgaben an, wenn eine Projektphase abgeschlossen ist"
+      ]
+    }
+  ]
+}

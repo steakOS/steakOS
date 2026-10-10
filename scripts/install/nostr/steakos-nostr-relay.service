@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+# systemd unit for steakOS private nostr-rs-relay (OI-NOSTR01 / D2)
+#
+# Install (as root):
+#   cp steakos-nostr-relay.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now steakos-nostr-relay
+#
+# Override paths with drop-in if needed:
+#   systemctl edit steakos-nostr-relay
+
+[Unit]
+Description=steakOS private Nostr relay (nostr-rs-relay)
+Documentation=https://github.com/scsibug/nostr-rs-relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=steakos
+Group=steakos
+# Production data dir (D5). Dev installs may point at $PREFIX/var/nostr.
+WorkingDirectory=/var/lib/steakos/nostr
+ExecStart=/usr/local/bin/nostr-rs-relay --config /var/lib/steakos/nostr/config.toml --db /var/lib/steakos/nostr
+Restart=on-failure
+RestartSec=5
+# Loopback-only bind is in config.toml (D3)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/steakos/nostr
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,80 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * Copyright 2026 The steakOS Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.reload-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .6rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 999px;
+    background: var(--bs-body-bg);
+    font-size: .875rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.reload-dot {
+    position: relative;
+    width: .6rem;
+    height: .6rem;
+    border-radius: 999px;
+    background: currentColor;
+    flex: 0 0 auto;
+}
+
+.reload-dot.ping::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: .35;
+    animation: reload-ping 1.25s ease-out infinite;
+}
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sort-hint {
+    display: inline-block;
+    width: .9em;
+}
+
+.sort-hint::before {
+    content: '';
+}
+
+th.sortable[data-sort-dir="asc"] .sort-hint::before {
+    content: '↑';
+}
+
+th.sortable[data-sort-dir="desc"] .sort-hint::before {
+    content: '↓';
+}
+
+@keyframes reload-ping {
+    0% { transform: scale(1); opacity: .35; }
+    70% { transform: scale(2.25); opacity: 0; }
+    100% { transform: scale(2.25); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reload-dot::before { animation: none; }
+}

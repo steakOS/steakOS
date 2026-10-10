@@ -1,0 +1,21 @@
+{
+  "title": "Hilfe",
+  "loading": "Laden…",
+  "empty": "Noch kein Hilfethema für diese Seite.",
+  "related": "Verwandt",
+  "actions": "Nächste Schritte",
+  "tour": "Gesamte Tour",
+  "center": "Hilfezentrum",
+  "generated": "Kontextgeneriert",
+  "innendienst": "Innendienst",
+  "itSupport": "IT-Support",
+  "itSupportHint": "Brauchen Sie IT-Hilfe? Öffnen Sie ein internes Ticket aus diesem Seitenkontext oder gehen Sie zu IT-Support.",
+  "ticketCreate": "IT-Support-Ticket erstellen",
+  "ticketHideForm": "Ticketformular ausblenden",
+  "ticketFullPage": "IT-Support-Seite",
+  "ticketSubject": "Betreff",
+  "ticketSubmit": "Ticket öffnen",
+  "ticketCreated": "Ticket {{number}} geöffnet.",
+  "ticketViewAll": "Alle Tickets anzeigen",
+  "backToContext": "Zurück zur Seitenhilfe"
+}

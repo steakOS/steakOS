@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Operator trust runbook</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.4rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.88rem; }
+    th, td { border: 1px solid #ccc; padding: 0.35rem 0.45rem; text-align: left; vertical-align: top; }
+    .muted { color: #555; font-size: 0.9rem; }
+    code { font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <h1>Operator trust runbook</h1>
+  <p class="muted">P0 checklist for team packs (Bronze+). Not legal advice. Full text: <code>docs/installation/OPERATOR-TRUST-RUNBOOK.md</code></p>
+
+  <h2>Before HR</h2>
+  <ol>
+    <li>Prefer Copper if you do not store employee personal data.</li>
+    <li>Complete privacy acknowledgement in setup when enabling people data.</li>
+    <li>Change default admin password; limit admins.</li>
+    <li>Plan database backups.</li>
+  </ol>
+
+  <h2>Security (summary)</h2>
+  <table>
+    <tr><th>ID</th><th>Action</th></tr>
+    <tr><td>S1</td><td>No production admin/admin</td></tr>
+    <tr><td>S3–S4</td><td>Deny default AI/agent bulk HR; no agent setup control</td></tr>
+    <tr><td>S6–S7</td><td>Live payments: HMAC/TLS; secure cookies</td></tr>
+    <tr><td>S9–S10</td><td>No secrets or PII in logs/repo</td></tr>
+    <tr><td>S12</td><td>Backup and restore for HR-bearing DBs</td></tr>
+  </table>
+
+  <h2>Privacy (summary)</h2>
+  <p>Know what people data you store; minimise fields; control access; support export/correct; you own breach timelines.</p>
+
+  <p><a href="gdpr-configure.html">Privacy configuration guide (short)</a></p>
+</body>
+</html>

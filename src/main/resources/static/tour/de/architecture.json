@@ -1,0 +1,66 @@
+{
+  "title": "Technik- & Architektur-Überblick",
+  "pages": [
+    {
+      "title": "Architektur & Technologie",
+      "icon": "⚙️",
+      "text": "Dieser Abschnitt erklärt die wichtigsten technischen Entscheidungen hinter steakOS in verständlicher Sprache — ohne Technik-Jargon.\n\nSie können den gesamten Abschnitt überspringen. Er ist nur für alle, die verstehen wollen, *warum* bestimmte Entscheidungen getroffen wurden.\n\nNichts hier ist nötig, um steakOS erfolgreich zu nutzen.",
+      "canSkip": true
+    },
+    {
+      "title": "Die Datenbank – das zuverlässige Gedächtnis Ihres Unternehmens",
+      "icon": "🗄️",
+      "text": "steakOS speichert alle wichtigen Geschäftsinformationen in einer zuverlässigen Datenbank (ähnlich wie die meisten professionellen Business-Tools).\n\nDiese Datenbank ist das zentrale Gedächtnis Ihres Unternehmens. Sie hält Kunden, Rechnungen, Bestände, Transaktionen und Einstellungen strukturiert und sicher. Eine echte Datenbank macht Daten konsistent, suchbar und schützt vor Verlust.",
+      "examples": [
+        "Wenn Sie eine Rechnung erstellen, ist sie sicher gespeichert und später wiederfindbar",
+        "Berichte entstehen schnell, weil die Daten gut organisiert sind"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Events – das Tagebuch von allem, was passiert",
+      "icon": "📜",
+      "text": "Oberhalb der Datenbank nutzt steakOS ein Event-System. Jede wichtige Aktion wird als Event festgehalten (z. B. „Rechnung #123 gesendet“, „Zahlung eingegangen“, „Bestand geändert“).\n\nSo entsteht ein klares, chronologisches Tagebuch Ihres Unternehmens. Verschiedene Systemteile können zusammenarbeiten, und es ist leichter nachvollziehbar, was wann passiert ist.",
+      "mermaid": "graph TD\n    Action[Etwas passiert<br/>z. B. Rechnung bezahlt] --> Event[Event wird erfasst]\n    Event --> Database[In Datenbank gespeichert]\n    Event --> Notifications[Benachrichtigungen]\n    Event --> Reports[Berichte aktualisiert]",
+      "examples": [
+        "Wenn eine Zahlung eingeht, entsteht ein Event — das System aktualisiert Liquidität und markiert die Rechnung als bezahlt",
+        "Bei Unerwartetem können Sie die Events Schritt für Schritt zurückverfolgen"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Nostr-Audit-Trail – mehr Sicherheit und Unabhängigkeit",
+      "icon": "🔐",
+      "text": "Wichtige Events können auch auf Nostr (einem dezentralen Netzwerk) festgehalten werden. Das schafft eine unabhängige, überprüfbare Aufzeichnung, die später nicht geändert werden kann.\n\nIhre Unternehmensidentität und Schlüssel-Records stecken nicht in einem einzigen Anbietersystem. Sie gewinnen zusätzlichen Schutz und Eigentum an Ihren Daten.",
+      "examples": [
+        "Sie können Jahre später beweisen, dass eine Rechnung an einem bestimmten Datum gesendet oder bezahlt wurde",
+        "Ihre wichtige Geschäftshistorie wird nicht von einem einzelnen Softwareanbieter kontrolliert"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "KI-Hives – smarte Hilfe mit menschlicher Kontrolle",
+      "icon": "🐝",
+      "text": "steakOS nutzt KI in „Hives“. Ein Hive ist eine Gruppe spezialisierter KI-Agenten in einem Geschäftsbereich (z. B. Finanzen oder Operations), koordiniert von einem agentischen Manager.\n\nWichtigste Regel: Hives können Aktionen vorschlagen und Arbeit vorbereiten, holen aber bei Wichtigem immer Ihre Freigabe ein. Sie bleiben voll in der Kontrolle.",
+      "mermaid": "graph TD\n    You[Sie] -->|fragt um Hilfe| Hive[KI-Hive + Manager]\n    Hive -->|aktiviert Spezialisten| Agents[Spezialisten-Agenten]\n    Agents -->|bereiten Vorschläge vor| Hive\n    Hive -->|präsentiert Optionen| You\n    You -->|genehmigt oder lehnt ab| Action[Aktion wird ausgeführt]",
+      "examples": [
+        "Der Finance-Hive kann Zahlungserinnerungen vorschlagen — Sie entscheiden, ob sie gesendet werden",
+        "Der Operations-Hive kann Verzögerungen hervorheben — Sie entscheiden, was Sie tun"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Wie alles zusammenspielt",
+      "icon": "🔗",
+      "text": "Einfacher Überblick, wie die Hauptteile von steakOS verbunden sind:\n\nSie und Ihr Team arbeiten mit steakOS → KI-Hives helfen, wo sinnvoll → Wichtige Aktionen landen in der Datenbank und als Events → Manche Events können zusätzlich auf Nostr für mehr Sicherheit und Unabhängigkeit geschrieben werden.",
+      "mermaid": "graph TD\n    User[Sie / Team] --> SteakOS[steakOS]\n    SteakOS --> Hives[KI-Hives]\n    SteakOS --> Database[(Datenbank)]\n    SteakOS --> Events[Event-System]\n    Events -->|optional| Nostr[Nostr-Audit-Trail]\n    Hives --> Suggestions[Hilfreiche Vorschläge]",
+      "canSkip": true
+    },
+    {
+      "title": "Warum diese Entscheidungen",
+      "icon": "🧭",
+      "text": "Die Architektur von steakOS folgt klaren Zielen:\n\n• Daten sicher und konsistent halten\n• Verschiedene Systemteile gut zusammenspielen lassen\n• Ihnen Eigentum und Kontrolle über Geschäftsunterlagen geben\n• KI helfen lassen, ohne Ihre Kontrolle zu nehmen\n• Flexibel genug bleiben, um mit Ihrem Business zu wachsen\n\nSo bleibt steakOS zuverlässig, privat und zukunftssicher — und dennoch einfach nutzbar.",
+      "canSkip": true
+    }
+  ]
+}

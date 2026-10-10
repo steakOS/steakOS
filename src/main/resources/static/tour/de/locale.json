@@ -1,0 +1,12 @@
+{
+  "title": "Sprache & Region",
+  "pages": [
+    {
+      "title": "Sprache wählen",
+      "icon": "🌍",
+      "text": "Wählen Sie, wie steakOS mit Ihnen spricht und wie Daten und Beträge formatiert werden.\n\nSie können das später unter **Einstellungen** ändern. Die Wahl wird im Browser gespeichert und nach dem Login in Ihr Benutzerprofil übernommen.\n\n**Proof-Slice:** vorerst nur Englisch und Deutsch.",
+      "localePicker": true,
+      "canSkip": false
+    }
+  ]
+}

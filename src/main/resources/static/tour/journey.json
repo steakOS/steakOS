@@ -1,0 +1,26 @@
+{
+  "title": "Your SteakOS Journey",
+  "pages": [
+    {
+      "title": "Your SteakOS Journey",
+      "icon": "🛤️",
+      "text": "The path is clear and rewarding:\n1. Learn the big ideas (this tour)\n2. Set up your system with a simple wizard\n3. Try your first real transaction\n4. Use it every day with smart help\n5. Grow as your business grows",
+      "examples": [
+        "Day 1: Send your first invoice and feel accomplished",
+        "Week 2: The system starts giving you useful suggestions automatically",
+        "Month 3: Add new features when your business needs them"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "What to Expect After the Tour",
+      "icon": "🚀",
+      "text": "After this tour you'll run the configuration wizard. It will ask simple questions and set up your system based on your answers. Then you'll be ready to post your first real transaction.",
+      "examples": [
+        "A small shop owner posted their first sale the same day",
+        "A consultant had their first client invoice ready in under 10 minutes"
+      ],
+      "canSkip": true
+    }
+  ]
+}

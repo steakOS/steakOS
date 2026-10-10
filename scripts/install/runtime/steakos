@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+# steakOS package control script (lives in dist bin/ after pack-dist).
+# Usage: bin/steakos {start|stop|status|logs|version|env}
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+APP_DIR="$ROOT/app"
+CFG_DIR="$ROOT/config"
+RUN_DIR="$ROOT/run"
+LOG_DIR="$ROOT/logs"
+PID_FILE="$RUN_DIR/steakos.pid"
+LOG_FILE="$LOG_DIR/steakos.log"
+ENV_FILE="$CFG_DIR/steakos.env"
+JAR="$APP_DIR/steakOS.jar"
+
+die() { echo "error: $*" >&2; exit 1; }
+
+load_env() {
+  # Parse KEY=VALUE lines (supports double-quoted values). Safer than raw `source`
+  # for operator-edited files that may contain spaces in JAVA_OPTS.
+  _load_env_file() {
+    local f="$1" line key val
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      line="${line#"${line%%[![:space:]]*}"}"
+      [[ -z "$line" || "$line" == \#* ]] && continue
+      [[ "$line" == *"="* ]] || continue
+      key="${line%%=*}"
+      val="${line#*=}"
+      key="${key%"${key##*[![:space:]]}"}"
+      key="${key#"${key%%[![:space:]]*}"}"
+      val="${val#"${val%%[![:space:]]*}"}"
+      val="${val%"${val##*[![:space:]]}"}"
+      if [[ "$val" == \"*\" ]]; then
+        val="${val:1:${#val}-2}"
+      elif [[ "$val" == \'*\' ]]; then
+        val="${val:1:${#val}-2}"
+      fi
+      export "$key=$val"
+    done <"$f"
+  }
+  if [[ -f "$ENV_FILE" ]]; then
+    _load_env_file "$ENV_FILE"
+  elif [[ -f "$CFG_DIR/steakos.env.example" ]]; then
+    echo "warn: no config/steakos.env — using example defaults" >&2
+    _load_env_file "$CFG_DIR/steakos.env.example"
+  fi
+  GRAILS_ENV="${GRAILS_ENV:-production}"
+  SERVER_PORT="${SERVER_PORT:-9090}"
+  SERVER_ADDRESS="${SERVER_ADDRESS:-0.0.0.0}"
+  JAVA_OPTS="${JAVA_OPTS:--Xms256m -Xmx640m -XX:+ExitOnOutOfMemoryError}"
+}
+
+cmd_version() {
+  if [[ -f "$ROOT/VERSION" ]]; then
+    cat "$ROOT/VERSION"
+  else
+    echo "VERSION file missing"
+  fi
+}
+
+cmd_status() {
+  if [[ -f "$PID_FILE" ]]; then
+    pid="$(cat "$PID_FILE")"
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "running  pid=$pid  port=${SERVER_PORT:-?}  log=$LOG_FILE"
+      return 0
+    fi
+    echo "stale pid file (pid=$pid not running)"
+    return 1
+  fi
+  echo "stopped"
+  return 1
+}
+
+cmd_start() {
+  load_env
+  [[ -f "$JAR" ]] || die "missing $JAR"
+  command -v java >/dev/null 2>&1 || die "java not found (need JRE 17+)"
+  mkdir -p "$RUN_DIR" "$LOG_DIR"
+
+  if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    echo "already running  pid=$(cat "$PID_FILE")"
+    exit 0
+  fi
+
+  export STEAKOS_DB_HOST STEAKOS_DB_PORT STEAKOS_DB_USER STEAKOS_DB_PASSWORD
+  export STEAKOS_PRODUCT_LINE STEAKOS_RELEASE_MAJOR STEAKOS_RELEASE_MINOR STEAKOS_BUILD_ID
+  export STEAKOS_FRONTEND_URL SPRING_DATASOURCE_URL
+
+  # Spring Boot maps SERVER_PORT / SERVER_ADDRESS
+  export SERVER_PORT SERVER_ADDRESS
+
+  echo "starting steakOS  env=$GRAILS_ENV  port=$SERVER_PORT  jar=$JAR"
+  # shellcheck disable=SC2086
+  nohup java $JAVA_OPTS \
+    -Dgrails.env="$GRAILS_ENV" \
+    -Dserver.port="$SERVER_PORT" \
+    -Dserver.address="$SERVER_ADDRESS" \
+    -jar "$JAR" \
+    >>"$LOG_FILE" 2>&1 &
+  echo $! >"$PID_FILE"
+  sleep 1
+  if kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    echo "started  pid=$(cat "$PID_FILE")"
+    echo "logs     $LOG_FILE"
+    echo "API      http://${SERVER_ADDRESS}:${SERVER_PORT}/"
+    echo "health   http://127.0.0.1:${SERVER_PORT}/actuator/health  (if enabled)"
+  else
+    die "process exited immediately — see $LOG_FILE"
+  fi
+}
+
+cmd_stop() {
+  if [[ ! -f "$PID_FILE" ]]; then
+    echo "not running"
+    exit 0
+  fi
+  pid="$(cat "$PID_FILE")"
+  if kill -0 "$pid" 2>/dev/null; then
+    echo "stopping pid=$pid"
+    kill "$pid" 2>/dev/null || true
+    for _ in $(seq 1 30); do
+      kill -0 "$pid" 2>/dev/null || break
+      sleep 0.5
+    done
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "force kill"
+      kill -9 "$pid" 2>/dev/null || true
+    fi
+  fi
+  rm -f "$PID_FILE"
+  echo "stopped"
+}
+
+cmd_logs() {
+  mkdir -p "$LOG_DIR"
+  touch "$LOG_FILE"
+  tail -n "${1:-100}" -f "$LOG_FILE"
+}
+
+cmd_env() {
+  load_env
+  echo "ENV_FILE=$ENV_FILE"
+  echo "GRAILS_ENV=$GRAILS_ENV"
+  echo "SERVER_PORT=$SERVER_PORT"
+  echo "SERVER_ADDRESS=$SERVER_ADDRESS"
+  echo "STEAKOS_DB_HOST=${STEAKOS_DB_HOST:-}"
+  echo "STEAKOS_FRONTEND_URL=${STEAKOS_FRONTEND_URL:-}"
+  echo "JAR=$JAR"
+}
+
+usage() {
+  echo "Usage: bin/steakos {start|stop|status|logs|version|env}"
+  exit 2
+}
+
+cmd="${1:-}"
+shift || true
+case "$cmd" in
+  start)   cmd_start ;;
+  stop)    cmd_stop ;;
+  status)  load_env; cmd_status ;;
+  logs)    cmd_logs "${1:-100}" ;;
+  version) cmd_version ;;
+  env)     cmd_env ;;
+  *)       usage ;;
+esac

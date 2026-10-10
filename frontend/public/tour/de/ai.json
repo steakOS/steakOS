@@ -1,0 +1,36 @@
+{
+  "title": "KI-Unterstützung – Die Hives",
+  "pages": [
+    {
+      "title": "Wie steakOS KI nutzt: Hives vs. KI-Agenten",
+      "icon": "🐝",
+      "text": "In steakOS nutzen wir zwei verwandte, aber unterschiedliche Konzepte:\n\n• Ein **Hive** ist eine Gruppe von KI-Agenten, die in einem bestimmten Geschäftsbereich zusammenarbeiten (z. B. Finanzen oder Operations). Jeder Hive hat einen **agentischen Manager**, der das Team koordiniert.\n\n• **KI-Agenten** sind die einzelnen Spezialisten in einem Hive. Sie sind Experten für enge Aufgaben (z. B. Buchhaltung, Erinnerungen senden oder Qualität prüfen).\n\nStellen Sie es sich so vor: Ein Hive ist ein kleines Spezialteam. Die einzelnen KI-Agenten sind die Teammitglieder mit klaren Fähigkeiten.",
+      "examples": [
+        "Der Finance-Hive enthält Agenten für Rechnungen, Zahlungen und Berichte — koordiniert von einem Finance-Manager-Agenten",
+        "Der Operations-Hive enthält Agenten für Versand, Lieferanten und Produktionsplanung"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "So arbeitet ein Hive",
+      "icon": "👥",
+      "text": "Jeder Hive ist wie ein kleines Profi-Team aufgebaut:\n\n• **Agentischer Manager**: Koordinator des Hives. Er weist Aufgaben zu, prüft Ergebnisse und kommuniziert mit Ihnen.\n• **Spezialisten-Agenten**: Einzelne KI-Agenten, die in einer klaren Aufgabe sehr gut sind (z. B. Rechnungen erstellen, Zahlungen prüfen oder Verzögerungen analysieren).\n\nWenn Sie in einem Bereich Hilfe brauchen, aktiviert der Hive-Manager die richtigen Spezialisten und fasst deren Arbeit zusammen, bevor er sie Ihnen präsentiert.",
+      "mermaid": "graph TD\n    User[Sie] -->|Anfrage| HiveManager[Agentischer Manager]\n    HiveManager -->|weist Aufgabe zu| Specialist1[Spezialist 1]\n    HiveManager -->|weist Aufgabe zu| Specialist2[Spezialist 2]\n    Specialist1 -->|Ergebnis| HiveManager\n    Specialist2 -->|Ergebnis| HiveManager\n    HiveManager -->|fasst zusammen & präsentiert| User",
+      "examples": [
+        "Sie bitten den Finance-Hive, „überfällige Rechnungen zu prüfen“. Der Manager aktiviert die passenden Agenten und liefert eine klare Zusammenfassung mit Handlungsvorschlägen",
+        "Sie fragen den Operations-Hive nach Lieferverzögerungen. Der Manager koordiniert mehrere Spezialisten und gibt Ihnen einen klaren Überblick"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Human-in-the-Loop – Sie behalten die Kontrolle",
+      "icon": "🛡️",
+      "text": "Eine der wichtigsten Regeln in steakOS: KI trifft bei wichtigen Themen keine endgültigen Entscheidungen ohne Sie.\n\nHives und ihre Agenten können Vorschläge vorbereiten, Nachrichten entwerfen, Daten analysieren und Aktionen empfehlen — die letzte Entscheidung liegt immer bei Ihnen. Das heißt „Human-in-the-Loop“ und hält Sie voll in der Kontrolle, während Sie von smarter Unterstützung profitieren.",
+      "examples": [
+        "Ein Hive kann eine höfliche Zahlungserinnerung entwerfen — Sie entscheiden, ob und wann sie gesendet wird",
+        "Ein Hive kann den Wechsel zu einem günstigeren Lieferanten vorschlagen — Sie treffen die finale Entscheidung"
+      ],
+      "canSkip": true
+    }
+  ]
+}

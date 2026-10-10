@@ -1,0 +1,33 @@
+{
+  "title": "Willkommen bei steakOS",
+  "pages": [
+    {
+      "title": "Willkommen bei steakOS",
+      "icon": "🥩",
+      "text": "Hallo!\n\n**steakOS** steht für:\n\n{{S}}overeign {{T}}ransactional {{E}}nterprise {{A}}utomation {{K}}ernel {{O}}rchestration {{S}}ystem (aka steakOS)\n\nDas ist der offizielle englische Name. Auf Deutsch grob: *Souveräne Transaktionen · KI-Kern · Operatives System* — plus die englische Bezeichnung oben.\n\nWenn Sie ein Unternehmen führen — als Solo-Selbstständige:r, kleines Team oder wachsende Firma — kennen Sie frustrierende Business-Software: zu kompliziert, zu viele Tabellen, nicht für Sie gebaut.\n\n**steakOS ist anders.**\n\nEinfach genug für eine Person, stark genug für wachsende Teams. Diese Tour erklärt in klarer Sprache, wie es funktioniert.\n\nKlicken Sie auf Weiter!",
+      "canSkip": false
+    },
+    {
+      "title": "Warum diese Tour zählt",
+      "icon": "💡",
+      "text": "Die meisten Tools zwingen Sie, sich der Software anzupassen. steakOS ist anders herum gedacht — es folgt echten Geschäftsprozessen.\n\nIn der nächsten Stunde lernen Sie die Kernideen, damit Sie gute Entscheidungen bei der Einrichtung treffen.",
+      "examples": [
+        "Sie verstehen, warum manche Tools mehr Arbeit machen statt weniger",
+        "Sie sehen, wie KI, Bitcoin und dezentrale Systeme Freiheit und Einfachheit bringen können"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Was Sie lernen",
+      "icon": "📚",
+      "text": "Am Ende der Tour kennen Sie:\n\n• Wie Geschäftsprozesse wirklich ablaufen\n• Was Prozessautomatisierung praktisch bedeutet\n• Das APQC-Rahmenwerk\n• Wie KI hilft, ohne die Kontrolle zu übernehmen\n• Bitcoin und Nostr im Business\n• Kernkonzepte für jede Unternehmensgröße",
+      "canSkip": true
+    },
+    {
+      "title": "Ihre Reise mit steakOS",
+      "icon": "🛤️",
+      "text": "Der einfache Weg:\n\n1. Konzepte lernen (diese Tour)\n2. Einrichtungsassistent ausführen\n3. Erste echte Buchung\n4. Täglich mit smarter Hilfe arbeiten\n5. Funktionen nach Bedarf erweitern",
+      "canSkip": true
+    }
+  ]
+}

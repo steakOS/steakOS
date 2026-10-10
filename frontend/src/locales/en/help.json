@@ -1,0 +1,20 @@
+{
+  "title": "Help",
+  "loading": "Loading…",
+  "empty": "No help topic for this page yet.",
+  "related": "Related",
+  "actions": "Suggested next steps",
+  "tour": "Full tour",
+  "center": "Help center",
+  "generated": "Context-generated",
+  "itSupport": "IT Support",
+  "itSupportHint": "Need help from IT? Open an internal ticket from this page context, or go to IT Support.",
+  "ticketCreate": "Create IT support ticket",
+  "ticketHideForm": "Hide ticket form",
+  "ticketFullPage": "IT Support page",
+  "ticketSubject": "Subject",
+  "ticketSubmit": "Open ticket",
+  "ticketCreated": "Ticket {{number}} opened.",
+  "ticketViewAll": "View all tickets",
+  "backToContext": "Back to page help"
+}

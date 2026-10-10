@@ -1,0 +1,12 @@
+{
+  "title": "Language & region",
+  "pages": [
+    {
+      "title": "Choose your language",
+      "icon": "🌍",
+      "text": "Select how steakOS should speak to you and format dates and money.\n\nYou can change this later under **Settings**. This choice is stored in your browser and applied to your user account after login.\n\n**Proof slice:** English and German only for now.",
+      "localePicker": true,
+      "canSkip": false
+    }
+  ]
+}

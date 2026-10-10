@@ -1,0 +1,147 @@
+{
+  "desk": {
+    "title": "Sales desk",
+    "subtitle": "Customers → Quotes → Orders → Finance draft invoice",
+    "tabs": {
+      "customers": "Customers",
+      "quotes": "Quotes",
+      "orders": "Orders",
+      "products": "Products",
+      "services": "Services"
+    },
+    "financeInvoices": "Receivables →"
+  },
+  "product": {
+    "new": "New product",
+    "hint": "Same catalogue as Shop Floor / SCM — stockable sellable items.",
+    "name": "Name",
+    "sku": "SKU",
+    "unit": "Unit",
+    "trackLots": "Track lots (provenance)",
+    "create": "Create product",
+    "list": "Products",
+    "lots": "Lots?",
+    "lotsYes": "yes",
+    "empty": "No products yet."
+  },
+  "service": {
+    "new": "New service",
+    "hint": "Same catalogue as Delivery desk — billable services for quotes and orders.",
+    "name": "Name",
+    "namePh": "Installation, consulting…",
+    "code": "Code",
+    "unit": "Unit",
+    "listPriceEur": "List price EUR",
+    "slaCode": "SLA code",
+    "create": "Create service",
+    "list": "Services",
+    "empty": "No services yet."
+  },
+  "customer": {
+    "new": "New customer",
+    "name": "Name",
+    "email": "Email",
+    "contact": "Contact name",
+    "kind": "Kind",
+    "organization": "Organization",
+    "person": "Person",
+    "create": "Create customer",
+    "list": "Customers",
+    "empty": "No customers yet.",
+    "table": {
+      "name": "Name",
+      "kind": "Kind",
+      "email": "Email",
+      "content": "Content"
+    }
+  },
+  "quote": {
+    "new": "New quote",
+    "list": "Quotes",
+    "empty": "No quotes yet.",
+    "customer": "Customer",
+    "selectCustomer": "Select customer…",
+    "name": "Quote name",
+    "line": "Line description",
+    "qty": "Qty",
+    "priceEur": "Unit price (EUR)",
+    "priceSats": "Unit price (sats)",
+    "create": "Create quote",
+    "send": "Send",
+    "accept": "Accept",
+    "reject": "Reject",
+    "filterAll": "All statuses",
+    "selected": "Selected quote",
+    "detail": "Quote detail",
+    "selectHint": "Select a quote from the list",
+    "noCustomer": "No customer",
+    "acceptToOrder": "Accept → order",
+    "openOrder": "Open order #{{id}}",
+    "lines": "Lines",
+    "noLines": "No lines",
+    "lineNo": "#",
+    "lineName": "Name",
+    "lineQty": "Qty",
+    "lineUnit": "Unit",
+    "lineTotal": "Total",
+    "number": "Number",
+    "status": "Status",
+    "amount": "Amount",
+    "table": {
+      "number": "Number",
+      "customer": "Customer",
+      "status": "Status",
+      "amount": "Amount",
+      "content": "Content"
+    },
+    "currency": "Document currency"
+  },
+  "order": {
+    "new": "New order",
+    "list": "Orders",
+    "empty": "No orders yet.",
+    "customer": "Customer",
+    "selectCustomer": "Select customer…",
+    "name": "Order name",
+    "line": "Line description",
+    "qty": "Qty",
+    "priceEur": "Unit price (EUR)",
+    "priceSats": "Unit price (sats)",
+    "create": "Create order",
+    "confirm": "Confirm",
+    "cancel": "Cancel order",
+    "filterAll": "All statuses",
+    "selected": "Selected order",
+    "direct": "Direct order (no quote)",
+    "detail": "Order detail",
+    "selectHint": "Select an order from the list",
+    "table": {
+      "number": "Number",
+      "customer": "Customer",
+      "status": "Status",
+      "amount": "Amount",
+      "content": "Content"
+    },
+    "confirmFinance": "Confirm → Finance DRAFT invoice",
+    "currency": "Document currency"
+  },
+  "status": {
+    "DRAFT": "Draft",
+    "SENT": "Sent",
+    "ACCEPTED": "Accepted",
+    "REJECTED": "Rejected",
+    "CONFIRMED": "Confirmed",
+    "CANCELLED": "Cancelled",
+    "EXPIRED": "Expired"
+  },
+  "messages": {
+    "loadFailed": "Could not load sales data",
+    "customerCreated": "Customer created",
+    "quoteCreated": "Quote created",
+    "orderCreated": "Order created",
+    "busy": "Working…"
+  },
+  "delivery": {
+    "newService": "New service"
+  }
+}

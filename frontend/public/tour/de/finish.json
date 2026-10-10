@@ -1,0 +1,15 @@
+{
+  "title": "Glückwunsch!",
+  "pages": [
+    {
+      "title": "Einführungstour abgeschlossen",
+      "icon": "🎉",
+      "text": "Glückwunsch! Sie haben die steakOS-Einführungstour abgeschlossen.\n\nSie kennen den Weg von Konzepten zum Alltag: Vorlagen (Bronze → Gold), KI-Helfer, Bitcoin, Nostr und die APQC-Prozesskarte.\n\n**Nächster Schritt:** den Konfigurationsassistenten in der App starten. Er stellt ein paar einfache Fragen, legt Ihre Firma an und schaltet die Bronze-Team-Desks frei.\n\nNutzen Sie die Buttons unten — kein separater Trainingsserver nötig.",
+      "examples": [
+        "Weiter zum Setup-Assistenten in diesem Browser",
+        "Oder Dashboard öffnen, wenn Setup schon fertig ist"
+      ],
+      "canSkip": false
+    }
+  ]
+}

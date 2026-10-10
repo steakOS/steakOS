@@ -1,0 +1,102 @@
+{
+  "title": "Gold Template",
+  "description": "Full enterprise capabilities",
+  "pages": [
+    {
+      "title": "Strategy, Initiatives & Portfolio Management",
+      "icon": "🎯",
+      "text": "Gold gives you full support for defining company direction (strategy), managing strategic projects (initiatives), and overseeing multiple projects and investments together (portfolio management). This helps large or complex organizations stay aligned and make better investment decisions.",
+      "examples": [
+        "A company with multiple business units can see all major strategic projects and how they contribute to overall goals"
+      ]
+    },
+    {
+      "title": "Development, Innovation & R&D",
+      "icon": "💡",
+      "text": "Gold provides comprehensive tools for developing new products and services, managing innovation, and running research & development activities. This is especially useful for companies that need to continuously improve or create new offerings.",
+      "examples": [
+        "A large manufacturer manages the full lifecycle of new product development from idea to market launch"
+      ]
+    },
+    {
+      "title": "Sales, Sales Planning & Global Trade",
+      "icon": "🌍",
+      "text": "Gold supports advanced sales processes, sales planning, and international trade activities. This includes managing complex sales cycles, global customers, and cross-border business.",
+      "examples": [
+        "A multinational company manages sales teams across different countries and sees consolidated performance"
+      ]
+    },
+    {
+      "title": "Supply Chain, Procurement & Production",
+      "icon": "🏭",
+      "text": "Gold offers full support for managing complex supply chains, procurement, and production processes. This is critical for companies that manufacture products or rely heavily on suppliers and logistics.",
+      "examples": [
+        "A manufacturing company with multiple factories coordinates suppliers, production planning, and deliveries across regions"
+      ]
+    },
+    {
+      "title": "Services, Service Strategy & Customer Experience",
+      "icon": "🤝",
+      "text": "Gold provides advanced capabilities for delivering services, managing service quality, and creating excellent customer experiences. This includes service governance, strategy, delivery, and after-sales support.",
+      "examples": [
+        "A large service company manages complex service contracts and measures customer satisfaction across many locations"
+      ]
+    },
+    {
+      "title": "Human Resources – Full People Management",
+      "icon": "👥",
+      "text": "Gold includes comprehensive human resources capabilities: recruiting, onboarding, employee development, performance, rewards, and internal communication. This helps large organizations manage their people effectively and consistently.",
+      "examples": [
+        "A company with hundreds of employees manages recruitment, career development, and performance reviews in one integrated system"
+      ]
+    },
+    {
+      "title": "Finance – Full Financial Management",
+      "icon": "💰",
+      "text": "Gold offers complete financial capabilities including accounting, revenue management, project finance, payroll, payables, treasury, internal controls, tax, and international consolidation. This is essential for complex or multinational organizations.",
+      "examples": [
+        "A group of companies can consolidate financial results from multiple countries and legal entities automatically"
+      ]
+    },
+    {
+      "title": "Assets, Construction & Maintenance",
+      "icon": "🏗️",
+      "text": "Gold provides advanced tools for managing physical and financial assets, construction projects, and ongoing maintenance. This is particularly valuable for companies with significant infrastructure or equipment.",
+      "examples": [
+        "A utility or construction company manages large asset portfolios, maintenance schedules, and capital projects"
+      ]
+    },
+    {
+      "title": "Governance, Risk, Compliance & Resiliency",
+      "icon": "🛡️",
+      "text": "Gold includes strong support for corporate governance, risk management, compliance, remediation, and business resiliency. This helps large organizations meet regulatory requirements and prepare for disruptions.",
+      "examples": [
+        "A listed company manages compliance requirements, risk registers, and business continuity planning in one place"
+      ]
+    },
+    {
+      "title": "Quality, Change & Knowledge Management",
+      "icon": "✅",
+      "text": "Gold provides mature capabilities for managing quality, driving organizational change, and capturing and sharing knowledge across the enterprise. This helps large companies maintain standards and continuously improve.",
+      "examples": [
+        "A global company standardizes quality processes and shares best practices across all locations"
+      ]
+    },
+    {
+      "title": "Capabilities, Analytics & Benchmarking",
+      "icon": "📊",
+      "text": "Gold offers advanced tools for developing organizational capabilities, running sophisticated analytics, and benchmarking performance against internal goals or external standards. This supports data-driven decision making at scale.",
+      "examples": [
+        "Executive leadership sees company-wide performance dashboards and can compare results across regions or business units"
+      ]
+    },
+    {
+      "title": "Agents – Enterprise AI Support",
+      "icon": "🤖",
+      "text": "Gold includes the most advanced AI agent capabilities. These agents can support complex processes across the entire organization and work together under agentic managers in different business areas.",
+      "examples": [
+        "AI agents across finance, operations, and HR work together to prepare monthly management reports and flag issues automatically"
+      ]
+    }
+  ]
+}

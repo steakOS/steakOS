@@ -1,0 +1,588 @@
+{
+  "groups": [
+    {
+      "package": "core",
+      "label": "My work",
+      "order": 10,
+      "apqc": null,
+      "resources": [
+        {
+          "name": "Task",
+          "path": "/domains/core/Task"
+        }
+      ],
+      "navRole": "work",
+      "primary": false,
+      "family": "core",
+      "comment": "Nav: top-level My work \u2192 /work; Task list under System (AppShell)"
+    },
+    {
+      "package": "strategy",
+      "label": "Strategy",
+      "order": 20,
+      "apqc": 0,
+      "resources": [
+        {
+          "name": "Competitor",
+          "path": "/domains/strategy/Competitor"
+        },
+        {
+          "name": "StrategyItem",
+          "path": "/domains/strategy/StrategyItem"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "strategy",
+      "comment": "G4 StrategyBasics thin"
+    },
+    {
+      "package": "development",
+      "label": "Development",
+      "order": 30,
+      "apqc": 0,
+      "resources": [
+        {
+          "name": "DevelopmentProject",
+          "path": "/domains/development/DevelopmentProject"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "development",
+      "comment": "G4 DevelopmentBasics thin"
+    },
+    {
+      "package": "sales",
+      "label": "Sales & Marketing",
+      "order": 40,
+      "apqc": 1,
+      "resources": [
+        {
+          "name": "Customer",
+          "path": "/domains/sales/Customer"
+        },
+        {
+          "name": "CustomerQuote",
+          "path": "/domains/sales/CustomerQuote"
+        },
+        {
+          "name": "QuoteLine",
+          "path": "/domains/sales/QuoteLine"
+        },
+        {
+          "name": "SalesOrder",
+          "path": "/domains/sales/SalesOrder"
+        },
+        {
+          "name": "OrderLine",
+          "path": "/domains/sales/OrderLine"
+        },
+        {
+          "name": "GoToMarket",
+          "path": "/domains/sales/GoToMarket"
+        },
+        {
+          "name": "Market",
+          "path": "/domains/sales/Market"
+        },
+        {
+          "name": "SalesPlan",
+          "path": "/domains/sales/SalesPlan"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "sales"
+    },
+    {
+      "package": "procurement",
+      "label": "Procurement",
+      "order": 50,
+      "apqc": 2,
+      "resources": [
+        {
+          "name": "Vendor",
+          "path": "/domains/procurement/Vendor"
+        },
+        {
+          "name": "PurchaseOrder",
+          "path": "/domains/procurement/PurchaseOrder"
+        },
+        {
+          "name": "PurchaseOrderLine",
+          "path": "/domains/procurement/PurchaseOrderLine"
+        },
+        {
+          "name": "Receipt",
+          "path": "/domains/procurement/Receipt"
+        },
+        {
+          "name": "ReceiptLine",
+          "path": "/domains/procurement/ReceiptLine"
+        },
+        {
+          "name": "Contract",
+          "path": "/domains/procurement/Contract"
+        },
+        {
+          "name": "SourcingCategory",
+          "path": "/domains/procurement/SourcingCategory"
+        },
+        {
+          "name": "SourcingPlan",
+          "path": "/domains/procurement/SourcingPlan"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "scm"
+    },
+    {
+      "package": "catalogue",
+      "label": "Catalogue",
+      "order": 60,
+      "apqc": null,
+      "resources": [
+        {
+          "name": "CatalogueItem",
+          "path": "/domains/catalogue/CatalogueItem"
+        }
+      ],
+      "navRole": "work",
+      "primary": false,
+      "family": "scm",
+      "comment": "Unified goods+services master; Products/Services desks filter by nature"
+    },
+    {
+      "package": "production",
+      "label": "Production",
+      "order": 70,
+      "apqc": 3,
+      "resources": [
+        {
+          "name": "Component",
+          "path": "/domains/production/Component"
+        },
+        {
+          "name": "BillOfMaterials",
+          "path": "/domains/production/BillOfMaterials"
+        },
+        {
+          "name": "BomItem",
+          "path": "/domains/production/BomItem"
+        },
+        {
+          "name": "ProductionOrder",
+          "path": "/domains/production/ProductionOrder"
+        },
+        {
+          "name": "Lot",
+          "path": "/domains/production/Lot"
+        },
+        {
+          "name": "Check",
+          "path": "/domains/production/Check"
+        },
+        {
+          "name": "StockMove",
+          "path": "/domains/supplychain/StockMove"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "scm"
+    },
+    {
+      "package": "delivery",
+      "label": "Service Delivery",
+      "order": 80,
+      "apqc": 4,
+      "resources": [
+        {
+          "name": "Resource",
+          "path": "/domains/delivery/Resource"
+        },
+        {
+          "name": "ServiceOrder",
+          "path": "/domains/delivery/ServiceOrder"
+        },
+        {
+          "name": "ServiceOrderLine",
+          "path": "/domains/delivery/ServiceOrderLine"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "delivery"
+    },
+    {
+      "package": "service",
+      "label": "Customer Service",
+      "order": 90,
+      "apqc": 5,
+      "resources": [
+        {
+          "name": "Claims",
+          "path": "/domains/service/Claims"
+        },
+        {
+          "name": "Inquiry",
+          "path": "/domains/service/Inquiry"
+        },
+        {
+          "name": "Rma",
+          "path": "/domains/service/Rma"
+        },
+        {
+          "name": "Satisfaction",
+          "path": "/domains/service/Satisfaction"
+        },
+        {
+          "name": "ServiceLevel",
+          "path": "/domains/service/ServiceLevel"
+        },
+        {
+          "name": "Warranty",
+          "path": "/domains/service/Warranty"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "aftersales"
+    },
+    {
+      "package": "human",
+      "label": "Human Capital",
+      "order": 100,
+      "apqc": 6,
+      "resources": [
+        {
+          "name": "Candidate",
+          "path": "/domains/human/Candidate"
+        },
+        {
+          "name": "Goal",
+          "path": "/domains/human/Goal"
+        },
+        {
+          "name": "HRFile",
+          "path": "/domains/human/HRFile"
+        },
+        {
+          "name": "HeadcountPlan",
+          "path": "/domains/human/HeadcountPlan"
+        },
+        {
+          "name": "PartyAccess",
+          "path": "/domains/human/PartyAccess"
+        },
+        {
+          "name": "Payroll",
+          "path": "/domains/human/Payroll"
+        },
+        {
+          "name": "Policy",
+          "path": "/domains/human/Policy"
+        },
+        {
+          "name": "TimeTrack",
+          "path": "/domains/human/TimeTrack"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "human"
+    },
+    {
+      "package": "agents",
+      "label": "Agentic Workforce",
+      "order": 110,
+      "apqc": 10,
+      "resources": [
+        {
+          "name": "Agent",
+          "path": "/domains/agents/Agent"
+        },
+        {
+          "name": "AgentHumanLink",
+          "path": "/domains/agents/AgentHumanLink"
+        },
+        {
+          "name": "Approval",
+          "path": "/domains/agents/Approval"
+        },
+        {
+          "name": "Hive",
+          "path": "/domains/agents/Hive"
+        },
+        {
+          "name": "Memory",
+          "path": "/domains/agents/Memory"
+        }
+      ],
+      "navRole": "intelligence",
+      "primary": true,
+      "family": "agents"
+    },
+    {
+      "package": "digital",
+      "label": "Platform & IT",
+      "order": 120,
+      "apqc": 7,
+      "resources": [
+        {
+          "name": "ConfigItem",
+          "path": "/domains/digital/ConfigItem"
+        },
+        {
+          "name": "Data",
+          "path": "/domains/digital/Data"
+        },
+        {
+          "name": "ITChange",
+          "path": "/domains/digital/ITChange"
+        },
+        {
+          "name": "ItTicket",
+          "path": "/domains/digital/ItTicket"
+        },
+        {
+          "name": "Solution",
+          "path": "/domains/digital/Solution"
+        },
+        {
+          "name": "System",
+          "path": "/domains/digital/System"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "digital"
+    },
+    {
+      "package": "asset",
+      "label": "Assets",
+      "order": 130,
+      "apqc": 10,
+      "resources": [
+        {
+          "name": "PhysicalAsset",
+          "path": "/domains/asset/PhysicalAsset"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "asset",
+      "comment": "G4 AssetBasics thin"
+    },
+    {
+      "package": "finance",
+      "label": "Finance",
+      "order": 140,
+      "apqc": 8,
+      "resources": [
+        {
+          "name": "Account",
+          "path": "/domains/finance/Account"
+        },
+        {
+          "name": "Budget",
+          "path": "/domains/finance/Budget"
+        },
+        {
+          "name": "Invoice",
+          "path": "/domains/finance/Invoice"
+        },
+        {
+          "name": "JournalEntry",
+          "path": "/domains/finance/JournalEntry"
+        },
+        {
+          "name": "JournalLine",
+          "path": "/domains/finance/JournalLine"
+        },
+        {
+          "name": "Payable",
+          "path": "/domains/finance/Payable"
+        },
+        {
+          "name": "Payment",
+          "path": "/domains/finance/Payment"
+        },
+        {
+          "name": "PaymentOption",
+          "path": "/domains/finance/PaymentOption"
+        },
+        {
+          "name": "PayrollItem",
+          "path": "/domains/finance/PayrollItem"
+        },
+        {
+          "name": "Tax",
+          "path": "/domains/finance/Tax"
+        },
+        {
+          "name": "Treasury",
+          "path": "/domains/finance/Treasury"
+        }
+      ],
+      "navRole": "work",
+      "primary": true,
+      "family": "finance"
+    },
+    {
+      "package": "capability",
+      "label": "Business Capabilities",
+      "order": 150,
+      "apqc": 9,
+      "resources": [
+        {
+          "name": "Change",
+          "path": "/domains/capability/Change"
+        },
+        {
+          "name": "ChangeItem",
+          "path": "/domains/capability/ChangeItem"
+        },
+        {
+          "name": "KnowledgeArea",
+          "path": "/domains/capability/KnowledgeArea"
+        },
+        {
+          "name": "Portfolio",
+          "path": "/domains/capability/Portfolio"
+        },
+        {
+          "name": "Procedure",
+          "path": "/domains/capability/Procedure"
+        },
+        {
+          "name": "Process",
+          "path": "/domains/capability/Process"
+        },
+        {
+          "name": "ProcessStep",
+          "path": "/domains/capability/ProcessStep"
+        },
+        {
+          "name": "Program",
+          "path": "/domains/capability/Program"
+        },
+        {
+          "name": "Project",
+          "path": "/domains/capability/Project"
+        },
+        {
+          "name": "ProjectItem",
+          "path": "/domains/capability/ProjectItem"
+        },
+        {
+          "name": "Quality",
+          "path": "/domains/capability/Quality"
+        },
+        {
+          "name": "QualityItem",
+          "path": "/domains/capability/QualityItem"
+        },
+        {
+          "name": "Standard",
+          "path": "/domains/capability/Standard"
+        }
+      ],
+      "navRole": "intelligence",
+      "primary": true,
+      "family": "capability"
+    },
+    {
+      "package": "generic",
+      "label": "Content",
+      "order": 160,
+      "apqc": null,
+      "resources": [
+        {
+          "name": "Content",
+          "path": "/domains/generic/Content"
+        },
+        {
+          "name": "ContentType",
+          "path": "/domains/generic/ContentType"
+        },
+        {
+          "name": "ContentTypeConfig",
+          "path": "/domains/generic/ContentTypeConfig"
+        }
+      ],
+      "navRole": "admin",
+      "primary": false
+    },
+    {
+      "package": "configuration",
+      "label": "Configuration",
+      "order": 170,
+      "apqc": null,
+      "resources": [
+        {
+          "name": "GlobalConfig",
+          "path": "/domains/configuration/GlobalConfig"
+        },
+        {
+          "name": "UserConfig",
+          "path": "/domains/configuration/UserConfig"
+        }
+      ],
+      "navRole": "admin",
+      "primary": false
+    },
+    {
+      "package": "helper",
+      "label": "Reference data",
+      "order": 180,
+      "apqc": null,
+      "resources": [
+        {
+          "name": "Address",
+          "path": "/domains/helper/Address"
+        },
+        {
+          "name": "Classification",
+          "path": "/domains/helper/Classification"
+        },
+        {
+          "name": "Countries",
+          "path": "/domains/helper/Countries"
+        },
+        {
+          "name": "Currencies",
+          "path": "/domains/helper/Currencies"
+        },
+        {
+          "name": "SimpleClass",
+          "path": "/domains/helper/SimpleClass"
+        },
+        {
+          "name": "SimpleStatus",
+          "path": "/domains/helper/SimpleStatus"
+        },
+        {
+          "name": "SimpleType",
+          "path": "/domains/helper/SimpleType"
+        },
+        {
+          "name": "SimpleUnit",
+          "path": "/domains/helper/SimpleUnit"
+        },
+        {
+          "name": "SupportedLocale",
+          "path": "/domains/helper/SupportedLocale"
+        },
+        {
+          "name": "Tag",
+          "path": "/domains/helper/Tag"
+        }
+      ],
+      "navRole": "admin",
+      "primary": false
+    }
+  ]
+}

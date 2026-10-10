@@ -1,0 +1,147 @@
+{
+  "desk": {
+    "title": "Innendienst",
+    "subtitle": "Kunden → Angebote → Aufträge → Finanz-Entwurfsrechnung",
+    "tabs": {
+      "customers": "Kunden",
+      "quotes": "Angebote",
+      "orders": "Aufträge",
+      "products": "Produkte",
+      "services": "Leistungen"
+    },
+    "financeInvoices": "Forderungen →"
+  },
+  "product": {
+    "new": "Neues Produkt",
+    "hint": "Gleicher Katalog wie Shop Floor / SCM — lagerfähige Verkaufsartikel.",
+    "name": "Name",
+    "sku": "SKU",
+    "unit": "Einheit",
+    "trackLots": "Chargen verfolgen",
+    "create": "Produkt anlegen",
+    "list": "Produkte",
+    "lots": "Chargen?",
+    "lotsYes": "ja",
+    "empty": "Noch keine Produkte."
+  },
+  "service": {
+    "new": "Neuer Service",
+    "hint": "Gleicher Katalog wie Delivery Desk — abzurechnende Leistungen.",
+    "name": "Name",
+    "namePh": "Installation, Beratung…",
+    "code": "Code",
+    "unit": "Einheit",
+    "listPriceEur": "Listenpreis EUR",
+    "slaCode": "SLA-Code",
+    "create": "Service anlegen",
+    "list": "Services",
+    "empty": "Noch keine Services."
+  },
+  "customer": {
+    "new": "Neuer Kunde",
+    "name": "Name",
+    "email": "E-Mail",
+    "contact": "Kontaktperson",
+    "kind": "Art",
+    "organization": "Organisation",
+    "person": "Person",
+    "create": "Kunde anlegen",
+    "list": "Kunden",
+    "empty": "Noch keine Kunden.",
+    "table": {
+      "name": "Name",
+      "kind": "Art",
+      "email": "E-Mail",
+      "content": "Inhalt"
+    }
+  },
+  "quote": {
+    "new": "Neues Angebot",
+    "list": "Angebote",
+    "empty": "Noch keine Angebote.",
+    "customer": "Kunde",
+    "selectCustomer": "Kunde wählen…",
+    "name": "Angebotsname",
+    "line": "Positionsbeschreibung",
+    "qty": "Menge",
+    "priceEur": "Einzelpreis (EUR)",
+    "priceSats": "Einzelpreis (Sats)",
+    "create": "Angebot anlegen",
+    "send": "Senden",
+    "accept": "Annehmen",
+    "reject": "Ablehnen",
+    "filterAll": "Alle Status",
+    "selected": "Gewähltes Angebot",
+    "detail": "Angebotsdetail",
+    "selectHint": "Angebot aus der Liste wählen",
+    "noCustomer": "Kein Kunde",
+    "acceptToOrder": "Annehmen → Auftrag",
+    "openOrder": "Auftrag #{{id}} öffnen",
+    "lines": "Positionen",
+    "noLines": "Keine Positionen",
+    "lineNo": "#",
+    "lineName": "Name",
+    "lineQty": "Menge",
+    "lineUnit": "Einzelpreis",
+    "lineTotal": "Summe",
+    "number": "Nummer",
+    "status": "Status",
+    "amount": "Betrag",
+    "table": {
+      "number": "Nummer",
+      "customer": "Kunde",
+      "status": "Status",
+      "amount": "Betrag",
+      "content": "Inhalt"
+    },
+    "currency": "Belegwährung"
+  },
+  "order": {
+    "new": "Neuer Auftrag",
+    "list": "Aufträge",
+    "empty": "Noch keine Aufträge.",
+    "customer": "Kunde",
+    "selectCustomer": "Kunde wählen…",
+    "name": "Auftragsname",
+    "line": "Positionsbeschreibung",
+    "qty": "Menge",
+    "priceEur": "Einzelpreis (EUR)",
+    "priceSats": "Einzelpreis (Sats)",
+    "create": "Auftrag anlegen",
+    "confirm": "Bestätigen",
+    "cancel": "Auftrag stornieren",
+    "filterAll": "Alle Status",
+    "selected": "Gewählter Auftrag",
+    "direct": "Direktauftrag (ohne Angebot)",
+    "detail": "Auftragsdetail",
+    "selectHint": "Auftrag aus der Liste wählen",
+    "table": {
+      "number": "Nummer",
+      "customer": "Kunde",
+      "status": "Status",
+      "amount": "Betrag",
+      "content": "Inhalt"
+    },
+    "confirmFinance": "Bestätigen → Finance-Entwurfsrechnung",
+    "currency": "Belegwährung"
+  },
+  "status": {
+    "DRAFT": "Entwurf",
+    "SENT": "Gesendet",
+    "ACCEPTED": "Angenommen",
+    "REJECTED": "Abgelehnt",
+    "CONFIRMED": "Bestätigt",
+    "CANCELLED": "Storniert",
+    "EXPIRED": "Abgelaufen"
+  },
+  "messages": {
+    "loadFailed": "Verkaufsdaten konnten nicht geladen werden",
+    "customerCreated": "Kunde angelegt",
+    "quoteCreated": "Angebot angelegt",
+    "orderCreated": "Auftrag angelegt",
+    "busy": "Bitte warten…"
+  },
+  "delivery": {
+    "newService": "Neue Leistung"
+  }
+}

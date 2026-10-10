@@ -1,0 +1,102 @@
+{
+  "title": "Silver Template",
+  "description": "For growing companies (up to ~100 people)",
+  "pages": [
+    {
+      "title": "Strategy & Initiatives – Setting Direction and Taking Action",
+      "icon": "🎯",
+      "text": "Strategy means deciding where your company wants to go in the long term. Initiatives are the concrete projects and actions you take to move in that direction. Silver helps growing companies keep their big goals and day-to-day projects connected and visible to the right people.",
+      "examples": [
+        "A 60-person company defines yearly goals and breaks them down into clear projects with owners and deadlines"
+      ]
+    },
+    {
+      "title": "Development & Innovation – Creating Better Products and Services",
+      "icon": "💡",
+      "text": "Development is about improving existing offerings or creating new ones. Innovation means finding smarter or new ways of doing things. Silver gives growing companies better tools to manage ideas, development work, and new product or service launches.",
+      "examples": [
+        "A manufacturing company tracks new product ideas from concept through to launch with clear stages"
+      ]
+    },
+    {
+      "title": "Sales & Sales Planning – Winning and Managing Customers",
+      "icon": "💼",
+      "text": "Sales is the process of finding potential customers and turning them into paying clients. Sales planning means thinking ahead about targets and how to reach them. Silver helps growing companies manage leads, opportunities, and sales targets more professionally.",
+      "examples": [
+        "A B2B company with 40 employees tracks every sales opportunity and sees which ones are likely to close this quarter"
+      ]
+    },
+    {
+      "title": "Supply Chain & Procurement – Getting What You Need on Time",
+      "icon": "📦",
+      "text": "Supply chain and procurement cover everything related to buying materials, goods, or services and making sure they arrive when needed. Silver helps growing companies manage suppliers, orders, and delivery more reliably.",
+      "examples": [
+        "A company with multiple locations can see stock levels and upcoming deliveries across all sites in one view"
+      ]
+    },
+    {
+      "title": "Services & Customer Service – Delivering and Supporting Well",
+      "icon": "🤝",
+      "text": "This area covers delivering your service to customers and helping them when they have questions or issues. Silver gives growing companies better tools to manage service requests, track customer satisfaction, and handle after-sales support consistently.",
+      "examples": [
+        "A service company with 50 employees can see all open customer requests and who is responsible for each one"
+      ]
+    },
+    {
+      "title": "Human Resources – Building and Supporting Your Team",
+      "icon": "👥",
+      "text": "Human Resources includes finding the right people, bringing them into the company, helping them grow, and keeping them engaged. Silver provides growing companies with better tools for recruitment, onboarding, employee development, and basic HR processes.",
+      "examples": [
+        "A 70-person company manages job applications, onboarding checklists, and employee development goals in one system"
+      ]
+    },
+    {
+      "title": "Finance & Accounting – Managing Money Professionally",
+      "icon": "💰",
+      "text": "Finance covers invoicing, payments, bookkeeping, and financial reporting. Silver gives growing companies stronger financial processes, better reporting, and clearer visibility into the company’s financial health.",
+      "examples": [
+        "Management can see monthly profit and loss, cash flow, and outstanding invoices without needing to ask the accountant every time"
+      ]
+    },
+    {
+      "title": "Assets & Construction – Managing What the Company Owns",
+      "icon": "🏗️",
+      "text": "Assets are the things the company owns or uses (buildings, equipment, vehicles, etc.). Construction and maintenance relate to building or keeping physical assets in good condition. Silver helps growing companies track and manage their important assets better.",
+      "examples": [
+        "A company with several locations keeps track of equipment, maintenance schedules, and asset values in one place"
+      ]
+    },
+    {
+      "title": "Governance, Compliance & Risk – Doing Things the Right Way",
+      "icon": "⚖️",
+      "text": "Governance, compliance, and risk management help ensure the company follows laws, manages risks, and operates responsibly. Silver gives growing companies better tools to handle compliance requirements and basic risk management.",
+      "examples": [
+        "A company can track important legal requirements and see which ones still need attention"
+      ]
+    },
+    {
+      "title": "Quality, Change & Knowledge Management",
+      "icon": "✅",
+      "text": "Quality management helps ensure products and services meet the expected standard. Change management helps the company adapt when things need to be done differently. Knowledge management helps capture and share useful information inside the company. Silver supports growing companies in these areas with better structure.",
+      "examples": [
+        "A manufacturing company tracks quality issues and makes sure lessons learned are shared across teams"
+      ]
+    },
+    {
+      "title": "Analytics & Benchmarking – Learning from Your Numbers",
+      "icon": "📊",
+      "text": "Analytics helps you understand what is happening in your business through data. Benchmarking means comparing your performance against others or against your own goals. Silver gives growing companies stronger reporting and analysis tools.",
+      "examples": [
+        "Management can see which departments or products are performing well and where improvements are needed"
+      ]
+    },
+    {
+      "title": "Agents – Smarter AI Support Across the Company",
+      "icon": "🤖",
+      "text": "Silver includes more advanced AI agents that can help across different departments. These agents can take on more complex routine tasks and provide better support to teams.",
+      "examples": [
+        "An AI agent helps the finance team by automatically preparing monthly reports and flagging unusual numbers"
+      ]
+    }
+  ]
+}

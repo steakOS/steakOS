@@ -1,0 +1,27 @@
+{
+  "title": "Choose Your Starting Size",
+  "pages": [
+    {
+      "title": "Choose Your Starting Size",
+      "icon": "📏",
+      "text": "We have ready-made starting points (templates) so you do not have to build everything from scratch.\n\n**Bronze** is the team pack open today. Silver and Gold are the growth ladder as those packs ship. You can expand later at any time.",
+      "examples": [
+        "A small team with an established portfolio (about 5–20 people) -> Bronze (recommended start)",
+        "A growing company with more locations and processes -> Silver (coming soon)",
+        "A large / multi-entity organisation -> Gold (coming soon)"
+      ],
+      "choices": [
+        "Bronze Template: Small team with product portfolio, roughly 5–20 employees (recommended)",
+        "Silver Template: Growing company, more locations, up to ~100 employees (coming soon)",
+        "Gold Template: Large enterprise / multi-company complexity (coming soon)"
+      ],
+      "contentchoice": [
+        "templates/bronze.json",
+        "templates/silver.json",
+        "templates/gold.json"
+      ],
+      "tierCodes": ["BRONZE", "SILVER", "GOLD"],
+      "canSkip": false
+    }
+  ]
+}

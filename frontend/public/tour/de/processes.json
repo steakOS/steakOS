@@ -1,0 +1,45 @@
+{
+  "title": "Geschäftsprozesse & Automatisierung",
+  "pages": [
+    {
+      "title": "Was ist ein Geschäftsprozess?",
+      "icon": "🔄",
+      "text": "Ein Geschäftsprozess ist einfach eine Reihe von Schritten, mit denen Sie etwas in Ihrem Unternehmen erledigen.\n\nBeispiele:\n• Eine Rechnung erstellen und versenden\n• Nachbestellen, wenn der Bestand niedrig ist\n• Am Monatsende das Team bezahlen\n• Einen Kunden nachfassen, der noch nicht gezahlt hat",
+      "examples": [
+        "Auch ein Ein-Personen-Unternehmen hat Prozesse — oft nur im Kopf der Inhaberin bzw. des Inhabers",
+        "Wenn das Unternehmen wächst, müssen diese Prozesse klar sein, damit andere sie mitmachen können"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Warum Prozesse wichtig sind",
+      "icon": "📋",
+      "text": "Unklare oder uneinheitliche Prozesse kosten Zeit, erzeugen Fehler und Stress. Gute Prozesse helfen Ihnen:\n\n• Zeit zu sparen\n• Fehler zu reduzieren\n• Einstellen und Delegieren zu erleichtern\n• Zu verstehen, was im Unternehmen wirklich läuft",
+      "examples": [
+        "Eine Freelancerin, die Rechnungen unregelmäßig vergisst, verliert jeden Monat Geld",
+        "Ein kleines Team, in dem jede:r anders arbeitet, erzeugt Verwirrung und Fehler"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Was ist Prozessautomatisierung?",
+      "icon": "⚙️",
+      "text": "Automatisierung heißt: Das System übernimmt wiederkehrende oder regelbasierte Arbeit für Sie.\n\nStatt selbst daran zu denken, bei überfälligen Rechnungen zu erinnern, kann das System das automatisch tun. Statt Daten manuell zwischen Tools zu kopieren, erledigt das System das für Sie.",
+      "examples": [
+        "Vorher: Sie prüfen freitags manuell, welche Rechnungen überfällig sind\nNachher: Das System sendet höfliche Erinnerungen und zeigt eine Liste überfälliger Rechnungen",
+        "Vorher: Sie tragen Verkaufszahlen jeden Monat in eine Tabelle ein\nNachher: Das System erstellt den Bericht automatisch"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Wie Systeme helfen (oder stören) können",
+      "icon": "🛠️",
+      "text": "Ein gutes Business-System stützt Ihre Prozesse und macht sie einfacher. Ein schlechtes zwingt Sie zu Workarounds oder erzeugt Extraarbeit.\n\nsteakOS ist so gebaut, dass es echte Geschäftsprozesse unterstützt statt gegen sie zu arbeiten. Sie starten schlank und bauen Struktur nur dann aus, wenn Sie sie brauchen.",
+      "examples": [
+        "Ein System, das 15 Pflichtfelder für eine einfache Rechnung verlangt, erzeugt Reibung",
+        "Ein System, das mit dem Nötigsten startet und Felder später zulässt, reduziert Stress"
+      ],
+      "canSkip": true
+    }
+  ]
+}

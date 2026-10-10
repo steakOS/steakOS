@@ -1,0 +1,45 @@
+{
+  "title": "Nostr in steakOS",
+  "pages": [
+    {
+      "title": "Nostr - What the heck is Nostr?",
+      "icon": "🔓",
+      "text": "Nostr stands for “Notes and Other Stuff Transmitted by Relays”. It is a simple but powerful decentralized system that lets people and businesses communicate and share information without being controlled by any single company or platform.\n\nThink of familiar tools like **Twitter** (now X): useful for communication, but run by one company with undisclosed algorithms that decide what you see and can change the rules overnight. Nostr is the opposite idea — open relays, no single owner, and no hidden feed algorithm in the middle.\n\nIn simple terms: Nostr gives you your own digital identity that you fully own, and allows you to send messages and records that cannot be censored or deleted by a central authority.",
+      "examples": [
+        "Your business identity lives with you, not inside one company’s closed system",
+        "Important records sent via Nostr cannot be changed or removed without your knowledge"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "The 5 W Questions About Nostr",
+      "icon": "❓",
+      "text": "Who can use it? Anyone — freelancers, small businesses, and large companies.\n\nWhat is it used for? Identity, messaging, sharing documents, and creating verifiable records.\n\nWhen is it useful? Whenever you want independence from big platforms or need records that cannot be altered.\n\nWhere does it work? Globally — there is no central server that can be blocked or taken down.\n\nWhy use it? It gives you freedom, privacy, ownership of your data, and protection against censorship.",
+      "examples": [
+        "A freelancer can prove they delivered work on a specific date using Nostr records",
+        "A company can share verified contracts or invoices that cannot be tampered with"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Benefits of Using Nostr in Business",
+      "icon": "✅",
+      "text": "Using Nostr in steakOS brings several practical advantages:\n\n• You are not locked into one company’s platform\n• Important business records (invoices, contracts, communications) become verifiable and tamper-proof\n• You can continue working even if traditional platforms have problems\n• It supports strong privacy and true ownership of your digital presence",
+      "examples": [
+        "A business owner knows their important documents cannot be secretly changed",
+        "Teams can keep working even during email or platform outages"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "You Choose How Much Nostr to Use",
+      "icon": "⚖️",
+      "text": "Just like with Bitcoin, you decide how deeply you want to integrate Nostr into your steakOS setup. You can:\n\n• Use it lightly (mainly for identity and basic verification)\n• Use it more actively (for sharing documents and creating verifiable records)\n• Increase usage gradually as you become comfortable\n\nThere is no requirement to use it heavily. Many businesses start light and go deeper over time.",
+      "examples": [
+        "A small business starts by using Nostr only for identity and invoice verification",
+        "A growing company gradually moves more important records and communications to Nostr"
+      ],
+      "canSkip": true
+    }
+  ]
+}

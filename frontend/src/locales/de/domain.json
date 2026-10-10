@@ -1,0 +1,167 @@
+{
+  "core": {
+    "Task": "Aufgabe"
+  },
+  "sales": {
+    "Customer": "Kunde",
+    "CustomerQuote": "Kundenangebot",
+    "QuoteLine": "Angebotsposition",
+    "SalesOrder": "Verkaufsauftrag",
+    "OrderLine": "Auftragsposition",
+    "GoToMarket": "Go-to-Market",
+    "Market": "Markt",
+    "SalesPlan": "Vertriebsplan"
+  },
+  "procurement": {
+    "Vendor": "Lieferant",
+    "PurchaseOrder": "Bestellung",
+    "PurchaseOrderLine": "Bestellposition",
+    "Receipt": "Wareneingang",
+    "ReceiptLine": "Wareneingangsposition",
+    "Contract": "Vertrag",
+    "SourcingCategory": "Beschaffungskategorie",
+    "SourcingPlan": "Beschaffungsplan"
+  },
+  "production": {
+    "Product": "Produkt",
+    "Component": "Komponente",
+    "CatalogueItem": "Katalogartikel",
+    "BillOfMaterials": "Stückliste",
+    "BomItem": "Stücklistenposition",
+    "ProductionOrder": "Fertigungsauftrag",
+    "Lot": "Charge / Lot",
+    "Check": "Prüfung",
+    "StockMove": "Lagerbewegung"
+  },
+  "delivery": {
+    "Service": "Leistung",
+    "Resource": "Ressource",
+    "ServiceOrder": "Serviceauftrag",
+    "ServiceOrderLine": "Serviceauftragsposition"
+  },
+  "service": {
+    "Claims": "Claim",
+    "Inquiry": "Anfrage",
+    "Rma": "RMA",
+    "Satisfaction": "Zufriedenheit",
+    "ServiceLevel": "Service Level",
+    "Warranty": "Garantie / Warranty"
+  },
+  "human": {
+    "Candidate": "Kandidat:in",
+    "Goal": "Ziel",
+    "HRFile": "Personalakte",
+    "HeadcountPlan": "Headcount-Plan",
+    "PartyAccess": "Party-Zugriff",
+    "Payroll": "Payroll",
+    "Policy": "Policy",
+    "TimeTrack": "Zeiterfassung"
+  },
+  "digital": {
+    "ConfigItem": "Config Item",
+    "Data": "Daten",
+    "ITChange": "IT-Change",
+    "ItTicket": "IT-Ticket",
+    "Solution": "Lösung",
+    "System": "System"
+  },
+  "finance": {
+    "Account": "Konto",
+    "Budget": "Budget",
+    "Invoice": "Rechnung",
+    "JournalEntry": "Buchungssatz",
+    "JournalLine": "Buchungszeile",
+    "Payable": "Verbindlichkeit",
+    "Payment": "Zahlung",
+    "PaymentOption": "Zahlungsoption",
+    "PayrollItem": "Lohnposition",
+    "Tax": "Steuer",
+    "Treasury": "Treasury",
+    "TaxCode": "Steuercode"
+  },
+  "capability": {
+    "Change": "Änderung",
+    "ChangeItem": "Change-Position",
+    "KnowledgeArea": "Wissensbereich",
+    "Portfolio": "Portfolio",
+    "Procedure": "Prozedur",
+    "Process": "Prozess",
+    "ProcessStep": "Prozessschritt",
+    "Program": "Programm",
+    "Project": "Projekt",
+    "ProjectItem": "Projektposition",
+    "Quality": "Qualität",
+    "QualityItem": "Qualitätsposition",
+    "Standard": "Standard"
+  },
+  "agents": {
+    "Agent": "Agent",
+    "AgentHumanLink": "Agent–Mensch-Link",
+    "Approval": "Freigabe",
+    "Hive": "Schwarm",
+    "Memory": "Gedächtnis"
+  },
+  "generic": {
+    "Content": "Content",
+    "ContentType": "Content-Typ",
+    "ContentTypeConfig": "Content-Typ-Config",
+    "ContentBlob": "Content-Blob",
+    "ObjectContent": "Objekt-Inhalt",
+    "ObjectContentProfile": "Objekt-Inhaltsprofil"
+  },
+  "configuration": {
+    "GlobalConfig": "Globale Konfiguration",
+    "UserConfig": "Benutzerkonfiguration",
+    "BankAccount": "Bankkonto",
+    "CompanyCurrency": "Firmenwährung",
+    "CompanySetting": "Firmeneinstellung",
+    "CompanyTaxCode": "Firmen-Steuercode",
+    "HelpTopic": "Hilfe-Thema",
+    "ImportJob": "Importauftrag",
+    "LegalEntity": "Rechtsträger",
+    "SetupState": "Setup-Status",
+    "Site": "Standort",
+    "UserCompanyMembership": "Benutzer-Firmenmitgliedschaft",
+    "UserPreference": "Benutzereinstellung"
+  },
+  "helper": {
+    "Address": "Adresse",
+    "Classification": "Klassifikation",
+    "Countries": "Länder",
+    "Currencies": "Währungen",
+    "SimpleClass": "Klassen-Codes",
+    "SimpleStatus": "Status-Codes",
+    "SimpleType": "Typ-Codes",
+    "SimpleUnit": "Einheiten",
+    "SupportedLocale": "Unterstützte Locales",
+    "Tag": "Tags"
+  },
+  "listTitle": "{{resource}}",
+  "newTitle": "Neu: {{resource}}",
+  "editTitle": "Bearbeiten: {{resource}}",
+  "strategy": {
+    "Competitor": "Wettbewerber",
+    "StrategyItem": "Strategieelement"
+  },
+  "development": {
+    "DevelopmentProject": "Entwicklungsprojekt"
+  },
+  "asset": {
+    "PhysicalAsset": "Physische Anlage"
+  },
+  "catalogue": {
+    "CatalogueItem": "Katalogartikel"
+  },
+  "money": {
+    "amountPrimary": "Betrag (Primär)"
+  },
+  "agent": {
+    "AgentApiToken": "Agent-API-Token"
+  },
+  "security": {
+    "RoleProfile": "Rollenprofil"
+  },
+  "supplychain": {
+    "StockMove": "Lagerbewegung"
+  }
+}

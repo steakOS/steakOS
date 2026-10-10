@@ -1,0 +1,82 @@
+Thumbs.db
+.DS_Store
+.gradle
+build/
+out/
+.idea
+*.iml
+*.ipr
+*.iws
+.project
+.settings
+.classpath
+
+# Private companion material — lives in ../steakOS-dev, never in this monorepo
+docs/
+artifacts/
+archive/
+testdata/
+
+# pack-dist output (zips, latest pointers, staged packages)
+dist/out/
+
+# Optional local APM lives in companion steakOS-dev/tools/ — do not recreate under this monorepo
+tools/
+
+# Secrets & local credentials (never commit)
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.env
+!*.env.example
+
+# Local application overrides
+**/application-local.yml
+**/application-local.groovy
+**/application-secret.yml
+**/datasources-local.yml
+grails-app/conf/runtime.groovy
+**/local-config/**
+
+# Key material & wallets
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+id_rsa
+id_ed25519
+*.nsec
+*.seed
+**/wallets/**
+!**/*.example
+
+# Secret directories & accidental token drops
+**/secrets/**
+!**/secrets/**/*.example
+!**/secrets/README.md
+.npmrc
+.pypirc
+docker-compose.override.yml
+
+# Local-only editor drops that often trap pasted secrets
+*.local
+
+# Runtime / crash noise
+hs_err_pid*.log
+logs/
+var/logs/
+var/nostr/
+frontend/node_modules/
+frontend/dist/
+
+# Generated / local runtime (keep tree clean for hub)
+dist/
+var/
+.grok/
+*.log
+frontend/.vite/

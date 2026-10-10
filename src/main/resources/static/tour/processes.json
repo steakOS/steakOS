@@ -1,0 +1,45 @@
+{
+  "title": "Business Processes & Automation",
+  "pages": [
+    {
+      "title": "What is a Business Process?",
+      "icon": "🔄",
+      "text": "A business process is simply a series of steps you follow to get something done in your business.\n\nExamples:\n• Creating and sending an invoice\n• Ordering new stock when something runs low\n• Paying your team at the end of the month\n• Following up with a customer who hasn’t paid",
+      "examples": [
+        "Even a one-person business has processes — they’re just often only in the owner’s head",
+        "When a business grows, these processes need to become clear so other people can follow them too"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Why Processes Matter",
+      "icon": "📋",
+      "text": "When your processes are unclear or inconsistent, you waste time, make mistakes, and feel stressed. Good processes help you:\n\n• Save time\n• Reduce errors\n• Make it easier to hire or delegate\n• Understand what’s actually happening in your business",
+      "examples": [
+        "A freelancer who forgets to send invoices regularly loses money every month",
+        "A small team where everyone does things differently creates confusion and mistakes"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "What is Process Automation?",
+      "icon": "⚙️",
+      "text": "Automation simply means letting the system do repetitive or rule-based work for you.\n\nInstead of you remembering to send a reminder when an invoice is late, the system can do it automatically. Instead of manually copying data between tools, the system can do it for you.",
+      "examples": [
+        "Before: You manually check which invoices are overdue every Friday\nAfter: The system automatically sends polite reminders and shows you a list of overdue invoices",
+        "Before: You copy sales numbers into a spreadsheet every month\nAfter: The system creates the report automatically"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "How Systems Can Help (or Hinder) You",
+      "icon": "🛠️",
+      "text": "A good business system supports your processes and makes them easier. A bad system forces you to work around it or creates extra work.\n\nSteakOS was designed to support real business processes instead of fighting them. It gives you the flexibility to start simple and add more structure only when you need it.",
+      "examples": [
+        "A system that forces you to fill in 15 fields just to create a simple invoice creates friction",
+        "A system that lets you start with the basics and add more fields later reduces stress"
+      ],
+      "canSkip": true
+    }
+  ]
+}

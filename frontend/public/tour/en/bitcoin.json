@@ -1,0 +1,46 @@
+{
+  "title": "Bitcoin in SteakOS",
+  "pages": [
+    {
+      "title": "Bitcoin – A New Kind of Money for Business",
+      "icon": "₿",
+      "text": "Bitcoin is often described as “digital gold”. It is a form of money that no government or bank can control or inflate. In SteakOS you can use Bitcoin to receive payments from customers, pay suppliers, and even pay team members.\n\nMany businesses like it because payments are fast, work across borders, and usually have very low fees compared to traditional banking or credit cards.",
+      "examples": [
+        "A freelancer in Europe gets paid by a client in South America within minutes and with almost no fees",
+        "A small business keeps part of its cash reserves in Bitcoin so inflation doesn’t reduce its value over time"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Paying and Getting Paid with Bitcoin",
+      "icon": "💸",
+      "text": "SteakOS makes it easy to send and receive Bitcoin payments alongside traditional currencies (we call them Fiat). You can create invoices that customers can pay directly using Bitcoin or Lightning (a faster and cheaper technology built on top of Bitcoin).\n\nThis is especially useful if you work with international clients or want to reduce the fees you pay for receiving money.",
+      "examples": [
+        "A designer sends an invoice and the client pays instantly in Bitcoin",
+        "An online shop offers Bitcoin and Lightning as payment options alongside credit cards"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Paying Your Team in Bitcoin",
+      "icon": "👥",
+      "text": "Some companies using SteakOS offer their team members the option to receive part or all of their salary in Bitcoin. This is sometimes called “Bitcoin salary stacking”.\n\nIt can be useful for remote team members who live in countries with unstable currencies, or for people who simply want to save in Bitcoin. SteakOS makes it simple to offer this as an option alongside regular payments.",
+      "examples": [
+        "A remote team member chooses to receive 30% of their salary in Bitcoin every month",
+        "A growing company offers Bitcoin payments as an optional benefit to attract international talent",
+        "You decide to offer a private Bitcoin-based pension package to your top talent or most senior staff members."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "You Decide How Much Bitcoin to Use",
+      "icon": "⚖️",
+      "text": "You are always in full control. SteakOS lets you choose how deeply you want to use Bitcoin:\n\n• Use it only occasionally for international payments\n• Accept it as one of several payment options\n• Use it more actively (for salaries, reserves, or supplier payments)\n\nYou can start small and increase usage over time if it makes sense for your business. There is no pressure to use it heavily.\nAs experienced bitcoiners would say: stay humble, stack sats.",
+      "examples": [
+        "Many small businesses start by simply accepting Bitcoin from a few international clients",
+        "Others gradually move more of their financial operations to Bitcoin as they become comfortable with it"
+      ],
+      "canSkip": true
+    }
+  ]
+}

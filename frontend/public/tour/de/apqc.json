@@ -1,0 +1,154 @@
+{
+  "title": "Das APQC-Rahmenwerk",
+  "pages": [
+    {
+      "title": "Was ist APQC?",
+      "icon": "📋",
+      "text": "APQC steht für American Productivity & Quality Center. Es hat ein international weit genutztes Rahmenwerk geschaffen, das Geschäftsprozesse in klare Kategorien ordnet.\n\nWarum das zählt: Es gibt Unternehmen eine gemeinsame Sprache und Struktur. Statt dass jede:r die Arbeit neu erfindet, liefert APQC ein bewährtes Modell für Firmen jeder Größe.",
+      "examples": [
+        "Stellen Sie es sich wie eine Standardkarte für Geschäftsaktivitäten vor — statt dass jede:r die eigene zeichnet"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Warum steakOS APQC nutzt",
+      "icon": "🗺️",
+      "text": "steakOS ist um das APQC-Rahmenwerk gebaut, damit alles organisiert und konsistent bleibt — auch wenn Ihr Unternehmen wächst oder komplexer wird.\n\nSie müssen nicht alle 13 Bereiche auswendig lernen. Wichtig ist: Ihr Unternehmen hat unterschiedliche Arten von Aktivitäten, und klare Ordnung macht alles einfacher.",
+      "examples": [
+        "Eine Inhaberin eines kleinen Betriebs startet schlank und profitiert trotzdem von klarer Struktur",
+        "Ein wachsendes Unternehmen skaliert, ohne dass Prozesse chaotisch werden"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "1. Strategie",
+      "icon": "🎯",
+      "text": "Strategie bedeutet: Wohin geht Ihr Unternehmen und wie kommt es dorthin?\n\nDazu gehören Ziele setzen, den Markt verstehen, die Zukunft planen und große Richtungsentscheidungen treffen.",
+      "examples": [
+        "Eine Freelancerin entscheidet, ob sie sich auf eine Kundenart spezialisiert oder viele Leistungen anbietet",
+        "Ein Unternehmen entscheidet, ob es in neue Länder expandiert oder den aktuellen Markt vertieft"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "2. Marketing & Vertrieb",
+      "icon": "📣",
+      "text": "Dieser Bereich umfasst alles, was Kunden anzieht und Abschlüsse ermöglicht.\n\nDazu gehören Marketing, Lead-Generierung, Vertriebsprozesse, Preise und Kundengewinnung.",
+      "examples": [
+        "Ein Kleinunternehmen nutzt Social-Media-Kampagnen für neue Kunden",
+        "Ein größeres Unternehmen hat strukturierten Vertrieb und ein CRM"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "3. Produktentwicklung",
+      "icon": "💡",
+      "text": "Hier geht es um Erstellen und Verbessern der Produkte oder Dienstleistungen, die Sie verkaufen.\n\nDazu gehören Forschung, Design, Entwicklung, Tests und der Launch neuer Angebote.",
+      "examples": [
+        "Eine Freelancerin entwickelt ein neues Service-Paket für Kunden",
+        "Ein Softwarehaus baut und veröffentlicht neue Funktionen"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "4. Operations",
+      "icon": "🏭",
+      "text": "Operations heißt: Produkt oder Service tatsächlich liefern.\n\nDazu gehören Produktion, Leistungserbringung, Qualitätskontrolle und die tägliche Ausführung der Arbeit.",
+      "examples": [
+        "Eine Bäckerei produziert täglich Brot und Gebäck",
+        "Eine Beratungsfirma liefert Projekte für Kunden"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "5. Finanzen",
+      "icon": "💰",
+      "text": "Finanzen decken alle geldbezogenen Aktivitäten ab.\n\nDazu gehören Rechnungsstellung, Rechnungen bezahlen, Buchhaltung, Finanzberichte, Liquidität und Finanzplanung.",
+      "examples": [
+        "Eine Freelancerin trackt Einnahmen und Ausgaben, um die Steuerlast zu kennen",
+        "Ein Unternehmen erstellt monatliche Finanzberichte für Management und Investoren"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "6. Personal (HR)",
+      "icon": "👥",
+      "text": "Personalwesen bedeutet: Menschen finden, entwickeln und unterstützen.\n\nDazu gehören Recruiting, Onboarding, Training, Leistungsmanagement und Wohlbefinden der Mitarbeitenden.",
+      "examples": [
+        "Ein Kleinunternehmen stellt die erste Person ein und baut einen einfachen Onboarding-Prozess",
+        "Ein größeres Unternehmen hat strukturiertes Recruiting, Trainings und Karriereentwicklung"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "7. Informationstechnologie",
+      "icon": "💻",
+      "text": "Dieser Bereich umfasst Technologie und Systeme, die Ihr Unternehmen nutzt.\n\nDazu gehören Software, Hardware, Datenmanagement, Cybersicherheit und technischer Support.",
+      "examples": [
+        "Eine Freelancerin wählt gute Tools für Rechnungen und Kommunikation",
+        "Ein Unternehmen verwaltet mehrere Systeme, Datensicherheit und IT-Support für Mitarbeitende"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "8. Beschaffung",
+      "icon": "🛒",
+      "text": "Beschaffung heißt: Waren und Dienstleistungen von Lieferanten kaufen.\n\nDazu gehören Lieferanten finden, Preise verhandeln, Bestellungen und Lieferantenbeziehungen.",
+      "examples": [
+        "Ein Laden bestellt Ware beim Großhandel",
+        "Ein Produktionsunternehmen pflegt Beziehungen zu Dutzenden Lieferanten"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "9. Logistik & Supply Chain",
+      "icon": "🚚",
+      "text": "Hier geht es um Warenbewegungen und den Fluss von Lieferanten zu Kunden.\n\nDazu gehören Lager, Versand, Bestandsführung und Koordination der Lieferkette.",
+      "examples": [
+        "Ein Onlineshop verwaltet Bestand und versendet an Kunden",
+        "Ein Unternehmen koordiniert komplexe internationale Lieferketten"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "10. Kundenservice",
+      "icon": "🤝",
+      "text": "Kundenservice unterstützt Kunden nach dem Kauf und hält sie zufrieden.\n\nDazu gehören Fragen beantworten, Beschwerden, Support und langfristige Beziehungen.",
+      "examples": [
+        "Eine Freelancerin antwortet persönlich auf Kunden-E-Mails und Fragen",
+        "Ein Unternehmen hat ein Support-Team und strukturierte Prozesse für Anliegen"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "11. Qualitätsmanagement",
+      "icon": "✅",
+      "text": "Qualitätsmanagement stellt sicher, dass Produkte oder Services die versprochenen Standards erfüllen.\n\nDazu gehören Qualitätsprüfungen, Prozessverbesserung und Fehlervermeidung.",
+      "examples": [
+        "Eine Bäckerin prüft, ob jedes Brot den Qualitätsstandard erfüllt",
+        "Ein Unternehmen führt regelmäßige Qualitätschecks und Verbesserungsprogramme durch"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "12. Risikomanagement",
+      "icon": "⚠️",
+      "text": "Risikomanagement heißt: potenzielle Probleme erkennen und handhaben, bevor sie ernst werden.\n\nDazu gehören finanzielle, operative und rechtliche Risiken sowie Pläne für Unerwartetes.",
+      "examples": [
+        "Eine Freelancerin hat Backup-Pläne, wenn ein Großkunde spät zahlt",
+        "Ein Unternehmen hat Versicherungen, Verträge und Notfallpläne für große Risiken"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "13. Governance & Compliance",
+      "icon": "⚖️",
+      "text": "Dieser Bereich regelt, wie Ihr Unternehmen gesteuert wird und wie es Gesetze und Vorschriften einhält.\n\nDazu gehören rechtliche Compliance, Steuerpflichten, Datenschutz, ethische Standards und interne Kontrollen.",
+      "examples": [
+        "Ein Kleinunternehmen stellt sicher, dass Steuern korrekt gemeldet und Kundendaten geschützt sind",
+        "Ein größeres Unternehmen hat formelle Governance-Strukturen und Compliance-Prozesse"
+      ],
+      "canSkip": true
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "title": "Silver-Vorlage",
+  "description": "Für wachsende Unternehmen (bis ca. 100 Personen)",
+  "pages": [
+    {
+      "title": "Strategie & Initiativen – Richtung setzen und handeln",
+      "icon": "🎯",
+      "text": "Strategie entscheidet, wohin das Unternehmen langfristig will. Initiativen sind konkrete Projekte und Aktionen auf dem Weg. Silver hilft wachsenden Unternehmen, große Ziele und Tagesprojekte zu verbinden und für die richtigen Personen sichtbar zu halten.",
+      "examples": [
+        "Ein 60-Personen-Unternehmen definiert Jahresziele und bricht sie in klare Projekte mit Ownern und Deadlines herunter"
+      ]
+    },
+    {
+      "title": "Entwicklung & Innovation – bessere Produkte und Services",
+      "icon": "💡",
+      "text": "Entwicklung verbessert bestehende Angebote oder schafft neue. Innovation sucht klügere Wege. Silver gibt wachsenden Unternehmen bessere Tools für Ideen, Entwicklungsarbeit und Launches.",
+      "examples": [
+        "Ein Fertigungsunternehmen trackt neue Produktideen vom Konzept bis zum Marktstart mit klaren Stufen"
+      ]
+    },
+    {
+      "title": "Vertrieb & Vertriebsplanung – Kunden gewinnen und managen",
+      "icon": "💼",
+      "text": "Vertrieb findet potenzielle Kunden und macht sie zu zahlenden Kunden. Vertriebsplanung denkt Ziele und Wege voraus. Silver hilft wachsenden Unternehmen, Leads, Opportunities und Ziele professioneller zu steuern.",
+      "examples": [
+        "Ein B2B-Unternehmen mit 40 Mitarbeitenden trackt jede Opportunity und sieht, was in diesem Quartal wahrscheinlich schließt"
+      ]
+    },
+    {
+      "title": "Supply Chain & Beschaffung – rechtzeitig bekommen, was Sie brauchen",
+      "icon": "📦",
+      "text": "Supply Chain und Beschaffung decken Einkauf von Material, Waren oder Services und pünktliche Ankunft ab. Silver hilft wachsenden Unternehmen, Lieferanten, Bestellungen und Lieferungen zuverlässiger zu managen.",
+      "examples": [
+        "Ein Unternehmen mit mehreren Standorten sieht Bestände und anstehende Lieferungen aller Sites in einer Ansicht"
+      ]
+    },
+    {
+      "title": "Services & Kundenservice – gut liefern und unterstützen",
+      "icon": "🤝",
+      "text": "Dieser Bereich deckt Leistungserbringung und Hilfe bei Fragen oder Problemen ab. Silver gibt wachsenden Unternehmen bessere Tools für Service-Anfragen, Kundenzufriedenheit und After-Sales.",
+      "examples": [
+        "Ein Service-Unternehmen mit 50 Mitarbeitenden sieht alle offenen Kundenanfragen und wer jeweils verantwortlich ist"
+      ]
+    },
+    {
+      "title": "Personal – Team aufbauen und unterstützen",
+      "icon": "👥",
+      "text": "Personal umfasst die richtigen Menschen finden, onboarden, entwickeln und engagiert halten. Silver liefert wachsenden Unternehmen bessere Tools für Recruiting, Onboarding, Entwicklung und grundlegende HR-Prozesse.",
+      "examples": [
+        "Ein 70-Personen-Unternehmen managt Bewerbungen, Onboarding-Checklisten und Entwicklungsziele in einem System"
+      ]
+    },
+    {
+      "title": "Finanzen & Buchhaltung – Geld professionell managen",
+      "icon": "💰",
+      "text": "Finanzen decken Rechnungen, Zahlungen, Buchhaltung und Reporting ab. Silver gibt wachsenden Unternehmen stärkere Finanzprozesse, besseres Reporting und klarere Sicht auf die finanzielle Gesundheit.",
+      "examples": [
+        "Das Management sieht monatliche GuV, Cashflow und offene Rechnungen, ohne jedes Mal die Buchhaltung zu fragen"
+      ]
+    },
+    {
+      "title": "Assets & Bau – managen, was das Unternehmen besitzt",
+      "icon": "🏗️",
+      "text": "Assets sind Dinge, die das Unternehmen besitzt oder nutzt (Gebäude, Equipment, Fahrzeuge usw.). Bau und Wartung betreffen physische Assets. Silver hilft wachsenden Unternehmen, wichtige Assets besser zu tracken und zu managen.",
+      "examples": [
+        "Ein Unternehmen mit mehreren Standorten trackt Equipment, Wartungspläne und Asset-Werte an einem Ort"
+      ]
+    },
+    {
+      "title": "Governance, Compliance & Risiko – Dinge richtig machen",
+      "icon": "⚖️",
+      "text": "Governance, Compliance und Risikomanagement stellen sicher, dass das Unternehmen Gesetze einhält, Risiken steuert und verantwortungsvoll handelt. Silver gibt wachsenden Unternehmen bessere Tools für Compliance und grundlegendes Risikomanagement.",
+      "examples": [
+        "Ein Unternehmen trackt wichtige rechtliche Anforderungen und sieht, was noch Aufmerksamkeit braucht"
+      ]
+    },
+    {
+      "title": "Qualität, Change & Wissensmanagement",
+      "icon": "✅",
+      "text": "Qualitätsmanagement stellt sicher, dass Produkte und Services den Standard erfüllen. Change-Management hilft, wenn Dinge anders laufen müssen. Wissensmanagement hält nützliche Informationen im Unternehmen. Silver unterstützt wachsende Unternehmen hier mit mehr Struktur.",
+      "examples": [
+        "Ein Fertigungsunternehmen trackt Qualitätsprobleme und stellt sicher, dass Learnings teamübergreifend geteilt werden"
+      ]
+    },
+    {
+      "title": "Analytics & Benchmarking – aus Zahlen lernen",
+      "icon": "📊",
+      "text": "Analytics hilft, das Business über Daten zu verstehen. Benchmarking vergleicht Leistung mit anderen oder mit eigenen Zielen. Silver gibt wachsenden Unternehmen stärkere Reporting- und Analyse-Tools.",
+      "examples": [
+        "Das Management sieht, welche Abteilungen oder Produkte gut laufen und wo Verbesserung nötig ist"
+      ]
+    },
+    {
+      "title": "Agenten – smarttere KI-Unterstützung im ganzen Unternehmen",
+      "icon": "🤖",
+      "text": "Silver enthält fortgeschrittenere KI-Agenten in verschiedenen Abteilungen. Diese Agenten übernehmen komplexere Routineaufgaben und unterstützen Teams besser.",
+      "examples": [
+        "Ein KI-Agent hilft dem Finance-Team, monatliche Berichte vorzubereiten und ungewöhnliche Zahlen zu markieren"
+      ]
+    }
+  ]
+}
