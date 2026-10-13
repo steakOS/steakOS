@@ -9,6 +9,7 @@ Build for simplicity, sovereignty, auditability, and incremental delivery.
 **Product name:** `steakOS` (camel OS). Prefer this spelling in formal text.  
 **Family name:** always **GRRC**, never GRC.  
 **Alpha languages:** English, German, and Spanish (`en_*`, `de_*`, `es_ES`) unless the operator expands scope.  
+**Locale MT:** use `frontend` scripts `i18n:scaffold` / `i18n:translate` / `i18n:parity` only — single-flight lock; never parallel MT jobs (see companion concept `I18N-LOCALE-MT-RESILIENCE`).  
 **License:** core **Apache-2.0** (`LICENSE`, `NOTICE`). New first-party source should include the standard header — run `python3 scripts/add-license-headers.py` if missing.
 
 **Follow Apache Grails conventions** wherever they apply. Prefer the framework’s way over custom structure unless an accepted product decision explicitly overrides it (the React SPA is the intentional UX override).
