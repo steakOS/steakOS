@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# locale MT resume state (I18N-LOCALE-MT-RESILIENCE)
+.locale-translate.lock
+.locale-translate-state/
