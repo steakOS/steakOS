@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="${request.locale?.language ?: 'en'}">
+<html lang="${request.getAttribute('steakosUiLang') ?: request.locale?.language ?: 'en'}">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -127,7 +127,7 @@
         <h1 class="thanks-brand">steakOS</h1>
         <hr class="thanks-rule" aria-hidden="true"/>
         <div class="thanks-actions">
-            <a class="btn btn-steak" id="sign-in-again" href="${request.contextPath}/login/auth?lang=${request.locale?.language ?: 'en'}"><g:message code='steakos.logout.signInAgain'/></a>
+            <a class="btn btn-steak" id="sign-in-again" href="${request.contextPath}/login/auth?lang=${request.getAttribute('steakosUiLang') ?: request.locale?.language ?: 'en'}"><g:message code='steakos.logout.signInAgain'/></a>
         </div>
     </main>
     <script>

@@ -1,0 +1,12 @@
+{
+  "title": "Idioma y región",
+  "pages": [
+    {
+      "title": "Elija su idioma",
+      "icon": "🌍",
+      "text": "Seleccione cómo debe hablarle steakOS y cómo formatear fechas e importes.\n\nPuede cambiarlo más adelante en **Configuración**. Esta elección se guarda en el navegador y se aplica a su cuenta de usuario tras iniciar sesión.\n\n**Idiomas alfa:** inglés, alemán y español.",
+      "localePicker": true,
+      "canSkip": false
+    }
+  ]
+}

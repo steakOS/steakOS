@@ -1,0 +1,208 @@
+{
+  "ui": {
+    "openBrowser": "Abrir explorador de procesos",
+    "seedHint": "Si el catálogo está vacío, cargue los procesos SYSTEM desde Ajustes.",
+    "hoverHint": "Pase el cursor o enfoque un paso para Qué / Quién / Dónde. En táctil, pulse para fijar la ayuda. Esc cierra.",
+    "tipWhat": "Qué",
+    "tipWho": "Quién",
+    "tipWhere": "Dónde",
+    "tipPitfall": "Escollo",
+    "tipStub": "planificado / stub",
+    "noTip": "Aún no hay texto de ayuda — vuelva a cargar los procesos SYSTEM cuando existan consejos.",
+    "helpKey": "Clave de ayuda",
+    "helpCenter": "Centro de ayuda",
+    "openDesk": "Abrir",
+    "flow": "Flujo",
+    "stepsHeading": "Pasos",
+    "systemReadonly": "Los pasos de un proceso SYSTEM son de solo lectura. Clónelo como proceso HUMAN para personalizarlo.",
+    "diagramAria": "Diagrama de flujo del proceso",
+    "stepAria": "Paso del proceso {{stepNo}}",
+    "stepTipAria": "Consejo del paso {{stepNo}}",
+    "renderError": "No se pudo renderizar el diagrama",
+    "noSteps": "Sin pasos",
+    "closeTip": "Cerrar consejo"
+  },
+  "labels": {
+    "AS_INQUIRY": "Proceso de consulta",
+    "SCM_PO_FULFILL": "Proceso de pedido de compra",
+    "SCM_MAKE_TO_STOCK": "Proceso fabricar→stock",
+    "SALES_QUOTE_TO_ORDER": "Proceso oferta→pedido",
+    "FIN_INVOICE_SETTLE": "Proceso de factura",
+    "DEL_SERVICE_ORDER": "Proceso de orden de servicio",
+    "HR_CANDIDATE_HIRE": "Proceso de contratación",
+    "CAP_PROJECT": "Proceso de proyecto",
+    "AR_HITL_APPROVAL": "Proceso HITL"
+  },
+  "catalogue": {
+    "SCM_PO_FULFILL": {
+      "name": "Pedido de compra",
+      "description": "Camino feliz: crear pedido → enviar → confirmar recepción → cuenta a pagar → pago → proveedor pagado. Implementado en el escritorio SCM.",
+      "steps": {
+        "scm.po.create": { "name": "Crear pedido de compra (borrador)" },
+        "scm.po.send": { "name": "Enviar pedido de compra" },
+        "scm.po.receive": { "name": "Confirmar recepción" },
+        "scm.po.payable": { "name": "Partida a pagar" },
+        "scm.po.pay": { "name": "Ejecución de pagos / pagar" },
+        "scm.po.paid": { "name": "Pago al proveedor confirmado" }
+      }
+    },
+    "SCM_MAKE_TO_STOCK": {
+      "name": "Fabricar para stock",
+      "description": "Liberar → iniciar → completar (lote OPEN) → control de calidad → PASS registra stock. Planta de producción.",
+      "steps": {
+        "scm.prod.release": {
+          "name": "Liberar orden de producción",
+          "tipWhat": "Libere una orden de producción en borrador para que la planta pueda iniciarla.",
+          "tipWho": "Planta / planificación",
+          "tipWhere": "Planta de producción → Producción",
+          "tipPitfall": "Completar sin liberar omite la secuencia planificada, pero desde DRAFT sigue permitido."
+        },
+        "scm.prod.start": {
+          "name": "Iniciar producción",
+          "tipWhat": "Marque la orden como en curso en la planta.",
+          "tipWho": "Planta de producción",
+          "tipWhere": "Planta de producción → Producción",
+          "tipPitfall": "No se puede iniciar una orden cancelada."
+        },
+        "scm.prod.complete": {
+          "name": "Completar producción (crear lote)",
+          "tipWhat": "Finalice la orden de fabricación. En bienes esto crea un lote OPEN — el stock aún no se registra.",
+          "tipWho": "Planta de producción",
+          "tipWhere": "Planta de producción → Producción",
+          "tipPitfall": "Esperar que el disponible suba al completar — solo sube tras QA PASS."
+        },
+        "scm.qa.check": {
+          "name": "Control de calidad (PASS / FAIL / HOLD)",
+          "tipWhat": "Inspeccione el lote. PASS libera cantidad a stock; FAIL rechaza; HOLD pone en cuarentena.",
+          "tipWho": "Calidad / planta",
+          "tipWhere": "Planta de producción → Calidad",
+          "tipPitfall": "Omitir QA deja el producto terminado invisible en el disponible."
+        },
+        "scm.inv.available": {
+          "name": "Stock disponible (en almacén)",
+          "tipWhat": "Tras PASS, se registra un movimiento PRODUCTION y el disponible aumenta.",
+          "tipWho": "Sistema",
+          "tipWhere": "Planta de producción → Inventario",
+          "tipPitfall": "Los lotes manuales de stock ya en almacén no registran una segunda entrada en PASS."
+        }
+      }
+    },
+    "SALES_QUOTE_TO_ORDER": {
+      "name": "Oferta a pedido de venta",
+      "description": "Crear oferta → enviar → aceptar → confirmar pedido de venta (factura borrador opcional). Escritorio de ventas.",
+      "steps": {
+        "sales.quote.create": {
+          "name": "Crear oferta de cliente",
+          "tipWhat": "Inicie una oferta para un cliente con líneas e importes.",
+          "tipWho": "Ventas / oficina",
+          "tipWhere": "Escritorio de ventas",
+          "tipPitfall": "Sin cliente o con líneas vacías no se puede enviar."
+        },
+        "sales.quote.send": {
+          "name": "Enviar oferta",
+          "tipWhat": "Marque la oferta como enviada para que el cliente pueda responder.",
+          "tipWho": "Ventas / oficina",
+          "tipWhere": "Escritorio de ventas",
+          "tipPitfall": "Editar después de enviar puede confundir el estado de aceptación."
+        },
+        "sales.quote.accept": {
+          "name": "Aceptar oferta",
+          "tipWhat": "Registre la aceptación de la oferta por el cliente.",
+          "tipWho": "Ventas / oficina",
+          "tipWhere": "Escritorio de ventas",
+          "tipPitfall": "Aceptar la versión incorrecta de la oferta."
+        },
+        "sales.order.confirm": {
+          "name": "Confirmar pedido de venta",
+          "tipWhat": "Confirme el pedido de venta a partir de la oferta aceptada.",
+          "tipWho": "Ventas / operaciones",
+          "tipWhere": "Escritorio de ventas",
+          "tipPitfall": "Confirmar antes de la aceptación omite el acuerdo comercial."
+        },
+        "sales.order.invoice": {
+          "name": "Factura borrador opcional",
+          "tipWhat": "Opcionalmente abra una factura borrador para que Finance la emita.",
+          "tipWho": "Sistema / Finance",
+          "tipWhere": "Finance → Facturas",
+          "tipPitfall": "El borrador no es un pago — aún hay que emitir y liquidar en Finance."
+        }
+      }
+    },
+    "FIN_INVOICE_SETTLE": {
+      "name": "Liquidación de factura de cliente",
+      "description": "Crear factura → emitir → liquidar por vías de pago. Escritorio de ingresos de Finance.",
+      "steps": {
+        "fin.inv.create": {
+          "name": "Crear factura (borrador)",
+          "tipWhat": "Cree una factura borrador por el importe del cliente.",
+          "tipWho": "Finance / responsable de ingresos",
+          "tipWhere": "Finance → Facturas",
+          "tipPitfall": "Liquidar un borrador antes de emitir deja las vías inconsistentes."
+        },
+        "fin.inv.issue": {
+          "name": "Emitir factura",
+          "tipWhat": "Emita el borrador para que el cliente pueda pagar (vías / PDF).",
+          "tipWho": "Finance / responsable de ingresos",
+          "tipWhere": "Finance → Facturas",
+          "tipPitfall": "Emitir sin revisar el importe o el nombre del cliente."
+        },
+        "fin.inv.settle": {
+          "name": "Liquidar / registrar pago",
+          "tipWhat": "Registre el pago (liquidación fiat, dirección de monedero o BTCPay en vivo en empresa LIVE).",
+          "tipWho": "Finance (humano — los agentes requieren HITL)",
+          "tipWhere": "Finance → Facturas / Pagos",
+          "tipPitfall": "Las empresas DEMO fuerzan liquidación simulada; BTCPay en vivo solo en LIVE."
+        }
+      }
+    },
+    "DEL_SERVICE_ORDER": {
+      "name": "Cumplimiento de orden de servicio",
+      "description": "Crear orden de servicio → planificar/asignar → iniciar → completar. Escritorio de entrega.",
+      "steps": {
+        "del.so.create": { "name": "Crear orden de servicio" },
+        "del.so.assign": { "name": "Planificar / asignar recurso" },
+        "del.so.start": { "name": "Iniciar servicio" },
+        "del.so.complete": { "name": "Completar orden de servicio" }
+      }
+    },
+    "AS_INQUIRY": {
+      "name": "Consulta de cliente",
+      "description": "Crear consulta → iniciar trabajo → resolver → cerrar. Escritorio de posventa.",
+      "steps": {
+        "as.inq.create": { "name": "Crear consulta" },
+        "as.inq.start": { "name": "Iniciar trabajo" },
+        "as.inq.resolve": { "name": "Resolver consulta" },
+        "as.inq.close": { "name": "Cerrar consulta" }
+      }
+    },
+    "HR_CANDIDATE_HIRE": {
+      "name": "Contratar candidato",
+      "description": "Crear candidato → avanzar etapas → contratar → expediente RR. HH. Escritorio de RR. HH.",
+      "steps": {
+        "hr.cand.create": { "name": "Crear candidato" },
+        "hr.cand.advance": { "name": "Avanzar etapa de contratación" },
+        "hr.cand.hire": { "name": "Contratar candidato" },
+        "hr.file.open": { "name": "Abrir expediente RR. HH." }
+      }
+    },
+    "CAP_PROJECT": {
+      "name": "Ciclo de vida del proyecto",
+      "description": "Crear proyecto → iniciar → completar o cancelar. Centro de capacidades.",
+      "steps": {
+        "cap.proj.create": { "name": "Crear proyecto (borrador)" },
+        "cap.proj.start": { "name": "Iniciar proyecto" },
+        "cap.proj.complete": { "name": "Completar proyecto" },
+        "cap.proj.cancel": { "name": "O cancelar proyecto" }
+      }
+    },
+    "AR_HITL_APPROVAL": {
+      "name": "Aprobación HITL",
+      "description": "Enviar propuesta de agente → aprobación o rechazo humano. Centro de agentes.",
+      "steps": {
+        "ar.hitl.submit": { "name": "Enviar propuesta" },
+        "ar.hitl.approve": { "name": "Aprobar propuesta" },
+        "ar.hitl.reject": { "name": "O rechazar propuesta" }
+      }
+    }
+  }
+}

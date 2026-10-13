@@ -1,0 +1,66 @@
+{
+  "title": "Descripción general técnica y de arquitectura",
+  "pages": [
+    {
+      "title": "Arquitectura y tecnología",
+      "icon": "⚙️",
+      "text": "Esta sección explica las principales decisiones técnicas detrás de steakOS en un lenguaje sencillo y no técnico.\n\nPuede omitir toda esta sección con seguridad. Está aquí sólo para personas que quieran entender *por qué* se tomaron ciertas decisiones. \n\nNo se requiere nada aquí para utilizar steakOS con éxito.",
+      "canSkip": true
+    },
+    {
+      "title": "La base de datos: la memoria confiable de su negocio",
+      "icon": "🗄️",
+      "text": "steakOS almacena toda la información comercial importante en una base de datos confiable (similar a cómo funcionan la mayoría de las herramientas comerciales profesionales).\n\nEsta base de datos actúa como la memoria central de su negocio. Realiza un seguimiento de los clientes, las facturas, el inventario, las transacciones y la configuración de forma estructurada y segura. El uso de una base de datos adecuada hace que sus datos sean consistentes, fáciles de buscar y estén protegidos contra pérdidas.",
+      "examples": [
+        "Cuando creas una factura, se almacena de forma segura para que siempre puedas encontrarla más tarde.",
+        "Los informes se pueden generar rápidamente porque los datos están bien organizados."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Eventos – El diario de todo lo que sucede",
+      "icon": "📜",
+      "text": "Además de la base de datos, steakOS utiliza un sistema de eventos. Cada acción importante en su negocio se registra como un evento (por ejemplo: “Se envió la factura #123”, “Pago recibido”, “Cambió el nivel de stock”).\n\nEsto crea un diario claro y cronológico de lo que sucedió en su negocio. Ayuda a que las diferentes partes del sistema trabajen juntas y facilita la comprensión de qué ocurrió y cuándo.",
+      "mermaid": "gráfico TD\n    Acción[Algo sucede<br/>p.ej. Factura pagada] --> Evento[Se registra el evento]\n    Evento --> Base de datos[Guardado en la base de datos]\n    Evento --> Notificaciones[Notificaciones enviadas]\n    Evento --> Informes[Informes actualizados]",
+      "examples": [
+        "Cuando llega un pago, se crea un evento para que el sistema pueda actualizar automáticamente su posición de efectivo y marcar la factura como pagada.",
+        "Si sucede algo inesperado, puedes revisar los eventos para ver exactamente qué ocurrió paso a paso."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Nostr Audit Trail: mayor seguridad e independencia",
+      "icon": "🔐",
+      "text": "Los eventos importantes también se pueden registrar en Nostr (una red descentralizada). Esto crea un registro independiente y verificable de lo que sucedió en su negocio que no se puede cambiar más adelante.\n\nTambién significa que su identidad comercial y sus registros clave no están bloqueados dentro del sistema de una empresa. Obtiene protección adicional y propiedad de sus datos.",
+      "examples": [
+        "Puedes acreditar que una factura fue enviada o pagada en una fecha concreta, incluso años después",
+        "Su importante historial comercial no está controlado por un único proveedor de software"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "AI Hives: ayuda inteligente con control humano",
+      "icon": "🐝",
+      "text": "steakOS utiliza IA organizada en “Hives”. Un Hive es un grupo de agentes de IA especializados que trabajan juntos en un área de su negocio (por ejemplo, Finanzas u Operaciones), coordinados por un gerente agente.\n\nLa regla más importante es que estas Colmenas pueden sugerir acciones y preparar trabajos, pero siempre piden tu aprobación antes de hacer algo importante. Mantienes el control total.",
+      "mermaid": "gráfico TD\n    Tú[Tú] -->|Pide ayuda| Colmena[AI Hive + Manager]\n    Colmena -->|Activa especialistas| Agentes[Agentes especializados]\n    Agentes -->|Preparar sugerencias| colmena\n    Colmena -->|Presenta opciones| tu\n    Usted -->|Aprueba o rechaza| Acción[Acción tomada]",
+      "examples": [
+        "Finance Hive puede sugerir enviar recordatorios de pago, pero usted decide si enviarlos o no",
+        "Operations Hive puede resaltar retrasos, pero usted decide qué hacer al respecto"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Cómo funciona todo en conjunto",
+      "icon": "🔗",
+      "text": "Aquí hay una descripción general simple de cómo se conectan las partes principales de steakOS:\n\nUsted y su equipo interactúan con steakOS → AI Hives ayuda cuando es útil → Las acciones importantes se guardan en la base de datos y se registran como eventos → Algunos eventos también se pueden escribir en Nostr para mayor seguridad e independencia.",
+      "mermaid": "gráfico TD\n    Usuario[Usted/Equipo] --> steakOS[steakOS]\n    steakOS --> Urticaria[Urticismo AI]\n    steakOS --> Base de datos[(Base de datos)]\n    steakOS --> Eventos[Sistema de eventos]\n    Eventos -->|Opcional| Nostr[Pista de auditoría de Nostr]\n    Urticaria --> Sugerencias[Sugerencias útiles]",
+      "canSkip": true
+    },
+    {
+      "title": "Por qué se tomaron estas decisiones",
+      "icon": "🧭",
+      "text": "La arquitectura de steakOS se diseñó teniendo en cuenta algunos objetivos importantes:\n\n• Mantenga sus datos seguros y consistentes\n• Facilitar el trabajo conjunto de diferentes partes del sistema\n• Darle propiedad y control de sus registros comerciales\n• Permita que la IA le ayude sin quitarle el control\n• Haga que el sistema sea lo suficientemente flexible para crecer con su negocio.\n\nEstas decisiones ayudan a steakOS a seguir siendo confiable, privado y preparado para el futuro, sin dejar de ser fácil de usar.",
+      "canSkip": true
+    }
+  ]
+}

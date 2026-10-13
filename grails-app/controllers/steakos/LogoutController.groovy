@@ -90,8 +90,17 @@ class LogoutController {
             return
         }
         lang = lang.split(/[_-]/)[0].toLowerCase()
-        Locale locale = lang == 'de' ? Locale.GERMAN : Locale.ENGLISH
+        Locale locale
+        if (lang == 'de') {
+            locale = Locale.GERMAN
+        } else if (lang == 'es') {
+            locale = new Locale('es', 'ES')
+        } else {
+            locale = Locale.ENGLISH
+        }
         LocaleContextHolder.setLocale(locale)
+        // GSP href uses this — request.locale can lag after session wipe.
+        request.setAttribute('steakosUiLang', lang)
         try {
             LocaleResolver resolver = RequestContextUtils.getLocaleResolver(request)
             resolver?.setLocale(request, response, locale)

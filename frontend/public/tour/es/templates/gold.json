@@ -1,0 +1,102 @@
+{
+  "title": "Plantilla de oro",
+  "description": "Capacidades empresariales completas",
+  "pages": [
+    {
+      "title": "Estrategia, iniciativas y gestión de cartera",
+      "icon": "🎯",
+      "text": "Gold le brinda soporte total para definir la dirección de la empresa (estrategia), gestionar proyectos estratégicos (iniciativas) y supervisar múltiples proyectos e inversiones en conjunto (gestión de cartera). Esto ayuda a las organizaciones grandes o complejas a mantenerse alineadas y tomar mejores decisiones de inversión.",
+      "examples": [
+        "Una empresa con múltiples unidades de negocio puede ver todos los proyectos estratégicos importantes y cómo contribuyen a los objetivos generales."
+      ]
+    },
+    {
+      "title": "Desarrollo, Innovación e I+D",
+      "icon": "💡",
+      "text": "Gold proporciona herramientas integrales para desarrollar nuevos productos y servicios, gestionar la innovación y ejecutar actividades de investigación y desarrollo. Esto es especialmente útil para empresas que necesitan mejorar continuamente o crear nuevas ofertas.",
+      "examples": [
+        "Un gran fabricante gestiona el ciclo de vida completo del desarrollo de nuevos productos, desde la idea hasta el lanzamiento al mercado."
+      ]
+    },
+    {
+      "title": "Ventas, planificación de ventas y comercio global",
+      "icon": "🌍",
+      "text": "Gold respalda procesos de ventas avanzados, planificación de ventas y actividades de comercio internacional. Esto incluye la gestión de ciclos de ventas complejos, clientes globales y negocios transfronterizos.",
+      "examples": [
+        "Una empresa multinacional gestiona equipos de ventas en diferentes países y ve un rendimiento consolidado"
+      ]
+    },
+    {
+      "title": "Cadena de suministro, adquisiciones y producción",
+      "icon": "🏭",
+      "text": "Gold ofrece soporte total para la gestión de cadenas de suministro, adquisiciones y procesos de producción complejos. Esto es fundamental para las empresas que fabrican productos o dependen en gran medida de proveedores y logística.",
+      "examples": [
+        "Una empresa de fabricación con varias fábricas coordina los proveedores, la planificación de la producción y las entregas en todas las regiones."
+      ]
+    },
+    {
+      "title": "Servicios, estrategia de servicio y experiencia del cliente",
+      "icon": "🤝",
+      "text": "Gold proporciona capacidades avanzadas para brindar servicios, gestionar la calidad del servicio y crear excelentes experiencias para los clientes. Esto incluye la gobernanza del servicio, la estrategia, la entrega y el soporte posventa.",
+      "examples": [
+        "Una gran empresa de servicios gestiona contratos de servicios complejos y mide la satisfacción del cliente en muchas ubicaciones."
+      ]
+    },
+    {
+      "title": "Recursos Humanos – Gestión Integral de Personas",
+      "icon": "👥",
+      "text": "Gold incluye capacidades integrales de recursos humanos: reclutamiento, incorporación, desarrollo de empleados, desempeño, recompensas y comunicación interna. Esto ayuda a las grandes organizaciones a gestionar a su gente de forma eficaz y coherente.",
+      "examples": [
+        "Una empresa con cientos de empleados gestiona la contratación, el desarrollo profesional y las evaluaciones de desempeño en un sistema integrado."
+      ]
+    },
+    {
+      "title": "Finanzas – Gestión financiera completa",
+      "icon": "💰",
+      "text": "Gold ofrece capacidades financieras completas que incluyen contabilidad, gestión de ingresos, financiación de proyectos, nómina, cuentas por pagar, tesorería, controles internos, impuestos y consolidación internacional. Esto es esencial para organizaciones complejas o multinacionales.",
+      "examples": [
+        "Un grupo de empresas puede consolidar resultados financieros de múltiples países y entidades legales automáticamente."
+      ]
+    },
+    {
+      "title": "Activos, Construcción y Mantenimiento",
+      "icon": "🏗️",
+      "text": "Gold proporciona herramientas avanzadas para gestionar activos físicos y financieros, proyectos de construcción y mantenimiento continuo. Esto es particularmente valioso para empresas con importantes infraestructuras o equipos.",
+      "examples": [
+        "Una empresa de servicios públicos o de construcción gestiona grandes carteras de activos, programas de mantenimiento y proyectos de capital."
+      ]
+    },
+    {
+      "title": "Gobernanza, riesgo, cumplimiento y resiliencia",
+      "icon": "🛡️",
+      "text": "Gold incluye un fuerte respaldo para el gobierno corporativo, la gestión de riesgos, el cumplimiento, la remediación y la resiliencia empresarial. Esto ayuda a las grandes organizaciones a cumplir con los requisitos regulatorios y prepararse para las interrupciones.",
+      "examples": [
+        "Una empresa que cotiza en bolsa gestiona los requisitos de cumplimiento, los registros de riesgos y la planificación de la continuidad del negocio en un solo lugar."
+      ]
+    },
+    {
+      "title": "Gestión de Calidad, Cambio y Conocimiento",
+      "icon": "✅",
+      "text": "Gold proporciona capacidades maduras para gestionar la calidad, impulsar el cambio organizacional y capturar y compartir conocimientos en toda la empresa. Esto ayuda a las grandes empresas a mantener los estándares y mejorar continuamente.",
+      "examples": [
+        "Una empresa global estandariza los procesos de calidad y comparte las mejores prácticas en todas las ubicaciones"
+      ]
+    },
+    {
+      "title": "Capacidades, análisis y evaluación comparativa",
+      "icon": "📊",
+      "text": "Gold ofrece herramientas avanzadas para desarrollar capacidades organizacionales, ejecutar análisis sofisticados y comparar el desempeño con objetivos internos o estándares externos. Esto respalda la toma de decisiones a escala basada en datos.",
+      "examples": [
+        "El liderazgo ejecutivo ve paneles de desempeño de toda la empresa y puede comparar resultados entre regiones o unidades de negocios."
+      ]
+    },
+    {
+      "title": "Agentes: soporte de IA empresarial",
+      "icon": "🤖",
+      "text": "Gold incluye las capacidades de agentes de IA más avanzadas. Estos agentes pueden respaldar procesos complejos en toda la organización y trabajar juntos bajo gerentes de agentes en diferentes áreas comerciales.",
+      "examples": [
+        "Los agentes de IA de finanzas, operaciones y recursos humanos trabajan juntos para preparar informes de gestión mensuales y señalar problemas automáticamente."
+      ]
+    }
+  ]
+}

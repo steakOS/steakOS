@@ -1,0 +1,147 @@
+{
+  "desk": {
+    "title": "Escritorio de ventas",
+    "subtitle": "Clientes → Ofertas → Pedidos → Factura borrador de Finance",
+    "tabs": {
+      "customers": "Clientes",
+      "quotes": "Ofertas",
+      "orders": "Pedidos",
+      "products": "Productos",
+      "services": "Servicios"
+    },
+    "financeInvoices": "Cuentas por cobrar →"
+  },
+  "product": {
+    "new": "Nuevo producto",
+    "hint": "Mismo catálogo que Shop Floor / SCM — artículos vendibles con stock.",
+    "name": "Nombre",
+    "sku": "SKU",
+    "unit": "Unidad",
+    "trackLots": "Seguir lotes (procedencia)",
+    "create": "Crear producto",
+    "list": "Productos",
+    "lots": "¿Lotes?",
+    "lotsYes": "sí",
+    "empty": "Aún no hay productos."
+  },
+  "service": {
+    "new": "Nuevo servicio",
+    "hint": "Mismo catálogo que el escritorio de entrega — servicios facturables para ofertas y pedidos.",
+    "name": "Nombre",
+    "namePh": "Instalación, consultoría…",
+    "code": "Código",
+    "unit": "Unidad",
+    "listPriceEur": "Precio de lista EUR",
+    "slaCode": "Código SLA",
+    "create": "Crear servicio",
+    "list": "Servicios",
+    "empty": "Aún no hay servicios."
+  },
+  "customer": {
+    "new": "Nuevo cliente",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "contact": "Nombre de contacto",
+    "kind": "Tipo",
+    "organization": "Organización",
+    "person": "Persona",
+    "create": "Crear cliente",
+    "list": "Clientes",
+    "empty": "Aún no hay clientes.",
+    "table": {
+      "name": "Nombre",
+      "kind": "Tipo",
+      "email": "Correo electrónico",
+      "content": "Contenido"
+    }
+  },
+  "quote": {
+    "new": "Nueva oferta",
+    "list": "Ofertas",
+    "empty": "Aún no hay ofertas.",
+    "customer": "Cliente",
+    "selectCustomer": "Seleccione un cliente…",
+    "name": "Nombre de la oferta",
+    "line": "Descripción de línea",
+    "qty": "Cant.",
+    "priceEur": "Precio unitario (EUR)",
+    "priceSats": "Precio unitario (sats)",
+    "create": "Crear oferta",
+    "send": "Enviar",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "filterAll": "Todos los estados",
+    "selected": "Oferta seleccionada",
+    "detail": "Detalle de la oferta",
+    "selectHint": "Seleccione una oferta de la lista",
+    "noCustomer": "Sin cliente",
+    "acceptToOrder": "Aceptar → pedido",
+    "openOrder": "Abrir pedido #{{id}}",
+    "lines": "Líneas",
+    "noLines": "Sin líneas",
+    "lineNo": "#",
+    "lineName": "Nombre",
+    "lineQty": "Cant.",
+    "lineUnit": "Unidad",
+    "lineTotal": "Total",
+    "number": "Número",
+    "status": "Estado",
+    "amount": "Importe",
+    "table": {
+      "number": "Número",
+      "customer": "Cliente",
+      "status": "Estado",
+      "amount": "Importe",
+      "content": "Contenido"
+    },
+    "currency": "Moneda del documento"
+  },
+  "order": {
+    "new": "Nuevo pedido",
+    "list": "Pedidos",
+    "empty": "Aún no hay pedidos.",
+    "customer": "Cliente",
+    "selectCustomer": "Seleccione un cliente…",
+    "name": "Nombre del pedido",
+    "line": "Descripción de línea",
+    "qty": "Cant.",
+    "priceEur": "Precio unitario (EUR)",
+    "priceSats": "Precio unitario (sats)",
+    "create": "Crear pedido",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar pedido",
+    "filterAll": "Todos los estados",
+    "selected": "Pedido seleccionado",
+    "direct": "Pedido directo (sin oferta)",
+    "detail": "Detalle del pedido",
+    "selectHint": "Seleccione un pedido de la lista",
+    "table": {
+      "number": "Número",
+      "customer": "Cliente",
+      "status": "Estado",
+      "amount": "Importe",
+      "content": "Contenido"
+    },
+    "confirmFinance": "Confirmar → factura BORRADOR de Finance",
+    "currency": "Moneda del documento"
+  },
+  "status": {
+    "DRAFT": "Borrador",
+    "SENT": "Enviado",
+    "ACCEPTED": "Aceptado",
+    "REJECTED": "Rechazado",
+    "CONFIRMED": "Confirmado",
+    "CANCELLED": "Cancelado",
+    "EXPIRED": "Caducado"
+  },
+  "messages": {
+    "loadFailed": "No se han podido cargar los datos de ventas",
+    "customerCreated": "Cliente creado",
+    "quoteCreated": "Oferta creada",
+    "orderCreated": "Pedido creado",
+    "busy": "Procesando…"
+  },
+  "delivery": {
+    "newService": "Nuevo servicio"
+  }
+}

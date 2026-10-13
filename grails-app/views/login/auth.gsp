@@ -112,6 +112,7 @@
 					<option value="de_DE">Deutsch (Deutschland)</option>
 					<option value="de_AT">Deutsch (Österreich)</option>
 					<option value="de_CH">Deutsch (Schweiz)</option>
+					<option value="es_ES">Español (España)</option>
 				</select>
 			</p>
 			<p>

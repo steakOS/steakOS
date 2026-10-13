@@ -1,0 +1,154 @@
+{
+  "title": "El marco APQC",
+  "pages": [
+    {
+      "title": "¿Qué es APQC?",
+      "icon": "📋",
+      "text": "APQC significa Centro americano de productividad y calidad. Creó un marco internacional ampliamente utilizado que organiza los procesos de negocios en categorías claras.\n\n¿Por qué esto importa? Porque proporciona a las empresas un lenguaje y una estructura comunes. En lugar de que cada uno invente su propia forma de organizar el trabajo, APQC ofrece un modelo probado que funciona para empresas de todos los tamaños.",
+      "examples": [
+        "Piense en ello como tener un mapa estándar para las actividades comerciales en lugar de que cada uno dibuje su propio mapa."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Por qué steakOS usa APQC",
+      "icon": "🗺️",
+      "text": "steakOS se basa en el marco APQC porque ayuda a mantener todo organizado y coherente, incluso cuando su negocio crece o se vuelve más complejo.\n\nNo es necesario memorizar las 13 áreas. Lo importante es entender que tu negocio tiene diferentes tipos de actividades y organizarlas claramente hace que todo sea más fácil.",
+      "examples": [
+        "El propietario de una pequeña empresa puede empezar de forma sencilla y aun así beneficiarse de una estructura clara.",
+        "Una empresa en crecimiento puede escalar sin que los procesos se vuelvan caóticos"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "1. Estrategia",
+      "icon": "🎯",
+      "text": "La estrategia consiste en decidir hacia dónde se dirige su negocio y cómo llegará allí.\n\nEsto incluye establecer objetivos, comprender su mercado, planificar el futuro y tomar decisiones importantes sobre la dirección.",
+      "examples": [
+        "Un autónomo que decide si especializarse en un tipo de cliente u ofrecer muchos servicios.",
+        "Una empresa que decide si expandirse a nuevos países o centrarse en su mercado actual."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "2. Marketing y Ventas",
+      "icon": "📣",
+      "text": "Esta área abarca todo lo relacionado con la captación de clientes y el cierre de ventas.\n\nIncluye actividades de marketing, generación de leads, procesos de ventas, fijación de precios y adquisición de clientes.",
+      "examples": [
+        "Una pequeña empresa que ejecuta campañas en las redes sociales para encontrar nuevos clientes.",
+        "Una empresa más grande con un proceso de ventas estructurado y un sistema CRM."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "3. Desarrollo de productos",
+      "icon": "💡",
+      "text": "Esto cubre la creación y mejora de los productos o servicios que vende.\n\nIncluye investigación, diseño, desarrollo, pruebas y lanzamiento de nuevas ofertas.",
+      "examples": [
+        "Un profesional independiente que desarrolla un nuevo paquete de servicios para clientes.",
+        "Una empresa de software que crea y lanza nuevas funciones."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "4. Operaciones",
+      "icon": "🏭",
+      "text": "Las operaciones se tratan de entregar su producto o servicio.\n\nEsto incluye producción, prestación de servicios, control de calidad y ejecución diaria del trabajo.",
+      "examples": [
+        "Una panadería que produce pan y bollería todos los días.",
+        "Una firma de consultoría que entrega proyectos para clientes."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "5. Finanzas",
+      "icon": "💰",
+      "text": "Las finanzas cubren todas las actividades relacionadas con el dinero en su negocio.\n\nEsto incluye facturación, pago de facturas, contabilidad, informes financieros, gestión del flujo de efectivo y planificación financiera.",
+      "examples": [
+        "Un profesional independiente que rastrea ingresos y gastos para saber cuánto impuesto pagar",
+        "Una empresa que prepara informes financieros mensuales para la dirección y los inversores."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "6. Recursos Humanos",
+      "icon": "👥",
+      "text": "Recursos Humanos se trata de encontrar, desarrollar y apoyar a las personas en su negocio.\n\nEsto incluye reclutamiento, incorporación, capacitación, gestión del desempeño y bienestar de los empleados.",
+      "examples": [
+        "El propietario de una pequeña empresa que contrata a su primer empleado y crea un proceso de incorporación sencillo.",
+        "Una empresa más grande con contratación estructurada, programas de formación y desarrollo profesional."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "7. Tecnología de la información",
+      "icon": "💻",
+      "text": "Esta área cubre toda la tecnología y los sistemas que utiliza su negocio.\n\nIncluye software, hardware, gestión de datos, ciberseguridad y soporte técnico.",
+      "examples": [
+        "Un autónomo que elige buenas herramientas para facturación y comunicación.",
+        "Una empresa que gestiona múltiples sistemas, seguridad de datos y soporte de TI para los empleados."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "8. Adquisiciones",
+      "icon": "🛒",
+      "text": "Las adquisiciones consisten en comprar bienes y servicios a proveedores.\n\nEsto incluye encontrar proveedores, negociar precios, realizar pedidos y gestionar las relaciones con los proveedores.",
+      "examples": [
+        "El propietario de una pequeña tienda solicita existencias a mayoristas.",
+        "Una empresa de fabricación que gestiona relaciones con decenas de proveedores."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "9. Logística y cadena de suministro",
+      "icon": "🚚",
+      "text": "Esta área cubre el movimiento de mercancías y la gestión del flujo de proveedores a clientes.\n\nIncluye almacenamiento, envío, gestión de inventario y coordinación de la cadena de suministro.",
+      "examples": [
+        "Una tienda en línea que gestiona el inventario y envía productos a los clientes.",
+        "Una empresa que coordina complejas cadenas de suministro internacionales."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "10. Servicio al cliente",
+      "icon": "🤝",
+      "text": "El servicio de atención al cliente consiste en apoyar a los clientes después de comprar y mantenerlos contentos.\n\nEsto incluye responder preguntas, manejar quejas, brindar apoyo y construir relaciones a largo plazo.",
+      "examples": [
+        "Un profesional independiente que responde personalmente a los correos electrónicos y preguntas de los clientes.",
+        "Una empresa con un equipo de soporte dedicado y procesos estructurados para manejar problemas."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "11. Gestión de Calidad",
+      "icon": "✅",
+      "text": "La Gestión de Calidad consiste en asegurarse de que sus productos o servicios cumplan con los estándares que promete.\n\nEsto incluye verificar la calidad, mejorar los procesos y prevenir errores.",
+      "examples": [
+        "Un panadero comprobando que cada pan cumple con sus estándares de calidad.",
+        "Una empresa que realiza controles de calidad periódicos y programas de mejora."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "12. Gestión de riesgos",
+      "icon": "⚠️",
+      "text": "La gestión de riesgos consiste en identificar y manejar problemas potenciales antes de que se vuelvan graves.\n\nEsto incluye riesgos financieros, riesgos operativos, riesgos legales y planificación para eventos inesperados.",
+      "examples": [
+        "Un profesional independiente que tiene planes de respaldo cuando un gran cliente se retrasa en el pago",
+        "Una empresa que tiene seguros, contratos y planes de contingencia para riesgos mayores."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "13. Gobernanza y cumplimiento",
+      "icon": "⚖️",
+      "text": "Esta área cubre cómo se controla su negocio y cómo cumple con las leyes y regulaciones.\n\nIncluye cumplimiento legal, obligaciones tributarias, protección de datos, estándares éticos y controles internos.",
+      "examples": [
+        "Una pequeña empresa que se asegura de presentar los impuestos correctamente y proteger los datos de los clientes.",
+        "Una empresa más grande que tiene estructuras formales de gobierno y procesos de cumplimiento."
+      ],
+      "canSkip": true
+    }
+  ]
+}

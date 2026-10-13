@@ -210,6 +210,7 @@ export default function SettingsPage() {
                   { code: 'de_DE', name: 'Deutsch (Deutschland)' },
                   { code: 'de_AT', name: 'Deutsch (Österreich)' },
                   { code: 'de_CH', name: 'Deutsch (Schweiz)' },
+                  { code: 'es_ES', name: 'Español (España)' },
                 ]
             ).map((l) => (
               <option key={l.code} value={l.code}>

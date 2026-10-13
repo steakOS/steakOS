@@ -1,0 +1,36 @@
+{
+  "title": "Soporte de IA: las colmenas",
+  "pages": [
+    {
+      "title": "¿Cómo utiliza steakOS la IA: colmenas frente a agentes de IA?",
+      "icon": "🐝",
+      "text": "En steakOS utilizamos dos conceptos relacionados pero diferentes:\n\n• Una **Hive** es un grupo de agentes de IA que trabajan juntos en un área específica de su negocio (por ejemplo, Finanzas u Operaciones). Cada Hive tiene un **gerente agente** que coordina el equipo.\n\n• Los **Agentes de IA** son los especialistas individuales dentro de una colmena. Son expertos en tareas específicas (como contabilidad, envío de recordatorios o control de calidad).\n\nPiénselo así: una colmena es un pequeño equipo especializado. Los agentes de IA individuales son los miembros del equipo con habilidades específicas.",
+      "examples": [
+        "Finance Hive contiene agentes que manejan la facturación, los pagos y los informes, coordinados por un agente del Gerente de Finanzas.",
+        "Operations Hive contiene agentes enfocados en envíos, proveedores y planificación de producción."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Cómo funciona una colmena",
+      "icon": "👥",
+      "text": "Cada Hive está construida como un pequeño equipo profesional:\n\n• **Agentic Manager**: El coordinador de Hive. Asigna tareas, revisa resultados y se comunica con usted.\n• **Agentes especializados**: agentes de IA individuales que son muy buenos en un trabajo específico (por ejemplo, crear facturas, verificar pagos o analizar retrasos).\n\nCuando pides ayuda en un área determinada, el administrador de Hive activa a los agentes especializados adecuados y reúne su trabajo antes de presentártelo.",
+      "mermaid": "gráfico TD\n    Usuario[Tú] -->|Solicitar| HiveManager[Administrador de agentes]\n    HiveManager -->|Asigna tarea| Especialista1[Agente especialista 1]\n    HiveManager -->|Asigna tarea| Especialista2[Agente especialista 2]\n    Especialista1 -->|Resultado| Administrador de colmenas\n    Especialista2 -->|Resultado| Administrador de colmenas\n    HiveManager -->|Resume y presenta| Usuario",
+      "examples": [
+        "Le pide a Finance Hive que \"verifique las facturas vencidas\". El administrador activa a los agentes adecuados y devuelve un resumen claro con acciones sugeridas.",
+        "Le preguntas a Operations Hive sobre los retrasos en los envíos. El gerente coordina a varios agentes especializados y le brinda una visión clara."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Human-in-the-Loop: usted mantiene el control",
+      "icon": "🛡️",
+      "text": "Una de las reglas más importantes de steakOS es que la IA nunca toma decisiones finales sobre asuntos importantes sin usted.\n\nHives y sus agentes pueden preparar sugerencias, redactar mensajes, analizar datos y recomendar acciones, pero usted siempre tiene la última palabra. Esto se llama \"humano en el circuito\" y le mantiene totalmente en control mientras se beneficia de la asistencia inteligente.",
+      "examples": [
+        "Un Hive puede redactar un recordatorio de pago cortés, pero usted decide si enviarlo y cuándo.",
+        "Un Hive puede sugerir cambiar a un proveedor más barato, pero tú tomas la decisión final"
+      ],
+      "canSkip": true
+    }
+  ]
+}

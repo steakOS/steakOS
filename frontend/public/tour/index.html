@@ -123,11 +123,27 @@
             { code: 'de_DE', label: 'Deutsch (Deutschland)' },
             { code: 'de_AT', label: 'Deutsch (Österreich)' },
             { code: 'de_CH', label: 'Deutsch (Schweiz)' },
+            { code: 'es_ES', label: 'Español (España)' },
         ];
 
         function langFromLocale(code) {
             if (!code) return 'en';
-            return String(code).toLowerCase().startsWith('de') ? 'de' : 'en';
+            const c = String(code).toLowerCase();
+            if (c.startsWith('de')) return 'de';
+            if (c.startsWith('es')) return 'es';
+            return 'en';
+        }
+
+        function tourChrome(en, de, es) {
+            if (tourLang === 'de') return de;
+            if (tourLang === 'es') return es;
+            return en;
+        }
+
+        function sectionDisplayName(section) {
+            if (tourLang === 'de') return section.nameDe || section.name;
+            if (tourLang === 'es') return section.nameEs || section.name;
+            return section.name;
         }
 
         function initTourLang() {
@@ -139,18 +155,18 @@
         initTourLang();
 
         const sections = [
-            { file: "locale.json", name: "Language", nameDe: "Sprache" },
-            { file: "welcome.json", name: "Welcome", nameDe: "Willkommen" },
-            { file: "journey.json", name: "Your Journey", nameDe: "Ihre Reise" },
-            { file: "processes.json", name: "Business Processes", nameDe: "Prozesse" },
-            { file: "apqc.json", name: "APQC Framework", nameDe: "APQC" },
-            { file: "ai.json", name: "AI Support", nameDe: "KI" },
-            { file: "bitcoin.json", name: "Bitcoin", nameDe: "Bitcoin" },
-            { file: "nostr.json", name: "Nostr", nameDe: "Nostr" },
-            { file: "core-concepts.json", name: "Core Concepts", nameDe: "Kernkonzepte" },
-            { file: "templates.json", name: "Choose Template", nameDe: "Vorlage" },
-            { file: "architecture.json", name: "Architecture", nameDe: "Architektur" },
-            { file: "finish.json", name: "Finish", nameDe: "Abschluss" }
+            { file: "locale.json", name: "Language", nameDe: "Sprache", nameEs: "Idioma" },
+            { file: "welcome.json", name: "Welcome", nameDe: "Willkommen", nameEs: "Bienvenida" },
+            { file: "journey.json", name: "Your Journey", nameDe: "Ihre Reise", nameEs: "Su recorrido" },
+            { file: "processes.json", name: "Business Processes", nameDe: "Prozesse", nameEs: "Procesos" },
+            { file: "apqc.json", name: "APQC Framework", nameDe: "APQC", nameEs: "APQC" },
+            { file: "ai.json", name: "AI Support", nameDe: "KI", nameEs: "IA" },
+            { file: "bitcoin.json", name: "Bitcoin", nameDe: "Bitcoin", nameEs: "Bitcoin" },
+            { file: "nostr.json", name: "Nostr", nameDe: "Nostr", nameEs: "Nostr" },
+            { file: "core-concepts.json", name: "Core Concepts", nameDe: "Kernkonzepte", nameEs: "Conceptos clave" },
+            { file: "templates.json", name: "Choose Template", nameDe: "Vorlage", nameEs: "Plantilla" },
+            { file: "architecture.json", name: "Architecture", nameDe: "Architektur", nameEs: "Arquitectura" },
+            { file: "finish.json", name: "Finish", nameDe: "Abschluss", nameEs: "Final" }
         ];
 
         function sectionFile(file) {
@@ -171,9 +187,9 @@
                 const nextBtn = document.querySelector('button[onclick="nextStep()"]');
                 const prevBtn = document.querySelector('button[onclick="prevStep()"]');
                 const skipBtn = document.getElementById('btn-skip');
-                if (nextBtn) nextBtn.innerHTML = tourLang === 'de' ? 'Weiter →' : 'Next →';
-                if (prevBtn) prevBtn.innerHTML = tourLang === 'de' ? '← Zurück' : '← Previous';
-                if (skipBtn) skipBtn.textContent = tourLang === 'de' ? 'Abschnitt überspringen' : 'Skip this section';
+                if (nextBtn) nextBtn.innerHTML = tourChrome('Next →', 'Weiter →', 'Siguiente →');
+                if (prevBtn) prevBtn.innerHTML = tourChrome('← Previous', '← Zurück', '← Anterior');
+                if (skipBtn) skipBtn.textContent = tourChrome('Skip this section', 'Abschnitt überspringen', 'Omitir esta sección');
             } catch (e) {
                 console.error('Failed to load', section.file, e);
             }
@@ -192,10 +208,10 @@
 
         function updateProgress() {
             const totalSections = sections.length;
-            const sectionLabel = tourLang === 'de' ? 'Abschnitt' : 'Section';
-            const pageOf = tourLang === 'de' ? 'Seite' : 'Page';
-            const pageOfMid = tourLang === 'de' ? 'von' : 'of';
-            const templateWord = tourLang === 'de' ? 'Vorlage' : 'Template';
+            const sectionLabel = tourChrome('Section', 'Abschnitt', 'Sección');
+            const pageOf = tourChrome('Page', 'Seite', 'Página');
+            const pageOfMid = tourChrome('of', 'von', 'de');
+            const templateWord = tourChrome('Template', 'Vorlage', 'Plantilla');
             document.getElementById('progress-bar').style.width = `${((currentSectionIndex + 1) / totalSections) * 100}%`;
             document.getElementById('progress-text').textContent = `${sectionLabel} ${currentSectionIndex + 1}/${totalSections}`;
 
@@ -204,7 +220,7 @@
                 const total = currentTemplateData.pages ? currentTemplateData.pages.length : 1;
                 detailText = `${currentTemplateName} ${templateWord} • ${pageOf} ${currentPage + 1} ${pageOfMid} ${total}`;
             } else {
-                const name = currentSectionData.title || (tourLang === 'de' ? sections[currentSectionIndex].nameDe : sections[currentSectionIndex].name);
+                const name = currentSectionData.title || sectionDisplayName(sections[currentSectionIndex]);
                 const total = currentSectionData.pages ? currentSectionData.pages.length : 1;
                 detailText = `${name} • ${pageOf} ${currentPage + 1} ${pageOfMid} ${total}`;
             }
@@ -226,7 +242,7 @@
                 // No bordered cards — examples sit above body text at a slightly larger size
                 examplesHtml = `
                     <div class="tour-examples">
-                        <div class="tour-examples-label text-amber-400 text-xs font-medium tracking-wide">${tourLang === 'de' ? '💡 BEISPIELE' : '💡 EXAMPLES'}</div>
+                        <div class="tour-examples-label text-amber-400 text-xs font-medium tracking-wide">${tourChrome('💡 EXAMPLES', '💡 BEISPIELE', '💡 EJEMPLOS')}</div>
                         <div class="tour-examples-list">
                             ${page.examples.map(ex => `
                                 <p class="tour-example text-zinc-100 font-medium whitespace-pre-line">${formatText(ex)}</p>
@@ -242,18 +258,18 @@
                 try { current = localStorage.getItem(LOCALE_KEY) || current; } catch (e) {}
                 choicesHtml = `
                     <div class="tour-section">
-                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourLang === 'de' ? 'Locale wählen' : 'Choose locale'}</div>
+                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourChrome('Choose locale', 'Locale wählen', 'Elegir idioma')}</div>
                         <select id="tour-locale-select" class="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-base"
                             onchange="onTourLocaleChange(this.value)">
                             ${LOCALE_OPTIONS.map(o => `<option value="${o.code}" ${o.code === current ? 'selected' : ''}>${o.label}</option>`).join('')}
                         </select>
-                        <p class="text-zinc-500 text-xs mt-2">${tourLang === 'de' ? 'Wird im Browser gespeichert und nach dem Login übernommen.' : 'Stored in the browser and applied after login.'}</p>
+                        <p class="text-zinc-500 text-xs mt-2">${tourChrome('Stored in the browser and applied after login.', 'Wird im Browser gespeichert und nach dem Login übernommen.', 'Se guarda en el navegador y se aplica tras iniciar sesión.')}</p>
                     </div>
                 `;
             } else if (page.choices && page.choices.length > 0) {
                 choicesHtml = `
                     <div class="tour-section">
-                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourLang === 'de' ? 'Treffen Sie Ihre Wahl' : 'Make your choice'}</div>
+                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourChrome('Make your choice', 'Treffen Sie Ihre Wahl', 'Elija una opción')}</div>
                         <div class="grid md:grid-cols-2 gap-3">
                             ${page.choices.map((choice, i) => `
                                 <div onclick="makeChoice(${i})" class="choice-card cursor-pointer bg-zinc-900 p-4 rounded-2xl border-2 border-transparent hover:border-amber-500 text-sm leading-snug">
@@ -269,7 +285,7 @@
             if (page.mermaid) {
                 mermaidHtml = `
                     <div class="tour-section">
-                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourLang === 'de' ? '📊 ÜBERSICHT' : '📊 VISUAL OVERVIEW'}</div>
+                        <div class="tour-section-label text-amber-400 text-xs font-medium">${tourChrome('📊 VISUAL OVERVIEW', '📊 ÜBERSICHT', '📊 RESUMEN VISUAL')}</div>
                         <div class="mermaid bg-zinc-900 p-3 rounded-2xl border border-zinc-700 text-sm">
                             ${page.mermaid}
                         </div>
@@ -332,7 +348,7 @@
                     currentTemplateName = page.choices[choiceIndex].split(":")[0].trim();
                     renderPage();
                 } catch (e) {
-                    alert((tourLang === 'de' ? 'Konnte nicht laden: ' : 'Failed to load ') + chosenFile);
+                    alert(tourChrome('Failed to load ', 'Konnte nicht laden: ', 'No se pudo cargar: ') + chosenFile);
                 }
             } else {
                 nextStep();

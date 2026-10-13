@@ -1,0 +1,56 @@
+{
+  "title": "Conceptos básicos del sistema",
+  "pages": [
+    {
+      "title": "Conceptos básicos: compatibilidad con varios idiomas",
+      "icon": "🌍",
+      "text": "steakOS puede funcionar en varios idiomas al mismo tiempo. Esto significa que diferentes miembros del equipo o clientes pueden utilizar el sistema en el idioma que prefieran.\n\nIncluso las pequeñas empresas se benefician de esto cuando trabajan con clientes internacionales o tienen miembros en su equipo que se sienten más cómodos hablando otro idioma.",
+      "examples": [
+        "Una pequeña tienda online atiende a clientes tanto en inglés como en alemán sin necesidad de dos sistemas separados",
+        "Una empresa en crecimiento tiene miembros de equipo en diferentes países, cada uno de los cuales usa steakOS en su idioma nativo."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Soporte para múltiples empresas y múltiples sitios",
+      "icon": "🏢",
+      "text": "Puede administrar más de una empresa o más de una ubicación dentro del mismo sistema steakOS.\n\nEsto resulta útil si tiene varias entidades jurídicas, diferentes sucursales, tiendas, almacenes o ubicaciones de servicio. Todo permanece organizado en un solo lugar y al mismo tiempo mantiene los datos claramente separados cuando es necesario.",
+      "examples": [
+        "El propietario de una pequeña empresa dirige dos empresas independientes y las gestiona desde un solo inicio de sesión.",
+        "Una empresa con tres ubicaciones físicas puede ver los niveles de existencias y las ventas en todos los sitios en una sola vista."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Soporte multidivisa",
+      "icon": "💱",
+      "text": "Además de Bitcoin, steakOS admite múltiples monedas y puede manejar conversiones automáticamente. Esto es especialmente útil si vende a clientes en diferentes países o trabaja con proveedores internacionales.\n\nPuede ver informes en su moneda principal mientras sigue trabajando con otras monedas cuando sea necesario.",
+      "examples": [
+        "Un profesional independiente factura a sus clientes en EUR, USD y CHF y ve todo convertido a su moneda local.",
+        "Un pequeño fabricante compra materiales en una moneda y vende productos en otra sin cálculos manuales."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Soporte para diferentes legislaciones e impuestos",
+      "icon": "⚖️",
+      "text": "Cada país y región tiene sus propias reglas en materia de impuestos, facturación, informes y protección de datos, protección de la privacidad y más. steakOS está diseñado para admitir diferentes requisitos legales para que usted pueda cumplirlos más fácilmente.\n\nEsto se vuelve especialmente importante cuando su negocio crece más allá de las fronteras o cuando cambian las regulaciones.",
+      "examples": [
+        "Una pequeña empresa que opera en dos países puede manejar diferentes normas de IVA sin confusión",
+        "Una empresa en crecimiento puede adaptarse más fácilmente cuando cambian las normas fiscales en uno de los países donde opera.",
+        "Una empresa en crecimiento debe demostrar que existe un marco de cumplimiento y un sistema de gestión de riesgos para la empresa."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Por qué estas características son importantes incluso para las pequeñas empresas",
+      "icon": "🚀",
+      "text": "Se podría pensar que funciones como multiempresa o multidivisa son sólo para grandes empresas. En realidad, ayudan a preparar su negocio para el futuro.\n\nIncluso si comienza con algo pequeño, tener estas capacidades desde el principio significa que no tendrá que cambiar de sistema más adelante, cuando su negocio crezca o se vuelva más internacional.",
+      "examples": [
+        "Un autónomo que empieza a trabajar con clientes internacionales no necesita cambiar de herramienta más adelante",
+        "Un equipo pequeño que abre una segunda ubicación puede seguir usando el mismo sistema sin grandes cambios"
+      ],
+      "canSkip": true
+    }
+  ]
+}

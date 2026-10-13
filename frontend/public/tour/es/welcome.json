@@ -1,0 +1,43 @@
+{
+  "title": "Bienvenido a steakOS",
+  "pages": [
+    {
+      "title": "Bienvenido a steakOS",
+      "icon": "🥩",
+      "text": "¡Hola!\n\n**steakOS** es la abreviatura de:\n\n{{S}}overeign {{T}}ransaccional {{E}}nterprise {{A}}automatización {{K}}ernel {{O}}rquestation {{S}}sistema (también conocido como steakOS)\n\nEse es el significado oficial del nombre: software que usted controla para transacciones comerciales reales, automatización y operaciones coordinadas, no un montón de herramientas desconectadas.\n\nSi dirige una empresa, ya sea un trabajador independiente, un equipo pequeño o dirige una empresa más grande, probablemente sepa lo frustrante que puede ser el software empresarial. Sistemas complicados, infinitas hojas de cálculo y herramientas que parecen creadas para otra persona.\n\n**steakOS es diferente.**\n\nFue creado para ser lo suficientemente simple para una sola persona y lo suficientemente potente para equipos en crecimiento. Este recorrido le mostrará, en un lenguaje sencillo, cómo funciona y por qué podría ser exactamente lo que necesita.\n\n¡Haga clic en Siguiente para comenzar!",
+      "canSkip": false
+    },
+    {
+      "title": "Por qué es importante este recorrido",
+      "icon": "💡",
+      "text": "La mayoría del software empresarial te obliga a adaptarte a la herramienta. steakOS fue diseñado al revés: la herramienta se adapta a cómo funcionan realmente las empresas reales.\n\nEn la próxima hora, aprenderá las ideas centrales detrás de steakOS para que pueda tomar buenas decisiones al configurarlo. No es necesario convertirse en un experto técnico. Sólo necesitas entender el panorama general.",
+      "examples": [
+        "Comprenderá por qué algunas herramientas generan más trabajo en lugar de menos",
+        "Verá cómo las tecnologías modernas (IA, Bitcoin y sistemas descentralizados) pueden brindarle libertad de elección y hacerle la vida bastante más fácil.",
+        "Aprenderá a diferenciar entre los dos ejemplos anteriores y a tomar decisiones mucho más inteligentes."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Lo que aprenderás en este tour",
+      "icon": "📚",
+      "text": "Al final de este recorrido comprenderá:\n\n• Cómo funcionan realmente los procesos de negocio\n• Qué significa realmente la “automatización de procesos” en la práctica\n• El marco internacional APQC que mantiene todo organizado\n• Cómo la IA puede ayudarte sin tomar el control\n• Cómo se pueden usar Bitcoin y Nostr en los negocios (y cuánto quieres usarlos)\n• Los conceptos centrales que hacen que steakOS sea flexible para empresas de cualquier tamaño.",
+      "examples": [
+        "El propietario de una pequeña empresa que finalmente comprende por qué sus herramientas actuales resultan tan dolorosas.",
+        "Un CEO que quiere modernizar su empresa sin complicarla demasiado"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Tu viaje con steakOS",
+      "icon": "🛤️",
+      "text": "Este es el camino sencillo que seguiremos juntos:\n\n1. Conozca las grandes ideas (este recorrido)\n2. Ejecute el asistente de configuración (responde preguntas sencillas)\n3. Publica tu primera transacción real\n4. Utilice steakOS todos los días con ayuda de IA inteligente\n5. Crezca y agregue nuevas funciones cuando las necesite",
+      "mermaid": "gráfico TD\n    A[Aprenda los conceptos] --> B[Ejecutar asistente de configuración]\n    B --> C[Publicar la primera transacción]\n    C --> D[Uso diario con ayuda de IA]\n    D --> E[Crecer y agregar funciones]\n    relleno de estilo A:#1f2937,trazo:#fbbf24,ancho de trazo:3px,color:#ffffff\n    relleno de estilo E:#1f2937,trazo:#fbbf24,ancho de trazo:3px,color:#ffffff",
+      "examples": [
+        "Mucha gente termina este recorrido y se siente lista para comenzar el mismo día.",
+        "Otros se toman su tiempo, se saltan algunas secciones y vuelven más tarde."
+      ],
+      "canSkip": true
+    }
+  ]
+}

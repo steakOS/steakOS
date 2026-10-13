@@ -1,0 +1,26 @@
+{
+  "title": "Tu viaje con steakOS",
+  "pages": [
+    {
+      "title": "Tu viaje con steakOS",
+      "icon": "🛤️",
+      "text": "El camino es claro y gratificante:\n1. Conozca las grandes ideas (este recorrido)\n2. Configure su sistema con un sencillo asistente\n3. Pruebe su primera transacción real\n4. Úselo todos los días con ayuda inteligente\n5. Crezca a medida que crece su negocio",
+      "examples": [
+        "Día 1: Envía tu primera factura y siéntete realizado",
+        "Semana 2: El sistema comienza a darte sugerencias útiles automáticamente",
+        "Mes 3: agregue nuevas funciones cuando su empresa las necesite"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Qué esperar después del recorrido",
+      "icon": "🚀",
+      "text": "Después de este recorrido, ejecutará el asistente de configuración. Hará preguntas sencillas y configurará su sistema en función de sus respuestas. Entonces estará listo para publicar su primera transacción real.",
+      "examples": [
+        "El propietario de una pequeña tienda publicó su primera venta el mismo día.",
+        "Un consultor tuvo lista la primera factura de su cliente en menos de 10 minutos"
+      ],
+      "canSkip": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "title": "¡Felicidades!",
+  "pages": [
+    {
+      "title": "Has completado el recorrido de incorporación",
+      "icon": "🎉",
+      "text": "¡Felicidades! Ha completado el recorrido de incorporación de steakOS.\n\nComprenderá el recorrido desde los conceptos hasta el uso diario: plantillas (Bronce → Oro), ayudantes de IA, Bitcoin, Nostr y el mapa de procesos APQC.\n\n**Siguiente paso:** ejecute el asistente de configuración en la aplicación. Hace algunas preguntas sencillas, crea la configuración de su empresa y enciende los escritorios del equipo Bronce.\n\nUtilice los botones a continuación: no se necesita un servidor de capacitación independiente.",
+      "examples": [
+        "Continúe con el asistente de configuración en este navegador",
+        "O abra el panel si ya terminó la configuración"
+      ],
+      "canSkip": false
+    }
+  ]
+}

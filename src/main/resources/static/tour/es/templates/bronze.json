@@ -1,0 +1,86 @@
+{
+  "title": "Plantilla de bronce",
+  "description": "Para equipos pequeños (de 4 a 20 personas)",
+  "pages": [
+    {
+      "title": "Estrategia e iniciativas: planificación y ejecución de objetivos",
+      "icon": "🎯",
+      "text": "La estrategia es decidir hacia dónde quieres ir. Las iniciativas son los proyectos o acciones concretos que se emprenden para avanzar en esa dirección. Bronze ayuda a los equipos pequeños a realizar un seguimiento tanto de los grandes objetivos como del trabajo real necesario para alcanzarlos.",
+      "examples": [
+        "Una agencia de marketing de 12 personas define objetivos anuales y los divide en proyectos trimestrales que todos pueden ver."
+      ]
+    },
+    {
+      "title": "Desarrollo e innovación: creación de cosas nuevas",
+      "icon": "💡",
+      "text": "Desarrollo significa mejorar o crear nuevos productos y servicios. La innovación consiste en encontrar nuevas y mejores formas de hacer las cosas. Bronze ofrece a los equipos pequeños herramientas sencillas para gestionar nuevas ideas y trabajos de desarrollo.",
+      "examples": [
+        "Una pequeña empresa de productos rastrea nuevas ideas de funciones y tareas de desarrollo en un lugar compartido"
+      ]
+    },
+    {
+      "title": "Ventas y planificación de ventas: encontrar y ganar clientes",
+      "icon": "💼",
+      "text": "Las ventas son el proceso de encontrar clientes y convencerlos de que compren. La planificación de ventas significa pensar con antelación cómo alcanzará sus objetivos de ventas. Bronze ayuda a los equipos a coordinar mejor las actividades de ventas.",
+      "examples": [
+        "Una pequeña empresa B2B realiza un seguimiento de las conversaciones de ventas y planifica juntos los objetivos de ventas mensuales."
+      ]
+    },
+    {
+      "title": "Suministro y cadena de suministro: obtener lo que necesita",
+      "icon": "📦",
+      "text": "El suministro y la cadena de suministro consisten en asegurarse de tener los materiales, productos o servicios que necesita para entregar a sus clientes. Bronze ayuda a equipos pequeños a gestionar pedidos básicos e información de proveedores.",
+      "examples": [
+        "Una pequeña panadería realiza un seguimiento de los pedidos de ingredientes y los contactos de los proveedores para no quedarse sin existencias."
+      ]
+    },
+    {
+      "title": "Adquisiciones: comprar lo que la empresa necesita",
+      "icon": "🛒",
+      "text": "Adquisiciones es el proceso de encontrar y comprar bienes y servicios para su negocio. Bronze ofrece a los equipos pequeños herramientas sencillas para gestionar las compras y las relaciones con los proveedores.",
+      "examples": [
+        "Un pequeño equipo de oficina realiza un seguimiento de los pedidos de suministros de oficina y compara los precios de diferentes proveedores."
+      ]
+    },
+    {
+      "title": "Servicios y atención al cliente: entrega y soporte a los clientes",
+      "icon": "🤝",
+      "text": "Esto cubre brindar su servicio a los clientes y ayudarlos cuando tengan preguntas o problemas. Bronze ayuda a los equipos a coordinar la prestación de servicios y la atención al cliente de manera más consistente.",
+      "examples": [
+        "Una pequeña empresa de soporte de TI rastrea las solicitudes de los clientes y se asegura de que nada se pierda"
+      ]
+    },
+    {
+      "title": "Recursos humanos: encontrar y apoyar personas",
+      "icon": "👥",
+      "text": "Recursos Humanos incluye reclutar nuevas personas, incorporarlas y administrar la información básica de los empleados. Bronze brinda a los equipos pequeños herramientas simples para manejar estas tareas sin complejidad.",
+      "examples": [
+        "Una empresa en crecimiento con 15 personas mantiene la información de los empleados, los contratos y las listas de verificación de incorporación en un solo lugar"
+      ]
+    },
+    {
+      "title": "Conceptos básicos de finanzas: administrar el dinero de forma sencilla",
+      "icon": "💰",
+      "text": "Finance in Bronze cubre los conceptos básicos: facturación, seguimiento de las entradas y salidas de dinero e informes sencillos. Ayuda a los equipos pequeños a mantenerse al tanto de su situación financiera sin necesidad de un contador para todo.",
+      "examples": [
+        "Un pequeño equipo ve de un vistazo qué facturas están pagadas y cuáles aún están pendientes"
+      ]
+    },
+    {
+      "title": "Análisis: comprender lo que está sucediendo",
+      "icon": "📈",
+      "text": "Analytics le ayuda a analizar las cifras de su negocio para que pueda tomar mejores decisiones. Bronze ofrece a los equipos pequeños mejores informes y visibilidad en todo el equipo.",
+      "examples": [
+        "Una pequeña empresa ve qué servicios son más rentables y qué clientes son más valiosos."
+      ]
+    },
+    {
+      "title": "Agentes: IA que ayuda a todo el equipo",
+      "icon": "🤖",
+      "text": "Bronze le ofrece más agentes de IA que pueden ayudar en diferentes áreas del negocio. Estos agentes pueden ayudar a varios miembros del equipo con tareas rutinarias.",
+      "examples": [
+        "Un agente de IA ayuda al equipo creando automáticamente tareas de seguimiento cuando se completa una etapa del proyecto."
+      ]
+    }
+  ]
+}

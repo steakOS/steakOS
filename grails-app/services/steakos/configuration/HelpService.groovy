@@ -715,7 +715,7 @@ Open the PDF in a new tab (inline). Print from the browser if needed.
 
 ## Language
 
-PDF **labels** follow each partner’s **Communication language** (Customer / Vendor). English and German packs ship in v1; other locales fall back to English until more packs exist. Catalogue line descriptions stay as stored.
+PDF **labels** follow each partner’s **Communication language** (Customer / Vendor). English, German, and Spanish packs ship in the alpha; other locales fall back to English until more packs exist. Catalogue line descriptions stay as stored.
 
 Draft PDFs follow the live partner setting. After you **send / confirm / issue**, the document freezes that language (changing the partner later does not rewrite history).
 
@@ -857,8 +857,10 @@ Master-data pages use the same rail as desks.'''],
         if (!hint) return 'en'
         String h = hint.trim().toLowerCase()
         if (h.startsWith('de')) return 'de'
+        if (h.startsWith('es')) return 'es'
         if (h.contains(',')) h = h.split(',')[0].trim()
         if (h.startsWith('de')) return 'de'
+        if (h.startsWith('es')) return 'es'
         return 'en'
     }
 
@@ -920,6 +922,7 @@ Master-data pages use the same rail as desks.'''],
 
     private static String domainBlurb(String key, String lang) {
         if (lang == 'de' && DOMAIN_BLURBS_DE[key]) return DOMAIN_BLURBS_DE[key]
+        if (lang == 'es' && DOMAIN_BLURBS_ES[key]) return DOMAIN_BLURBS_ES[key]
         return DOMAIN_BLURBS[key]
     }
 
@@ -952,12 +955,40 @@ Bevorzugt im **Vertriebstisch**: anlegen → senden → annehmen/ablehnen. Posit
 Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwurf).''',
     ].asImmutable()
 
+    private static final Map DOMAIN_BLURBS_ES = [
+            'core.Task'      : '''Las **tareas** son el **único tipo de trabajo** (personal, ligado a un proceso o a un agente).
+
+**Campos:** estado (OPEN/IN_PROGRESS/DONE/CANCELLED), urgencia e importancia (1–3), plazos, asignación (persona y/o agente), barra de contenido.
+
+**Consejos**
+- Cambie el estado en lugar de borrar el historial
+- **Mi trabajo** (`/work`) = lista + Eisenhower 3×3
+- ProjectItem puede vincular opcionalmente un taskId''',
+            'capability.Process': '''Los **procesos** son el catálogo de flujos de trabajo (APQC 13.1).
+
+**Tipos:** SYSTEM (sembrados, solo lectura) · HUMAN · AGENTIC · OTHER. Estado: DRAFT · ACTIVE · RETIRED.
+
+Semillas SYSTEM: pedido de compra, oferta→pedido, factura, orden de servicio, consulta, contratación, proyecto, HITL. Diagrama Mermaid en el detalle del proceso; **Cómo funciona** en los escritorios.''',
+            'sales.Customer' : '''**Cliente** (persona u organización).
+
+**Campos importantes:** customerKind (PERSON/ORGANIZATION), correo, contacto, taxId, moneda, active.
+
+**Flujo:** crear cliente → en el **escritorio de ventas** oferta/pedido → la confirmación puede generar una **factura borrador**.
+
+**Relacionado:** escritorio de ventas · facturas · importación CSV''',
+            'sales.CustomerQuote': '''**Ofertas de cliente** antes del pedido.
+
+Prefiera el **escritorio de ventas**: crear → enviar → aceptar/rechazar. Líneas en **QuoteLine**.''',
+            'sales.SalesOrder': '''**Pedidos de venta** como compromiso comercial vinculante.
+
+Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero).''',
+    ].asImmutable()
+
     private static String buildDomainMarkdown(String title, String pkg, String res, String humanRes,
                                               String mode, String modeLabel, Map fam, String specific, Map ctx, String lang) {
-        boolean de = lang == 'de'
         StringBuilder sb = new StringBuilder()
         sb.append("# ${title}\n\n")
-        if (de) {
+        if (lang == 'de') {
             sb.append("**${humanRes}**-Stammdaten in **${fam.label}**.\n\n")
             sb.append(fam.blurb ?: '').append("\n\n")
             sb.append("## Was Sie gerade tun\n\n")
@@ -980,6 +1011,29 @@ Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwur
             sb.append("- **Route:** `${ctx.path}`\n")
             if (fam.desk) sb.append("- **Operativer Desk:** ${fam.desk}\n")
             sb.append("\n## Content-Leiste\n\nLinks, Dateien und Notizen am Datensatz ohne die Seite zu verlassen.\n")
+        } else if (lang == 'es') {
+            sb.append("Datos maestros de **${humanRes}** en **${fam.label}**.\n\n")
+            sb.append(fam.blurb ?: '').append("\n\n")
+            sb.append("## Qué está haciendo\n\n")
+            switch (mode) {
+                case 'create':
+                    sb.append("Está en el formulario de **crear**. Complete los campos obligatorios y guarde.\n\n"); break
+                case 'edit':
+                    sb.append("Está **editando** el registro **#${ctx.recordId}**. Guardar aplica los cambios. Use la barra de contenido para notas/archivos.\n\n"); break
+                default:
+                    sb.append("Está viendo la **lista** de registros de ${humanRes}. Abra una fila para editar o cree uno nuevo.\n\n")
+            }
+            if (specific) {
+                sb.append("## Sobre este objeto\n\n").append(specific).append("\n\n")
+            } else {
+                sb.append("## Sobre este objeto\n\nLista/formulario Admin para **`${pkg}.${res}`**. El trabajo diario suele ser más cómodo en el **escritorio** de la familia.\n\n")
+            }
+            sb.append("## Paquete\n\n")
+            sb.append("- **Familia:** ${fam.label} (`${pkg}`)\n")
+            sb.append("- **Recurso:** `${res}`\n")
+            sb.append("- **Ruta:** `${ctx.path}`\n")
+            if (fam.desk) sb.append("- **Escritorio operativo:** ${fam.desk}\n")
+            sb.append("\n## Barra de contenido\n\nEnlaces, archivos y notas en el registro sin salir de la página.\n")
         } else {
             sb.append("**${humanRes}** master data in **${fam.label}**.\n\n")
             sb.append(fam.blurb ?: '').append("\n\n")
@@ -1217,6 +1271,8 @@ Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwur
         String title = t.title
         if (lang == 'de' && FEATURE_TITLES_DE[t.helpKey]) {
             title = FEATURE_TITLES_DE[t.helpKey] as String
+        } else if (lang == 'es' && FEATURE_TITLES_ES[t.helpKey]) {
+            title = FEATURE_TITLES_ES[t.helpKey] as String
         }
         [
                 id          : t.id,
@@ -1233,11 +1289,14 @@ Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwur
     }
 
     private Map bodyFor(HelpTopic t, String lang) {
-        // Prefer language-specific companion: name suffix .de / default en
+        // Prefer language-specific companion: name suffix .de / .es / default en
         ObjectContent oc = null
         if (lang == 'de') {
             oc = ObjectContent.findByHostPackageAndHostResourceAndHostIdAndChannelAndName(
                     HOST_PACKAGE, HOST_RESOURCE, t.id, 'BODY', t.helpKey + '.de')
+        } else if (lang == 'es') {
+            oc = ObjectContent.findByHostPackageAndHostResourceAndHostIdAndChannelAndName(
+                    HOST_PACKAGE, HOST_RESOURCE, t.id, 'BODY', t.helpKey + '.es')
         }
         if (!oc) {
             oc = ObjectContent.findByHostPackageAndHostResourceAndHostIdAndChannel(
@@ -1247,10 +1306,14 @@ Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwur
         String text = oc.bodyText
         if (lang == 'de' && FEATURE_BODIES_DE[t.helpKey]) {
             text = FEATURE_BODIES_DE[t.helpKey]
+        } else if (lang == 'es' && FEATURE_BODIES_ES[t.helpKey]) {
+            text = FEATURE_BODIES_ES[t.helpKey]
         }
         String title = oc.title
         if (lang == 'de' && FEATURE_TITLES_DE[t.helpKey]) {
             title = FEATURE_TITLES_DE[t.helpKey] as String
+        } else if (lang == 'es' && FEATURE_TITLES_ES[t.helpKey]) {
+            title = FEATURE_TITLES_ES[t.helpKey] as String
         }
         [
                 id             : oc.id,
@@ -1269,6 +1332,16 @@ Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwur
             'help.users.danger'  : 'Sicherheit: Admin, CEO & Deaktivieren',
             'help.users.privacy' : 'Datenschutz, HR & Nur lesen',
             'help.roles.demo'    : 'Rollen üben (Demo / Training)',
+    ].asImmutable()
+
+    private static final Map FEATURE_TITLES_ES = [
+            'help.roles.overview': 'Roles para un equipo pequeño',
+            'help.roles.presets' : 'Qué rol elegir',
+            'help.roles.matrix'  : 'Matriz de permisos (Avanzado)',
+            'help.users.invite'  : 'Invitar a un miembro del equipo',
+            'help.users.danger'  : 'Seguridad: Admin, CEO y desactivar',
+            'help.users.privacy' : 'Privacidad, RR. HH. y solo lectura',
+            'help.roles.demo'    : 'Practicar roles (Demo / formación)',
     ].asImmutable()
 
     private static final Map FEATURE_BODIES_DE = [
@@ -1475,12 +1548,220 @@ Am Datensatz:
 - **Inhalt** (Notiz, Hilfe, Risiko, …)''',
     ].asImmutable()
 
+    private static final Map FEATURE_BODIES_ES = [
+            'finance.primaryRail': '''# Carril primario y BTC-FX
+
+Su **carril primario** es la unidad monetaria de sus libros (elegida en el setup):
+
+| Carril | Significado |
+|--------|-------------|
+| **EUR** / **USD** | Moneda funcional fiat — facturas y diarios en esta moneda |
+| **BTC** | Libros en Bitcoin (importes en sats o visualización BTC); elija un **fiat de visualización** (EUR/USD) para las pistas |
+
+## Qué ve en los formularios
+
+Junto a los importes, steakOS puede mostrar una **pista FX compacta** (p. ej. sats junto a euros). Las pistas vienen de una caché de tipo BTC **en el servidor** (CoinGecko → Kraken → Coinbase). Un distintivo **obsoleto** significa: último tipo bueno, porque fallaron las cotizaciones en vivo.
+
+**Las pistas no son los libros.** Los documentos emitidos conservan el importe primario; las tooltips pueden cambiar con el mercado.
+
+## Liquidación
+
+Al **liquidar** una factura, steakOS registra el momento del pago en **Payment** / diario / Treasury (incl. sats en carriles Bitcoin). Ese tipo de liquidación entra en los libros — no el tooltip en vivo.
+
+## Tesorería dual
+
+Espere una posición de **banco fiat** y otra de **cartera Bitcoin** bajo Finance → Treasury (un solo plan de cuentas).
+
+## Límites honestos (Basics)
+
+- Sin mark-to-market (MTM) automático de cartera al cambiar el tipo BTC  
+- Cambiar el carril primario tras el setup es Advanced (no en la closed beta)  
+- Sin tablas FX manuales  
+
+**Relacionado:** facturas · Treasury · pagos en vivo (BTCPay) · perfil de empresa''',
+            'sales.desk'    : '''# Escritorio de ventas
+
+Venta operativa:
+
+1. Crear **cliente**
+2. **Oferta** → enviar → aceptar/rechazar
+3. **Pedido** → confirmar (puede generar factura borrador)
+
+Los datos maestros de ventas siguen disponibles para listas Admin.''',
+            'app.dashboard' : '''# Panel CEO
+
+Cabina de mando para trabajo abierto y salud de procesos.
+
+- **Mi trabajo** — tareas y actividades
+- **Grupos APQC** — salto a ventas, finanzas, …
+- **Estado del sistema**
+
+**Atajos:** **Ctrl+K** · **?** ayuda''',
+            'help.roles.overview': '''# Roles para un equipo pequeño
+
+steakOS está pensado para una **empresa pequeña** (unas 2–5 personas). Asigne a cada persona un **perfil de rol** (Office, Ops, Finance…). Los roles aportan **valores por defecto** sobre qué escritorios se ven y qué se puede cambiar.
+
+**Admin** y **CEO** ajustan los valores por defecto en **System → Roles** e invitan personas en **System → Users**.
+
+No hace falta un departamento de TI. En caso de duda, **mantenga los valores por defecto** y abra más escritorios solo si hace falta.
+
+## Inicio rápido
+
+1. Abra **System → Users**
+2. Cree la persona con perfil **Office** (recepción) o **Finance** (contabilidad)
+3. Comunique la contraseña temporal; haga que configure pronto **Security → Authenticator**
+4. Revise la navegación izquierda: solo los escritorios necesarios
+
+## Dónde
+
+- **Roles** (`/roles`) — cambiar los valores por defecto de un perfil
+- **Users** (`/users`) — asignar un perfil a una persona
+- Temas de ayuda: elección de rol · matriz de permisos · invitar · seguridad
+
+**Consejo:** cajón de ayuda con **?** o **Ctrl+/**.''',
+            'help.roles.presets': '''# Qué rol elegir
+
+Los valores por defecto son **puntos de partida**, no bloqueos eternos. Ajústelos en **System → Roles** si hace falta.
+
+| Rol | Persona típica | Ve / hace | Evite si… |
+|-----|----------------|-----------|-----------|
+| **Admin** | Instalador / socio con afinidad TI | Todos los escritorios habilitados + Users, Import, catálogos, agentes | Uso diario (entonces CEO) |
+| **CEO** | Propietario / dirección | Todos los escritorios de negocio + Users / Import | Necesita un segundo Admin completo (solo Admin crea Admin) |
+| **Office** | Recepción / oficina | Ventas, Delivery, After-Sales (+ Capability ligero); **no liquida dinero** | Debe registrar pagos |
+| **Ops** | Cocina / producción / sala | SCM, Delivery, Assets; ventas solo **ver** | Debe responsabilizarse de ofertas de punta a punta |
+| **Finance** | Contabilidad | Finance + ventas **ver**; dinero **liquidar** | Invitar usuarios (sin Users) |
+| **User** | Escritorio general | Conservador: ventas + Delivery | Office/Ops/Finance encaja mejor |
+| **Read only** | Invitado / auditor / aprendiz | Explorar escritorios; **escritura bloqueada** | Debe crear o editar |
+
+## Ejemplos de hostelería
+
+- Recepción / teléfono: **Office**
+- Jefe de cocina: **Ops**
+- Contabilidad (parcial): **Finance**
+- Propietario: **CEO** (+ una cuenta **Admin** separada)
+- Aprendiz: **Read only**
+
+**Regla:** una persona → un perfil. En v1 prefiera cambiar de perfil antes que inventar un rol nuevo.''',
+            'help.roles.matrix': '''# Matriz de permisos (Avanzado)
+
+La matriz es la **verdad**. Los valores por defecto la rellenan; Avanzado permite a Admin/CEO afinar celdas.
+
+## Escritorios (familias)
+
+Por cada escritorio (ventas, Finance, SCM…):
+
+| Verbo | Significado |
+|-------|-------------|
+| **See** | En la navegación; abrir y leer listas |
+| **Create** | Nuevos registros (POST) |
+| **Change** | Editar / flujo de trabajo (PUT/PATCH / iniciar / completar…) |
+| **Delete** | Borrar / anular, donde esté permitido |
+| **Work** | Atajo = Create **o** Change (vista simple) |
+
+Los derechos se cruzan con las **familias habilitadas** (metal / plantilla).
+
+## Acciones de sistema
+
+Ejemplos: **Users / invitar**, **Import**, **catálogos**, **agentes**, **Setup**, **liquidar dinero**, restablecer 2FA de otros.
+
+Liquidar es un **especial de dinero** — Finance lo tiene por defecto; Office no.
+
+## Seguridad
+
+- **Deny gana** sobre Allow
+- Proteja al último **Admin**
+- Confirme antes de **aplicar a todos los usuarios con este perfil**
+- Las personas no reciben `ROLE_AI` vía Users
+
+## API
+
+Las llamadas de escritura a `/api/**` comprueban esta matriz (`MATRIX_DESK_FORBIDDEN`, `MATRIX_SYSTEM_FORBIDDEN`).''',
+            'help.users.invite': '''# Invitar a un miembro del equipo
+
+Ruta: **System → Users**
+
+1. Elija el **perfil de rol** (Office / Ops / Finance — no Admin)
+2. Nombre de usuario + **contraseña temporal** (12+ caracteres: minúscula, mayúscula, dígito, carácter especial)
+3. Cree y entregue las credenciales fuera de tickets públicos
+4. Haga que configure el Authenticator en **Security**
+
+## Después
+
+- Cambie el perfil en cualquier momento en la tabla de usuarios
+- Prefiera **desactivar** a borrar — el historial se conserva
+- **Borrar Authenticator** solo si se perdió el dispositivo
+
+## Quién puede invitar
+
+**Admin** y **CEO**. El CEO no puede asignar el perfil **Admin**.''',
+            'help.users.danger': '''# Seguridad: Admin, CEO y desactivar
+
+## Haga
+
+- Mantenga **Admin** y **CEO** como **inicios de sesión separados**
+- Al salir, prefiera **desactivar** a borrar
+- **Borrar Authenticator** solo si se perdió el dispositivo
+- Confirme antes de cambiar el rol para **todos** los usuarios de ese perfil
+
+## No haga
+
+- Compartir la contraseña de Admin
+- Convertir a cada propietario en Admin «por si acaso»
+- Desactivar al último Admin (el producto lo bloquea)
+- Dar acceso de agente (`ROLE_AI`) a personas vía Users
+
+## Último Admin / CEO
+
+- No se puede desactivar ni degradar al último **Admin**
+- Conserve al menos una cuenta de propietario
+
+## Dinero
+
+Solo los perfiles con **liquidar dinero** (Finance, Admin, CEO por defecto) pueden liquidar facturas. Office puede crear clientes; liquidar está bloqueado.''',
+            'help.users.privacy': '''# Privacidad, RR. HH. y solo lectura
+
+- Los escritorios de **HR** y los expedientes de personas son sensibles. **See** en Human Capital solo si hace falta.
+- **Read only** para invitados, auditores y aprendices que **observan**, no cambian.
+- Las instancias **Demo / formación** pueden usar Read only u Office con libertad — no practique acciones Admin destructivas sobre libros en vivo.
+- El contenido de los registros sigue el acceso de escritorio del registro anfitrión.
+
+En caso de duda: **Read only** para observar, **Office** para recepción, Admin solo para trabajo de sistema.''',
+            'help.roles.demo': '''# Practicar roles (Demo / formación)
+
+En un **restaurante Demo** o un inquilino de formación:
+
+| Objetivo | Perfil |
+|----------|--------|
+| Explorar sin arruinar datos | **Read only** (o el usuario `demo` sembrado) |
+| Pedidos / ofertas | **Office** |
+| Almacén / cocina | **Ops** |
+| Facturas y liquidar | **Finance** |
+| Invitar / cambiar valores por defecto | **CEO** (o Admin para catálogos / Import) |
+
+**Consejos**
+
+- Practique primero en Demo; luego los mismos perfiles en la empresa en vivo
+- **Desactive** después los usuarios desechables
+- El cajón de ayuda (**?**) en **Roles** y **Users** muestra estos artículos en contexto''',
+            'content.rail'  : '''# Object Companion (barra de contenido)
+
+En el registro:
+
+- **Enlace**
+- **Archivo**
+- **Contenido** (nota, ayuda, riesgo, …)''',
+    ].asImmutable()
+
     private static String humanize(String resource) {
         humanizeResource(resource, 'en')
     }
 
     private static String humanizeResource(String resource, String lang) {
-        if (!resource) return lang == 'de' ? 'Datensatz' : 'Record'
+        if (!resource) {
+            if (lang == 'de') return 'Datensatz'
+            if (lang == 'es') return 'Registro'
+            return 'Record'
+        }
         if (lang == 'de') {
             Map deNames = [
                     Customer: 'Kunde', CustomerQuote: 'Kundenangebot', QuoteLine: 'Angebotsposition',
@@ -1488,6 +1769,14 @@ Am Datensatz:
                     Task: 'Aufgabe', Vendor: 'Lieferant', Account: 'Konto',
             ]
             if (deNames[resource]) return deNames[resource] as String
+        }
+        if (lang == 'es') {
+            Map esNames = [
+                    Customer: 'Cliente', CustomerQuote: 'Oferta de cliente', QuoteLine: 'Línea de oferta',
+                    SalesOrder: 'Pedido de venta', OrderLine: 'Línea de pedido',
+                    Task: 'Tarea', Vendor: 'Proveedor', Account: 'Cuenta',
+            ]
+            if (esNames[resource]) return esNames[resource] as String
         }
         String s = resource.replaceAll(/([a-z])([A-Z])/, '$1 $2')
         s = s.replaceAll(/([A-Z]+)([A-Z][a-z])/, '$1 $2')
@@ -1500,6 +1789,13 @@ Am Datensatz:
                 case 'create': return 'Anlegen'
                 case 'edit': return 'Bearbeiten'
                 default: return 'Liste'
+            }
+        }
+        if (lang == 'es') {
+            switch (mode) {
+                case 'create': return 'Crear'
+                case 'edit': return 'Editar'
+                default: return 'Lista'
             }
         }
         switch (mode) {

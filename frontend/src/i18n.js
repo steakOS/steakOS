@@ -32,6 +32,14 @@ import deDesks from './locales/de/desks.json'
 import deContent from './locales/de/content.json'
 import deSetup from './locales/de/setup.json'
 import deProcesses from './locales/de/processes.json'
+import esCommon from './locales/es/common.json'
+import esSales from './locales/es/sales.json'
+import esDomain from './locales/es/domain.json'
+import esHelp from './locales/es/help.json'
+import esDesks from './locales/es/desks.json'
+import esContent from './locales/es/content.json'
+import esSetup from './locales/es/setup.json'
+import esProcesses from './locales/es/processes.json'
 
 export const LOCALE_STORAGE_KEY = 'steakos.ui.locale'
 /** Must match I18nWebConfig.COOKIE_NAME — GSP login/logout locale. */
@@ -43,6 +51,7 @@ export function languageFromLocale(localeCode) {
   if (!localeCode) return 'en'
   const c = String(localeCode).replace('-', '_')
   if (c.startsWith('de')) return 'de'
+  if (c.startsWith('es')) return 'es'
   return 'en'
 }
 
@@ -59,6 +68,9 @@ export function normalizeLocaleCode(code) {
     if (c === 'de_AT') return 'de_AT'
     if (c === 'de_CH') return 'de_CH'
     return c === 'de' ? 'de_DE' : c
+  }
+  if (c === 'es' || c.startsWith('es_')) {
+    return c === 'es' ? 'es_ES' : c
   }
   return c
 }
@@ -158,6 +170,16 @@ void i18n.use(initReactI18next).init({
       content: deContent,
       setup: deSetup,
       processes: deProcesses,
+    },
+    es: {
+      common: esCommon,
+      sales: esSales,
+      domain: esDomain,
+      help: esHelp,
+      desks: esDesks,
+      content: esContent,
+      setup: esSetup,
+      processes: esProcesses,
     },
   },
   lng: languageFromLocale(readStoredLocale() || 'en_US'),

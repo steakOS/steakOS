@@ -7,7 +7,7 @@
 <p align="center">
   <strong>Your own business system — on your computer, with your keys</strong><br/>
   <em>Sell · Buy · Make · Deliver · Get paid · Look after people · Let helpers (agents) assist</em><br/>
-  Runs on your machine · Speaks English &amp; German · Happy with Bitcoin · Free &amp; open source (Apache&nbsp;2.0)
+  Runs on your machine · Speaks English, German &amp; Spanish · Happy with Bitcoin · Free &amp; open source (Apache&nbsp;2.0)
 </p>
 
 <p align="center">
@@ -64,7 +64,7 @@ Many popular business systems ask you to rent a kitchen you never own. Your cust
 | Desks for selling, buying, making, delivering, money, and people | Your data on **your** database |
 | A guided **training tour** and **setup wizard** | Control of passwords and signing keys |
 | Optional live Bitcoin payments | No “we hold your coins for you” middleman |
-| English + German screens | Software you can study, change, and share (Apache 2.0 license) |
+| English + German + Spanish screens | Software you can study, change, and share (Apache 2.0 license) |
 
 > Fire up the grill, stock the walk-in, invite the crew.  
 > **Your company. Your computer. Your rules.**
@@ -133,11 +133,11 @@ You do not need every desk on day one. Start with **Sales + Finance**. Add the o
 
 - **Training tour** (`/tour/`) — a friendly walkthrough of ideas and screens.  
 - **Setup wizard** (`/setup`) — fills company basics so desks have somewhere to hang their hats.  
-- **Help** — short topics next to the work, in English and German.
+- **Help** — short topics next to the work, in English, German, and Spanish.
 
 ### Languages
 
-Operator screens ship with **English** and **German**. Pick your language on the login screen or in Settings.
+Operator screens ship with **English**, **German**, and **Spanish**. Pick your language on the login screen or in Settings.
 
 ---
 

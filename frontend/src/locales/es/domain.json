@@ -1,0 +1,167 @@
+{
+  "core": {
+    "Task": "Tarea"
+  },
+  "sales": {
+    "Customer": "Cliente",
+    "CustomerQuote": "Cotización del cliente",
+    "QuoteLine": "Línea de cotización",
+    "SalesOrder": "orden de venta",
+    "OrderLine": "línea de pedido",
+    "GoToMarket": "Ir al mercado",
+    "Market": "Mercado",
+    "SalesPlan": "plan de ventas"
+  },
+  "procurement": {
+    "Vendor": "Proveedor",
+    "PurchaseOrder": "orden de compra",
+    "PurchaseOrderLine": "línea de orden de compra",
+    "Receipt": "Recibo",
+    "ReceiptLine": "linea de recibo",
+    "Contract": "Contrato",
+    "SourcingCategory": "categoría de abastecimiento",
+    "SourcingPlan": "plan de abastecimiento"
+  },
+  "production": {
+    "Product": "Producto",
+    "Component": "Componente",
+    "CatalogueItem": "Artículo del catálogo",
+    "BillOfMaterials": "lista de materiales",
+    "BomItem": "artículo de lista de materiales",
+    "ProductionOrder": "Orden de producción",
+    "Lot": "Lote",
+    "Check": "Controlar",
+    "StockMove": "Movimiento de acciones"
+  },
+  "delivery": {
+    "Service": "Servicio",
+    "Resource": "Recurso",
+    "ServiceOrder": "orden de servicio",
+    "ServiceOrderLine": "Línea de orden de servicio"
+  },
+  "service": {
+    "Claims": "Reclamos",
+    "Inquiry": "Consulta",
+    "Rma": "RMA",
+    "Satisfaction": "Satisfacción",
+    "ServiceLevel": "Nivel de servicio",
+    "Warranty": "Garantía"
+  },
+  "human": {
+    "Candidate": "Candidato",
+    "Goal": "Meta",
+    "HRFile": "archivo de recursos humanos",
+    "HeadcountPlan": "plan de personal",
+    "PartyAccess": "Acceso a la fiesta",
+    "Payroll": "Nómina de sueldos",
+    "Policy": "Política",
+    "TimeTrack": "Pista de tiempo"
+  },
+  "digital": {
+    "ConfigItem": "Elemento de configuración",
+    "Data": "Datos",
+    "ITChange": "cambio de TI",
+    "ItTicket": "billete de TI",
+    "Solution": "Solución",
+    "System": "Sistema"
+  },
+  "finance": {
+    "Account": "Cuenta",
+    "Budget": "Presupuesto",
+    "Invoice": "Factura",
+    "JournalEntry": "Entrada de diario",
+    "JournalLine": "línea de diario",
+    "Payable": "Pagadero",
+    "Payment": "Pago",
+    "PaymentOption": "Opción de pago",
+    "PayrollItem": "Elemento de nómina",
+    "Tax": "Impuesto",
+    "Treasury": "Tesorería",
+    "TaxCode": "código fiscal"
+  },
+  "capability": {
+    "Change": "Cambiar",
+    "ChangeItem": "Cambiar artículo",
+    "KnowledgeArea": "Área de conocimiento",
+    "Portfolio": "Cartera",
+    "Procedure": "Procedimiento",
+    "Process": "Proceso",
+    "ProcessStep": "Paso del proceso",
+    "Program": "Programa",
+    "Project": "Proyecto",
+    "ProjectItem": "Elemento del proyecto",
+    "Quality": "Calidad",
+    "QualityItem": "Artículo de calidad",
+    "Standard": "Estándar"
+  },
+  "agents": {
+    "Agent": "Agente",
+    "AgentHumanLink": "Vínculo agente-humano",
+    "Approval": "Aprobación",
+    "Hive": "Colmena",
+    "Memory": "Memoria"
+  },
+  "generic": {
+    "Content": "Contenido",
+    "ContentType": "tipo de contenido",
+    "ContentTypeConfig": "Configuración del tipo de contenido",
+    "ContentBlob": "Blob de contenido",
+    "ObjectContent": "Contenido del objeto",
+    "ObjectContentProfile": "Perfil de contenido del objeto"
+  },
+  "configuration": {
+    "GlobalConfig": "Configuración global",
+    "UserConfig": "Configuración de usuario",
+    "BankAccount": "Cuenta bancaria",
+    "CompanyCurrency": "Moneda de la empresa",
+    "CompanySetting": "Entorno de la empresa",
+    "CompanyTaxCode": "Código fiscal de la empresa",
+    "HelpTopic": "Tema de ayuda",
+    "ImportJob": "Importar trabajo",
+    "LegalEntity": "Persona Jurídica",
+    "SetupState": "Estado de configuración",
+    "Site": "Sitio",
+    "UserCompanyMembership": "Membresía de empresa usuaria",
+    "UserPreference": "Preferencia de usuario"
+  },
+  "helper": {
+    "Address": "DIRECCIÓN",
+    "Classification": "Clasificación",
+    "Countries": "Países",
+    "Currencies": "Monedas",
+    "SimpleClass": "códigos de clase",
+    "SimpleStatus": "Códigos de estado",
+    "SimpleType": "Códigos de tipo",
+    "SimpleUnit": "Unidades",
+    "SupportedLocale": "Configuraciones regionales admitidas",
+    "Tag": "Etiquetas"
+  },
+  "listTitle": "{{resource}}",
+  "newTitle": "Nuevo {{resource}}",
+  "editTitle": "Editar {{resource}}",
+  "strategy": {
+    "Competitor": "Competidor",
+    "StrategyItem": "Elemento de estrategia"
+  },
+  "development": {
+    "DevelopmentProject": "Proyecto de desarrollo"
+  },
+  "asset": {
+    "PhysicalAsset": "Activo físico"
+  },
+  "catalogue": {
+    "CatalogueItem": "Artículo del catálogo"
+  },
+  "money": {
+    "amountPrimary": "Cantidad (primaria)"
+  },
+  "agent": {
+    "AgentApiToken": "Token API del agente"
+  },
+  "security": {
+    "RoleProfile": "Perfil de rol"
+  },
+  "supplychain": {
+    "StockMove": "Movimiento de acciones"
+  }
+}

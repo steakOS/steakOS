@@ -30,6 +30,7 @@ class SupportedLocaleCodes {
             [code: 'de_AT', name: 'German (Austria)', languageCode: 'de', countryCode: 'AT', currencyCode: 'EUR'],
             [code: 'en_US', name: 'English (United States)', languageCode: 'en', countryCode: 'US', currencyCode: 'USD'],
             [code: 'en_SG', name: 'English (Singapore)', languageCode: 'en', countryCode: 'SG', currencyCode: 'SGD'],
+            [code: 'es_ES', name: 'Spanish (Spain)', languageCode: 'es', countryCode: 'ES', currencyCode: 'EUR'],
     ].asImmutable()
 
     /** ISO 3166-1 alpha-2 → English display name (seed / UI). */
@@ -39,6 +40,7 @@ class SupportedLocaleCodes {
             AT: 'Austria',
             US: 'United States',
             SG: 'Singapore',
+            ES: 'Spain',
     ].asImmutable()
 
     /** ISO 4217 → English display name (seed / UI). */

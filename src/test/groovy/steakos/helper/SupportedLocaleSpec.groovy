@@ -29,10 +29,11 @@ class SupportedLocaleSpec extends Specification {
         loc.toJavaLocale().country == 'CH'
     }
 
-    def "catalog lists five official codes"() {
+    def "catalog lists six official codes including Spanish"() {
         expect:
-        SupportedLocaleCodes.ALL.size() == 5
+        SupportedLocaleCodes.ALL.size() == 6
         SupportedLocaleCodes.isValid('en_SG')
+        SupportedLocaleCodes.isValid('es_ES')
         !SupportedLocaleCodes.isValid('en-SG')
         !SupportedLocaleCodes.isValid('fr_FR')
     }

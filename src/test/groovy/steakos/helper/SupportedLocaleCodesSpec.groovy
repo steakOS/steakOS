@@ -24,8 +24,9 @@ class SupportedLocaleCodesSpec extends Specification {
         def countries = SupportedLocaleCodes.uniqueCountries()
 
         then:
-        countries*.code as Set == ['DE', 'CH', 'AT', 'US', 'SG'] as Set
+        countries*.code as Set == ['DE', 'CH', 'AT', 'US', 'SG', 'ES'] as Set
         countries.find { it.code == 'DE' }.name == 'Germany'
+        countries.find { it.code == 'ES' }.name == 'Spain'
     }
 
     def "unique currencies collapse shared EUR"() {

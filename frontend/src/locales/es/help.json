@@ -1,0 +1,20 @@
+{
+  "title": "Ayuda",
+  "loading": "Cargando…",
+  "empty": "Aún no hay tema de ayuda para esta página.",
+  "related": "Relacionado",
+  "actions": "Próximos pasos sugeridos",
+  "tour": "Tour completo",
+  "center": "Centro de ayuda",
+  "generated": "Generado por contexto",
+  "itSupport": "Soporte de TI",
+  "itSupportHint": "¿Necesita ayuda de TI? Abra un ticket interno desde el contexto de esta página o vaya a Soporte de TI.",
+  "ticketCreate": "Crear ticket de soporte de TI",
+  "ticketHideForm": "Ocultar formulario de ticket",
+  "ticketFullPage": "Página de soporte de TI",
+  "ticketSubject": "Sujeto",
+  "ticketSubmit": "billete abierto",
+  "ticketCreated": "Boleto {{number}} abierto.",
+  "ticketViewAll": "Ver todas las entradas",
+  "backToContext": "Volver a la página de ayuda"
+}

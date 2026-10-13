@@ -1,0 +1,45 @@
+{
+  "title": "Procesos de Negocio y Automatización",
+  "pages": [
+    {
+      "title": "¿Qué es un proceso de negocio?",
+      "icon": "🔄",
+      "text": "Un proceso de negocio es simplemente una serie de pasos que usted sigue para hacer algo en su negocio.\n\nEjemplos:\n• Crear y enviar una factura\n• Solicitar nuevas existencias cuando algo se está acabando\n• Pagar a tu equipo a final de mes\n• Hacer un seguimiento de un cliente que no ha pagado",
+      "examples": [
+        "Incluso una empresa unipersonal tiene procesos, pero a menudo sólo están en la cabeza del propietario.",
+        "Cuando una empresa crece, estos procesos deben quedar claros para que otras personas también puedan seguirlos."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Por qué son importantes los procesos",
+      "icon": "📋",
+      "text": "Cuando sus procesos no son claros o inconsistentes, pierde tiempo, comete errores y se siente estresado. Los buenos procesos le ayudan a: \n\n• Ahorra tiempo \n• Reducir errores \n• Hacer que sea más fácil contratar o delegar \n• Comprenda lo que realmente está sucediendo en su negocio.",
+      "examples": [
+        "Un autónomo que se olvida de enviar facturas periódicamente pierde dinero todos los meses",
+        "Un equipo pequeño donde cada uno hace las cosas diferente genera confusión y errores"
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "¿Qué es la automatización de procesos?",
+      "icon": "⚙️",
+      "text": "La automatización simplemente significa dejar que el sistema haga por usted un trabajo repetitivo o basado en reglas. \n\nEn lugar de que usted recuerde enviar un recordatorio cuando una factura esté retrasada, el sistema puede hacerlo automáticamente. En lugar de copiar datos manualmente entre herramientas, el sistema puede hacerlo por usted.",
+      "examples": [
+        "Antes: Verificas manualmente qué facturas están vencidas cada viernes \nDespués: el sistema envía automáticamente recordatorios amables y le muestra una lista de facturas vencidas.",
+        "Antes: copias las cifras de ventas en una hoja de cálculo todos los meses. \nDespués: El sistema crea el informe automáticamente."
+      ],
+      "canSkip": true
+    },
+    {
+      "title": "Cómo los sistemas pueden ayudarle (u obstaculizarlo)",
+      "icon": "🛠️",
+      "text": "Un buen sistema empresarial respalda tus procesos y los facilita. Un mal sistema te obliga a solucionarlo o crea trabajo extra. \n\nsteakOS fue diseñado para respaldar procesos comerciales reales en lugar de luchar contra ellos. Le brinda la flexibilidad de comenzar de manera simple y agregar más estructura solo cuando lo necesite.",
+      "examples": [
+        "Un sistema que te obliga a completar 15 campos solo para crear una factura simple crea fricciones",
+        "Un sistema que le permite comenzar con lo básico y agregar más campos más adelante reduce el estrés"
+      ],
+      "canSkip": true
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Elige tu talla inicial",
+  "pages": [
+    {
+      "title": "Elige tu talla inicial",
+      "icon": "📏",
+      "text": "Disponemos de puntos de partida (plantillas) ya preparados para que no tengas que crear todo desde cero. \n\n**Bronce** es el paquete de equipo abierto hoy. Plata y Oro son la escalera de crecimiento a medida que se envían esos paquetes. Puedes ampliarlo más tarde en cualquier momento.",
+      "examples": [
+        "Un equipo pequeño con una cartera establecida (alrededor de 5 a 20 personas) -> Bronce (inicio recomendado)",
+        "Una empresa en crecimiento con más ubicaciones y procesos -> Plata (próximamente)",
+        "Una organización grande o con múltiples entidades -> Gold (próximamente)"
+      ],
+      "choices": [
+        "Plantilla Bronce: Equipo pequeño con cartera de productos, aproximadamente entre 5 y 20 empleados (recomendado)",
+        "Plantilla Plata: empresa en crecimiento, más ubicaciones, hasta ~100 empleados (próximamente)",
+        "Plantilla Gold: complejidad para grandes empresas/multiempresas (próximamente)"
+      ],
+      "contentchoice": [
+        "plantillas/bronce.json",
+        "plantillas/plata.json",
+        "plantillas/oro.json"
+      ],
+      "tierCodes": [
+        "BRONZE",
+        "SILVER",
+        "GOLD"
+      ],
+      "canSkip": false
+    }
+  ]
+}
