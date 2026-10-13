@@ -171,39 +171,71 @@
 
 		var sel = document.getElementById('ui_locale');
 		var key = 'steakos.ui.locale';
+		function readCookie(name) {
+			try {
+				var parts = document.cookie ? document.cookie.split(';') : [];
+				for (var i = 0; i < parts.length; i++) {
+					var p = parts[i];
+					var idx = p.indexOf('=');
+					if (idx < 0) continue;
+					if (p.slice(0, idx).trim() !== name) continue;
+					return decodeURIComponent(p.slice(idx + 1).trim());
+				}
+			} catch (e) {}
+			return null;
+		}
 		function pickLocale(code) {
 			if (!sel || !code) return false;
+			var c = String(code).replace('-', '_');
 			for (var i = 0; i < sel.options.length; i++) {
-				if (sel.options[i].value === code || sel.options[i].value.indexOf(code + '_') === 0) {
+				var v = sel.options[i].value;
+				if (v === c || v.indexOf(c + '_') === 0 || c.indexOf(v) === 0) {
 					sel.selectedIndex = i;
+					return true;
+				}
+			}
+			// Short lang → first matching region (es → es_ES)
+			var short = c.split('_')[0];
+			for (var j = 0; j < sel.options.length; j++) {
+				if (sel.options[j].value.indexOf(short + '_') === 0) {
+					sel.selectedIndex = j;
 					return true;
 				}
 			}
 			return false;
 		}
-		try {
-			var langParam = new URLSearchParams(window.location.search).get('lang');
-			var stored = localStorage.getItem(key);
-			if (langParam) pickLocale(langParam);
-			else if (stored) pickLocale(stored);
-		} catch (e) {}
 		function syncLocaleCookies(fullCode) {
 			var v = fullCode || 'en_US';
-			var shortLang = v.split('_')[0];
+			var shortLang = v.split(/[_-]/)[0];
 			try { localStorage.setItem(key, v); } catch (e) {}
-			// Shared with SPA on :9001 (localStorage is per-port and does not carry over).
+			// Shared with SPA (and survives logout). Never clear these on sign-out.
 			try {
 				document.cookie = 'STEAKOS_LANG=' + encodeURIComponent(shortLang) + '; path=/; SameSite=Lax; max-age=31536000';
 				document.cookie = 'STEAKOS_UI_LOCALE=' + encodeURIComponent(v) + '; path=/; SameSite=Lax; max-age=31536000';
 			} catch (e) {}
 			return shortLang;
 		}
+		// Restore order: URL → full cookie → short cookie → localStorage.
+		// Must run BEFORE syncLocaleCookies so we do not overwrite a saved locale with en_US.
+		try {
+			var qs = new URLSearchParams(window.location.search);
+			var langParam = qs.get('locale') || qs.get('lang');
+			var stored = null;
+			try { stored = localStorage.getItem(key); } catch (e) {}
+			var fromUiCookie = readCookie('STEAKOS_UI_LOCALE');
+			var fromLangCookie = readCookie('STEAKOS_LANG');
+			if (langParam) pickLocale(langParam);
+			else if (fromUiCookie) pickLocale(fromUiCookie);
+			else if (fromLangCookie) pickLocale(fromLangCookie);
+			else if (stored) pickLocale(stored);
+		} catch (e) {}
 		if (sel) {
 			sel.addEventListener('change', function () {
 				var v = sel.value;
 				var shortLang = syncLocaleCookies(v);
 				var url = new URL(window.location.href);
-				url.searchParams.set('lang', shortLang);
+				url.searchParams.set('lang', v);
+				url.searchParams.set('locale', v);
 				window.location.href = url.toString();
 			});
 			syncLocaleCookies(sel.value);

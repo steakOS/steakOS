@@ -127,31 +127,72 @@
         <h1 class="thanks-brand">steakOS</h1>
         <hr class="thanks-rule" aria-hidden="true"/>
         <div class="thanks-actions">
-            <a class="btn btn-steak" id="sign-in-again" href="${request.contextPath}/login/auth?lang=${request.getAttribute('steakosUiLang') ?: request.locale?.language ?: 'en'}"><g:message code='steakos.logout.signInAgain'/></a>
+            <a class="btn btn-steak" id="sign-in-again" href="${request.contextPath}/login/auth?lang=${request.getAttribute('steakosUiLocale') ?: request.getAttribute('steakosUiLang') ?: request.locale?.language ?: 'en'}"><g:message code='steakos.logout.signInAgain'/></a>
         </div>
     </main>
     <script>
-        // If SPA had German (etc.) but server rendered EN, reload with ?lang= from localStorage.
-        (function syncLogoutLocale() {
+        (function persistLocaleAcrossLogout() {
+            var key = 'steakos.ui.locale';
+            function readCookie(name) {
+                try {
+                    var parts = document.cookie ? document.cookie.split(';') : [];
+                    for (var i = 0; i < parts.length; i++) {
+                        var p = parts[i];
+                        var idx = p.indexOf('=');
+                        if (idx < 0) continue;
+                        if (p.slice(0, idx).trim() !== name) continue;
+                        return decodeURIComponent(p.slice(idx + 1).trim());
+                    }
+                } catch (e) {}
+                return null;
+            }
+            function writeCookies(full) {
+                if (!full) return;
+                var short = String(full).split(/[_-]/)[0].toLowerCase();
+                try { localStorage.setItem(key, full); } catch (e) {}
+                try {
+                    document.cookie = 'STEAKOS_LANG=' + encodeURIComponent(short) + '; path=/; SameSite=Lax; max-age=31536000';
+                    document.cookie = 'STEAKOS_UI_LOCALE=' + encodeURIComponent(full) + '; path=/; SameSite=Lax; max-age=31536000';
+                } catch (e) {}
+                var link = document.getElementById('sign-in-again');
+                if (link) {
+                    try {
+                        var href = new URL(link.href, window.location.origin);
+                        href.searchParams.set('lang', full);
+                        link.href = href.pathname + href.search;
+                    } catch (e) {}
+                }
+            }
             try {
-                var stored = localStorage.getItem('steakos.ui.locale');
-                if (!stored) return;
-                var short = String(stored).split(/[_-]/)[0].toLowerCase();
-                if (!short) return;
                 var url = new URL(window.location.href);
-                if (url.searchParams.get('lang') === short) return;
-                var pageLang = (document.documentElement.lang || 'en').toLowerCase().split(/[_-]/)[0];
-                if (pageLang === short) return;
-                url.searchParams.set('lang', short);
-                window.location.replace(url.toString());
+                var fromUrl = url.searchParams.get('locale') || url.searchParams.get('lang');
+                var stored = null;
+                try { stored = localStorage.getItem(key); } catch (e) {}
+                var fromCookie = readCookie('STEAKOS_UI_LOCALE') || readCookie('STEAKOS_LANG');
+                var full = fromUrl || stored || fromCookie;
+                if (full) {
+                    // Normalize short codes to a default full locale for the login picker.
+                    if (full.indexOf('_') < 0 && full.indexOf('-') < 0) {
+                        if (full === 'de') full = 'de_DE';
+                        else if (full === 'es') full = 'es_ES';
+                        else if (full === 'en') full = 'en_US';
+                    }
+                    writeCookies(full);
+                    var short = String(full).split(/[_-]/)[0].toLowerCase();
+                    var pageLang = (document.documentElement.lang || 'en').toLowerCase().split(/[_-]/)[0];
+                    var urlLang = (url.searchParams.get('lang') || '').toLowerCase().split(/[_-]/)[0];
+                    if (pageLang !== short && urlLang !== short) {
+                        url.searchParams.set('lang', full);
+                        url.searchParams.set('locale', full);
+                        window.location.replace(url.toString());
+                        return;
+                    }
+                }
             } catch (e) {}
+            // Drop SPA-only flags; never clear steakos.ui.locale or STEAKOS_* locale cookies.
+            try { sessionStorage.clear(); } catch (e) {}
+            try { localStorage.removeItem('steakos.setupCelebration'); } catch (e) {}
         })();
-        // Drop any SPA-side flags; auth cookies are cleared by LogoutController.
-        // Keep steakos.ui.locale so login/logout stay in the chosen language.
-        try { sessionStorage.clear(); } catch (e) {}
-        try {
-            localStorage.removeItem('steakos.setupCelebration');
-        } catch (e) {}
     </script>
 </body>
 </html>

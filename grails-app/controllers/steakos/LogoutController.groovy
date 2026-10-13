@@ -73,23 +73,35 @@ class LogoutController {
         render(view: '/logout/index')
     }
 
+    /** Full locale cookie shared with SPA (e.g. es_ES). */
+    static final String UI_LOCALE_COOKIE = 'STEAKOS_UI_LOCALE'
+
     /**
-     * Resolve language from ?lang=, STEAKOS_LANG cookie, or Accept-Language.
+     * Resolve language from ?lang= / ?locale=, STEAKOS_UI_LOCALE / STEAKOS_LANG cookies.
      * LocaleChangeInterceptor alone is unreliable after session invalidate.
+     * Always re-persist both cookies so the login screen does not fall back to en_US.
      */
     private void applyUiLocale() {
-        String lang = params.lang?.toString()?.trim()
-        if (!lang) {
-            request.cookies?.each { Cookie c ->
-                if (c.name == I18nWebConfig.COOKIE_NAME && c.value) {
-                    lang = c.value
-                }
+        String raw = params.locale?.toString()?.trim() ?: params.lang?.toString()?.trim()
+        String fullFromCookie = null
+        String shortFromCookie = null
+        request.cookies?.each { Cookie c ->
+            if (c.name == UI_LOCALE_COOKIE && c.value) {
+                fullFromCookie = c.value
+            } else if (c.name == I18nWebConfig.COOKIE_NAME && c.value) {
+                shortFromCookie = c.value
             }
         }
-        if (!lang) {
+        if (!raw) {
+            raw = fullFromCookie ?: shortFromCookie
+        }
+        if (!raw) {
             return
         }
-        lang = lang.split(/[_-]/)[0].toLowerCase()
+
+        String full = normalizeFullLocale(raw, fullFromCookie)
+        String lang = full.split(/[_-]/)[0].toLowerCase()
+
         Locale locale
         if (lang == 'de') {
             locale = Locale.GERMAN
@@ -99,19 +111,45 @@ class LogoutController {
             locale = Locale.ENGLISH
         }
         LocaleContextHolder.setLocale(locale)
-        // GSP href uses this — request.locale can lag after session wipe.
+        // GSP href uses these — request.locale can lag after session wipe.
         request.setAttribute('steakosUiLang', lang)
+        request.setAttribute('steakosUiLocale', full)
         try {
             LocaleResolver resolver = RequestContextUtils.getLocaleResolver(request)
             resolver?.setLocale(request, response, locale)
         } catch (Exception ignored) {
         }
-        // Ensure cookie survives logout for the next login page.
+        // Ensure cookies survive logout for the next login page (picker + SPA handoff).
         Cookie langCookie = new Cookie(I18nWebConfig.COOKIE_NAME, lang)
         langCookie.path = '/'
         langCookie.maxAge = 31536000
         langCookie.httpOnly = false
         response.addCookie(langCookie)
+
+        Cookie fullCookie = new Cookie(UI_LOCALE_COOKIE, full)
+        fullCookie.path = '/'
+        fullCookie.maxAge = 31536000
+        fullCookie.httpOnly = false
+        response.addCookie(fullCookie)
+    }
+
+    /** Map short or full codes to a stable full locale id. */
+    private static String normalizeFullLocale(String raw, String preferredFull) {
+        String c = (raw ?: '').trim().replace('-', '_')
+        if (!c) {
+            return 'en_US'
+        }
+        if (c.contains('_')) {
+            return c
+        }
+        String pref = (preferredFull ?: '').trim().replace('-', '_')
+        if (pref.startsWith(c + '_')) {
+            return pref
+        }
+        if (c.equalsIgnoreCase('de')) return 'de_DE'
+        if (c.equalsIgnoreCase('es')) return 'es_ES'
+        if (c.equalsIgnoreCase('en')) return 'en_US'
+        return c
     }
 
     private void expireCookie(String name) {

@@ -113,8 +113,12 @@ export function syncServerLangCookie(localeCode) {
 }
 
 export function logoutHref() {
-  const lang = languageFromLocale(readStoredLocale() || readLoginLocaleCookie())
-  return `/logout/index?lang=${encodeURIComponent(lang)}`
+  // Pass full locale (es_ES) so logout/login can restore the exact picker value.
+  // Short lang alone is still accepted server-side via normalize.
+  const full =
+    normalizeLocaleCode(readStoredLocale() || readLoginLocaleCookie()) || 'en_US'
+  const short = languageFromLocale(full)
+  return `/logout/index?lang=${encodeURIComponent(full)}&locale=${encodeURIComponent(full)}&ui_lang=${encodeURIComponent(short)}`
 }
 
 /** Optional ?lang= / ?locale= on SPA entry (AppBridge after login). */
@@ -182,7 +186,7 @@ void i18n.use(initReactI18next).init({
       processes: esProcesses,
     },
   },
-  lng: languageFromLocale(readStoredLocale() || 'en_US'),
+  lng: languageFromLocale(readStoredLocale() || readLoginLocaleCookie() || 'en_US'),
   fallbackLng: 'en',
   defaultNS: 'common',
   interpolation: { escapeValue: false },
