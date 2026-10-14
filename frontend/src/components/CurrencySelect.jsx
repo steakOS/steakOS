@@ -86,11 +86,16 @@ export default function CurrencySelect({
             {orphan} ({t('wb.custom', { defaultValue: 'current' })})
           </option>
         )}
-        {items.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.label || `${c.code} — ${c.name || c.code}`}
-          </option>
-        ))}
+        {items.map((c) => {
+          const name = t(`currencies.names.${c.code}`, {
+            defaultValue: c.name || c.code,
+          })
+          return (
+            <option key={c.code} value={c.code}>
+              {`${c.code} — ${name}`}
+            </option>
+          )
+        })}
       </select>
       {error && (
         <span className="muted" style={{ fontSize: '0.75rem', color: '#b91c1c' }}>
