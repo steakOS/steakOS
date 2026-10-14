@@ -834,6 +834,7 @@ export default function DeliveryDesk() {
                 />
               </label>
               <DocumentLinesEditor
+                showTax={false}
                 forChannel="sale"
                 nature="SERVICE"
                 lines={orderLines}

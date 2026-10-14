@@ -16,6 +16,7 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import CatalogueItemSelect from './CatalogueItemSelect'
+import TaxCodeSelect from './TaxCodeSelect'
 
 /** Empty line draft for SO / quote / PO / service-order create forms */
 export function emptyDocLine(overrides = {}) {
@@ -28,7 +29,7 @@ export function emptyDocLine(overrides = {}) {
     name: '',
     quantity: '1',
     unitPriceEur: '0',
-
+    taxCode: '',
     ...overrides,
   }
 }
@@ -39,6 +40,7 @@ export function emptyDocLine(overrides = {}) {
  * @param {string} [nature] GOODS | SERVICE | '' for all
  * @param {Array} lines — line drafts (need stable key)
  * @param {(lines: Array) => void} onChange
+ * @param {boolean} [showTax=true] — tax-code picker (OI-F23 / L14); false for service orders
  */
 export default function DocumentLinesEditor({
   lines = [],
@@ -46,6 +48,7 @@ export default function DocumentLinesEditor({
   forChannel = 'sale',
   nature = '',
   disabled = false,
+  showTax = true,
 }) {
   const { t } = useTranslation('common')
 
@@ -157,11 +160,29 @@ export default function DocumentLinesEditor({
               </label>
             </div>
 
+            {showTax && (
+              <label>
+                {t('docLines.taxCode', { defaultValue: 'Tax code' })}
+                <TaxCodeSelect
+                  id={`tax-${ln.key}`}
+                  name={`taxCode-${ln.key}`}
+                  value={ln.taxCode || ''}
+                  disabled={disabled}
+                  allowEmpty
+                  onChange={(e) => updateLine(ln.key, { taxCode: e.target.value || '' })}
+                />
+              </label>
+            )}
+
             <div className="doc-line-subtotal muted">
               {t('docLines.lineTotal', { defaultValue: 'Line total' })}:{' '}
               <strong>
                 {((Number(ln.quantity) || 0) * (Number(ln.unitPriceEur) || 0)).toFixed(2)}
               </strong>
+              <span className="muted">
+                {' '}
+                ({t('docLines.netHint', { defaultValue: 'net' })})
+              </span>
             </div>
           </div>
         ))}
@@ -189,6 +210,9 @@ export function linesToApiPayload(lines, opts = {}) {
         quantity: ln.quantity || '1',
         unitPriceEur: ln.unitPriceEur || '0',
         catalogueItemId: ln.catalogueItemId || null,
+      }
+      if (ln.taxCode) {
+        payload.taxCode = ln.taxCode
       }
       if (ln.productRefId && ln.sourceType !== 'SERVICE') {
         payload.productRefId = ln.productRefId

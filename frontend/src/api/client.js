@@ -1368,6 +1368,22 @@ export const currenciesApi = {
     api('/api/currencies/in-use', { method: 'PUT', body: { codes } }),
 }
 
+/** OI-F23 / L14 — tax-code catalog + company in-use */
+export const taxCodesApi = {
+  list: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.jurisdiction) q.set('jurisdiction', params.jurisdiction)
+    const qs = q.toString()
+    return api(`/api/tax-codes${qs ? `?${qs}` : ''}`)
+  },
+  inUse: () => api('/api/tax-codes/in-use'),
+  setInUse: (body) =>
+    api('/api/tax-codes/in-use', {
+      method: 'PUT',
+      body: Array.isArray(body) ? { codes: body } : body,
+    }),
+}
+
 export const meApi = {
   selectCompany: (companyId) =>
     api('/api/me/company', { method: 'POST', body: { companyId } }),

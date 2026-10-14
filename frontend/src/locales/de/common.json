@@ -615,7 +615,20 @@
       "demoHeardResetDone": "Heard & Cook zurückgesetzt",
       "demoHeardSeeded": "Heard & Cook befüllt",
       "demoHeardAlready": "Heard & Cook bereits befüllt",
-      "companyLockSuffix": " (Firma)"
+      "companyLockSuffix": " (Firma)",
+      "taxCodesWeUse": "Verwendete Steuercodes",
+      "taxCodesWeUseHint": "Kurzliste für Vertriebs-/Bestell-Steuerauswahl. Standardcode bleibt aktiv, wenn USt an ist. Kleinunternehmer / Keine unterdrückt USt auf Verkaufsbelegen.",
+      "taxCodesSaved": "Steuercodes gespeichert.",
+      "saveTaxCodes": "Steuercodes speichern",
+      "taxRegime": "Steuerregime",
+      "taxRegimeDe": "Deutschland USt",
+      "taxRegimeAt": "Österreich USt",
+      "taxRegimeUs": "US Sales Tax (Stub)",
+      "taxRegimeKlein": "Kleinunternehmer (keine USt)",
+      "taxRegimeNone": "Keine / nicht registriert",
+      "defaultTaxCode": "Standard-Steuercode",
+      "defaultTaxCodeNone": "— keiner —",
+      "defaultLockSuffix": " (Standard)"
     },
     "integrations": {
       "adminOnly": "Admin kann Nostr-Stufe und Relay-URL ändern. CEO kann hier einsehen.",
@@ -951,7 +964,11 @@
     "lineTotal": "Positionssumme",
     "docTotal": "Dokumentensumme",
     "needOne": "Mindestens eine Position mit Beschreibung oder Katalogartikel hinzufügen.",
-    "unitPrice": "Stückpreis"
+    "unitPrice": "Stückpreis",
+    "taxCode": "Steuercode",
+    "taxDefault": "— Firmenstandard —",
+    "taxSuppressed": "Keine USt (Kleinunternehmer / nicht registriert)",
+    "netHint": "netto"
   },
   "auth": {
     "readOnlyBanner": "Nur-Lesen-Sitzung — Änderungen sind deaktiviert."

@@ -108,6 +108,37 @@ class FinanceOpsServicesSpec extends Specification implements DataTest {
         t.taxStatus == 'ESTIMATE'
     }
 
+    def "period tax sums invoice tax when pack in use (D10 / L14)"() {
+        given:
+        def companyTax = Stub(steakos.configuration.CompanyTaxService) {
+            companyHasLineTax('npub-d10') >> true
+        }
+        tax.companyTaxService = companyTax
+        Calendar cal = Calendar.getInstance()
+        cal.set(2026, Calendar.OCTOBER, 5, 12, 0, 0)
+        Date issue = cal.time
+        revenue.createInvoice('npub-d10', [
+                amountEur   : 119G,
+                netAmountEur: 100G,
+                taxAmountEur: 19G,
+                issueDate   : issue
+        ])
+        revenue.createInvoice('npub-d10', [
+                amountEur   : 214G,
+                netAmountEur: 200G,
+                taxAmountEur: 14G,
+                issueDate   : issue
+        ])
+
+        when:
+        def t = tax.estimatePeriodTax('npub-d10', '2026-10')
+
+        then:
+        t.amountEur == 33.00G
+        t.description.toString().contains('Sum of invoice tax')
+        t.taxStatus == 'ESTIMATE'
+    }
+
     def "payroll recognize then pay posts 5200/2200 then clears payable to cash"() {
         given:
         treasury.ensureDefaultPositions('npub-pr')

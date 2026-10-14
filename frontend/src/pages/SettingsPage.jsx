@@ -16,7 +16,15 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { setupApi, capabilityApi, agentTokenApi, currenciesApi, meApi, financeOpsApi } from '../api/client'
+import {
+  setupApi,
+  capabilityApi,
+  agentTokenApi,
+  currenciesApi,
+  taxCodesApi,
+  meApi,
+  financeOpsApi,
+} from '../api/client'
 import { useLocaleBootstrap } from '../hooks/useLocaleBootstrap'
 
 const L2_WARN_DISMISS_KEY = 'steakos.btcLevel2WarnDismissed'
@@ -50,6 +58,12 @@ export default function SettingsPage() {
   const [companyCurrency, setCompanyCurrency] = useState(null)
   const [currencyMsg, setCurrencyMsg] = useState(null)
   const [currencyBusy, setCurrencyBusy] = useState(false)
+  const [catalogTaxCodes, setCatalogTaxCodes] = useState([])
+  const [taxInUseCodes, setTaxInUseCodes] = useState([])
+  const [taxRegime, setTaxRegime] = useState('DE_VAT')
+  const [defaultTaxCode, setDefaultTaxCode] = useState('')
+  const [taxMsg, setTaxMsg] = useState(null)
+  const [taxBusy, setTaxBusy] = useState(false)
   const [btcLevel, setBtcLevel] = useState(null)
   const [btcMsg, setBtcMsg] = useState(null)
   const [btcBusy, setBtcBusy] = useState(false)
@@ -77,6 +91,19 @@ export default function SettingsPage() {
     } catch {
       setCatalogCurrencies([])
       setInUseCodes([])
+    }
+  }
+
+  const loadTaxCodes = async () => {
+    try {
+      const [cat, iu] = await Promise.all([taxCodesApi.list(), taxCodesApi.inUse()])
+      setCatalogTaxCodes(cat?.items || [])
+      setTaxInUseCodes((iu?.items || []).map((c) => c.code).filter(Boolean))
+      setTaxRegime(iu?.taxRegime || 'DE_VAT')
+      setDefaultTaxCode(iu?.defaultTaxCode || '')
+    } catch {
+      setCatalogTaxCodes([])
+      setTaxInUseCodes([])
     }
   }
 
@@ -116,6 +143,7 @@ export default function SettingsPage() {
         setAgentTokens([])
       }
       await loadCurrencies()
+      await loadTaxCodes()
       await loadBtcLevel()
     } catch (e) {
       setError(e.message || String(e))
@@ -204,17 +232,13 @@ export default function SettingsPage() {
           <select value={locale || 'en_US'} onChange={onLocaleChange}>
             {(locales.length
               ? locales
-              : [
-                  { code: 'en_US', name: 'English (United States)' },
-                  { code: 'en_SG', name: 'English (Singapore)' },
-                  { code: 'de_DE', name: 'Deutsch (Deutschland)' },
-                  { code: 'de_AT', name: 'Deutsch (Österreich)' },
-                  { code: 'de_CH', name: 'Deutsch (Schweiz)' },
-                  { code: 'es_ES', name: 'Español (España)' },
-                ]
+              : ['en_US', 'en_SG', 'de_DE', 'de_AT', 'de_CH', 'es_ES'].map((code) => ({
+                  code,
+                  name: code,
+                }))
             ).map((l) => (
               <option key={l.code} value={l.code}>
-                {l.name} ({l.code})
+                {t(`locale.names.${l.code}`, { defaultValue: l.name || l.code })} ({l.code})
               </option>
             ))}
           </select>
@@ -271,7 +295,8 @@ export default function SettingsPage() {
                     }}
                   />
                   <span>
-                    <span className="mono">{c.code}</span> — {c.name}
+                    <span className="mono">{c.code}</span> —{' '}
+                    {t(`currencies.names.${c.code}`, { defaultValue: c.name || c.code })}
                     {locked
                       ? t('pages.settings.companyLockSuffix', { defaultValue: ' (company)' })
                       : ''}
@@ -307,6 +332,160 @@ export default function SettingsPage() {
             {currencyBusy
               ? '…'
               : t('pages.settings.saveCurrencies', { defaultValue: 'Save currencies' })}
+          </button>
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <h2>
+            {t('pages.settings.taxCodesWeUse', { defaultValue: 'Tax codes we use' })}
+          </h2>
+          <p className="page-sub">
+            {t('pages.settings.taxCodesWeUseHint', {
+              defaultValue:
+                'Short list for Sales / PO tax pickers. Default code stays enabled when VAT is on. Kleinunternehmer / None suppresses VAT on sales docs.',
+            })}
+          </p>
+          <div className="form-row-2" style={{ marginTop: 8, gap: 12 }}>
+            <label>
+              {t('pages.settings.taxRegime', { defaultValue: 'Tax regime' })}
+              <select
+                value={taxRegime || 'DE_VAT'}
+                disabled={taxBusy}
+                onChange={(e) => setTaxRegime(e.target.value)}
+              >
+                <option value="DE_VAT">
+                  {t('pages.settings.taxRegimeDe', { defaultValue: 'Germany VAT' })}
+                </option>
+                <option value="AT_VAT">
+                  {t('pages.settings.taxRegimeAt', { defaultValue: 'Austria VAT' })}
+                </option>
+                <option value="US_SALES">
+                  {t('pages.settings.taxRegimeUs', { defaultValue: 'US sales tax (stub)' })}
+                </option>
+                <option value="DE_SMALL_BUSINESS">
+                  {t('pages.settings.taxRegimeKlein', {
+                    defaultValue: 'Kleinunternehmer / small business (no VAT)',
+                  })}
+                </option>
+                <option value="NONE">
+                  {t('pages.settings.taxRegimeNone', {
+                    defaultValue: 'None / not registered',
+                  })}
+                </option>
+              </select>
+            </label>
+            <label>
+              {t('pages.settings.defaultTaxCode', { defaultValue: 'Default tax code' })}
+              <select
+                value={defaultTaxCode || ''}
+                disabled={
+                  taxBusy ||
+                  taxRegime === 'NONE' ||
+                  taxRegime === 'DE_SMALL_BUSINESS'
+                }
+                onChange={(e) => setDefaultTaxCode(e.target.value)}
+              >
+                <option value="">
+                  {t('pages.settings.defaultTaxCodeNone', {
+                    defaultValue: '— none —',
+                  })}
+                </option>
+                {catalogTaxCodes.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label || `${c.code} — ${c.name} (${c.ratePercent ?? 0}%)`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {taxMsg && <p className="muted">{taxMsg}</p>}
+          {taxRegime !== 'NONE' && taxRegime !== 'DE_SMALL_BUSINESS' && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: 8,
+                marginTop: 8,
+              }}
+            >
+              {catalogTaxCodes.map((c) => {
+                const checked = taxInUseCodes.includes(c.code)
+                const locked = c.code === defaultTaxCode
+                return (
+                  <label
+                    key={c.code}
+                    className="checkbox-label"
+                    style={{ alignItems: 'flex-start' }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked || locked}
+                      disabled={taxBusy || locked}
+                      onChange={(e) => {
+                        const on = e.target.checked
+                        setTaxInUseCodes((prev) => {
+                          const set = new Set(prev)
+                          if (on) set.add(c.code)
+                          else set.delete(c.code)
+                          if (defaultTaxCode) set.add(defaultTaxCode)
+                          return [...set]
+                        })
+                      }}
+                    />
+                    <span>
+                      <span className="mono">{c.code}</span> — {c.name}{' '}
+                      <span className="muted">({c.ratePercent ?? 0}%)</span>
+                      {locked
+                        ? t('pages.settings.defaultLockSuffix', {
+                            defaultValue: ' (default)',
+                          })
+                        : ''}
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          )}
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ marginTop: 12 }}
+            disabled={taxBusy}
+            onClick={async () => {
+              setTaxBusy(true)
+              setTaxMsg(null)
+              setError(null)
+              try {
+                const suppress =
+                  taxRegime === 'NONE' || taxRegime === 'DE_SMALL_BUSINESS'
+                const codes = suppress
+                  ? []
+                  : [...new Set([...taxInUseCodes, defaultTaxCode].filter(Boolean))]
+                const r = await taxCodesApi.setInUse({
+                  codes,
+                  taxRegime,
+                  defaultTaxCode: suppress ? null : defaultTaxCode || null,
+                })
+                setTaxInUseCodes((r?.items || []).map((c) => c.code).filter(Boolean))
+                setTaxRegime(r?.taxRegime || taxRegime)
+                setDefaultTaxCode(r?.defaultTaxCode || '')
+                setTaxMsg(
+                  t('pages.settings.taxCodesSaved', {
+                    defaultValue: 'Tax codes we use saved.',
+                  }),
+                )
+              } catch (e) {
+                setError(e.message || String(e))
+              } finally {
+                setTaxBusy(false)
+              }
+            }}
+          >
+            {taxBusy
+              ? '…'
+              : t('pages.settings.saveTaxCodes', { defaultValue: 'Save tax codes' })}
           </button>
         </div>
       )}

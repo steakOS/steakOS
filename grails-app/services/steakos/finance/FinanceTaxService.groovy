@@ -89,10 +89,14 @@ class FinanceTaxService {
     }
 
     private Map sumInvoiceTaxForPeriod(String npub, String period) {
-        // period yyyy-MM → issueDate within calendar month
-        Date start = Date.parse('yyyy-MM-dd', "${period}-01")
+        // period yyyy-MM → issueDate within calendar month (Groovy 4: no Date.parse(fmt, str))
         Calendar cal = Calendar.getInstance()
-        cal.setTime(start)
+        cal.clear()
+        String[] parts = period.split('-')
+        cal.set(Calendar.YEAR, parts[0] as int)
+        cal.set(Calendar.MONTH, (parts[1] as int) - 1)
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+        Date start = cal.time
         cal.add(Calendar.MONTH, 1)
         Date end = cal.time
 

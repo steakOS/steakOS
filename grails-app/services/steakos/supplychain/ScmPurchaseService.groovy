@@ -37,6 +37,7 @@ class ScmPurchaseService {
     steakos.catalogue.CatalogueService catalogueService
     steakos.configuration.CompanyCurrencyService companyCurrencyService
     steakos.configuration.PartnerLocaleService partnerLocaleService
+    steakos.configuration.CompanyTaxService companyTaxService
 
     @Transactional
     PurchaseOrder createPurchaseOrder(String npubOwner, Map fields) {
@@ -118,6 +119,9 @@ class ScmPurchaseService {
 
         Payable pay = null
         if (financePayableService != null) {
+            String taxNote = (po.taxAmountEur != null && po.taxAmountEur > BigDecimal.ZERO)
+                    ? " (net ${po.netAmountEur}; input VAT ${po.taxAmountEur}; gross ${po.amountEur})"
+                    : ''
             pay = financePayableService.createPayable(po.npubOwner, [
                     vendorId   : po.vendor?.id,
                     vendorName : po.vendorName,
@@ -125,7 +129,7 @@ class ScmPurchaseService {
                     amountSats : po.amountSats,
                     currencyCode: po.currencyCode,
                     name       : "AP for ${po.poNumber}",
-                    description: "Purchase order ${po.poNumber}"
+                    description: "Purchase order ${po.poNumber}${taxNote}"
             ])
             po.financePayableId = pay.id
             po.save(failOnError: true, flush: true)
@@ -297,6 +301,8 @@ class ScmPurchaseService {
                 orderDate       : po.orderDate,
                 confirmedAt     : po.confirmedAt,
                 amountEur       : po.amountEur,
+                netAmountEur    : po.netAmountEur,
+                taxAmountEur    : po.taxAmountEur,
                 amountSats      : po.amountSats,
                 currencyCode    : po.currencyCode,
                 documentLocale  : po.documentLocale,
@@ -343,7 +349,11 @@ class ScmPurchaseService {
                 productRefId    : l.productRefId,
                 productRefType  : l.productRefType,
                 catalogueItemId : l.catalogueItemId,
-                quantityReceived: l.quantityReceived
+                quantityReceived: l.quantityReceived,
+                taxCode         : l.taxCode,
+                taxRatePercent  : l.taxRatePercent,
+                taxAmountEur    : l.taxAmountEur,
+                grossAmountEur  : (l.lineTotalEur ?: BigDecimal.ZERO).add(l.taxAmountEur ?: BigDecimal.ZERO)
         ]
     }
 
@@ -383,6 +393,7 @@ class ScmPurchaseService {
             BigDecimal unit = toBd(lm.unitPriceEur) ?: (resolved.listPrice as BigDecimal) ?: BigDecimal.ZERO
             BigDecimal total = toBd(lm.lineTotalEur)
             if (total == null) total = qty.multiply(unit)
+            Map tax = resolveInputTax(po.npubOwner, total, lm.taxCode as String, resolved.defaultTaxCode as String)
             Long unitSats = null
             Long totalSats = null
             Long productRef = lm.productRefId != null && lm.productRefId != '' ? lm.productRefId as Long : null
@@ -404,18 +415,60 @@ class ScmPurchaseService {
                     productRefId    : productRef,
                     productRefType  : lm.productRefType as String ?: (productRef ? 'PRODUCT' : null),
                     catalogueItemId : resolved.catalogueItemId as Long,
-                    quantityReceived: BigDecimal.ZERO
+                    quantityReceived: BigDecimal.ZERO,
+                    taxCode         : tax.taxCode as String,
+                    taxRatePercent  : tax.ratePercent as BigDecimal,
+                    taxAmountEur    : tax.taxAmountEur as BigDecimal
             ).save(failOnError: true, flush: true)
         }
     }
 
+    /**
+     * Input VAT for AP honesty (L14). Uses system catalog rates even when the company
+     * regime suppresses *output* VAT (Kleinunternehmer / NONE).
+     */
+    private Map resolveInputTax(String npub, BigDecimal net, String taxCode, String catalogueDefault) {
+        String code = steakos.configuration.CompanyTaxService.normalizeCode(taxCode)
+        if (!code) {
+            code = steakos.configuration.CompanyTaxService.normalizeCode(catalogueDefault)
+        }
+        if (!code && companyTaxService != null) {
+            // Prefer stored default; fall back to DE/AT pack default from LE country regime.
+            String regime = companyTaxService.taxRegime(npub)
+            if (steakos.configuration.CompanyTaxService.suppressesOutputVat(regime)) {
+                code = steakos.configuration.CompanyTaxService.defaultCodeForRegime(
+                        steakos.configuration.CompanyTaxService.REGIME_DE_VAT)
+            } else {
+                code = companyTaxService.defaultTaxCode(npub)
+            }
+        }
+        if (!code) {
+            return [taxCode: null, ratePercent: BigDecimal.ZERO, taxAmountEur: BigDecimal.ZERO]
+        }
+        steakos.finance.TaxCode cat = steakos.finance.TaxCode.findByCode(code)
+        if (!cat || cat.enabled == Boolean.FALSE) {
+            return [taxCode: null, ratePercent: BigDecimal.ZERO, taxAmountEur: BigDecimal.ZERO]
+        }
+        BigDecimal taxAmt = steakos.configuration.CompanyTaxService.computeTaxFromNet(
+                net ?: BigDecimal.ZERO, cat.ratePercent)
+        return [
+                taxCode      : code,
+                ratePercent  : cat.ratePercent,
+                taxAmountEur : taxAmt
+        ]
+    }
+
     private void recomputeTotals(PurchaseOrder po) {
         List<PurchaseOrderLine> lines = PurchaseOrderLine.findAllByPurchaseOrder(po)
-        BigDecimal sum = BigDecimal.ZERO
+        BigDecimal net = BigDecimal.ZERO
+        BigDecimal tax = BigDecimal.ZERO
         lines.each { PurchaseOrderLine l ->
-            sum = sum.add(l.lineTotalEur ?: BigDecimal.ZERO)
+            net = net.add(l.lineTotalEur ?: BigDecimal.ZERO)
+            tax = tax.add(l.taxAmountEur ?: BigDecimal.ZERO)
         }
-        po.amountEur = sum
+        po.netAmountEur = net
+        po.taxAmountEur = tax
+        po.amountEur = net.add(tax)
         po.amountSats = null
     }
 

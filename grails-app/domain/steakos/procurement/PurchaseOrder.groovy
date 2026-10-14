@@ -51,6 +51,9 @@ class PurchaseOrder implements NpubOwned, AccessControl, Classifiable, Attachabl
 	Date confirmedAt
 
 	BigDecimal amountEur = BigDecimal.ZERO
+	/** Net of lines (ex input VAT); amountEur = net + tax (OI-F23 / L14) */
+	BigDecimal netAmountEur
+	BigDecimal taxAmountEur
 	Long amountSats
 	String currencyCode = 'EUR'
 
@@ -83,6 +86,8 @@ class PurchaseOrder implements NpubOwned, AccessControl, Classifiable, Attachabl
 		orderDate nullable: true
 		confirmedAt nullable: true
 		amountEur nullable: false, scale: 8
+		netAmountEur nullable: true, scale: 8
+		taxAmountEur nullable: true, scale: 8
 		amountSats nullable: true
 		currencyCode nullable: false, blank: false, maxSize: 8
 		documentLocale nullable: true, maxSize: 16
@@ -94,6 +99,8 @@ class PurchaseOrder implements NpubOwned, AccessControl, Classifiable, Attachabl
 	static mapping = {
 		description type: 'text'
 		amountEur scale: 8
+		netAmountEur scale: 8
+		taxAmountEur scale: 8
 		poNumber index: 'po_number_idx'
 		poStatus index: 'po_status_idx'
 	}

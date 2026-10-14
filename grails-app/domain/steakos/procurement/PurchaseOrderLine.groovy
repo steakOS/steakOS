@@ -55,6 +55,11 @@ class PurchaseOrderLine implements NpubOwned, AccessControl, Classifiable, Attac
 	/** Qty already received against this line */
 	BigDecimal quantityReceived = BigDecimal.ZERO
 
+	/** Input VAT on PO line (OI-F23 / L14) — net is lineTotalEur */
+	String taxCode
+	BigDecimal taxRatePercent
+	BigDecimal taxAmountEur = BigDecimal.ZERO
+
 	static belongsTo = [purchaseOrder: PurchaseOrder]
 
 	static constraints = {
@@ -76,6 +81,9 @@ class PurchaseOrderLine implements NpubOwned, AccessControl, Classifiable, Attac
 		productRefType nullable: true, maxSize: 64
 		catalogueItemId nullable: true
 		quantityReceived nullable: false, scale: 8, min: 0.0G
+		taxCode nullable: true, maxSize: 32
+		taxRatePercent nullable: true, scale: 4
+		taxAmountEur nullable: true, scale: 8
 	}
 
 	static mapping = {
@@ -84,5 +92,7 @@ class PurchaseOrderLine implements NpubOwned, AccessControl, Classifiable, Attac
 		unitPriceEur scale: 8
 		lineTotalEur scale: 8
 		quantityReceived scale: 8
+		taxRatePercent scale: 4
+		taxAmountEur scale: 8
 	}
 }

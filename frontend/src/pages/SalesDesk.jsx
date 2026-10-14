@@ -891,8 +891,30 @@ export default function SalesDesk() {
                     </div>
                   </div>
                   <div className="inv-amount">
-                    {Number(selectedQuote.amountEur || 0).toFixed(2)}{' '}
-                    {selectedQuote.currencyCode || 'EUR'}
+                    {selectedQuote.netAmountEur != null || selectedQuote.taxAmountEur != null ? (
+                      <div style={{ textAlign: 'right', fontSize: '0.85rem' }}>
+                        <div className="muted">
+                          {t('quote.net', { defaultValue: 'Net' })}{' '}
+                          {Number(selectedQuote.netAmountEur ?? 0).toFixed(2)}
+                        </div>
+                        <div className="muted">
+                          {t('quote.vat', { defaultValue: 'VAT' })}{' '}
+                          {Number(selectedQuote.taxAmountEur ?? 0).toFixed(2)}
+                        </div>
+                        <div>
+                          <strong>
+                            {t('quote.gross', { defaultValue: 'Gross' })}{' '}
+                            {Number(selectedQuote.amountEur || 0).toFixed(2)}{' '}
+                            {selectedQuote.currencyCode || 'EUR'}
+                          </strong>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {Number(selectedQuote.amountEur || 0).toFixed(2)}{' '}
+                        {selectedQuote.currencyCode || 'EUR'}
+                      </>
+                    )}
                     {selectedQuote.amountSats != null && (
                       <div className="muted mono" style={{ fontSize: '0.8rem' }}>
                         {selectedQuote.amountSats} sats
@@ -967,12 +989,14 @@ export default function SalesDesk() {
                         <th>{t('quote.lineQty')}</th>
                         <th>{t('quote.lineUnit')}</th>
                         <th>{t('quote.lineTotal')}</th>
+                        <th>{t('docLines.taxCode', { defaultValue: 'Tax code' })}</th>
+                        <th>{t('quote.vat', { defaultValue: 'VAT' })}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(selectedQuote.lines || []).length === 0 && (
                         <tr>
-                          <td colSpan={5} className="muted">
+                          <td colSpan={7} className="muted">
                             {t('quote.noLines')}
                           </td>
                         </tr>
@@ -984,6 +1008,8 @@ export default function SalesDesk() {
                           <td>{l.quantity}</td>
                           <td>{Number(l.unitPriceEur).toFixed(2)}</td>
                           <td>{Number(l.lineTotalEur).toFixed(2)}</td>
+                          <td className="mono col-priority-low">{l.taxCode || '—'}</td>
+                          <td>{l.taxAmountEur != null ? Number(l.taxAmountEur).toFixed(2) : '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1192,8 +1218,30 @@ export default function SalesDesk() {
                     )}
                   </div>
                   <div className="inv-amount">
-                    {Number(selectedOrder.amountEur || 0).toFixed(2)}{' '}
-                    {selectedOrder.currencyCode || 'EUR'}
+                    {selectedOrder.netAmountEur != null || selectedOrder.taxAmountEur != null ? (
+                      <div style={{ textAlign: 'right', fontSize: '0.85rem' }}>
+                        <div className="muted">
+                          {t('quote.net', { defaultValue: 'Net' })}{' '}
+                          {Number(selectedOrder.netAmountEur ?? 0).toFixed(2)}
+                        </div>
+                        <div className="muted">
+                          {t('quote.vat', { defaultValue: 'VAT' })}{' '}
+                          {Number(selectedOrder.taxAmountEur ?? 0).toFixed(2)}
+                        </div>
+                        <div>
+                          <strong>
+                            {t('quote.gross', { defaultValue: 'Gross' })}{' '}
+                            {Number(selectedOrder.amountEur || 0).toFixed(2)}{' '}
+                            {selectedOrder.currencyCode || 'EUR'}
+                          </strong>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {Number(selectedOrder.amountEur || 0).toFixed(2)}{' '}
+                        {selectedOrder.currencyCode || 'EUR'}
+                      </>
+                    )}
                     {selectedOrder.amountSats != null && (
                       <div className="muted mono" style={{ fontSize: '0.8rem' }}>
                         {selectedOrder.amountSats} sats
@@ -1255,12 +1303,14 @@ export default function SalesDesk() {
                         <th>Qty</th>
                         <th>{t('quote.lineUnit')}</th>
                         <th>{t('quote.lineTotal')}</th>
+                        <th>{t('docLines.taxCode', { defaultValue: 'Tax code' })}</th>
+                        <th>{t('quote.vat', { defaultValue: 'VAT' })}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(selectedOrder.lines || []).length === 0 && (
                         <tr>
-                          <td colSpan={5} className="muted">
+                          <td colSpan={7} className="muted">
                             {t('quote.noLines')}
                           </td>
                         </tr>
@@ -1272,6 +1322,8 @@ export default function SalesDesk() {
                           <td>{l.quantity}</td>
                           <td>{Number(l.unitPriceEur).toFixed(2)}</td>
                           <td>{Number(l.lineTotalEur).toFixed(2)}</td>
+                          <td className="mono col-priority-low">{l.taxCode || '—'}</td>
+                          <td>{l.taxAmountEur != null ? Number(l.taxAmountEur).toFixed(2) : '—'}</td>
                         </tr>
                       ))}
                     </tbody>

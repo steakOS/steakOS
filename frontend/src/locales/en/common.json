@@ -612,7 +612,20 @@
       "demoHeardResetDone": "Heard & Cook reset complete",
       "demoHeardSeeded": "Heard & Cook seeded",
       "demoHeardAlready": "Heard & Cook already seeded",
-      "companyLockSuffix": " (company)"
+      "companyLockSuffix": " (company)",
+      "taxCodesWeUse": "Tax codes we use",
+      "taxCodesWeUseHint": "Short list for Sales / PO tax pickers. Default code stays enabled when VAT is on. Kleinunternehmer / None suppresses VAT on sales docs.",
+      "taxCodesSaved": "Tax codes we use saved.",
+      "saveTaxCodes": "Save tax codes",
+      "taxRegime": "Tax regime",
+      "taxRegimeDe": "Germany VAT",
+      "taxRegimeAt": "Austria VAT",
+      "taxRegimeUs": "US sales tax (stub)",
+      "taxRegimeKlein": "Kleinunternehmer / small business (no VAT)",
+      "taxRegimeNone": "None / not registered",
+      "defaultTaxCode": "Default tax code",
+      "defaultTaxCodeNone": "— none —",
+      "defaultLockSuffix": " (default)"
     },
     "integrations": {
       "adminOnly": "Admin can change Nostr level and relay URL. CEO can review here.",
@@ -948,7 +961,11 @@
     "lineTotal": "Line total",
     "docTotal": "Document total",
     "needOne": "Add at least one line with a description or catalogue item.",
-    "unitPrice": "Unit price"
+    "unitPrice": "Unit price",
+    "taxCode": "Tax code",
+    "taxDefault": "— company default —",
+    "taxSuppressed": "No VAT (Kleinunternehmer / not registered)",
+    "netHint": "net"
   },
   "auth": {
     "readOnlyBanner": "Read-only session — changes are disabled."

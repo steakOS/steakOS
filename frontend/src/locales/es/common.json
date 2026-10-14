@@ -612,7 +612,20 @@
       "demoHeardResetDone": "Reinicio de Heard & Cook completo",
       "demoHeardSeeded": "Heard & Cook sembrado",
       "demoHeardAlready": "Heard & Cook ya sembrados",
-      "companyLockSuffix": "(compañía)"
+      "companyLockSuffix": "(compañía)",
+      "taxCodesWeUse": "Códigos fiscales que usamos",
+      "taxCodesWeUseHint": "Lista corta para selectores de impuestos en ventas / OC. El código predeterminado permanece activo con IVA. Kleinunternehmer / Ninguno suprime el IVA en documentos de venta.",
+      "taxCodesSaved": "Códigos fiscales guardados.",
+      "saveTaxCodes": "Guardar códigos fiscales",
+      "taxRegime": "Régimen fiscal",
+      "taxRegimeDe": "IVA Alemania",
+      "taxRegimeAt": "IVA Austria",
+      "taxRegimeUs": "US sales tax (stub)",
+      "taxRegimeKlein": "Kleinunternehmer / pequeña empresa (sin IVA)",
+      "taxRegimeNone": "Ninguno / no registrado",
+      "defaultTaxCode": "Código fiscal predeterminado",
+      "defaultTaxCodeNone": "— ninguno —",
+      "defaultLockSuffix": " (predeterminado)"
     },
     "integrations": {
       "adminOnly": "El administrador puede cambiar el nivel de Nostr y retransmitir la URL. El CEO puede revisar aquí.",
@@ -948,7 +961,11 @@
     "lineTotal": "Total de línea",
     "docTotal": "Total del documento",
     "needOne": "Agregue al menos una línea con una descripción o artículo del catálogo.",
-    "unitPrice": "Precio unitario"
+    "unitPrice": "Precio unitario",
+    "taxCode": "Código fiscal",
+    "taxDefault": "— predeterminado de la empresa —",
+    "taxSuppressed": "Sin IVA (Kleinunternehmer / no registrado)",
+    "netHint": "neto"
   },
   "auth": {
     "readOnlyBanner": "Sesión de solo lectura: los cambios están deshabilitados."

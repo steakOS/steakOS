@@ -699,6 +699,64 @@ Leave blank to use **English (en_US)** for outbound docs. This is separate from 
 - Catalogue item descriptions are not dual-language yet
 - Email / Nostr partner templates use the same resolver when those channels ship'''],
 
+            // OI-F23 / L14 — German VAT operator help
+            [key: 'help.tax.ust', title: 'German VAT (USt) tax codes', route: '/settings', family: 'finance',
+             body: '''# German VAT (USt) tax codes
+
+steakOS ships a **DE/AT tax-code pack**. Enable codes under **System → Settings → Tax codes we use**, then pick them on quote / sales order / PO lines.
+
+## Common DE codes
+
+| Code | Rate | Use |
+|------|------|-----|
+| **DE_USt_STD** | 19% | Standard goods & services |
+| **DE_USt_RED** | 7% | Reduced (operator chooses eligibility) |
+| **DE_USt_0** | 0% | Explicit zero-rated / exempt line |
+| **DE_RC** | 0% + reverse charge | B2B reverse charge — buyer accounts for VAT |
+| **DE_IG** | 0% + IG | Intra-community supply (valid VAT ID) |
+| **DE_EXPORT** | 0% | Export outside EU |
+
+Austria uses the same pattern (`AT_USt_STD` 20%, `AT_USt_RED` 10%, …).
+
+## Regime
+
+- **Germany VAT / Austria VAT** — line tax required; default code applies when a line has no pick
+- **Kleinunternehmer / None** — **no VAT** on sales documents (D7)
+
+## Honest limits
+
+- Operator owns rates — seed is a starting point, not legal advice
+- Not UStVA / ELSTER filing
+- US multi-state depth is out of this launch module
+
+**See also:** Reverse charge & IG · Business PDFs · Tax tab on Finance hub'''],
+
+            [key: 'help.tax.reverseCharge', title: 'Reverse charge & intra-community (IG)', route: '/sales', family: 'finance',
+             body: '''# Reverse charge & intra-community (IG)
+
+Use tax codes **DE_RC** / **AT_RC** (reverse charge) or **DE_IG** / **AT_IG** (intra-community) on sales lines when those rules apply.
+
+## What steakOS does
+
+- Line **output VAT is 0%** for RC / IG codes
+- PDF and document notes add a **legal phrase** (EN + DE):
+  - Reverse charge — VAT accounted for by the recipient / *Steuerschuldnerschaft des Leistungsempfängers*
+  - Intra-community supply (0% VAT) / *Innergemeinschaftliche Lieferung*
+
+## Operator checklist
+
+1. Confirm the customer has a valid VAT ID when required
+2. Pick **DE_RC** or **DE_IG** (or AT equivalents) on the line — do not leave the standard 19%/20% code
+3. Download the PDF and check the note block
+
+## Honest limits
+
+- steakOS does **not** validate EU VIES IDs in v1
+- Filing / Intrastat / OSS are out of scope for this module
+- Wrong code choice is an operator error — not auto-corrected
+
+**See also:** German VAT (USt) tax codes · Business PDFs'''],
+
             // A8 — European A4 commercial PDFs
             [key: 'help.docs.pdf', title: 'Business PDFs (A4)', route: '/sales', family: 'core',
              body: '''# Business PDFs (A4)
@@ -1140,7 +1198,8 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
         // A2 / OI-FX01 — money rail + live payments cluster
         if (path?.startsWith('/finance') || path == '/settings' || path?.startsWith('/settings')
                 || path == '/company' || path?.startsWith('/company')) {
-            ['finance.primaryRail', 'finance.payments.live', 'finance.invoices', 'finance.treasury', 'help.docs.pdf'].each { String key ->
+            ['finance.primaryRail', 'finance.payments.live', 'finance.invoices', 'finance.treasury',
+             'help.docs.pdf', 'help.tax.ust', 'help.tax.reverseCharge'].each { String key ->
                 HelpTopic t = HelpTopic.findByHelpKey(key)
                 if (t && t.id != primary?.id && !out.any { it.helpKey == key }) {
                     out << topicMap(t, lang)
@@ -1152,6 +1211,12 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             HelpTopic pdfHelp = HelpTopic.findByHelpKey('help.docs.pdf')
             if (pdfHelp && pdfHelp.id != primary?.id && !out.any { it.helpKey == 'help.docs.pdf' }) {
                 out << topicMap(pdfHelp, lang)
+            }
+            ['help.tax.ust', 'help.tax.reverseCharge'].each { String key ->
+                HelpTopic t = HelpTopic.findByHelpKey(key)
+                if (t && t.id != primary?.id && !out.any { it.helpKey == key }) {
+                    out << topicMap(t, lang)
+                }
             }
         }
         // OI-I18N02 — partner communication language on Customer/Vendor masters + commercial desks
@@ -1332,6 +1397,8 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             'help.users.danger'  : 'Sicherheit: Admin, CEO & Deaktivieren',
             'help.users.privacy' : 'Datenschutz, HR & Nur lesen',
             'help.roles.demo'    : 'Rollen üben (Demo / Training)',
+            'help.tax.ust'       : 'Deutsche USt-Steuercodes',
+            'help.tax.reverseCharge': 'Reverse Charge & innergemeinschaftliche Lieferung (IG)',
     ].asImmutable()
 
     private static final Map FEATURE_TITLES_ES = [
@@ -1393,6 +1460,61 @@ Cockpit für offene Arbeit und Prozessgesundheit.
 - **Systemstatus**
 
 **Kurzbefehle:** **Ctrl+K** · **?** Hilfe''',
+            'help.tax.ust': '''# Deutsche USt-Steuercodes
+
+steakOS liefert ein **DE/AT-Steuercode-Paket**. Codes unter **System → Einstellungen → Verwendete Steuercodes** aktivieren, dann auf Angebots-/Auftrags-/Bestellpositionen wählen.
+
+## Häufige DE-Codes
+
+| Code | Satz | Verwendung |
+|------|------|------------|
+| **DE_USt_STD** | 19% | Regelbesteuerung |
+| **DE_USt_RED** | 7% | Ermäßigt (Betreiber entscheidet die Eignung) |
+| **DE_USt_0** | 0% | Explizit steuerfrei / Nullsatz |
+| **DE_RC** | 0% + Reverse Charge | B2B Reverse Charge — Empfänger schuldet die USt |
+| **DE_IG** | 0% + IG | Innergemeinschaftliche Lieferung (gültige USt-IdNr.) |
+| **DE_EXPORT** | 0% | Ausfuhr außerhalb der EU |
+
+Österreich folgt demselben Muster (`AT_USt_STD` 20%, `AT_USt_RED` 10%, …).
+
+## Regime
+
+- **Deutschland USt / Österreich USt** — Positionssteuer erforderlich; Firmenstandard wenn keine Auswahl
+- **Kleinunternehmer / Keine** — **keine USt** auf Verkaufsbelegen
+
+## Ehrliche Grenzen
+
+- Betreiber verantwortet Sätze — Seed ist Startpunkt, keine Rechtsberatung
+- Kein UStVA-/ELSTER-Filing
+- US-Mehrastaaten-Tiefe ist nicht Teil dieses Launch-Moduls
+
+**Siehe auch:** Reverse Charge & IG · Geschäfts-PDFs · Steuer-Tab im Finance-Hub''',
+
+            'help.tax.reverseCharge': '''# Reverse Charge & innergemeinschaftliche Lieferung (IG)
+
+Steuercodes **DE_RC** / **AT_RC** (Reverse Charge) oder **DE_IG** / **AT_IG** (IG) auf Verkaufspositionen wählen, wenn diese Regeln greifen.
+
+## Was steakOS macht
+
+- **Ausgangs-USt** der Position ist **0%** bei RC-/IG-Codes
+- PDF und Belegnotizen ergänzen einen **Rechtshinweis** (EN + DE):
+  - Reverse charge — VAT accounted for by the recipient / *Steuerschuldnerschaft des Leistungsempfängers*
+  - Intra-community supply (0% VAT) / *Innergemeinschaftliche Lieferung*
+
+## Checkliste für Betreiber
+
+1. Gültige USt-IdNr. des Kunden prüfen, wenn erforderlich
+2. **DE_RC** oder **DE_IG** (bzw. AT) auf der Position wählen — nicht den Standard 19%/20%
+3. PDF herunterladen und den Hinweisblock prüfen
+
+## Ehrliche Grenzen
+
+- Keine VIES-Prüfung der EU-USt-IdNr. in v1
+- Filing / Intrastat / OSS außerhalb dieses Moduls
+- Falscher Code ist Bedienfehler — keine Autokorrektur
+
+**Siehe auch:** Deutsche USt-Steuercodes · Geschäfts-PDFs''',
+
             'help.roles.overview': '''# Rollen für ein kleines Team
 
 steakOS ist für ein **kleines Unternehmen** (etwa 2–5 Personen). Jeder Person ein **Rollenprofil** geben (Office, Ops, Finance…). Rollen liefern **Vorgaben**, welche Desks sichtbar sind und was geändert werden darf.
