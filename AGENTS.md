@@ -165,6 +165,8 @@ cd frontend && npm run dev # → http://localhost:9001
 ./gradlew test
 ```
 
+**Durable lab (OI-V06):** prefer fat-jar + systemd --user over a bare agent-chat shell — `./gradlew bootJar` then `./scripts/install/systemd/install-user-units.sh` (optional `--enable`). See companion `OPERATOR-RUNBOOK` §4.
+
 Optional local APM (not needed for daily ops; agent under companion `steakOS-dev/tools/`): `./scripts/setup-glowroot.sh && ./gradlew bootRun -Pglowroot` (UI `:4000`).
 
 **Operator / LAN dist (no Gradle on target):** `./scripts/release/pack-dist.sh` then host `dist/out/`; clients use `scripts/install/install.sh` or `install.ps1`. Full install prose lives in the private companion.

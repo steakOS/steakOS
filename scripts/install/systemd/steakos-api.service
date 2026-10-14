@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+# systemd --user unit: steakOS API bootJar on :6060 (OI-V06 / ADR-036)
+#
+# Install (do not enable blindly on shared hosts):
+#   ./scripts/install/systemd/install-user-units.sh
+#   # or copy + daemon-reload manually — see OPERATOR-RUNBOOK
+#
+# Build jar first: ./gradlew bootJar
+# Override jar / JVM: drop-in or EnvironmentFile (STEAKOS_JAR, JAVA_OPTS, GRAILS_ENV)
+
+[Unit]
+Description=steakOS API (bootJar, user)
+Documentation=file://@STEAKOS_ROOT@/scripts/install/systemd/README.md
+After=network-online.target
+Wants=network-online.target
+# Fast recovery during flaky boots / OOM restarts
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=@STEAKOS_ROOT@
+Environment=GRAILS_ENV=development
+Environment=STEAKOS_ROOT=@STEAKOS_ROOT@
+EnvironmentFile=-%h/.config/steakos/api.env
+ExecStart=@STEAKOS_ROOT@/scripts/install/systemd/steakos-api-start.sh
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillMode=mixed
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=steakos-api
+
+[Install]
+WantedBy=default.target

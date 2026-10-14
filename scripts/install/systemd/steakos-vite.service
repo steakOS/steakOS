@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0
+# systemd --user unit: steakOS Vite SPA on :9001 (OI-V06)
+#
+# Install:
+#   ./scripts/install/systemd/install-user-units.sh
+#
+# Proxies API to :6060 — start steakos-api first (or in parallel; Vite tolerates late API).
+
+[Unit]
+Description=steakOS Vite SPA (user)
+Documentation=file://@STEAKOS_ROOT@/scripts/install/systemd/README.md
+After=network-online.target steakos-api.service
+Wants=network-online.target steakos-api.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=@STEAKOS_ROOT@/frontend
+Environment=STEAKOS_ROOT=@STEAKOS_ROOT@
+EnvironmentFile=-%h/.config/steakos/vite.env
+ExecStart=@STEAKOS_ROOT@/scripts/install/systemd/steakos-vite-start.sh
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillMode=mixed
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=steakos-vite
+
+[Install]
+WantedBy=default.target
