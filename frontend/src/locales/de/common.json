@@ -25,9 +25,6 @@
     "logout": "Abmelden",
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",
-    "strategyDesk": "Dashboard Strategie",
-    "developmentDesk": "Dashboard Entwicklung",
-    "agents": "Agenten",
     "security": "Sicherheit"
   },
   "groups": {
@@ -187,7 +184,15 @@
   "locale": {
     "label": "Sprache & Region",
     "saved": "Locale gespeichert",
-    "hint": "Gilt für UI-Texte (EN/DE) und Datums-/Währungsformate in Ihrem Konto."
+    "hint": "Gilt für UI-Texte (EN/DE) und Datums-/Währungsformate in Ihrem Konto.",
+    "names": {
+      "en_US": "Englisch (Vereinigte Staaten)",
+      "en_SG": "Englisch (Singapur)",
+      "de_DE": "Deutsch (Deutschland)",
+      "de_AT": "Deutsch (Österreich)",
+      "de_CH": "Deutsch (Schweiz)",
+      "es_ES": "Spanisch (Spanien)"
+    }
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen",
@@ -628,7 +633,8 @@
       "taxRegimeNone": "Keine / nicht registriert",
       "defaultTaxCode": "Standard-Steuercode",
       "defaultTaxCodeNone": "— keiner —",
-      "defaultLockSuffix": " (Standard)"
+      "defaultLockSuffix": " (Standard)",
+      "sectionLocale": "Sprache & Region"
     },
     "integrations": {
       "adminOnly": "Admin kann Nostr-Stufe und Relay-URL ändern. CEO kann hier einsehen.",
@@ -1038,5 +1044,42 @@
     "help": "Hilfe",
     "demoSuffix": " (Demo)",
     "versionTitle": "Produktversion + Vorlagen-Stufe (VERSIONS.md / Setup)"
+  },
+  "currencies": {
+    "names": {
+      "AED": "VAE-Dirham",
+      "AUD": "Australischer Dollar",
+      "BGN": "Bulgarischer Lew",
+      "BRL": "Brasilianischer Real",
+      "CAD": "Kanadischer Dollar",
+      "CHF": "Schweizer Franken",
+      "CNY": "Chinesischer Yuan",
+      "CZK": "Tschechische Krone",
+      "DKK": "Dänische Krone",
+      "EUR": "Euro",
+      "GBP": "Pfund Sterling",
+      "HKD": "Hongkong-Dollar",
+      "HUF": "Ungarischer Forint",
+      "IDR": "Indonesische Rupiah",
+      "ILS": "Israelischer Schekel",
+      "INR": "Indische Rupie",
+      "JPY": "Japanischer Yen",
+      "KRW": "Südkoreanischer Won",
+      "MXN": "Mexikanischer Peso",
+      "MYR": "Malaysischer Ringgit",
+      "NOK": "Norwegische Krone",
+      "NZD": "Neuseeland-Dollar",
+      "PHP": "Philippinischer Peso",
+      "PLN": "Polnischer Zloty",
+      "RON": "Rumänischer Leu",
+      "SAR": "Saudi-Riyal",
+      "SEK": "Schwedische Krone",
+      "SGD": "Singapur-Dollar",
+      "THB": "Thailändischer Baht",
+      "TRY": "Türkische Lira",
+      "USD": "US-Dollar",
+      "VND": "Vietnamesischer Dong",
+      "ZAR": "Südafrikanischer Rand"
+    }
   }
 }

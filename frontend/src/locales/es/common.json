@@ -184,7 +184,15 @@
   "locale": {
     "label": "Idioma y región",
     "saved": "Configuración regional guardada",
-    "hint": "Se aplica a las etiquetas de la interfaz (EN/DE/ES) y a los formatos de fecha e importe de su cuenta."
+    "hint": "Se aplica a las etiquetas de la interfaz (EN/DE/ES) y a los formatos de fecha e importe de su cuenta.",
+    "names": {
+      "en_US": "Inglés (Estados Unidos)",
+      "en_SG": "Inglés (Singapur)",
+      "de_DE": "Alemán (Alemania)",
+      "de_AT": "Alemán (Austria)",
+      "de_CH": "Alemán (Suiza)",
+      "es_ES": "Español (España)"
+    }
   },
   "errors": {
     "generic": "algo salió mal",
@@ -625,7 +633,8 @@
       "taxRegimeNone": "Ninguno / no registrado",
       "defaultTaxCode": "Código fiscal predeterminado",
       "defaultTaxCodeNone": "— ninguno —",
-      "defaultLockSuffix": " (predeterminado)"
+      "defaultLockSuffix": " (predeterminado)",
+      "sectionLocale": "Idioma y región"
     },
     "integrations": {
       "adminOnly": "El administrador puede cambiar el nivel de Nostr y retransmitir la URL. El CEO puede revisar aquí.",
@@ -1035,5 +1044,42 @@
     "help": "Ayuda",
     "demoSuffix": "(Demo)",
     "versionTitle": "Versión del producto + nivel de plantilla (VERSIONS.md/setup)"
+  },
+  "currencies": {
+    "names": {
+      "AED": "Dírham de los EAU",
+      "AUD": "Dólar australiano",
+      "BGN": "Lev búlgaro",
+      "BRL": "Real brasileño",
+      "CAD": "Dólar canadiense",
+      "CHF": "Franco suizo",
+      "CNY": "Yuan chino",
+      "CZK": "Corona checa",
+      "DKK": "Corona danesa",
+      "EUR": "Euro",
+      "GBP": "Libra esterlina",
+      "HKD": "Dólar de Hong Kong",
+      "HUF": "Florín húngaro",
+      "IDR": "Rupia indonesia",
+      "ILS": "Nuevo séquel israelí",
+      "INR": "Rupia india",
+      "JPY": "Yen japonés",
+      "KRW": "Won surcoreano",
+      "MXN": "Peso mexicano",
+      "MYR": "Ringgit malayo",
+      "NOK": "Corona noruega",
+      "NZD": "Dólar neozelandés",
+      "PHP": "Peso filipino",
+      "PLN": "Zloty polaco",
+      "RON": "Leu rumano",
+      "SAR": "Riyal saudí",
+      "SEK": "Corona sueca",
+      "SGD": "Dólar de Singapur",
+      "THB": "Baht tailandés",
+      "TRY": "Lira turca",
+      "USD": "Dólar estadounidense",
+      "VND": "Dong vietnamita",
+      "ZAR": "Rand sudafricano"
+    }
   }
 }

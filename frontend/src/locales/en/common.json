@@ -184,7 +184,15 @@
   "locale": {
     "label": "Language & region",
     "saved": "Locale saved",
-    "hint": "Applies to UI labels (EN/DE) and date/money formats for your account."
+    "hint": "Applies to UI labels (EN/DE) and date/money formats for your account.",
+    "names": {
+      "en_US": "English (United States)",
+      "en_SG": "English (Singapore)",
+      "de_DE": "German (Germany)",
+      "de_AT": "German (Austria)",
+      "de_CH": "German (Switzerland)",
+      "es_ES": "Spanish (Spain)"
+    }
   },
   "errors": {
     "generic": "Something went wrong",
@@ -625,7 +633,8 @@
       "taxRegimeNone": "None / not registered",
       "defaultTaxCode": "Default tax code",
       "defaultTaxCodeNone": "— none —",
-      "defaultLockSuffix": " (default)"
+      "defaultLockSuffix": " (default)",
+      "sectionLocale": "Language & region"
     },
     "integrations": {
       "adminOnly": "Admin can change Nostr level and relay URL. CEO can review here.",
@@ -1035,5 +1044,42 @@
     "help": "Help",
     "demoSuffix": " (Demo)",
     "versionTitle": "Product version + template tier (VERSIONS.md / setup)"
+  },
+  "currencies": {
+    "names": {
+      "AED": "UAE Dirham",
+      "AUD": "Australian Dollar",
+      "BGN": "Bulgarian Lev",
+      "BRL": "Brazilian Real",
+      "CAD": "Canadian Dollar",
+      "CHF": "Swiss Franc",
+      "CNY": "Chinese Yuan",
+      "CZK": "Czech Koruna",
+      "DKK": "Danish Krone",
+      "EUR": "Euro",
+      "GBP": "Pound Sterling",
+      "HKD": "Hong Kong Dollar",
+      "HUF": "Hungarian Forint",
+      "IDR": "Indonesian Rupiah",
+      "ILS": "Israeli New Shekel",
+      "INR": "Indian Rupee",
+      "JPY": "Japanese Yen",
+      "KRW": "South Korean Won",
+      "MXN": "Mexican Peso",
+      "MYR": "Malaysian Ringgit",
+      "NOK": "Norwegian Krone",
+      "NZD": "New Zealand Dollar",
+      "PHP": "Philippine Peso",
+      "PLN": "Polish Zloty",
+      "RON": "Romanian Leu",
+      "SAR": "Saudi Riyal",
+      "SEK": "Swedish Krona",
+      "SGD": "Singapore Dollar",
+      "THB": "Thai Baht",
+      "TRY": "Turkish Lira",
+      "USD": "US Dollar",
+      "VND": "Vietnamese Dong",
+      "ZAR": "South African Rand"
+    }
   }
 }
