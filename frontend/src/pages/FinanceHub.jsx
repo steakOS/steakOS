@@ -189,6 +189,10 @@ export default function FinanceHub() {
           <Link to="/finance/transactions">{t('finance.ledgerTitle')}</Link>
           {' · '}
           <Link to="/finance/invoices">{t('finance.invoicesTitle')}</Link>
+          {' · '}
+          <Link to="/finance/posting-rules">
+            {t('finance.postingRules.title', { defaultValue: 'Posting rules' })}
+          </Link>
         </p>
       </header>
 

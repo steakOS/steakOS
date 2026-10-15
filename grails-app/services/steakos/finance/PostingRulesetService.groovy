@@ -5,13 +5,13 @@ package steakos.finance
 
 import grails.gorm.transactions.Transactional
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import steakos.configuration.CompanyConfigService
 
 /**
- * PDR-027 PR1 — company posting ruleset (CompanySetting JSON) + SBM default pack.
+ * PDR-027 — company posting ruleset (CompanySetting JSON) + SBM default pack.
  * PR2–PR3 {@link PostingEngineService} posts settle/pay/payroll.recognize/payroll.pay from these rules.
+ * PR4–PR5 Admin save/reseed appends change log + opens a Digital IT ticket (D6).
  */
 @Slf4j
 @Transactional
@@ -19,14 +19,27 @@ class PostingRulesetService {
 
     static final String KEY_RULES = 'finance.postingRules'
     static final String KEY_MODE = 'finance.accountingMode'
+    static final String KEY_CHANGE_LOG = 'finance.postingRules.changeLog'
     static final String MODE_CASH = 'CASH'
     static final String MODE_ACCRUAL = 'ACCRUAL'
     static final int RULES_VERSION = 1
+    static final int CHANGE_LOG_MAX = 50
+
+    /** Events the engine posts today (cash path). */
+    static final List<String> LIVE_EVENTS = [
+            'invoice.settle', 'payable.pay', 'payroll.recognize', 'payroll.pay'
+    ].asImmutable()
+
+    /** ACCRUAL stub events in seed JSON — hooks not wired until issue/create call the engine. */
+    static final List<String> ACCRUAL_STUB_EVENTS = [
+            'invoice.issue', 'payable.create'
+    ].asImmutable()
 
     CompanyConfigService companyConfigService
     FinanceLedgerService financeLedgerService
+    steakos.digital.DigSupportService digSupportService
 
-    /** Default SBM / restaurant cash pack (matches today’s hardcoded settle/pay behaviour + payroll D10). */
+    /** Default SBM / restaurant cash pack (+ ACCRUAL stub events for mode switch). */
     static Map defaultSbmPack() {
         [
                 version        : RULES_VERSION,
@@ -57,6 +70,21 @@ class PostingRulesetService {
                                         [side: 'CREDIT', accountFrom: 'railWallet', amountFrom: 'payroll.net', defaultRail: 'SEPA'],
                                 ]
                         ],
+                        // PR6 stubs — present in pack; engine hooks on issue/create not wired yet
+                        'invoice.issue'     : [
+                                stub: true,
+                                legs: [
+                                        [side: 'DEBIT', accountCode: '1100', amountFrom: 'invoice.functional'],
+                                        [side: 'CREDIT', accountCode: '4000', amountFrom: 'invoice.functional'],
+                                ]
+                        ],
+                        'payable.create'    : [
+                                stub: true,
+                                legs: [
+                                        [side: 'DEBIT', accountCode: '5000', amountFrom: 'payable.functional'],
+                                        [side: 'CREDIT', accountCode: '2000', amountFrom: 'payable.functional'],
+                                ]
+                        ],
                 ],
                 railWallet     : [
                         SEPA              : '1000',
@@ -82,6 +110,7 @@ class PostingRulesetService {
             return [npubOwner: npub, created: false, ruleset: pack, mode: MODE_CASH, ephemeral: true]
         }
         boolean created = false
+        boolean merged = false
         Object existing = companyConfigService.getJson(npub, KEY_RULES, null)
         if (!(existing instanceof Map) || !(existing as Map).events) {
             Map pack = defaultSbmPack()
@@ -89,13 +118,30 @@ class PostingRulesetService {
             companyConfigService.put(npub, KEY_MODE, MODE_CASH, 'finance', 'string')
             created = true
             log.info('Seeded posting ruleset for {}', npub)
-        } else if (!companyConfigService.getString(npub, KEY_MODE, null)) {
-            String mode = ((existing as Map).accountingMode as String) ?: MODE_CASH
-            companyConfigService.put(npub, KEY_MODE, mode, 'finance', 'string')
+        } else {
+            Map cur = new LinkedHashMap(existing as Map)
+            Map events = cur.events instanceof Map ? new LinkedHashMap(cur.events as Map) : [:]
+            Map defaults = defaultSbmPack()
+            ACCRUAL_STUB_EVENTS.each { String key ->
+                if (!events.containsKey(key) && defaults.events[key]) {
+                    events[key] = defaults.events[key]
+                    merged = true
+                }
+            }
+            if (merged) {
+                cur.events = events
+                companyConfigService.putJson(npub, KEY_RULES, cur, 'finance')
+                log.info('Merged ACCRUAL stub events into posting ruleset for {}', npub)
+            }
+            if (!companyConfigService.getString(npub, KEY_MODE, null)) {
+                String mode = (cur.accountingMode as String) ?: MODE_CASH
+                companyConfigService.put(npub, KEY_MODE, mode, 'finance', 'string')
+            }
         }
         [
                 npubOwner: npub,
                 created  : created,
+                merged   : merged,
                 ruleset  : getRuleset(npub),
                 mode     : getAccountingMode(npub),
         ]
@@ -103,21 +149,27 @@ class PostingRulesetService {
 
     /**
      * Force-replace rules with SBM defaults (Admin reseed). Does not delete journals.
+     * @param meta optional actor / reason for change log + IT ticket
      */
-    Map reseedDefaults(String npubOwner) {
+    Map reseedDefaults(String npubOwner, Map meta = [:]) {
         String npub = requireNpub(npubOwner)
         if (financeLedgerService != null) {
             financeLedgerService.ensureChartSeeded(npub)
         }
+        Map before = snapshotRules(npub)
         Map pack = defaultSbmPack()
         companyConfigService.putJson(npub, KEY_RULES, pack, 'finance')
         companyConfigService.put(npub, KEY_MODE, MODE_CASH, 'finance', 'string')
+        Map audit = recordPolicyChange(npub, 'reseed', before, pack, MODE_CASH, meta)
         [
                 npubOwner: npub,
                 reseeded : true,
                 ruleset  : pack,
                 mode     : MODE_CASH,
                 message  : 'Posting rules reset to SBM defaults (journals untouched)',
+                changeLogId: audit?.id,
+                itTicketId : audit?.itTicketId,
+                itTicketNumber: audit?.itTicketNumber,
         ]
     }
 
@@ -148,8 +200,8 @@ class PostingRulesetService {
     }
 
     /**
-     * Persist ruleset. Validates structure lightly (PR1); engine balance checks in PR2+.
-     * Audit / IT ticket = later PR — still Admin-gated at controller.
+     * Persist ruleset. Validates structure lightly; engine balance checks at post time.
+     * Appends change log + opens IT ticket (D6). Admin-gated at controller.
      */
     Map saveRuleset(String npubOwner, Map body) {
         String npub = requireNpub(npubOwner)
@@ -163,6 +215,7 @@ class PostingRulesetService {
         if (!(mode in [MODE_CASH, MODE_ACCRUAL])) {
             throw new IllegalArgumentException("accountingMode must be ${MODE_CASH} or ${MODE_ACCRUAL}")
         }
+        Map before = snapshotRules(npub)
         rules = new LinkedHashMap(rules)
         rules.accountingMode = mode
         if (!rules.version) {
@@ -170,20 +223,25 @@ class PostingRulesetService {
         }
         companyConfigService.putJson(npub, KEY_RULES, rules, 'finance')
         companyConfigService.put(npub, KEY_MODE, mode, 'finance', 'string')
+        Map audit = recordPolicyChange(npub, 'save', before, rules, mode, body ?: [:])
         [
                 npubOwner: npub,
                 saved    : true,
                 ruleset  : getRuleset(npub),
                 mode     : mode,
+                changeLogId: audit?.id,
+                itTicketId : audit?.itTicketId,
+                itTicketNumber: audit?.itTicketNumber,
         ]
     }
 
-    Map saveAccountingMode(String npubOwner, String mode) {
+    Map saveAccountingMode(String npubOwner, String mode, Map meta = [:]) {
         String npub = requireNpub(npubOwner)
         String m = mode?.trim()?.toUpperCase()
         if (!(m in [MODE_CASH, MODE_ACCRUAL])) {
             throw new IllegalArgumentException("accountingMode must be ${MODE_CASH} or ${MODE_ACCRUAL}")
         }
+        Map before = snapshotRules(npub)
         companyConfigService.put(npub, KEY_MODE, m, 'finance', 'string')
         Map rules = getRuleset(npub)
         if (rules && companyConfigService.getJson(npub, KEY_RULES, null) instanceof Map) {
@@ -191,7 +249,19 @@ class PostingRulesetService {
             rules.accountingMode = m
             companyConfigService.putJson(npub, KEY_RULES, rules, 'finance')
         }
-        [npubOwner: npub, mode: m, ruleset: getRuleset(npub)]
+        Map after = snapshotRules(npub)
+        Map audit = recordPolicyChange(npub, 'mode', before, after.ruleset ?: after, m, meta)
+        [npubOwner: npub, mode: m, ruleset: getRuleset(npub),
+         changeLogId: audit?.id, itTicketId: audit?.itTicketId, itTicketNumber: audit?.itTicketNumber]
+    }
+
+    /** Newest-first change log (capped). */
+    List listChangeLog(String npubOwner, int max = 20) {
+        String npub = requireNpub(npubOwner)
+        Object raw = companyConfigService?.getJson(npub, KEY_CHANGE_LOG, null)
+        List entries = (raw instanceof List) ? (raw as List) : []
+        int limit = Math.max(1, Math.min(max, CHANGE_LOG_MAX))
+        entries.take(limit)
     }
 
     /** Structural validation only — does not require COA rows to exist. */
@@ -209,7 +279,7 @@ class PostingRulesetService {
             throw new IllegalArgumentException('ruleset.events required')
         }
         Map events = rules.events as Map
-        ['invoice.settle', 'payable.pay', 'payroll.recognize', 'payroll.pay'].each { String key ->
+        (LIVE_EVENTS + ACCRUAL_STUB_EVENTS).each { String key ->
             Object ev = events[key]
             if (ev == null) return // allow partial custom packs
             if (!(ev instanceof Map)) {
@@ -240,6 +310,102 @@ class PostingRulesetService {
         Map rw = (ruleset?.railWallet instanceof Map) ? (ruleset.railWallet as Map) : (defaultSbmPack().railWallet as Map)
         String r = (rail ?: 'SEPA').toString()
         (rw[r] ?: rw.OTHER ?: '1000') as String
+    }
+
+    private Map snapshotRules(String npub) {
+        [
+                accountingMode: getAccountingMode(npub),
+                ruleset       : getRuleset(npub),
+        ]
+    }
+
+    /**
+     * Append-only change log + Digital IT ticket (REQUEST/CHANGE with [Finance policy] prefix).
+     * Soft-fails ticket open so a Dig outage never blocks Admin save.
+     */
+    private Map recordPolicyChange(String npub, String action, Object before, Object after,
+                                   String mode, Map meta) {
+        if (companyConfigService == null) {
+            return [id: null, skipped: true]
+        }
+        String actor = (meta?.actor ?: meta?.username ?: 'admin') as String
+        String reason = (meta?.reason ?: '')?.toString()?.trim()
+        String id = "prchg-${System.currentTimeMillis()}-${Math.abs((npub + action).hashCode())}"
+        String at = java.time.OffsetDateTime.now().format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        Map entry = [
+                id            : id,
+                at            : at,
+                action        : action,
+                actor         : actor,
+                accountingMode: mode,
+                reason        : reason ?: null,
+                beforeMode    : (before instanceof Map) ? (before as Map).accountingMode : null,
+                afterMode     : mode,
+                summary       : summarizeDiff(before, after, action, mode),
+        ]
+        Object raw = companyConfigService.getJson(npub, KEY_CHANGE_LOG, null)
+        List entries = (raw instanceof List) ? new ArrayList(raw as List) : []
+        entries.add(0, entry)
+        if (entries.size() > CHANGE_LOG_MAX) {
+            entries = entries.take(CHANGE_LOG_MAX)
+        }
+        companyConfigService.putJson(npub, KEY_CHANGE_LOG, entries, 'finance')
+
+        Long ticketId = null
+        String ticketNumber = null
+        if (digSupportService != null) {
+            try {
+                String ticketName = "[Finance policy] Posting rules ${action} (${mode})"
+                String desc = """Posting ruleset policy change (PDR-027 / D6).
+
+Action: ${action}
+Actor: ${actor}
+Mode: ${mode}
+Change log id: ${id}
+${reason ? "Reason: ${reason}\n" : ''}
+Summary: ${entry.summary}
+
+Before / after JSON retained in company setting ${KEY_CHANGE_LOG}.
+Journals were not modified."""
+                def ticket = digSupportService.openTicket(npub, [
+                        name       : ticketName,
+                        description: desc,
+                        ticketKind : 'CHANGE',
+                        priority   : 'NORMAL',
+                ])
+                ticketId = ticket?.id as Long
+                ticketNumber = ticket?.ticketNumber as String
+                entry.itTicketId = ticketId
+                entry.itTicketNumber = ticketNumber
+                entries[0] = entry
+                companyConfigService.putJson(npub, KEY_CHANGE_LOG, entries, 'finance')
+            } catch (Exception e) {
+                log.warn('Posting rules IT ticket failed for {}: {}', npub, e.message)
+            }
+        }
+        [id: id, itTicketId: ticketId, itTicketNumber: ticketNumber]
+    }
+
+    private static String summarizeDiff(Object before, Object after, String action, String mode) {
+        if (action == 'reseed') {
+            return "Reseeded SBM defaults; mode=${mode}"
+        }
+        String beforeMode = (before instanceof Map) ? ((before as Map).accountingMode ?: '') : ''
+        if (action == 'mode' || (beforeMode && beforeMode != mode)) {
+            return "Accounting mode ${beforeMode ?: '?'} → ${mode}"
+        }
+        try {
+            String b = JsonOutput.toJson(before instanceof Map && (before as Map).ruleset ?
+                    (before as Map).ruleset : before)
+            String a = JsonOutput.toJson(after instanceof Map && (after as Map).events ?
+                    after : ((after instanceof Map) ? (after as Map).ruleset ?: after : after))
+            if (b == a) {
+                return "Saved ruleset (no structural JSON change); mode=${mode}"
+            }
+            return "Updated posting ruleset JSON; mode=${mode}"
+        } catch (Exception ignored) {
+            return "Updated posting rules; mode=${mode}"
+        }
     }
 
     private static String requireNpub(String n) {

@@ -24,6 +24,18 @@ class PostingRulesetServiceSpec extends Specification {
         pack.events['payroll.pay'].legs.any { it.accountCode == '2200' }
     }
 
+    void 'default pack includes ACCRUAL stub events with AR/AP codes'() {
+        when:
+        Map pack = PostingRulesetService.defaultSbmPack()
+
+        then:
+        pack.events['invoice.issue'].stub == true
+        pack.events['invoice.issue'].legs.any { it.accountCode == '1100' }
+        pack.events['payable.create'].stub == true
+        pack.events['payable.create'].legs.any { it.accountCode == '2000' }
+        PostingRulesetService.validateStructureStatic(pack)
+    }
+
     void 'validateStructure rejects single-leg event'() {
         given:
         Map bad = PostingRulesetService.defaultSbmPack()

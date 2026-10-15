@@ -29,8 +29,22 @@ const ROLE_HELP_KEYS = [
   'help.roles.demo',
 ]
 
+const SETTINGS_HELP_KEYS = ['system.settings', 'help.partners.locale']
+
+const WORK_HELP_KEYS = ['help.work.actionNow', 'app.dashboard']
+
+const FINANCE_HELP_KEYS = ['finance.postingRules', 'finance.invoices', 'finance.treasury']
+
+function topicLabelKey(helpKey) {
+  if (ROLE_HELP_KEYS.includes(helpKey)) return `pages.help.roleTopics.${helpKey}`
+  if (SETTINGS_HELP_KEYS.includes(helpKey)) return `pages.help.settingsTopics.${helpKey}`
+  if (WORK_HELP_KEYS.includes(helpKey)) return `pages.help.workTopics.${helpKey}`
+  if (FINANCE_HELP_KEYS.includes(helpKey)) return `pages.help.financeTopics.${helpKey}`
+  return `pages.help.roleTopics.${helpKey}`
+}
+
 /**
- * Help center — tour, IT support, and PDR-025 Roles articles.
+ * Help center — tour, IT support, Roles, Settings language, Action-NOW.
  */
 export default function HelpCenter() {
   const { t, i18n } = useTranslation('common')
@@ -61,6 +75,21 @@ export default function HelpCenter() {
       ROLE_HELP_KEYS.map((key) => topics.find((x) => x.helpKey === key)).filter(Boolean),
     [topics],
   )
+  const settingsTopics = useMemo(
+    () =>
+      SETTINGS_HELP_KEYS.map((key) => topics.find((x) => x.helpKey === key)).filter(Boolean),
+    [topics],
+  )
+  const workTopics = useMemo(
+    () =>
+      WORK_HELP_KEYS.map((key) => topics.find((x) => x.helpKey === key)).filter(Boolean),
+    [topics],
+  )
+  const financeTopics = useMemo(
+    () =>
+      FINANCE_HELP_KEYS.map((key) => topics.find((x) => x.helpKey === key)).filter(Boolean),
+    [topics],
+  )
 
   useEffect(() => {
     if (!selectedKey) return
@@ -79,6 +108,49 @@ export default function HelpCenter() {
   }, [selectedKey, i18n.language])
 
   const body = article?.body?.bodyText || ''
+
+  const renderTopicPicker = (list, emptyLabel) => (
+    <div className="two-col finance-tx-grid" style={{ marginTop: 12 }}>
+      <ul className="setup-family-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {list.length === 0 && !err && <li className="muted">{emptyLabel}</li>}
+        {list.map((topic) => (
+          <li key={topic.helpKey} style={{ marginBottom: 6 }}>
+            <button
+              type="button"
+              className={`btn ${topic.helpKey === selectedKey ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ width: '100%', justifyContent: 'flex-start' }}
+              onClick={() => setSelectedKey(topic.helpKey)}
+            >
+              {t(topicLabelKey(topic.helpKey), { defaultValue: topic.title })}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div>
+        {article && list.some((x) => x.helpKey === selectedKey) && (
+          <>
+            <h3 style={{ marginTop: 0 }}>
+              {t(topicLabelKey(selectedKey), {
+                defaultValue: article.title || article.topic?.title,
+              })}
+            </h3>
+            {body ? (
+              <div
+                className="help-markdown"
+                dangerouslySetInnerHTML={{ __html: markdownToHtml(body) }}
+              />
+            ) : (
+              <p className="muted">
+                {t('pages.help.rolesEmptyBody', {
+                  defaultValue: 'No body yet — restart API if seeds just landed.',
+                })}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
 
   return (
     <div>
@@ -111,7 +183,7 @@ export default function HelpCenter() {
         <p className="page-sub">
           {t('pages.help.rolesBody', {
             defaultValue:
-              'Small-team roles (Office, Ops, Finance…), invite steps, and safety. Also available from the Help drawer (? ) on Roles and Users.',
+              'Small-team roles (Office, Ops, Finance…), invite steps, and safety. Also available from the Help drawer (?) on Roles and Users.',
           })}{' '}
           <Link to="/roles">{t('nav.roles', { defaultValue: 'Roles' })}</Link>
           {' · '}
@@ -119,52 +191,62 @@ export default function HelpCenter() {
           {'.'}
         </p>
         {err && <p style={{ color: 'var(--danger)' }}>{err}</p>}
-        <div className="two-col finance-tx-grid" style={{ marginTop: 12 }}>
-          <ul className="setup-family-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {roleTopics.length === 0 && !err && (
-              <li className="muted">
-                {t('pages.help.rolesLoading', { defaultValue: 'Loading role help topics…' })}
-              </li>
-            )}
-            {roleTopics.map((topic) => (
-              <li key={topic.helpKey} style={{ marginBottom: 6 }}>
-                <button
-                  type="button"
-                  className={`btn ${topic.helpKey === selectedKey ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ width: '100%', justifyContent: 'flex-start' }}
-                  onClick={() => setSelectedKey(topic.helpKey)}
-                >
-                  {t(`pages.help.roleTopics.${topic.helpKey}`, {
-                    defaultValue: topic.title,
-                  })}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div>
-            {article && (
-              <>
-                <h3 style={{ marginTop: 0 }}>
-                  {t(`pages.help.roleTopics.${selectedKey}`, {
-                    defaultValue: article.title || article.topic?.title,
-                  })}
-                </h3>
-                {body ? (
-                  <div
-                    className="help-markdown"
-                    dangerouslySetInnerHTML={{ __html: markdownToHtml(body) }}
-                  />
-                ) : (
-                  <p className="muted">
-                    {t('pages.help.rolesEmptyBody', {
-                      defaultValue: 'No body yet — restart API if seeds just landed.',
-                    })}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        {renderTopicPicker(
+          roleTopics,
+          t('pages.help.rolesLoading', { defaultValue: 'Loading role help topics…' }),
+        )}
+      </div>
+
+      <div className="card" style={{ marginTop: 12 }}>
+        <h2>{t('pages.help.settingsTitle', { defaultValue: 'Settings · language & region' })}</h2>
+        <p className="page-sub">
+          {t('pages.help.settingsBody', {
+            defaultValue:
+              'Screen language vs partner communication language. Also available from the Help drawer (?) on Settings.',
+          })}{' '}
+          <Link to="/settings">{t('nav.settings')}</Link>
+          {'.'}
+        </p>
+        {renderTopicPicker(
+          settingsTopics,
+          t('pages.help.settingsLoading', { defaultValue: 'Loading settings help…' }),
+        )}
+      </div>
+
+      <div className="card" style={{ marginTop: 12 }}>
+        <h2>{t('pages.help.workTitle', { defaultValue: 'Action - NOW' })}</h2>
+        <p className="page-sub">
+          {t('pages.help.workBody', {
+            defaultValue:
+              'Priority board for open tasks (urgency × importance). Also on the dashboard mini board.',
+          })}{' '}
+          <Link to="/work">{t('pages.work.nav', { defaultValue: 'My work' })}</Link>
+          {' · '}
+          <Link to="/dashboard">{t('nav.dashboard', { defaultValue: 'Dashboard' })}</Link>
+          {'.'}
+        </p>
+        {renderTopicPicker(
+          workTopics,
+          t('pages.help.workLoading', { defaultValue: 'Loading Action - NOW help…' }),
+        )}
+      </div>
+
+      <div className="card" style={{ marginTop: 12 }}>
+        <h2>{t('pages.help.financeTitle', { defaultValue: 'Finance · posting rules' })}</h2>
+        <p className="page-sub">
+          {t('pages.help.financeBody', {
+            defaultValue:
+              'Auto journals on settle / vendor pay / payroll. Admin edits rules; CEO can view. Also from Finance → Posting rules.',
+          })}{' '}
+          <Link to="/finance/posting-rules">
+            {t('features.postingRules', { defaultValue: 'Posting rules' })}
+          </Link>
+          {'.'}
+        </p>
+        {renderTopicPicker(
+          financeTopics,
+          t('pages.help.financeLoading', { defaultValue: 'Loading finance help…' }),
+        )}
       </div>
 
       <div className="card" style={{ marginTop: 12 }}>

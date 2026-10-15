@@ -70,6 +70,7 @@
     "tax": "Steuern",
     "payroll": "Lohnbuchhaltung",
     "control": "Controlling",
+    "postingRules": "Buchungsregeln",
     "projects": "Projekte",
     "processes": "Prozesse",
     "quality": "Qualität",
@@ -232,7 +233,7 @@
     "work": {
       "nav": "Meine Arbeit",
       "title": "Meine Arbeit",
-      "subtitle": "Offene Aufgaben, Fristen und Eisenhower-Board (Dringlichkeit × Wichtigkeit).",
+      "subtitle": "Offene Aufgaben, Fristen und Aktivitäten-JETZT-Board (Dringlichkeit × Wichtigkeit).",
       "list": "Aufgabenliste",
       "eisenhower": "Aktivitäten - JETZT",
       "eisenhowerHint": "Offene Arbeit im 3×3-Board nach Dringlichkeit und Wichtigkeit priorisieren.",
@@ -292,6 +293,28 @@
         "help.users.danger": "Sicherheit: Admin, CEO & Deaktivieren",
         "help.users.privacy": "Datenschutz, HR & Nur lesen",
         "help.roles.demo": "Rollen üben (Demo / Training)"
+      },
+      "settingsTitle": "Einstellungen · Sprache & Region",
+      "settingsBody": "Bildschirmsprache vs. Partnersprache. Auch in der Hilfeschublade (?) unter",
+      "settingsLoading": "Einstellungs-Hilfe wird geladen…",
+      "settingsTopics": {
+        "system.settings": "Einstellungen",
+        "help.partners.locale": "Partnersprache (Kommunikation)"
+      },
+      "workTitle": "Aktivitäten - JETZT",
+      "workBody": "Prioritätsboard für offene Aufgaben (Dringlichkeit × Wichtigkeit). Auch als Mini-Board auf dem Dashboard.",
+      "workLoading": "Aktivitäten-JETZT-Hilfe wird geladen…",
+      "workTopics": {
+        "help.work.actionNow": "Aktivitäten - JETZT",
+        "app.dashboard": "CEO-Dashboard"
+      },
+      "financeTitle": "Finance · Buchungsregeln",
+      "financeBody": "Auto-Journale bei Begleichen / Lieferantenzahlung / Lohn. Admin ändert Regeln; CEO kann lesen. Auch unter Finance → Buchungsregeln.",
+      "financeLoading": "Finance-Hilfe wird geladen…",
+      "financeTopics": {
+        "finance.postingRules": "Buchungsregeln (Auto-Journale)",
+        "finance.invoices": "Rechnungen",
+        "finance.treasury": "Treasury"
       }
     },
     "import": {

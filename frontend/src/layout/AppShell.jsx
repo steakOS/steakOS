@@ -151,6 +151,11 @@ function financeFeatureLinks(t) {
     { name: t('features.tax'), path: '/finance/tax', icon: Landmark },
     { name: t('features.payroll'), path: '/finance/payroll', icon: Users },
     { name: t('features.control'), path: '/finance/control', icon: Shield },
+    {
+      name: t('features.postingRules', { defaultValue: 'Posting rules' }),
+      path: '/finance/posting-rules',
+      icon: BookOpen,
+    },
   ]
 }
 

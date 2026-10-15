@@ -39,7 +39,7 @@ class ItTicket implements NpubOwned, AccessControl, Classifiable, Attachable, Au
 	String description
 
 	String ticketNumber
-	/** INCIDENT | REQUEST */
+	/** INCIDENT | REQUEST | CHANGE (PDR-027 finance policy) */
 	String ticketKind = 'INCIDENT'
 	/** LOW | NORMAL | HIGH | URGENT */
 	String priority = 'NORMAL'
@@ -64,7 +64,7 @@ class ItTicket implements NpubOwned, AccessControl, Classifiable, Attachable, Au
 		description nullable: true, maxSize: 8000
 		ticketNumber nullable: true, maxSize: 64
 		ticketKind nullable: false, blank: false, maxSize: 16,
-				inList: ['INCIDENT', 'REQUEST']
+				inList: ['INCIDENT', 'REQUEST', 'CHANGE']
 		priority nullable: false, blank: false, maxSize: 16,
 				inList: ['LOW', 'NORMAL', 'HIGH', 'URGENT']
 		ticketStatus nullable: false, blank: false, maxSize: 32,

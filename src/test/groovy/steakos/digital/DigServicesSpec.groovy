@@ -80,6 +80,20 @@ class DigServicesSpec extends Specification implements DataTest {
         closed.ticketNumber
     }
 
+    def "CHANGE ticket kind for finance policy"() {
+        when:
+        ItTicket t = supportService.openTicket('npub-pol', [
+                name: '[Finance policy] Posting rules save (CASH)',
+                ticketKind: 'CHANGE',
+                description: 'PDR-027 D6 audit',
+        ])
+
+        then:
+        t.ticketKind == 'CHANGE'
+        t.ticketStatus == 'OPEN'
+        t.ticketNumber
+    }
+
     def "change kind and complete"() {
         when:
         ITChange c = changeService.create('npub-x', [

@@ -187,7 +187,7 @@ export default function ItSupportPage() {
                       value={tixForm.ticketKind}
                       onChange={(e) => setTixForm((f) => ({ ...f, ticketKind: e.target.value }))}
                     >
-                      {['INCIDENT', 'REQUEST'].map((x) => (
+                      {['INCIDENT', 'REQUEST', 'CHANGE'].map((x) => (
                         <option key={x} value={x}>
                           {x}
                         </option>

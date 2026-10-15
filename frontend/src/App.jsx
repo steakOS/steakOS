@@ -28,6 +28,7 @@ const FinanceTransactions = lazy(() => import('./pages/FinanceTransactions'))
 const FinanceInvoices = lazy(() => import('./pages/FinanceInvoices'))
 const FinancePayments = lazy(() => import('./pages/FinancePayments'))
 const FinanceHub = lazy(() => import('./pages/FinanceHub'))
+const PostingRulesPage = lazy(() => import('./pages/PostingRulesPage'))
 const SalesDesk = lazy(() => import('./pages/SalesDesk'))
 const ScmDesk = lazy(() => import('./pages/ScmDesk'))
 const DeliveryDesk = lazy(() => import('./pages/DeliveryDesk'))
@@ -279,6 +280,7 @@ export default function App() {
             <Route path="finance/transactions" element={<FinanceTransactions />} />
             <Route path="finance/invoices" element={<FinanceInvoices />} />
             <Route path="finance/payments" element={<FinancePayments />} />
+            <Route path="finance/posting-rules" element={<PostingRulesPage />} />
             <Route path="finance" element={<Navigate to="/finance/treasury" replace />} />
             <Route path="finance/:section" element={<FinanceHub />} />
             <Route path="domains/:package/:resource" element={<DomainList />} />

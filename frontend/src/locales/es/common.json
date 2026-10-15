@@ -70,6 +70,7 @@
     "tax": "Impuesto",
     "payroll": "Nómina de sueldos",
     "control": "Control",
+    "postingRules": "Reglas de asiento",
     "projects": "Proyectos",
     "processes": "Procesos",
     "quality": "Calidad",
@@ -232,7 +233,7 @@
     "work": {
       "nav": "mi trabajo",
       "title": "mi trabajo",
-      "subtitle": "Tareas abiertas, plazos y el tablero de Eisenhower (urgencia × importancia).",
+      "subtitle": "Tareas abiertas, plazos y el tablero Actividades - AHORA (urgencia × importancia).",
       "list": "lista de tareas",
       "eisenhower": "Actividades - AHORA",
       "eisenhowerHint": "Priorice el trabajo abierto en un tablero de urgencia × importancia de 3×3.",
@@ -292,6 +293,20 @@
         "help.users.danger": "Seguridad: administrador, director ejecutivo y desactivación",
         "help.users.privacy": "Privacidad, recursos humanos y solo lectura",
         "help.roles.demo": "Práctica de roles (demostración/formación)"
+      },
+      "settingsTitle": "Configuración · idioma y región",
+      "settingsBody": "Idioma de pantalla frente al idioma de comunicación del socio. También en el cajón de Ayuda (?) en",
+      "settingsLoading": "Cargando ayuda de configuración…",
+      "settingsTopics": {
+        "system.settings": "Configuración",
+        "help.partners.locale": "Idioma de comunicación del socio"
+      },
+      "workTitle": "Actividades - AHORA",
+      "workBody": "Tablero de prioridad para tareas abiertas (urgencia × importancia). También en el mini tablero del panel.",
+      "workLoading": "Cargando ayuda de Actividades - AHORA…",
+      "workTopics": {
+        "help.work.actionNow": "Actividades - AHORA",
+        "app.dashboard": "Panel CEO"
       }
     },
     "import": {

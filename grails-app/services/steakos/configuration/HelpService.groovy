@@ -171,11 +171,14 @@ Files use the FILE channel — not a ContentType.''',
 
 Your cockpit for open work and process health.
 
-- **My work** — tasks and activities
+- **My work** — open tasks and deadlines
+- **Action - NOW** — 3×3 urgency × importance board (same board under **My work**)
 - **APQC groups** — jump into Sales, Finance, and other desks
 - **System health** — API / content signals
 
-**Shortcuts:** **Ctrl+K** jump · **?** or **Ctrl+/** this help drawer.'''],
+**Shortcuts:** **Ctrl+K** jump · **?** or **Ctrl+/** this help drawer.
+
+**See also:** Action - NOW · Settings (language & region)'''],
             [key: 'setup.wizard', title: 'Configuration wizard', route: '/setup', family: 'core',
              body: '''# Configuration wizard
 
@@ -407,6 +410,34 @@ Positions, payables, budgets, tax, payroll stub, control — open the section ta
 **Dual positions:** a fiat bank and a Bitcoin wallet share one chart of accounts. Carrying values follow your **primary value rail** — see **Primary value rail & BTC FX**.
 
 For **live Bitcoin receive**, see **Live payments (BTCPay)** (Finance → Payments).'''],
+            [key: 'finance.postingRules', title: 'Posting rules (auto journals)', route: '/finance/posting-rules', family: 'finance',
+             body: '''# Posting rules
+
+steakOS posts balanced journals when money moves — **invoice settle**, **vendor pay**, and **payroll recognize / pay** — using a **company ruleset** (not hardcoded accounts).
+
+## Accounting mode
+
+| Mode | Meaning |
+|------|---------|
+| **Cash** (default / restaurant) | Books update when paid |
+| **Accrual** | Pack includes issue/create stub rules; payment still posts. Issue/create hooks are not fully wired yet |
+
+## Who can change what
+
+| Action | Admin | CEO |
+|--------|:-----:|:---:|
+| View rules / mode / change log | ● | ● |
+| Edit rules / mode / reseed | ● | ○ |
+
+Every Admin **Save** or **Reseed** appends an immutable **change log** and opens a Digital **IT ticket** (`CHANGE`, name prefix `[Finance policy]`). Journals are never wiped by reseed.
+
+## Where
+
+**Finance → Posting rules** (`/finance/posting-rules`)
+
+Bad or missing rules **block** settle/pay (error `POSTING_RULES_*`) — no silent fallback.
+
+**Related:** General ledger · Invoices · Treasury · Payroll'''],
             [key: 'scm.desk', title: 'Buyers Desk', route: '/scm/buyers', family: 'scm',
              body: '''# Buyers Desk
 
@@ -491,9 +522,25 @@ CSV packs: **Customers**, **Vendors**, **COA**. Preview mapping, then commit. Op
             [key: 'system.settings', title: 'Settings', route: '/settings', family: 'core',
              body: '''# Settings
 
-Locale, **Currencies we use**, demo reset, setup status, SYSTEM process reseed, admin **reset setup**.
+**Language & region** is the first card — it controls **your screen language** (EN / DE / ES) and date/money formats for this account.
 
-**Integrations** (Nostr, Bitcoin level, Hermes tokens) moved to **System → Integrations**.'''],
+## Language & region
+
+1. Open **System → Settings**
+2. Choose a locale (e.g. German (Germany) `de_DE`)
+3. Labels and formats update for your user
+
+This is **not** the language of outbound PDFs to customers/vendors. That is **Communication language** on each Customer / Vendor master.
+
+## Other cards on this page
+
+- **Currencies we use** — short list for dropdowns (company currency stays on)
+- Tax codes in use (when Finance pack is enabled)
+- Demo / setup status and admin **reset setup** (Admin)
+
+**Integrations** (Nostr, Bitcoin level, Hermes tokens) live under **System → Integrations**.
+
+**See also:** Partner communication language · Currencies we use'''],
             [key: 'system.catalogs', title: 'Admin catalogs', route: '/system/catalogs', family: 'core',
              body: '''# Admin catalogs
 
@@ -783,6 +830,33 @@ Draft PDFs follow the live partner setting. After you **send / confirm / issue**
 - Not digitally signed
 - Not a marketing template — a credible trade document'''],
 
+            // Action - NOW / My work board (OI-I18N03 residual)
+            [key: 'help.work.actionNow', title: 'Action - NOW', route: '/work', family: 'core',
+             body: '''# Action - NOW
+
+**Action - NOW** is the priority board for **open tasks**. It also appears as a mini board on the CEO dashboard.
+
+## How to read the board
+
+- **Rows** = urgency (high → low)
+- **Columns** = importance (low → high)
+- Only **open** tasks appear (done / cancelled stay off the board)
+
+Each cell groups tasks that share the same urgency × importance. Open a task to change urgency, importance, deadline, or assignee.
+
+## Where to go
+
+- **My work** (`/work`) — full board + task list and filters
+- **Dashboard** — mini board + jump to My work
+- Task form — set **Urgency** and **Importance** (low / medium / high)
+
+## Honest limits
+
+- The board does not invent priorities — you set urgency and importance on each task
+- Overdue filters live on the task list; the board itself is urgency × importance only
+
+**Tip:** Open this drawer with **?** or **Ctrl+/** from My work or the dashboard.'''],
+
             // NOT bound to /domains — only linked as related tip on master-data pages
             [key: 'content.rail', title: 'Content on records', route: null, family: 'core',
              body: '''# Object Companion (content rail)
@@ -874,11 +948,24 @@ Master-data pages use the same rail as desks.'''],
         Map ctx = parseContext(route)
         String path = ctx.path as String
 
-        // 1) Exact seeded topic
+        // 1) Exact seeded topic (prefer canonical page topic when several share a route)
         List<HelpTopic> all = HelpTopic.list(sort: 'sortOrder', order: 'asc')
                 .findAll { it.routePattern }
 
-        HelpTopic best = all.find { t -> path == t.routePattern }
+        List<HelpTopic> exact = all.findAll { t -> path == t.routePattern }
+        HelpTopic best = null
+        if (exact) {
+            // /settings seeds currency + tax + settings — surface Settings language-first
+            if (path == '/settings' || path?.startsWith('/settings/')) {
+                best = exact.find { it.helpKey == 'system.settings' } ?: exact[0]
+            } else if (path == '/work' || path?.startsWith('/work/')) {
+                best = exact.find { it.helpKey == 'help.work.actionNow' } ?: exact[0]
+            } else if (path == '/dashboard' || path?.startsWith('/dashboard/')) {
+                best = exact.find { it.helpKey == 'app.dashboard' } ?: exact[0]
+            } else {
+                best = exact[0]
+            }
+        }
 
         // 2) Longest prefix among feature routes — but never treat bare /domains as a win
         //    over a more specific domain context
@@ -1195,11 +1282,31 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             }
             return out
         }
+        // Settings — language/region first, then money/tax cluster
+        if (path == '/settings' || path?.startsWith('/settings')) {
+            ['system.settings', 'help.partners.locale', 'currency.catalog',
+             'finance.primaryRail', 'help.tax.ust', 'help.docs.pdf'].each { String key ->
+                HelpTopic t = HelpTopic.findByHelpKey(key)
+                if (t && t.id != primary?.id && !out.any { it.helpKey == key }) {
+                    out << topicMap(t, lang)
+                }
+            }
+        }
         // A2 / OI-FX01 — money rail + live payments cluster
-        if (path?.startsWith('/finance') || path == '/settings' || path?.startsWith('/settings')
+        if (path?.startsWith('/finance')
                 || path == '/company' || path?.startsWith('/company')) {
             ['finance.primaryRail', 'finance.payments.live', 'finance.invoices', 'finance.treasury',
-             'help.docs.pdf', 'help.tax.ust', 'help.tax.reverseCharge'].each { String key ->
+             'finance.postingRules', 'help.docs.pdf', 'help.tax.ust', 'help.tax.reverseCharge'].each { String key ->
+                HelpTopic t = HelpTopic.findByHelpKey(key)
+                if (t && t.id != primary?.id && !out.any { it.helpKey == key }) {
+                    out << topicMap(t, lang)
+                }
+            }
+        }
+        // Action - NOW / My work / dashboard
+        if (path == '/work' || path?.startsWith('/work')
+                || path == '/dashboard' || path?.startsWith('/dashboard')) {
+            ['help.work.actionNow', 'app.dashboard'].each { String key ->
                 HelpTopic t = HelpTopic.findByHelpKey(key)
                 if (t && t.id != primary?.id && !out.any { it.helpKey == key }) {
                     out << topicMap(t, lang)
@@ -1292,6 +1399,12 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
         } else if (path == '/users' || path?.startsWith('/users/')) {
             actions << [label: 'Manage role defaults', path: '/roles']
             actions << [label: 'Security (own 2FA)', path: '/security']
+            actions << [label: 'Help center', path: '/help']
+        } else if (path == '/work' || path?.startsWith('/work')) {
+            actions << [label: 'New task', path: '/domains/core/Task/new']
+            actions << [label: 'Dashboard', path: '/dashboard']
+        } else if (path == '/settings' || path?.startsWith('/settings')) {
+            actions << [label: 'Integrations', path: '/system/integrations']
             actions << [label: 'Help center', path: '/help']
         }
         actions << [label: 'Onboarding tour', path: '/tour/index.html', external: true]
@@ -1390,6 +1503,10 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
     }
 
     private static final Map FEATURE_TITLES_DE = [
+            'app.dashboard'      : 'CEO-Dashboard',
+            'system.settings'    : 'Einstellungen',
+            'help.work.actionNow': 'Aktivitäten - JETZT',
+            'help.partners.locale': 'Partnersprache (Kommunikation)',
             'help.roles.overview': 'Rollen für ein kleines Team',
             'help.roles.presets' : 'Welche Rolle wählen',
             'help.roles.matrix'  : 'Berechtigungsmatrix (Erweitert)',
@@ -1399,9 +1516,14 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             'help.roles.demo'    : 'Rollen üben (Demo / Training)',
             'help.tax.ust'       : 'Deutsche USt-Steuercodes',
             'help.tax.reverseCharge': 'Reverse Charge & innergemeinschaftliche Lieferung (IG)',
+            'finance.postingRules': 'Buchungsregeln (Auto-Journale)',
     ].asImmutable()
 
     private static final Map FEATURE_TITLES_ES = [
+            'app.dashboard'      : 'Panel CEO',
+            'system.settings'    : 'Configuración',
+            'help.work.actionNow': 'Actividades - AHORA',
+            'help.partners.locale': 'Idioma de comunicación del socio',
             'help.roles.overview': 'Roles para un equipo pequeño',
             'help.roles.presets' : 'Qué rol elegir',
             'help.roles.matrix'  : 'Matriz de permisos (Avanzado)',
@@ -1455,11 +1577,76 @@ Stammdaten unter Vertrieb bleiben für Admin-Listen verfügbar.''',
 
 Cockpit für offene Arbeit und Prozessgesundheit.
 
-- **Meine Arbeit** — Aufgaben und Aktivitäten
+- **Meine Arbeit** — offene Aufgaben und Fristen
+- **Aktivitäten - JETZT** — 3×3-Board Dringlichkeit × Wichtigkeit (dasselbe Board unter **Meine Arbeit**)
 - **APQC-Gruppen** — Sprung in Vertrieb, Finanzen, …
 - **Systemstatus**
 
-**Kurzbefehle:** **Ctrl+K** · **?** Hilfe''',
+**Kurzbefehle:** **Ctrl+K** · **?** oder **Ctrl+/** Hilfeschublade
+
+**Siehe auch:** Aktivitäten - JETZT · Einstellungen (Sprache & Region)''',
+            'system.settings': '''# Einstellungen
+
+**Sprache & Region** ist die erste Karte — sie steuert **Ihre Bildschirmsprache** (EN / DE / ES) und Datums-/Währungsformate für dieses Konto.
+
+## Sprache & Region
+
+1. **System → Einstellungen** öffnen
+2. Locale wählen (z. B. Deutsch (Deutschland) `de_DE`)
+3. Beschriftungen und Formate gelten für Ihren Benutzer
+
+Das ist **nicht** die Sprache ausgehender PDFs an Kunden/Lieferanten. Dafür gilt die **Kommunikationssprache** am Kunden- bzw. Lieferantenstamm.
+
+## Weitere Karten auf dieser Seite
+
+- **Verwendete Währungen** — Kurzliste für Dropdowns (Firmenwährung bleibt aktiv)
+- Verwendete Steuercodes (wenn Finance-Pack freigeschaltet)
+- Demo- / Setup-Status und Admin-**Setup zurücksetzen**
+
+**Integrationen** (Nostr, Bitcoin-Stufe, Hermes-Tokens) liegen unter **System → Integrationen**.
+
+**Siehe auch:** Partnersprache (Kommunikation) · Verwendete Währungen''',
+            'help.work.actionNow': '''# Aktivitäten - JETZT
+
+**Aktivitäten - JETZT** ist das Prioritätsboard für **offene Aufgaben**. Auf dem CEO-Dashboard erscheint dieselbe Ansicht als Mini-Board.
+
+## Board lesen
+
+- **Zeilen** = Dringlichkeit (hoch → niedrig)
+- **Spalten** = Wichtigkeit (niedrig → hoch)
+- Nur **offene** Aufgaben erscheinen (erledigt / abgebrochen bleiben weg)
+
+Jede Zelle gruppiert Aufgaben mit derselben Dringlichkeit × Wichtigkeit. Aufgabe öffnen, um Dringlichkeit, Wichtigkeit, Frist oder Zuweisung zu ändern.
+
+## Wohin
+
+- **Meine Arbeit** (`/work`) — volles Board + Aufgabenliste und Filter
+- **Dashboard** — Mini-Board + Sprung zu Meine Arbeit
+- Aufgabenformular — **Dringlichkeit** und **Wichtigkeit** setzen (niedrig / mittel / hoch)
+
+## Ehrliche Grenzen
+
+- Das Board erfindet keine Prioritäten — Sie setzen Dringlichkeit und Wichtigkeit an der Aufgabe
+- Überfällig-Filter liegen in der Aufgabenliste; das Board selbst ist nur Dringlichkeit × Wichtigkeit
+
+**Tipp:** Hilfeschublade mit **?** oder **Ctrl+/** von Meine Arbeit oder dem Dashboard.''',
+            'help.partners.locale': '''# Partnersprache (Kommunikation)
+
+Am **Kunden**- und **Lieferanten**-Stamm **Kommunikationssprache** setzen (z. B. Deutsch / Englisch).
+
+## Was sie steuert
+
+- **PDF-Beschriftungen** auf Angeboten, Aufträgen, Bestellungen und Rechnungen an diesen Partner
+- Entwurfsvorschauen folgen der Live-Einstellung; nach Senden / Bestätigen / Ausstellen **friert** der Beleg die Sprache ein
+
+## Vorgaben
+
+Leer lassen → **Englisch (en_US)** für ausgehende Belege. Das ist getrennt von Ihrer Bildschirmsprache unter **Einstellungen**.
+
+## Ehrliche Grenzen (v1)
+
+- Katalogbeschreibungen sind noch nicht zweisprachig
+- E-Mail- / Nostr-Partner-Vorlagen nutzen denselben Resolver, sobald diese Kanäle ausgeliefert sind''',
             'help.tax.ust': '''# Deutsche USt-Steuercodes
 
 steakOS liefert ein **DE/AT-Steuercode-Paket**. Codes unter **System → Einstellungen → Verwendete Steuercodes** aktivieren, dann auf Angebots-/Auftrags-/Bestellpositionen wählen.
@@ -1514,6 +1701,34 @@ Steuercodes **DE_RC** / **AT_RC** (Reverse Charge) oder **DE_IG** / **AT_IG** (I
 - Falscher Code ist Bedienfehler — keine Autokorrektur
 
 **Siehe auch:** Deutsche USt-Steuercodes · Geschäfts-PDFs''',
+
+            'finance.postingRules': '''# Buchungsregeln
+
+steakOS bucht ausgeglichene Journale bei Geldbewegungen — **Rechnung begleichen**, **Lieferant zahlen** und **Lohn erkennen / zahlen** — über ein **Firmen-Regelsatz** (keine hartcodierten Konten).
+
+## Buchungsmodus
+
+| Modus | Bedeutung |
+|-------|-----------|
+| **Cash** (Standard / Restaurant) | Bücher bei Zahlung |
+| **Accrual** | Pack enthält Issue/Create-Stub-Regeln; Zahlung bucht weiterhin. Issue/Create-Hooks noch nicht voll verdrahtet |
+
+## Wer darf was
+
+| Aktion | Admin | CEO |
+|--------|:-----:|:---:|
+| Regeln / Modus / Änderungslog sehen | ● | ● |
+| Regeln / Modus / Reseed ändern | ● | ○ |
+
+Jedes Admin-**Speichern** oder **Reseed** hängt ein unveränderliches **Änderungslog** an und öffnet ein Digital-**IT-Ticket** (`CHANGE`, Namenspräfix `[Finance policy]`). Reseed löscht keine Journale.
+
+## Wo
+
+**Finance → Buchungsregeln** (`/finance/posting-rules`)
+
+Fehlende oder ungültige Regeln **blockieren** settle/pay (Fehler `POSTING_RULES_*`) — kein stiller Fallback.
+
+**Siehe auch:** Hauptbuch · Forderungen · Treasury · Lohn''',
 
             'help.roles.overview': '''# Rollen für ein kleines Team
 
@@ -1714,11 +1929,76 @@ Los datos maestros de ventas siguen disponibles para listas Admin.''',
 
 Cabina de mando para trabajo abierto y salud de procesos.
 
-- **Mi trabajo** — tareas y actividades
+- **Mi trabajo** — tareas abiertas y plazos
+- **Actividades - AHORA** — tablero 3×3 urgencia × importancia (el mismo bajo **Mi trabajo**)
 - **Grupos APQC** — salto a ventas, finanzas, …
 - **Estado del sistema**
 
-**Atajos:** **Ctrl+K** · **?** ayuda''',
+**Atajos:** **Ctrl+K** · **?** o **Ctrl+/** cajón de ayuda
+
+**Ver también:** Actividades - AHORA · Configuración (idioma y región)''',
+            'system.settings': '''# Configuración
+
+**Idioma y región** es la primera tarjeta — controla **el idioma de su pantalla** (EN / DE / ES) y los formatos de fecha/dinero de esta cuenta.
+
+## Idioma y región
+
+1. Abra **System → Configuración**
+2. Elija una configuración regional (p. ej. Español (España) `es_ES`)
+3. Etiquetas y formatos se aplican a su usuario
+
+Esto **no** es el idioma de los PDF salientes a clientes/proveedores. Eso es el **Idioma de comunicación** en cada maestro Cliente / Proveedor.
+
+## Otras tarjetas en esta página
+
+- **Monedas que usamos** — lista corta para desplegables (la moneda de la empresa permanece activa)
+- Códigos fiscales en uso (cuando el pack Finance está habilitado)
+- Estado demo / setup y **restablecer setup** de Admin
+
+**Integraciones** (Nostr, nivel Bitcoin, tokens Hermes) están en **System → Integraciones**.
+
+**Ver también:** Idioma de comunicación del socio · Monedas que usamos''',
+            'help.work.actionNow': '''# Actividades - AHORA
+
+**Actividades - AHORA** es el tablero de prioridad para **tareas abiertas**. También aparece como mini tablero en el panel CEO.
+
+## Cómo leer el tablero
+
+- **Filas** = urgencia (alta → baja)
+- **Columnas** = importancia (baja → alta)
+- Solo aparecen tareas **abiertas** (hechas / canceladas no salen)
+
+Cada celda agrupa tareas con la misma urgencia × importancia. Abra una tarea para cambiar urgencia, importancia, plazo o asignación.
+
+## Dónde ir
+
+- **Mi trabajo** (`/work`) — tablero completo + lista y filtros
+- **Dashboard** — mini tablero + salto a Mi trabajo
+- Formulario de tarea — fijar **Urgencia** e **Importancia** (baja / media / alta)
+
+## Límites honestos
+
+- El tablero no inventa prioridades — usted fija urgencia e importancia en cada tarea
+- Los filtros de atrasadas están en la lista; el tablero es solo urgencia × importancia
+
+**Consejo:** abra este cajón con **?** o **Ctrl+/** desde Mi trabajo o el panel.''',
+            'help.partners.locale': '''# Idioma de comunicación del socio
+
+En los maestros **Cliente** y **Proveedor**, fije el **Idioma de comunicación** (p. ej. alemán / inglés / español).
+
+## Qué controla
+
+- **Etiquetas PDF** en ofertas, pedidos, órdenes de compra y facturas a ese socio
+- Las vistas previas de borrador siguen el ajuste en vivo; tras enviar / confirmar / emitir el documento **congela** su idioma
+
+## Valores por defecto
+
+Déjelo en blanco para usar **inglés (en_US)** en documentos salientes. Es independiente del idioma de pantalla en **Configuración**.
+
+## Límites honestos (v1)
+
+- Las descripciones de catálogo aún no son bilingües
+- Las plantillas de correo / Nostr usan el mismo resolvedor cuando esos canales se entreguen''',
             'help.roles.overview': '''# Roles para un equipo pequeño
 
 steakOS está pensado para una **empresa pequeña** (unas 2–5 personas). Asigne a cada persona un **perfil de rol** (Office, Ops, Finance…). Los roles aportan **valores por defecto** sobre qué escritorios se ven y qué se puede cambiar.

@@ -437,6 +437,12 @@ export const financeLedgerApi = {
     api('/api/finance/posting-rules', { method: 'PUT', body }),
   postingRulesReseed: (body = {}) =>
     api('/api/finance/posting-rules/reseed', { method: 'POST', body }),
+  postingRulesChanges: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.max != null) q.set('max', String(params.max))
+    const qs = q.toString()
+    return api(`/api/finance/posting-rules/changes${qs ? `?${qs}` : ''}`)
+  },
 }
 
 export const financeRevenueApi = {

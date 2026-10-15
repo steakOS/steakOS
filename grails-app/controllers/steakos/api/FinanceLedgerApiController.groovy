@@ -42,10 +42,11 @@ class FinanceLedgerApiController {
             trialBalance      : 'GET',
             closePeriod       : 'POST',
             periodStatus      : 'GET',
-            postingRulesGet   : 'GET',
-            postingRulesSeed  : 'POST',
-            postingRulesSave  : 'PUT',
-            postingRulesReseed: 'POST',
+            postingRulesGet      : 'GET',
+            postingRulesSeed     : 'POST',
+            postingRulesSave     : 'PUT',
+            postingRulesReseed   : 'POST',
+            postingRulesChangeLog: 'GET',
     ]
 
     FinanceLedgerService financeLedgerService
@@ -199,6 +200,23 @@ class FinanceLedgerApiController {
                     npubOwner      : npub,
                     accountingMode : postingRulesetService.getAccountingMode(npub),
                     ruleset        : postingRulesetService.getRuleset(npub),
+                    liveEvents     : PostingRulesetService.LIVE_EVENTS,
+                    accrualStubEvents: PostingRulesetService.ACCRUAL_STUB_EVENTS,
+                    changeLog      : postingRulesetService.listChangeLog(npub, 10),
+            ] as JSON)
+        } catch (IllegalArgumentException e) {
+            render(status: 400, text: ([error: e.message, code: 'POSTING_RULES_INVALID'] as JSON))
+        }
+    }
+
+    /** GET /api/finance/posting-rules/changes — recent policy change log */
+    def postingRulesChangeLog() {
+        try {
+            String npub = resolveNpub(params)
+            int max = params.max ? params.int('max') : 20
+            render([
+                    npubOwner: npub,
+                    items    : postingRulesetService.listChangeLog(npub, max),
             ] as JSON)
         } catch (IllegalArgumentException e) {
             render(status: 400, text: ([error: e.message, code: 'POSTING_RULES_INVALID'] as JSON))
@@ -216,12 +234,13 @@ class FinanceLedgerApiController {
         }
     }
 
-    /** PUT /api/finance/posting-rules — Admin only (audit ticket in later PR) */
+    /** PUT /api/finance/posting-rules — Admin only; appends change log + IT ticket */
     @Secured(['ROLE_ADMIN'])
     def postingRulesSave() {
         try {
             Map body = (request.JSON as Map) ?: [:]
             String npub = resolveNpub(body)
+            body.actor = currentUsername()
             render(postingRulesetService.saveRuleset(npub, body) as JSON)
         } catch (IllegalArgumentException e) {
             render(status: 400, text: ([error: e.message, code: 'POSTING_RULES_INVALID'] as JSON))
@@ -234,7 +253,8 @@ class FinanceLedgerApiController {
         try {
             Map body = (request.JSON as Map) ?: [:]
             String npub = resolveNpub(body)
-            render(postingRulesetService.reseedDefaults(npub) as JSON)
+            body.actor = currentUsername()
+            render(postingRulesetService.reseedDefaults(npub, body) as JSON)
         } catch (IllegalArgumentException e) {
             render(status: 400, text: ([error: e.message, code: 'POSTING_RULES_INVALID'] as JSON))
         }
@@ -242,5 +262,14 @@ class FinanceLedgerApiController {
 
     private String resolveNpub(Object source) {
         tenantNpubService.resolve(session, source)
+    }
+
+    private String currentUsername() {
+        try {
+            def u = springSecurityService?.currentUser
+            if (u instanceof User) return (u as User).username
+            if (u?.hasProperty('username')) return u.username as String
+        } catch (ignored) { }
+        springSecurityService?.principal?.username as String ?: 'admin'
     }
 }

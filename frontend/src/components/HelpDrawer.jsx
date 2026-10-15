@@ -285,6 +285,7 @@ export default function HelpDrawer({ open, onClose, initialTopic = null }) {
                     >
                       <option value="INCIDENT">INCIDENT</option>
                       <option value="REQUEST">REQUEST</option>
+                      <option value="CHANGE">CHANGE</option>
                     </select>
                   </label>
                   <label>

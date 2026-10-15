@@ -146,12 +146,13 @@ class UrlMappings {
 
         // Finance ledger kernel (F-S1 / APQC 9.3)
         "/api/finance/ledger/seed"(controller: 'financeLedgerApi', action: 'seed', method: 'POST')
-        // PDR-027 PR1 — posting ruleset
+        // PDR-027 — posting ruleset + Admin change log
         "/api/finance/posting-rules"(controller: 'financeLedgerApi') {
             action = [GET: 'postingRulesGet', PUT: 'postingRulesSave']
         }
         "/api/finance/posting-rules/seed"(controller: 'financeLedgerApi', action: 'postingRulesSeed', method: 'POST')
         "/api/finance/posting-rules/reseed"(controller: 'financeLedgerApi', action: 'postingRulesReseed', method: 'POST')
+        "/api/finance/posting-rules/changes"(controller: 'financeLedgerApi', action: 'postingRulesChangeLog', method: 'GET')
         "/api/finance/ledger/accounts"(controller: 'financeLedgerApi') {
             action = [GET: 'accounts', POST: 'createAccount']
         }

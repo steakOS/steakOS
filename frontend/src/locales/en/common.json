@@ -70,6 +70,7 @@
     "tax": "Tax",
     "payroll": "Payroll",
     "control": "Control",
+    "postingRules": "Posting rules",
     "projects": "Projects",
     "processes": "Processes",
     "quality": "Quality",
@@ -232,7 +233,7 @@
     "work": {
       "nav": "My work",
       "title": "My work",
-      "subtitle": "Open tasks, deadlines, and the Eisenhower board (urgency × importance).",
+      "subtitle": "Open tasks, deadlines, and the Action - NOW board (urgency × importance).",
       "list": "Task list",
       "eisenhower": "Action - NOW",
       "eisenhowerHint": "Prioritise open work on a 3×3 urgency × importance board.",
@@ -292,6 +293,28 @@
         "help.users.danger": "Safety: Admin, CEO & disable",
         "help.users.privacy": "Privacy, HR & Read only",
         "help.roles.demo": "Practice roles (demo / training)"
+      },
+      "settingsTitle": "Settings · language & region",
+      "settingsBody": "Screen language vs partner communication language. Also available from the Help drawer (?) on",
+      "settingsLoading": "Loading settings help…",
+      "settingsTopics": {
+        "system.settings": "Settings",
+        "help.partners.locale": "Partner communication language"
+      },
+      "workTitle": "Action - NOW",
+      "workBody": "Priority board for open tasks (urgency × importance). Also on the dashboard mini board.",
+      "workLoading": "Loading Action - NOW help…",
+      "workTopics": {
+        "help.work.actionNow": "Action - NOW",
+        "app.dashboard": "CEO dashboard"
+      },
+      "financeTitle": "Finance · posting rules",
+      "financeBody": "Auto journals on settle / vendor pay / payroll. Admin edits rules; CEO can view. Also from Finance → Posting rules.",
+      "financeLoading": "Loading finance help…",
+      "financeTopics": {
+        "finance.postingRules": "Posting rules (auto journals)",
+        "finance.invoices": "Invoices",
+        "finance.treasury": "Treasury"
       }
     },
     "import": {
