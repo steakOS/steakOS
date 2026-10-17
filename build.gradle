@@ -29,8 +29,8 @@ buildscript {
 }
 
 // Product SemVer (VERSIONS.md V6): 0.x until SBM GA → 1.0.0. Source of V for /api/version.
-// 0.1.8 = closed-beta wave — DE i18n, AppBridge LAN redirect, Content Rail edit/upload, PKS sync
-version = "0.1.8"
+// 0.2.0 = Silver build-out wave kickoff (selection still BRONZE-only until DoD)
+version = "0.2.0"
 group = "steakos"
 
 apply plugin:"eclipse"
