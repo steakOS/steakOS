@@ -42,6 +42,7 @@ const DevelopmentDesk = lazy(() => import('./pages/DevelopmentDesk'))
 const AssetDesk = lazy(() => import('./pages/AssetDesk'))
 const GrrcDesk = lazy(() => import('./pages/GrrcDesk'))
 const StakeholderDesk = lazy(() => import('./pages/StakeholderDesk'))
+const AnalyticsDesk = lazy(() => import('./pages/AnalyticsDesk'))
 const FinanceCollectionsPage = lazy(() => import('./pages/FinanceCollectionsPage'))
 const FinanceMatchPage = lazy(() => import('./pages/FinanceMatchPage'))
 const CapabilityHub = lazy(() => import('./pages/CapabilityHub'))
@@ -283,6 +284,9 @@ export default function App() {
             <Route path="assets" element={<AssetDesk />} />
             <Route path="grrc" element={<GrrcDesk />} />
             <Route path="stakeholder" element={<StakeholderDesk />} />
+            {/* Analytics desk UI (PR-14); AppShell nav link is PR-15 */}
+            <Route path="analytics" element={<AnalyticsDesk />} />
+            <Route path="analytics/:kpiId" element={<AnalyticsDesk />} />
             <Route path="capability" element={<Navigate to="/capability/projects" replace />} />
             <Route path="capability/:section" element={<CapabilityHub />} />
             <Route path="agents" element={<Navigate to="/agents/agents" replace />} />

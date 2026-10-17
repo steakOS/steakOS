@@ -275,6 +275,26 @@ export const dashboardApi = {
   ceo: () => api('/api/dashboard/ceo'),
 }
 
+/** Silver KPI fabric (PR-2/13 registry + feeds; PR-14 Analytics desk) */
+export const kpiApi = {
+  catalogue: () => api('/api/kpi/catalogue'),
+  dashboardHero: () => api('/api/kpi/dashboard-hero'),
+  /** @param {string} id e.g. KPI-S01 */
+  show: (id, params = {}) => {
+    const q = new URLSearchParams()
+    if (params.from) q.set('from', params.from)
+    if (params.to) q.set('to', params.to)
+    const qs = q.toString()
+    return api(`/api/kpi/${encodeURIComponent(id)}${qs ? `?${qs}` : ''}`)
+  },
+  arAging: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.asOf) q.set('asOf', params.asOf)
+    const qs = q.toString()
+    return api(`/api/kpi/ar-aging${qs ? `?${qs}` : ''}`)
+  },
+}
+
 export const versionApi = {
   get: () => api('/api/version'),
   /** Live + inventory system vitals (About page) */
