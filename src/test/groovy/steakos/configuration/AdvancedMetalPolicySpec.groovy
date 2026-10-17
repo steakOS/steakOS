@@ -56,6 +56,8 @@ class AdvancedMetalPolicySpec extends Specification {
         '/api/sales/pricelists/1'         | true
         '/api/sales/pricelists/resolve'   | true
         '/api/finance/collections'        | true
+        '/api/finance/match'              | true
+        '/api/finance/match/candidates'   | true
         '/finance/match'                  | true
         '/api/sales/customers'            | false
         '/api/finance/invoices'           | false

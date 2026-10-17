@@ -221,6 +221,16 @@ class UrlMappings {
         }
         "/api/finance/collections/$id/promise"(controller: 'financeCollectionsApi', action: 'createPromise', method: 'POST')
 
+        // FinanceAdvanced three-way match (OI-F21 / PR-5b) — gated SILVER+ via AdvancedRouteCatalog
+        "/api/finance/match"(controller: 'financeMatchApi') {
+            action = [GET: 'list', POST: 'propose']
+        }
+        "/api/finance/match/candidates"(controller: 'financeMatchApi', action: 'candidates', method: 'GET')
+        "/api/finance/match/$id"(controller: 'financeMatchApi', action: 'show', method: 'GET')
+        "/api/finance/match/$id/confirm"(controller: 'financeMatchApi', action: 'confirm', method: 'POST')
+        "/api/finance/match/$id/reject"(controller: 'financeMatchApi', action: 'reject', method: 'POST')
+        "/api/finance/match/$id/cancel"(controller: 'financeMatchApi', action: 'cancel', method: 'POST')
+
         // Finance ops F-S3–F-S6 (treasury, AP, plan, tax, payroll stub, control)
         "/api/finance/treasury/seed"(controller: 'financeOpsApi', action: 'treasurySeed', method: 'POST')
         "/api/finance/treasury/positions"(controller: 'financeOpsApi') {

@@ -558,6 +558,23 @@ export const financeOpsApi = {
   controlPeriod: (period) => api(`/api/finance/control/periods/${period}`),
   controlClose: (period) =>
     api(`/api/finance/control/periods/${period}/close`, { method: 'POST', body: { period } }),
+
+  // FinanceAdvanced three-way match (OI-F21 / PR-5b) — SILVER+
+  matchList: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.status) q.set('status', params.status)
+    const qs = q.toString()
+    return api(`/api/finance/match${qs ? `?${qs}` : ''}`)
+  },
+  matchCandidates: () => api('/api/finance/match/candidates'),
+  matchGet: (id) => api(`/api/finance/match/${id}`),
+  matchPropose: (body) => api('/api/finance/match', { method: 'POST', body }),
+  matchConfirm: (id, body = {}) =>
+    api(`/api/finance/match/${id}/confirm`, { method: 'POST', body }),
+  matchReject: (id, body = {}) =>
+    api(`/api/finance/match/${id}/reject`, { method: 'POST', body }),
+  matchCancel: (id) =>
+    api(`/api/finance/match/${id}/cancel`, { method: 'POST', body: {} }),
 }
 
 /** OI-NOSTR01 — Nostr integration settings / probe */
