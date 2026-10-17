@@ -50,7 +50,7 @@
     "security": "Seguridad",
     "supplychain": "cadena de suministro",
     "grrc": "GRRC",
-    "stakeholder": "Stakeholders"
+    "stakeholder": "Partes interesadas"
   },
   "features": {
     "salesDesk": "mostrador de ventas",
@@ -82,12 +82,12 @@
     "hives": "Urticaria",
     "hitl": "HITL",
     "memory": "Memoria",
-    "grrcDesk": "GRRC desk",
-    "stakeholderDesk": "Stakeholder desk",
-    "pricing": "Price lists",
+    "grrcDesk": "Escritorio GRRC",
+    "stakeholderDesk": "Escritorio de partes interesadas",
+    "pricing": "Listas de precios",
     "crm": "CRM",
-    "collections": "Collections",
-    "threeWayMatch": "Three-way match"
+    "collections": "Cobros",
+    "threeWayMatch": "Conciliación triangular"
   },
   "actions": {
     "save": "Guardar",
@@ -315,6 +315,14 @@
       "workTopics": {
         "help.work.actionNow": "Actividades - AHORA",
         "app.dashboard": "Panel CEO"
+      },
+      "financeTitle": "Finanzas · reglas de asiento",
+      "financeBody": "Asientos automáticos al liquidar / pagar proveedor / nómina. El admin edita las reglas; el CEO puede ver. También en Finanzas → Reglas de asiento.",
+      "financeLoading": "Cargando ayuda de finanzas…",
+      "financeTopics": {
+        "finance.postingRules": "Reglas de asiento (asientos automáticos)",
+        "finance.invoices": "Facturas",
+        "finance.treasury": "Tesorería"
       }
     },
     "import": {

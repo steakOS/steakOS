@@ -152,7 +152,7 @@
     "sales": "Vertrieb",
     "finance": "Finanzen",
     "messagingBlurb": "Optionales Outbound-Messaging. Aus lassen, bis Zugangsdaten unter System → Integrationen hinterlegt sind.",
-    "messagingLabel": "Messaging",
+    "messagingLabel": "Benachrichtigungen",
     "emailEnabled": "Outbound-E-Mail aktivieren (später konfigurieren)",
     "telegramEnabled": "Telegram-Benachrichtigungen aktivieren (später konfigurieren)",
     "emailShort": "E-Mail",

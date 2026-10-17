@@ -571,7 +571,15 @@
     "risks": "Risks",
     "compliance": "Compliance",
     "emptyRisks": "No risks yet. Open items will appear here from /api/grrc/risks.",
-    "emptyCompliance": "No compliance items yet. Register policies and controls via /api/grrc/compliance."
+    "emptyCompliance": "No compliance items yet. Register policies and controls via /api/grrc/compliance.",
+    "loadError": "Could not load GRRC data",
+    "loading": "Loading…",
+    "count": "{{total}} item(s)",
+    "colName": "Name",
+    "colStatus": "Status",
+    "colExtra": "Detail",
+    "colSeverity": "Severity",
+    "colKind": "Kind"
   },
   "stakeholder": {
     "title": "Stakeholders",
@@ -579,28 +587,69 @@
     "parties": "Parties",
     "comms": "Communications",
     "emptyParties": "No parties yet. Register stakeholders via /api/stakeholder/parties.",
-    "emptyComms": "No communications logged yet."
+    "emptyComms": "No communications logged yet.",
+    "loadError": "Could not load stakeholder data",
+    "loading": "Loading…",
+    "count": "{{total}} item(s)",
+    "colName": "Name / subject",
+    "colStatus": "Status",
+    "colExtra": "Detail",
+    "colKind": "Kind",
+    "colChannel": "Channel"
   },
   "pricing": {
     "title": "Price lists",
     "subtitle": "SalesAdvanced mid-market pricing lists. Silver pack / Iron eval.",
-    "empty": "No price lists yet. Create lists via /api/sales/pricelists."
+    "empty": "No price lists yet. Create lists via /api/sales/pricelists.",
+    "backSales": "← Sales desk",
+    "loadError": "Could not load price lists",
+    "list": "Lists",
+    "loading": "Loading…",
+    "count": "{{total}} list(s)",
+    "colName": "Name",
+    "colKind": "Kind",
+    "colActive": "Active"
   },
   "crm": {
     "title": "CRM",
     "subtitle": "SalesAdvanced light opportunities and activities. Silver pack / Iron eval.",
     "empty": "No open opportunities. Pipeline rows come from /api/sales/crm/opportunities.",
-    "openOpps": "Open opportunities"
+    "openOpps": "Open opportunities",
+    "backSales": "← Sales desk",
+    "loadError": "Could not load CRM opportunities",
+    "loading": "Loading…",
+    "count": "{{total}} opportunity(ies)",
+    "colName": "Name",
+    "colStage": "Stage",
+    "colCustomer": "Customer"
   },
   "collections": {
     "title": "Collections",
     "subtitle": "FinanceAdvanced overdue AR queue and promises. Silver pack / Iron eval.",
     "empty": "No overdue invoices. Queue is empty — honest empty state.",
-    "overdue": "Overdue queue"
+    "overdue": "Overdue queue",
+    "backInvoices": "← Receivables",
+    "loadError": "Could not load collections queue",
+    "loading": "Loading…",
+    "count": "{{total}} overdue",
+    "colInvoice": "Invoice",
+    "colCustomer": "Customer",
+    "colDue": "Due",
+    "colDays": "Days overdue",
+    "colOpen": "Open"
   },
   "match": {
     "title": "Three-way match",
     "subtitle": "FinanceAdvanced invoice ↔ PO ↔ receipt match. Silver pack / Iron eval.",
-    "empty": "No three-way matches yet. Propose matches via /api/finance/match."
+    "empty": "No three-way matches yet. Propose matches via /api/finance/match.",
+    "backPayables": "← Payables",
+    "loadError": "Could not load matches",
+    "list": "Matches",
+    "loading": "Loading…",
+    "count": "{{total}} match(es)",
+    "colId": "ID",
+    "colStatus": "Status",
+    "colInvoice": "Invoice",
+    "colPo": "PO"
   }
 }

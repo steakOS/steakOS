@@ -19,11 +19,11 @@
       ]
     },
     {
-      "title": "Sales & Sales Planning – Winning and Managing Customers",
+      "title": "Sales Advanced – Price lists and light CRM",
       "icon": "💼",
-      "text": "Sales is the process of finding potential customers and turning them into paying clients. Sales planning means thinking ahead about targets and how to reach them. Silver helps growing companies manage leads, opportunities, and sales targets more professionally.",
+      "text": "Sales is finding customers and turning them into paying clients. On Silver, Sales runs at Advanced depth: price lists for mid-market deals, plus a light CRM for opportunities and follow-ups — so a growing team sees the pipeline without a separate tool.",
       "examples": [
-        "A B2B company with 40 employees tracks every sales opportunity and sees which ones are likely to close this quarter"
+        "A B2B company with 40 people tracks every opportunity and which price list applies this quarter"
       ]
     },
     {
@@ -51,11 +51,11 @@
       ]
     },
     {
-      "title": "Finance & Accounting – Managing Money Professionally",
+      "title": "Finance Advanced – Collections and three-way match",
       "icon": "💰",
-      "text": "Finance covers invoicing, payments, bookkeeping, and financial reporting. Silver gives growing companies stronger financial processes, better reporting, and clearer visibility into the company’s financial health.",
+      "text": "Finance covers invoicing, payments, and reporting. On Silver, Finance runs at Advanced depth: an overdue collections queue for promises to pay, and three-way match (invoice ↔ purchase order ↔ receipt) so money and goods stay aligned as you grow.",
       "examples": [
-        "Management can see monthly profit and loss, cash flow, and outstanding invoices without needing to ask the accountant every time"
+        "Finance sees overdue invoices in one queue and matches supplier invoices to orders and receipts before paying"
       ]
     },
     {
@@ -67,11 +67,27 @@
       ]
     },
     {
-      "title": "Governance, Compliance & Risk – Doing Things the Right Way",
+      "title": "GRRC – Governance, risk, remediation, compliance",
       "icon": "⚖️",
-      "text": "Governance, compliance, and risk management help ensure the company follows laws, manages risks, and operates responsibly. Silver gives growing companies better tools to handle compliance requirements and basic risk management.",
+      "text": "GRRC (always spelled GRRC, never GRC) is the Silver desk for governance, risk, remediation, and compliance. Keep a light register of risks and compliance items so the growing company can see what still needs attention — without claiming full enterprise GRC suites.",
       "examples": [
-        "A company can track important legal requirements and see which ones still need attention"
+        "Track important legal requirements and open risks in one Basics register on the GRRC desk"
+      ]
+    },
+    {
+      "title": "Stakeholders – Parties and communications",
+      "icon": "🗣️",
+      "text": "The Stakeholder desk keeps external parties, a light ethics/communications log, and a simple contract register. It ships with the Silver pack and stays on — not switched off individually in setup.",
+      "examples": [
+        "Register key partners and log sensitive outreach so the team shares one honest trail"
+      ]
+    },
+    {
+      "title": "Optional messaging – Email and Telegram",
+      "icon": "✉️",
+      "text": "Silver can send optional outbound email and Telegram notifies. Both stay off by default until you add credentials under System → Integrations. Messaging is not required to open the Silver pack.",
+      "examples": [
+        "Turn on email later when SMTP is ready; leave Telegram off until a bot token is configured"
       ]
     },
     {

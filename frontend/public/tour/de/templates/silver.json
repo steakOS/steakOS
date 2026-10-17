@@ -19,11 +19,11 @@
       ]
     },
     {
-      "title": "Vertrieb & Vertriebsplanung – Kunden gewinnen und managen",
+      "title": "Vertrieb Advanced – Preislisten und leichtes CRM",
       "icon": "💼",
-      "text": "Vertrieb findet potenzielle Kunden und macht sie zu zahlenden Kunden. Vertriebsplanung denkt Ziele und Wege voraus. Silver hilft wachsenden Unternehmen, Leads, Opportunities und Ziele professioneller zu steuern.",
+      "text": "Vertrieb findet Kunden und macht sie zu zahlenden Kunden. Bei Silver läuft Vertrieb in Advanced-Tiefe: Preislisten für Mid-Market-Deals und ein leichtes CRM für Opportunities und Nachfassen — damit ein wachsendes Team die Pipeline ohne Extra-Tool sieht.",
       "examples": [
-        "Ein B2B-Unternehmen mit 40 Mitarbeitenden trackt jede Opportunity und sieht, was in diesem Quartal wahrscheinlich schließt"
+        "Ein B2B-Unternehmen mit 40 Personen trackt jede Opportunity und welche Preisliste in diesem Quartal gilt"
       ]
     },
     {
@@ -51,11 +51,11 @@
       ]
     },
     {
-      "title": "Finanzen & Buchhaltung – Geld professionell managen",
+      "title": "Finanzen Advanced – Inkasso und Drei-Wege-Abgleich",
       "icon": "💰",
-      "text": "Finanzen decken Rechnungen, Zahlungen, Buchhaltung und Reporting ab. Silver gibt wachsenden Unternehmen stärkere Finanzprozesse, besseres Reporting und klarere Sicht auf die finanzielle Gesundheit.",
+      "text": "Finanzen decken Rechnungen, Zahlungen und Reporting ab. Bei Silver laufen Finanzen in Advanced-Tiefe: eine Warteschlange für überfällige Forderungen mit Zahlungsversprechen und Drei-Wege-Abgleich (Rechnung ↔ Bestellung ↔ Wareneingang), damit Geld und Ware beim Wachsen zusammenpassen.",
       "examples": [
-        "Das Management sieht monatliche GuV, Cashflow und offene Rechnungen, ohne jedes Mal die Buchhaltung zu fragen"
+        "Finanzen sehen überfällige Rechnungen in einer Warteschlange und gleichen Lieferantenrechnungen mit Bestellungen und Wareneingängen ab, bevor gezahlt wird"
       ]
     },
     {
@@ -67,11 +67,27 @@
       ]
     },
     {
-      "title": "Governance, Compliance & Risiko – Dinge richtig machen",
+      "title": "GRRC – Governance, Risiko, Remediation, Compliance",
       "icon": "⚖️",
-      "text": "Governance, Compliance und Risikomanagement stellen sicher, dass das Unternehmen Gesetze einhält, Risiken steuert und verantwortungsvoll handelt. Silver gibt wachsenden Unternehmen bessere Tools für Compliance und grundlegendes Risikomanagement.",
+      "text": "GRRC (immer GRRC geschrieben, nie GRC) ist der Silver-Desk für Governance, Risiko, Remediation und Compliance. Ein leichtes Register für Risiken und Compliance-Punkte hilft dem wachsenden Unternehmen zu sehen, was noch Aufmerksamkeit braucht — ohne volle Enterprise-GRC-Suiten zu behaupten.",
       "examples": [
-        "Ein Unternehmen trackt wichtige rechtliche Anforderungen und sieht, was noch Aufmerksamkeit braucht"
+        "Wichtige rechtliche Anforderungen und offene Risiken in einem Basics-Register am GRRC-Desk tracken"
+      ]
+    },
+    {
+      "title": "Stakeholder – Parteien und Kommunikation",
+      "icon": "🗣️",
+      "text": "Der Stakeholder-Desk hält externe Parteien, ein leichtes Ethik-/Kommunikationsprotokoll und ein einfaches Vertragsregister. Er gehört zum Silver-Paket und bleibt an — in der Einrichtung nicht einzeln abschaltbar.",
+      "examples": [
+        "Wichtige Partner erfassen und sensible Ansprache protokollieren, damit das Team eine ehrliche Spur teilt"
+      ]
+    },
+    {
+      "title": "Optionales Messaging – E-Mail und Telegram",
+      "icon": "✉️",
+      "text": "Silver kann optional Outbound-E-Mail und Telegram-Benachrichtigungen senden. Beides bleibt standardmäßig aus, bis Sie Zugangsdaten unter System → Integrationen hinterlegen. Messaging ist nicht nötig, um das Silver-Paket zu öffnen.",
+      "examples": [
+        "E-Mail später einschalten, wenn SMTP bereit ist; Telegram aus lassen, bis ein Bot-Token konfiguriert ist"
       ]
     },
     {

@@ -190,7 +190,7 @@
     "messagingLabel": "Mensajería",
     "emailEnabled": "Activar email saliente (configurar después)",
     "telegramEnabled": "Activar avisos de Telegram (configurar después)",
-    "emailShort": "Email",
+    "emailShort": "Correo",
     "telegramShort": "Telegram",
     "packFixed": "Paquete — obligatorio",
     "fixedPackNote": "GRRC y Stakeholder permanecen activos en Silver — no se desactivan individualmente aquí."
