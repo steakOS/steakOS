@@ -133,6 +133,7 @@ class UrlMappings {
         "/api/setup/heard-cook-seed"(controller: 'setupApi', action: 'heardCookSeed', method: 'POST')
         "/api/setup/heard-cook-reset"(controller: 'setupApi', action: 'heardCookReset', method: 'POST')
         "/api/setup/template-tier"(controller: 'setupApi', action: 'templateTier', method: 'POST')
+        "/api/setup/pack-options"(controller: 'setupApi', action: 'packOptions', method: 'POST')
         "/api/setup/privacy/hr-ack"(controller: 'setupApi', action: 'privacyHrAck', method: 'POST')
 
         // OI-NOSTR01 — Nostr integration (Integrations hub)

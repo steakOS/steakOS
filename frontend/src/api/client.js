@@ -362,6 +362,10 @@ export const setupApi = {
   heardCookReset: (body = {}) => api('/api/setup/heard-cook-reset', { method: 'POST', body }),
   /** Bronze BR-R6 — acknowledge HR / people-data privacy duties before enabling human family */
   privacyHrAck: (body = {}) => api('/api/setup/privacy/hr-ack', { method: 'POST', body }),
+  /** Switch metal pack + families (open metals only). Body: { templateTier, enabledFamilies?, pluginDepth?, messaging? } */
+  templateTier: (body) => api('/api/setup/template-tier', { method: 'POST', body }),
+  /** Settings pack options — messaging toggles / pluginDepth without tier change */
+  packOptions: (body) => api('/api/setup/pack-options', { method: 'POST', body }),
 }
 
 /** Opaque bearer tokens for Hermes agents (human admin session) */

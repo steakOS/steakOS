@@ -151,4 +151,40 @@ class SetupServiceSilverConfigSpec extends Specification implements DataTest {
         SetupService.KEY_MESSAGING_EMAIL == 'messaging.emailEnabled'
         SetupService.KEY_MESSAGING_TELEGRAM == 'messaging.telegramEnabled'
     }
+
+    def "setPackOptions updates messaging without metal-open and defaults off"() {
+        given:
+        String npub = 'user:admin'
+        stored.put("${npub}|template.tier".toString(), TemplateTiers.BRONZE)
+
+        when:
+        Map status = setupService.setPackOptions(npub, [
+                messaging: [emailEnabled: true, telegramEnabled: false]
+        ])
+
+        then:
+        status.messaging.emailEnabled == true
+        status.messaging.telegramEnabled == false
+        stored.get("${npub}|${SetupService.KEY_MESSAGING_EMAIL}".toString()) == 'true'
+        stored.get("${npub}|${SetupService.KEY_MESSAGING_TELEGRAM}".toString()) == 'false'
+        stored.get("${npub}|template.tier".toString()) == 'BRONZE'
+    }
+
+    def "setPackOptions on Silver forces Advanced depth even if Basics sent"() {
+        given:
+        String npub = 'user:admin'
+        stored.put("${npub}|template.tier".toString(), TemplateTiers.SILVER)
+
+        when:
+        Map status = setupService.setPackOptions(npub, [
+                messaging  : [emailEnabled: false, telegramEnabled: true],
+                pluginDepth: [sales: 'BASICS', finance: 'BASICS']
+        ])
+
+        then:
+        status.messaging.emailEnabled == false
+        status.messaging.telegramEnabled == true
+        status.pluginDepth.sales == 'ADVANCED'
+        status.pluginDepth.finance == 'ADVANCED'
+    }
 }

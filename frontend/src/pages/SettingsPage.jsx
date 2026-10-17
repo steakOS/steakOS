@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -26,6 +26,7 @@ import {
   financeOpsApi,
 } from '../api/client'
 import { useLocaleBootstrap } from '../hooks/useLocaleBootstrap'
+import { allowsSilverSurfaces, normalizeMetalTier } from '../utils/silverSurfaces'
 
 const L2_WARN_DISMISS_KEY = 'steakos.btcLevel2WarnDismissed'
 
@@ -81,6 +82,15 @@ export default function SettingsPage() {
       return false
     }
   })
+  const [packMsg, setPackMsg] = useState(null)
+  const [packBusy, setPackBusy] = useState(false)
+  const [messagingDraft, setMessagingDraft] = useState({
+    emailEnabled: false,
+    telegramEnabled: false,
+  })
+  const [upgradeConfirmOpen, setUpgradeConfirmOpen] = useState(false)
+  const [upgradeTarget, setUpgradeTarget] = useState(null)
+  const [upgradeError, setUpgradeError] = useState(null)
 
   const loadCurrencies = async () => {
     try {
@@ -126,7 +136,12 @@ export default function SettingsPage() {
 
   const load = async () => {
     try {
-      setStatus(await setupApi.status())
+      const st = await setupApi.status()
+      setStatus(st)
+      setMessagingDraft({
+        emailEnabled: !!st?.messaging?.emailEnabled,
+        telegramEnabled: !!st?.messaging?.telegramEnabled,
+      })
       setCheck(await setupApi.check())
       try {
         const me = await meApi.get()
@@ -153,6 +168,96 @@ export default function SettingsPage() {
   useEffect(() => {
     load()
   }, [])
+
+  const currentTier = useMemo(
+    () => normalizeMetalTier(status?.templateTier),
+    [status?.templateTier],
+  )
+  const isSilverTenant = allowsSilverSurfaces(currentTier)
+  const openMetals = useMemo(() => {
+    const tiers = status?.tiers
+    if (!Array.isArray(tiers)) return ['BRONZE']
+    return tiers.filter((x) => x?.openForMetalSelection).map((x) => String(x.code).toUpperCase())
+  }, [status?.tiers])
+  const silverOpen = openMetals.includes('SILVER')
+  const pluginDepth = status?.pluginDepth || {}
+
+  const savePackOptions = async () => {
+    setPackBusy(true)
+    setPackMsg(null)
+    setError(null)
+    try {
+      const r = await setupApi.packOptions({
+        messaging: {
+          emailEnabled: !!messagingDraft.emailEnabled,
+          telegramEnabled: !!messagingDraft.telegramEnabled,
+        },
+      })
+      if (r?.status) {
+        setStatus(r.status)
+        setMessagingDraft({
+          emailEnabled: !!r.status.messaging?.emailEnabled,
+          telegramEnabled: !!r.status.messaging?.telegramEnabled,
+        })
+      }
+      setPackMsg(
+        t('pages.settings.packOptionsSaved', {
+          defaultValue: 'Pack options saved.',
+        }),
+      )
+    } catch (e) {
+      setError(e.message || String(e))
+    } finally {
+      setPackBusy(false)
+    }
+  }
+
+  const beginUpgrade = (tierCode) => {
+    setUpgradeTarget(String(tierCode || 'SILVER').toUpperCase())
+    setUpgradeError(null)
+    setUpgradeConfirmOpen(true)
+  }
+
+  const cancelUpgrade = () => {
+    if (packBusy) return
+    setUpgradeConfirmOpen(false)
+    setUpgradeTarget(null)
+    setUpgradeError(null)
+  }
+
+  const confirmUpgrade = async () => {
+    if (!upgradeTarget) return
+    setPackBusy(true)
+    setUpgradeError(null)
+    setError(null)
+    try {
+      const r = await setupApi.templateTier({
+        templateTier: upgradeTarget,
+        messaging: { emailEnabled: false, telegramEnabled: false },
+      })
+      if (r?.status) {
+        setStatus(r.status)
+        setMessagingDraft({
+          emailEnabled: !!r.status.messaging?.emailEnabled,
+          telegramEnabled: !!r.status.messaging?.telegramEnabled,
+        })
+      }
+      setUpgradeConfirmOpen(false)
+      setUpgradeTarget(null)
+      setPackMsg(
+        t('pages.settings.templateUpgradeDone', {
+          tier: upgradeTarget,
+          defaultValue: 'Template upgraded to {{tier}}.',
+        }),
+      )
+    } catch (e) {
+      const msg = e.message || String(e)
+      setUpgradeError(msg)
+      setError(msg)
+    } finally {
+      setPackBusy(false)
+    }
+  }
 
   const onLocaleChange = async (e) => {
     const code = e.target.value
@@ -682,7 +787,233 @@ export default function SettingsPage() {
             })}
           </p>
         )}
+        {status?.pluginDepth && (
+          <dl className="setup-summary" style={{ marginTop: 12 }}>
+            <dt>{t('pages.settings.pluginDepth', { defaultValue: 'Plugin depth' })}</dt>
+            <dd>
+              {t('pages.settings.depthSales', { defaultValue: 'Sales' })}:{' '}
+              <span className="badge badge-ok">{pluginDepth.sales || '—'}</span>
+              {' · '}
+              {t('pages.settings.depthFinance', { defaultValue: 'Finance' })}:{' '}
+              <span className="badge badge-ok">{pluginDepth.finance || '—'}</span>
+            </dd>
+            <dt>{t('pages.settings.messagingLabel', { defaultValue: 'Messaging' })}</dt>
+            <dd>
+              {t('pages.settings.emailShort', { defaultValue: 'Email' })}:{' '}
+              {status.messaging?.emailEnabled
+                ? t('pages.settings.on', { defaultValue: 'On' })
+                : t('pages.settings.off', { defaultValue: 'Off' })}
+              {' · '}
+              {t('pages.settings.telegramShort', { defaultValue: 'Telegram' })}:{' '}
+              {status.messaging?.telegramEnabled
+                ? t('pages.settings.on', { defaultValue: 'On' })
+                : t('pages.settings.off', { defaultValue: 'Off' })}
+            </dd>
+          </dl>
+        )}
       </div>
+
+      {isAdmin && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <h2>
+            {t('pages.settings.templateUpgradeTitle', {
+              defaultValue: 'Template pack',
+            })}
+          </h2>
+          <p className="page-sub">
+            {t('pages.settings.templateUpgradeBlurb', {
+              defaultValue:
+                'Current metal and open packs. Upgrading to Silver adds GRRC and Stakeholder desks, Sales/Finance Advanced depth, and optional email/Telegram. Existing data stays.',
+            })}
+          </p>
+          <p>
+            {t('pages.settings.template')}: <strong>{currentTier}</strong>
+            {openMetals.length > 0 && (
+              <span className="muted" style={{ marginLeft: 8 }}>
+                (
+                {t('pages.settings.openMetals', {
+                  list: openMetals.join(', '),
+                  defaultValue: 'Open: {{list}}',
+                })}
+                )
+              </span>
+            )}
+          </p>
+          {!isSilverTenant && (
+            <div style={{ marginTop: 12 }}>
+              {silverOpen ? (
+                !upgradeConfirmOpen ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={packBusy}
+                    onClick={() => beginUpgrade('SILVER')}
+                  >
+                    {t('pages.settings.templateUpgradeSilver', {
+                      defaultValue: 'Upgrade to Silver',
+                    })}
+                  </button>
+                ) : (
+                  <div
+                    className="setup-error"
+                    role="alertdialog"
+                    aria-labelledby="upgrade-confirm-title"
+                    style={{
+                      marginTop: 8,
+                      padding: 12,
+                      border: '1px solid var(--border, #c45)',
+                      borderRadius: 8,
+                      background: 'var(--surface-warn, #fff8f6)',
+                    }}
+                  >
+                    <p id="upgrade-confirm-title" style={{ fontWeight: 600, marginTop: 0 }}>
+                      {t('pages.settings.templateUpgradeConfirmTitle', {
+                        tier: upgradeTarget || 'SILVER',
+                        defaultValue: 'Upgrade to {{tier}}?',
+                      })}
+                    </p>
+                    <p>
+                      {t('pages.settings.templateUpgradeConfirmBody', {
+                        defaultValue:
+                          'Adds GRRC and Stakeholder desks, Sales/Finance Advanced depth, and optional email/Telegram (off by default). Existing Bronze data stays.',
+                      })}
+                    </p>
+                    {upgradeError && (
+                      <p className="setup-error" style={{ marginTop: 8 }}>
+                        {upgradeError}
+                      </p>
+                    )}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={packBusy}
+                        onClick={confirmUpgrade}
+                      >
+                        {packBusy
+                          ? t('actions.loading')
+                          : t('pages.settings.templateUpgradeConfirm', {
+                              defaultValue: 'Yes, upgrade',
+                            })}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={packBusy}
+                        onClick={cancelUpgrade}
+                      >
+                        {t('actions.cancel', { defaultValue: 'Cancel' })}
+                      </button>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <p className="muted" style={{ fontSize: 13 }}>
+                  {t('pages.settings.templateUpgradeSilverLocked', {
+                    defaultValue:
+                      'Silver is not open for metal selection yet. Pack options appear here once this tenant is on Silver.',
+                  })}
+                </p>
+              )}
+            </div>
+          )}
+          {packMsg && !isSilverTenant && (
+            <p className="muted" style={{ marginTop: 8 }}>
+              {packMsg}
+            </p>
+          )}
+        </div>
+      )}
+
+      {isAdmin && isSilverTenant && (
+        <div className="card setup-silver-options" style={{ marginTop: 16 }}>
+          <h2>
+            {t('pages.settings.packOptionsTitle', {
+              defaultValue: 'Silver pack options',
+            })}
+          </h2>
+          <p className="page-sub">
+            {t('pages.settings.packOptionsBlurb', {
+              defaultValue:
+                'Sales and Finance Advanced depth is pack-mandatory. Messaging stays off until you enable it and add credentials under Integrations.',
+            })}
+          </p>
+          <p className="muted" style={{ fontSize: '0.9rem' }}>
+            {t('pages.settings.depthBlurb', {
+              defaultValue:
+                'Sales and Finance run at Advanced depth on Silver (pack-mandatory). Not toggled back to Basics here.',
+            })}
+          </p>
+          <div className="setup-depth-badges">
+            <span className="setup-depth-badge">
+              <strong>{t('pages.settings.depthSales', { defaultValue: 'Sales' })}</strong>
+              <span className="badge badge-ok">{pluginDepth.sales || 'ADVANCED'}</span>
+              <span className="muted" style={{ fontSize: 12, marginLeft: 6 }}>
+                {t('pages.settings.packFixed', { defaultValue: 'Pack — required' })}
+              </span>
+            </span>
+            <span className="setup-depth-badge">
+              <strong>{t('pages.settings.depthFinance', { defaultValue: 'Finance' })}</strong>
+              <span className="badge badge-ok">{pluginDepth.finance || 'ADVANCED'}</span>
+              <span className="muted" style={{ fontSize: 12, marginLeft: 6 }}>
+                {t('pages.settings.packFixed', { defaultValue: 'Pack — required' })}
+              </span>
+            </span>
+          </div>
+          <p className="muted" style={{ fontSize: '0.9rem', marginTop: '0.85rem' }}>
+            {t('pages.settings.messagingBlurb', {
+              defaultValue:
+                'Optional outbound messaging. Leave off until you add credentials under System → Integrations.',
+            })}
+          </p>
+          <label className="setup-check">
+            <input
+              type="checkbox"
+              checked={!!messagingDraft.emailEnabled}
+              disabled={packBusy}
+              onChange={(e) =>
+                setMessagingDraft((d) => ({ ...d, emailEnabled: e.target.checked }))
+              }
+            />
+            {t('pages.settings.emailEnabled', {
+              defaultValue: 'Enable outbound email (configure later)',
+            })}
+          </label>
+          <label className="setup-check">
+            <input
+              type="checkbox"
+              checked={!!messagingDraft.telegramEnabled}
+              disabled={packBusy}
+              onChange={(e) =>
+                setMessagingDraft((d) => ({ ...d, telegramEnabled: e.target.checked }))
+              }
+            />
+            {t('pages.settings.telegramEnabled', {
+              defaultValue: 'Enable Telegram notifies (configure later)',
+            })}
+          </label>
+          <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={packBusy}
+              onClick={savePackOptions}
+            >
+              {packBusy
+                ? t('actions.loading')
+                : t('pages.settings.savePackOptions', { defaultValue: 'Save pack options' })}
+            </button>
+            <Link to="/integrations" className="btn btn-ghost">
+              {t('pages.settings.openIntegrations', { defaultValue: 'Open Integrations' })}
+            </Link>
+          </div>
+          {packMsg && (
+            <p className="muted" style={{ marginTop: 8 }}>
+              {packMsg}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>{t('pages.settings.processCatalogueTitle')}</h2>

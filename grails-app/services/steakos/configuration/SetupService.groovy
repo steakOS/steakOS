@@ -495,6 +495,33 @@ class SetupService {
     }
 
     /**
+     * Settings → Pack options: update messaging toggles (and optional pluginDepth) without
+     * changing template tier or requiring metal-open. Silver+ depth stays pack-mandatory Advanced.
+     *
+     * @param options map: messaging {emailEnabled, telegramEnabled}, optional pluginDepth
+     */
+    Map setPackOptions(String npubOwner, Map options) {
+        String npub = resolveNpub(npubOwner)
+        SetupState s = ensureState(npub)
+        String tier = companyConfigService.getString(npub, 'template.tier', s.templateTier ?: TemplateTiers.DEFAULT_OPERATOR_TIER)
+        tier = TemplateTiers.normalize(tier)
+
+        if (options?.messaging instanceof Map) {
+            persistMessagingFlags(npub, options.messaging as Map)
+        } else if (options != null && (options.containsKey('emailEnabled') || options.containsKey('telegramEnabled'))) {
+            persistMessagingFlags(npub, options)
+        }
+
+        Map depthRaw = options?.pluginDepth instanceof Map ? (options.pluginDepth as Map) : null
+        if (depthRaw != null || TemplateTiers.advancedFamilies(tier)) {
+            // Re-sanitize so Silver+ cannot drop below Advanced even if UI sends Basics
+            persistPluginDepth(npub, TemplateTiers.sanitizePluginDepth(tier, depthRaw))
+        }
+
+        statusMap(npub)
+    }
+
+    /**
      * Admin full reset. wipeSeed=true removes company settings + entities for re-demo.
      * Memberships must go before LegalEntity (FK user_company_membership.legal_entity_id).
      */

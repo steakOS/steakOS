@@ -16,12 +16,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { nostrApi, financeOpsApi, meApi, agentTokenApi } from '../api/client'
+import { nostrApi, financeOpsApi, meApi, agentTokenApi, setupApi } from '../api/client'
 
 const L2_WARN_DISMISS_KEY = 'steakos.btcLevel2WarnDismissed'
 
 /**
- * System → Integrations — Nostr, Bitcoin receive level, Hermes agent tokens.
+ * System → Integrations — Nostr, Bitcoin receive level, messaging stubs, Hermes agent tokens.
  */
 export default function IntegrationsPage() {
   const { t } = useTranslation('common')
@@ -30,6 +30,7 @@ export default function IntegrationsPage() {
   const [isCeo, setIsCeo] = useState(false)
   const [nostr, setNostr] = useState(null)
   const [btcLevel, setBtcLevel] = useState(null)
+  const [messaging, setMessaging] = useState({ emailEnabled: false, telegramEnabled: false })
   const [probe, setProbe] = useState(null)
   const [busy, setBusy] = useState(false)
   const [btcBusy, setBtcBusy] = useState(false)
@@ -67,12 +68,17 @@ export default function IntegrationsPage() {
       const me = await meApi.get()
       setIsAdmin(!!me?.isAdmin)
       setIsCeo(!!me?.isCeo)
-      const [n, b] = await Promise.all([
+      const [n, b, st] = await Promise.all([
         nostrApi.settingsGet().catch(() => null),
         financeOpsApi.btcLevelGet().catch(() => null),
+        setupApi.status().catch(() => null),
       ])
       setNostr(n)
       setBtcLevel(b)
+      setMessaging({
+        emailEnabled: !!st?.messaging?.emailEnabled,
+        telegramEnabled: !!st?.messaging?.telegramEnabled,
+      })
       if (n) {
         setForm({
           level: n.level || 'DEFERRED',
@@ -479,6 +485,56 @@ export default function IntegrationsPage() {
                 ? '…'
                 : t('pages.settings.saveBtcLevel', { defaultValue: 'Save Bitcoin level' })}
             </button>
+          </div>
+        )}
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h2>
+          {t('pages.integrations.messagingTitle', {
+            defaultValue: 'Email & Telegram',
+          })}
+        </h2>
+        <p className="page-sub">
+          {t('pages.integrations.messagingHint', {
+            defaultValue:
+              'Outbound adapters. Enable toggles under Settings → Pack options (Silver). Secrets (SMTP / bot token) will live here — stubs for now.',
+          })}
+        </p>
+        {!messaging.emailEnabled && !messaging.telegramEnabled ? (
+          <p className="muted">
+            {t('pages.integrations.messagingDisabled', {
+              defaultValue:
+                'Messaging is off for this company. Turn on email or Telegram under Settings → Pack options when on Silver.',
+            })}
+          </p>
+        ) : (
+          <ul className="inv-list" style={{ marginTop: 8 }}>
+            {messaging.emailEnabled && (
+              <li>
+                {t('pages.integrations.messagingEmailOn', {
+                  defaultValue:
+                    'Outbound email enabled — configure SMTP credentials here soon.',
+                })}
+              </li>
+            )}
+            {messaging.telegramEnabled && (
+              <li>
+                {t('pages.integrations.messagingTelegramOn', {
+                  defaultValue:
+                    'Telegram notifies enabled — configure bot token here soon.',
+                })}
+              </li>
+            )}
+          </ul>
+        )}
+        {isAdmin && (
+          <div style={{ marginTop: 12 }}>
+            <Link to="/settings" className="btn btn-ghost">
+              {t('pages.integrations.openSettingsPack', {
+                defaultValue: 'Open Settings → Pack options',
+              })}
+            </Link>
           </div>
         )}
       </div>

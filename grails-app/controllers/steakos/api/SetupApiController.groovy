@@ -45,6 +45,7 @@ class SetupApiController {
             heardCookSeed: 'POST',
             heardCookReset: 'POST',
             templateTier : 'POST',
+            packOptions  : 'POST',
             privacyHrAck : 'POST'
     ]
 
@@ -228,6 +229,41 @@ class SetupApiController {
                     : msg.contains('privacy') || msg.contains('acknowledgement') ? 'HR_PRIVACY_ACK_REQUIRED'
                     : 'METAL_NOT_OPEN_FOR_SELECTION'
             render(status: 400, text: ([error: e.message, code: code] as JSON))
+        } catch (Exception e) {
+            render(status: 400, text: ([error: e.message] as JSON))
+        }
+    }
+
+    /**
+     * POST /api/setup/pack-options — messaging toggles (+ optional pluginDepth) for current tier.
+     * Body: { "messaging": { "emailEnabled": false, "telegramEnabled": false }, "pluginDepth"?: {...} }
+     * Does not change template tier; Silver+ depth remains Advanced (pack-mandatory).
+     */
+    def packOptions() {
+        if (isAgentPrincipal()) {
+            render(status: 403, text: ([error: 'Agents cannot change pack options', code: 'AGENT_PACK_DENIED'] as JSON))
+            return
+        }
+        try {
+            Map body = (request.JSON as Map) ?: [:]
+            Map options = [:]
+            if (body.messaging instanceof Map) {
+                options.messaging = body.messaging
+            } else if (body.containsKey('emailEnabled') || body.containsKey('telegramEnabled')) {
+                options.messaging = [
+                        emailEnabled   : body.emailEnabled,
+                        telegramEnabled: body.telegramEnabled
+                ]
+            }
+            if (body.pluginDepth instanceof Map) options.pluginDepth = body.pluginDepth
+            if (!options) {
+                render(status: 400, text: ([error: 'messaging or pluginDepth required'] as JSON))
+                return
+            }
+            Map status = setupService.setPackOptions(resolveNpub(body), options)
+            render([ok: true, status: status] as JSON)
+        } catch (IllegalArgumentException e) {
+            render(status: 400, text: ([error: e.message] as JSON))
         } catch (Exception e) {
             render(status: 400, text: ([error: e.message] as JSON))
         }
