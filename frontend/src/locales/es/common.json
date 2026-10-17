@@ -48,7 +48,9 @@
     "agent": "Agente",
     "catalogue": "Catalogar",
     "security": "Seguridad",
-    "supplychain": "cadena de suministro"
+    "supplychain": "cadena de suministro",
+    "grrc": "GRRC",
+    "stakeholder": "Stakeholders"
   },
   "features": {
     "salesDesk": "mostrador de ventas",
@@ -79,7 +81,13 @@
     "agents": "Agentes",
     "hives": "Urticaria",
     "hitl": "HITL",
-    "memory": "Memoria"
+    "memory": "Memoria",
+    "grrcDesk": "GRRC desk",
+    "stakeholderDesk": "Stakeholder desk",
+    "pricing": "Price lists",
+    "crm": "CRM",
+    "collections": "Collections",
+    "threeWayMatch": "Three-way match"
   },
   "actions": {
     "save": "Guardar",

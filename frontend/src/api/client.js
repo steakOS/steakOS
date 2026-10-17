@@ -575,6 +575,26 @@ export const financeOpsApi = {
     api(`/api/finance/match/${id}/reject`, { method: 'POST', body }),
   matchCancel: (id) =>
     api(`/api/finance/match/${id}/cancel`, { method: 'POST', body: {} }),
+
+  // FinanceAdvanced collections (PR-5a) — SILVER+
+  collectionsOverdue: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.asOf) q.set('asOf', params.asOf)
+    const qs = q.toString()
+    return api(`/api/finance/collections${qs ? `?${qs}` : ''}`)
+  },
+  collectionsOpen: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.asOf) q.set('asOf', params.asOf)
+    const qs = q.toString()
+    return api(`/api/finance/collections/open${qs ? `?${qs}` : ''}`)
+  },
+  collectionsGet: (id, params = {}) => {
+    const q = new URLSearchParams()
+    if (params.asOf) q.set('asOf', params.asOf)
+    const qs = q.toString()
+    return api(`/api/finance/collections/${id}${qs ? `?${qs}` : ''}`)
+  },
 }
 
 /** OI-NOSTR01 — Nostr integration settings / probe */
@@ -661,6 +681,137 @@ export const salesApi = {
       api(`/api/sales/orders/${id}/confirm`, { method: 'POST', body }),
     cancel: (id, body = {}) =>
       api(`/api/sales/orders/${id}/cancel`, { method: 'POST', body }),
+  },
+
+  /** SalesAdvanced price lists (OI-S04 / PR-4a) — SILVER+ */
+  pricelists: {
+    list: (params = {}) => {
+      const q = new URLSearchParams()
+      if (params.max != null) q.set('max', String(params.max))
+      if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.q) q.set('q', params.q)
+      if (params.listKind) q.set('listKind', params.listKind)
+      if (params.customerId != null) q.set('customerId', String(params.customerId))
+      if (params.active === false) q.set('active', 'false')
+      const qs = q.toString()
+      return api(`/api/sales/pricelists${qs ? `?${qs}` : ''}`)
+    },
+    get: (id) => api(`/api/sales/pricelists/${id}`),
+    create: (body) => api('/api/sales/pricelists', { method: 'POST', body }),
+    update: (id, body) => api(`/api/sales/pricelists/${id}`, { method: 'PUT', body }),
+    delete: (id) => api(`/api/sales/pricelists/${id}`, { method: 'DELETE' }),
+    setLines: (id, lines) =>
+      api(`/api/sales/pricelists/${id}/lines`, { method: 'PUT', body: { lines } }),
+    resolve: (params = {}) => {
+      const q = new URLSearchParams()
+      Object.entries(params).forEach(([k, v]) => {
+        if (v != null && v !== '') q.set(k, String(v))
+      })
+      const qs = q.toString()
+      return api(`/api/sales/pricelists/resolve${qs ? `?${qs}` : ''}`)
+    },
+  },
+
+  /** SalesAdvanced light CRM (OI-S08 / PR-4b) — SILVER+ */
+  crm: {
+    listOpportunities: (params = {}) => {
+      const q = new URLSearchParams()
+      if (params.max != null) q.set('max', String(params.max))
+      if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.q) q.set('q', params.q)
+      if (params.stage) q.set('stage', params.stage)
+      if (params.customerId != null) q.set('customerId', String(params.customerId))
+      if (params.active === false) q.set('active', 'false')
+      if (params.open) q.set('open', 'true')
+      const qs = q.toString()
+      return api(`/api/sales/crm/opportunities${qs ? `?${qs}` : ''}`)
+    },
+    getOpportunity: (id) => api(`/api/sales/crm/opportunities/${id}`),
+    createOpportunity: (body) =>
+      api('/api/sales/crm/opportunities', { method: 'POST', body }),
+    updateOpportunity: (id, body) =>
+      api(`/api/sales/crm/opportunities/${id}`, { method: 'PUT', body }),
+    deleteOpportunity: (id) =>
+      api(`/api/sales/crm/opportunities/${id}`, { method: 'DELETE' }),
+    markLost: (id, body = {}) =>
+      api(`/api/sales/crm/opportunities/${id}/lost`, { method: 'POST', body }),
+    convert: (id, body = {}) =>
+      api(`/api/sales/crm/opportunities/${id}/convert`, { method: 'POST', body }),
+    listActivities: (opportunityId) =>
+      api(`/api/sales/crm/opportunities/${opportunityId}/activities`),
+    createActivity: (opportunityId, body) =>
+      api(`/api/sales/crm/opportunities/${opportunityId}/activities`, {
+        method: 'POST',
+        body,
+      }),
+  },
+}
+
+/** GRRCBasics (G7 / PR-6) — SILVER+ / Iron eval */
+export const grrcApi = {
+  risks: {
+    list: (params = {}) => {
+      const q = new URLSearchParams()
+      if (params.max != null) q.set('max', String(params.max))
+      if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.status) q.set('status', params.status)
+      const qs = q.toString()
+      return api(`/api/grrc/risks${qs ? `?${qs}` : ''}`)
+    },
+    get: (id) => api(`/api/grrc/risks/${id}`),
+    create: (body) => api('/api/grrc/risks', { method: 'POST', body }),
+    update: (id, body) => api(`/api/grrc/risks/${id}`, { method: 'PUT', body }),
+    delete: (id) => api(`/api/grrc/risks/${id}`, { method: 'DELETE' }),
+    close: (id, body = {}) =>
+      api(`/api/grrc/risks/${id}/close`, { method: 'POST', body }),
+  },
+  compliance: {
+    list: (params = {}) => {
+      const q = new URLSearchParams()
+      if (params.max != null) q.set('max', String(params.max))
+      if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.status) q.set('status', params.status)
+      const qs = q.toString()
+      return api(`/api/grrc/compliance${qs ? `?${qs}` : ''}`)
+    },
+    get: (id) => api(`/api/grrc/compliance/${id}`),
+    create: (body) => api('/api/grrc/compliance', { method: 'POST', body }),
+    update: (id, body) => api(`/api/grrc/compliance/${id}`, { method: 'PUT', body }),
+    delete: (id) => api(`/api/grrc/compliance/${id}`, { method: 'DELETE' }),
+  },
+}
+
+/** StakeholderBasics (G7 / PR-7) — SILVER+ / Iron eval */
+export const stakeholderApi = {
+  parties: {
+    list: (params = {}) => {
+      const q = new URLSearchParams()
+      if (params.max != null) q.set('max', String(params.max))
+      if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.status) q.set('status', params.status)
+      if (params.partyKind) q.set('partyKind', params.partyKind)
+      const qs = q.toString()
+      return api(`/api/stakeholder/parties${qs ? `?${qs}` : ''}`)
+    },
+    get: (id) => api(`/api/stakeholder/parties/${id}`),
+    create: (body) => api('/api/stakeholder/parties', { method: 'POST', body }),
+    update: (id, body) => api(`/api/stakeholder/parties/${id}`, { method: 'PUT', body }),
+    delete: (id) => api(`/api/stakeholder/parties/${id}`, { method: 'DELETE' }),
+  },
+  comms: {
+    list: (params = {}) => {
+      const q = new URLSearchParams()
+      if (params.max != null) q.set('max', String(params.max))
+      if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.status) q.set('status', params.status)
+      if (params.partyId != null) q.set('partyId', String(params.partyId))
+      const qs = q.toString()
+      return api(`/api/stakeholder/comms${qs ? `?${qs}` : ''}`)
+    },
+    get: (id) => api(`/api/stakeholder/comms/${id}`),
+    create: (body) => api('/api/stakeholder/comms', { method: 'POST', body }),
+    update: (id, body) => api(`/api/stakeholder/comms/${id}`, { method: 'PUT', body }),
+    delete: (id) => api(`/api/stakeholder/comms/${id}`, { method: 'DELETE' }),
   },
 }
 

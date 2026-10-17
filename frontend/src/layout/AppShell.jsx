@@ -59,6 +59,12 @@ import {
   LifeBuoy,
   KeyRound,
   Plug,
+  ShieldAlert,
+  Handshake,
+  Tags,
+  ContactRound,
+  Scale,
+  GitCompareArrows,
 } from 'lucide-react'
 import { domainGroups } from '../config/domainRegistry'
 import { setupApi, versionApi, meApi } from '../api/client'
@@ -68,6 +74,7 @@ import { useLocaleBootstrap } from '../hooks/useLocaleBootstrap'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { logoutHref } from '../i18n'
 import { domainResourceLabel } from '../utils/domainLabels'
+import { allowsSilverSurfaces } from '../utils/silverSurfaces'
 
 /**
  * AUTH03 — System nav by role.
@@ -140,8 +147,8 @@ function formatTierLabel(tier) {
   return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
 }
 
-function financeFeatureLinks(t) {
-  return [
+function financeFeatureLinks(t, { showAdvanced = false } = {}) {
+  const links = [
     { name: t('features.generalLedger'), path: '/finance/transactions', icon: BookOpen },
     { name: t('features.invoices'), path: '/finance/invoices', icon: FileText },
     { name: t('features.payments', { defaultValue: 'Payments' }), path: '/finance/payments', icon: Bitcoin },
@@ -155,6 +162,60 @@ function financeFeatureLinks(t) {
       name: t('features.postingRules', { defaultValue: 'Posting rules' }),
       path: '/finance/posting-rules',
       icon: BookOpen,
+    },
+  ]
+  if (showAdvanced) {
+    links.push(
+      {
+        name: t('features.collections', { defaultValue: 'Collections' }),
+        path: '/finance/collections',
+        icon: Scale,
+      },
+      {
+        name: t('features.threeWayMatch', { defaultValue: 'Three-way match' }),
+        path: '/finance/match',
+        icon: GitCompareArrows,
+      },
+    )
+  }
+  return links
+}
+
+function salesFeatureLinks(t, { showAdvanced = false } = {}) {
+  const links = [{ name: t('desk.title', { ns: 'sales' }), path: '/sales', icon: ShoppingCart }]
+  if (showAdvanced) {
+    links.push(
+      {
+        name: t('features.pricing', { defaultValue: 'Price lists' }),
+        path: '/sales/pricing',
+        icon: Tags,
+      },
+      {
+        name: t('features.crm', { defaultValue: 'CRM' }),
+        path: '/sales/crm',
+        icon: ContactRound,
+      },
+    )
+  }
+  return links
+}
+
+function grrcFeatureLinks(t) {
+  return [
+    {
+      name: t('features.grrcDesk', { defaultValue: 'GRRC desk' }),
+      path: '/grrc',
+      icon: ShieldAlert,
+    },
+  ]
+}
+
+function stakeholderFeatureLinks(t) {
+  return [
+    {
+      name: t('features.stakeholderDesk', { defaultValue: 'Stakeholder desk' }),
+      path: '/stakeholder',
+      icon: Handshake,
     },
   ]
 }
@@ -288,6 +349,18 @@ function groupContainsPath(group, pathname) {
   ) {
     return true
   }
+  if (
+    group.package === 'grrc' &&
+    (pathname === '/grrc' || pathname.startsWith('/grrc/'))
+  ) {
+    return true
+  }
+  if (
+    group.package === 'stakeholder' &&
+    (pathname === '/stakeholder' || pathname.startsWith('/stakeholder/'))
+  ) {
+    return true
+  }
   return group.resources.some(
     (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
   )
@@ -345,7 +418,7 @@ function isAgentsMasterDataPath(pathname) {
   return pathname?.startsWith('/domains/agents/')
 }
 
-function NavGroup({ group, open, onToggle }) {
+function NavGroup({ group, open, onToggle, showAdvanced = false }) {
   const location = useLocation()
   const { t } = useTranslation(['common', 'domain', 'sales'])
   const resources = (group.resources || []).map((r) => ({
@@ -357,13 +430,11 @@ function NavGroup({ group, open, onToggle }) {
     ),
   }))
 
-  const salesLinks = [{ name: t('desk.title', { ns: 'sales' }), path: '/sales', icon: ShoppingCart }]
-
   const featureLinks =
     group.package === 'finance'
-      ? financeFeatureLinks(t)
+      ? financeFeatureLinks(t, { showAdvanced })
       : group.package === 'sales'
-        ? salesLinks
+        ? salesFeatureLinks(t, { showAdvanced })
         : group.package === 'procurement'
           ? procurementFeatureLinks(t)
           : group.package === 'production'
@@ -386,7 +457,11 @@ function NavGroup({ group, open, onToggle }) {
                             ? developmentFeatureLinks(t)
                             : group.package === 'asset'
                               ? assetFeatureLinks(t)
-                              : []
+                              : group.package === 'grrc'
+                                ? grrcFeatureLinks(t)
+                                : group.package === 'stakeholder'
+                                  ? stakeholderFeatureLinks(t)
+                                  : []
   const nestMasterData =
     group.package === 'finance' ||
     group.package === 'sales' ||
@@ -561,6 +636,7 @@ export default function AppShell() {
   const [isCeo, setIsCeo] = useState(false)
 
   const elevated = isAdmin || isCeo
+  const showAdvanced = allowsSilverSurfaces(templateTier)
 
   // D6: always start closed when entering narrow; leave closed when leaving narrow
   useEffect(() => {
@@ -772,6 +848,7 @@ export default function AppShell() {
       setIsAdmin(admin)
       setIsCeo(ceo)
       if (me.permissions) setPermissions(me.permissions)
+      if (me.templateTier) setTemplateTier(me.templateTier)
       if (Array.isArray(me.enabledFamilies) && me.enabledFamilies.length) {
         setEnabledFamilies(me.enabledFamilies)
       }
@@ -864,6 +941,7 @@ export default function AppShell() {
               group={group}
               open={openPackages.has(group.package)}
               onToggle={() => toggle(group.package)}
+              showAdvanced={showAdvanced}
             />
           ))}
 

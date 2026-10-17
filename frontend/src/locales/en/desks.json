@@ -564,5 +564,43 @@
   "order": {
     "cancel": "Cancel",
     "list": "Orders"
+  },
+  "grrc": {
+    "title": "GRRC",
+    "subtitle": "Governance, risk, remediation, and compliance — Basics register. Silver pack / Iron eval.",
+    "risks": "Risks",
+    "compliance": "Compliance",
+    "emptyRisks": "No risks yet. Open items will appear here from /api/grrc/risks.",
+    "emptyCompliance": "No compliance items yet. Register policies and controls via /api/grrc/compliance."
+  },
+  "stakeholder": {
+    "title": "Stakeholders",
+    "subtitle": "External parties, ethics/comms log, and light contract register. Silver pack / Iron eval.",
+    "parties": "Parties",
+    "comms": "Communications",
+    "emptyParties": "No parties yet. Register stakeholders via /api/stakeholder/parties.",
+    "emptyComms": "No communications logged yet."
+  },
+  "pricing": {
+    "title": "Price lists",
+    "subtitle": "SalesAdvanced mid-market pricing lists. Silver pack / Iron eval.",
+    "empty": "No price lists yet. Create lists via /api/sales/pricelists."
+  },
+  "crm": {
+    "title": "CRM",
+    "subtitle": "SalesAdvanced light opportunities and activities. Silver pack / Iron eval.",
+    "empty": "No open opportunities. Pipeline rows come from /api/sales/crm/opportunities.",
+    "openOpps": "Open opportunities"
+  },
+  "collections": {
+    "title": "Collections",
+    "subtitle": "FinanceAdvanced overdue AR queue and promises. Silver pack / Iron eval.",
+    "empty": "No overdue invoices. Queue is empty — honest empty state.",
+    "overdue": "Overdue queue"
+  },
+  "match": {
+    "title": "Three-way match",
+    "subtitle": "FinanceAdvanced invoice ↔ PO ↔ receipt match. Silver pack / Iron eval.",
+    "empty": "No three-way matches yet. Propose matches via /api/finance/match."
   }
 }

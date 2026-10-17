@@ -14,7 +14,7 @@
       "navRole": "work",
       "primary": false,
       "family": "core",
-      "comment": "Nav: top-level My work \u2192 /work; Task list under System (AppShell)"
+      "comment": "Nav: top-level My work → /work; Task list under System (AppShell)"
     },
     {
       "package": "strategy",
@@ -430,6 +430,28 @@
       "navRole": "work",
       "primary": true,
       "family": "finance"
+    },
+    {
+      "package": "grrc",
+      "label": "GRRC",
+      "order": 145,
+      "apqc": 11,
+      "resources": [],
+      "navRole": "work",
+      "primary": true,
+      "family": "grrc",
+      "comment": "G7 GRRCBasics thin desk — SILVER+ / Iron eval (Bronze hidden via family pack)"
+    },
+    {
+      "package": "stakeholder",
+      "label": "Stakeholder",
+      "order": 147,
+      "apqc": 12,
+      "resources": [],
+      "navRole": "work",
+      "primary": true,
+      "family": "stakeholder",
+      "comment": "G7 StakeholderBasics thin desk — SILVER+ / Iron eval"
     },
     {
       "package": "capability",

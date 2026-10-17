@@ -48,7 +48,9 @@
     "agent": "Agent",
     "catalogue": "Katalog",
     "security": "Sicherheit",
-    "supplychain": "Lieferkette"
+    "supplychain": "Lieferkette",
+    "grrc": "GRRC",
+    "stakeholder": "Stakeholder"
   },
   "features": {
     "salesDesk": "Vertrieb",
@@ -79,7 +81,13 @@
     "agents": "Agenten",
     "hives": "Schwärme",
     "hitl": "HITL",
-    "memory": "Gedächtnis"
+    "memory": "Gedächtnis",
+    "grrcDesk": "GRRC-Arbeitsplatz",
+    "stakeholderDesk": "Stakeholder-Arbeitsplatz",
+    "pricing": "Preislisten",
+    "crm": "CRM",
+    "collections": "Inkasso",
+    "threeWayMatch": "Drei-Wege-Abgleich"
   },
   "pager": {
     "nav": "Seitennummerierung",

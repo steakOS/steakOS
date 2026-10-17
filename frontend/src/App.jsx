@@ -30,6 +30,8 @@ const FinancePayments = lazy(() => import('./pages/FinancePayments'))
 const FinanceHub = lazy(() => import('./pages/FinanceHub'))
 const PostingRulesPage = lazy(() => import('./pages/PostingRulesPage'))
 const SalesDesk = lazy(() => import('./pages/SalesDesk'))
+const SalesPricingPage = lazy(() => import('./pages/SalesPricingPage'))
+const SalesCrmPage = lazy(() => import('./pages/SalesCrmPage'))
 const ScmDesk = lazy(() => import('./pages/ScmDesk'))
 const DeliveryDesk = lazy(() => import('./pages/DeliveryDesk'))
 const AfterSalesDesk = lazy(() => import('./pages/AfterSalesDesk'))
@@ -38,6 +40,10 @@ const DigitalDesk = lazy(() => import('./pages/DigitalDesk'))
 const StrategyDesk = lazy(() => import('./pages/StrategyDesk'))
 const DevelopmentDesk = lazy(() => import('./pages/DevelopmentDesk'))
 const AssetDesk = lazy(() => import('./pages/AssetDesk'))
+const GrrcDesk = lazy(() => import('./pages/GrrcDesk'))
+const StakeholderDesk = lazy(() => import('./pages/StakeholderDesk'))
+const FinanceCollectionsPage = lazy(() => import('./pages/FinanceCollectionsPage'))
+const FinanceMatchPage = lazy(() => import('./pages/FinanceMatchPage'))
 const CapabilityHub = lazy(() => import('./pages/CapabilityHub'))
 const AgentHub = lazy(() => import('./pages/AgentHub'))
 const SetupWizard = lazy(() => import('./pages/SetupWizard'))
@@ -263,6 +269,8 @@ export default function App() {
             <Route path="system/import" element={<ImportHub />} />
             <Route path="system/catalogs" element={<SystemCatalogs />} />
             <Route path="sales" element={<SalesDesk />} />
+            <Route path="sales/pricing" element={<SalesPricingPage />} />
+            <Route path="sales/crm" element={<SalesCrmPage />} />
             <Route path="scm" element={<Navigate to="/scm/buyers" replace />} />
             <Route path="scm/buyers" element={<ScmDesk desk="buyers" />} />
             <Route path="scm/shopfloor" element={<ScmDesk desk="shopfloor" />} />
@@ -273,6 +281,8 @@ export default function App() {
             <Route path="strategy" element={<StrategyDesk />} />
             <Route path="development" element={<DevelopmentDesk />} />
             <Route path="assets" element={<AssetDesk />} />
+            <Route path="grrc" element={<GrrcDesk />} />
+            <Route path="stakeholder" element={<StakeholderDesk />} />
             <Route path="capability" element={<Navigate to="/capability/projects" replace />} />
             <Route path="capability/:section" element={<CapabilityHub />} />
             <Route path="agents" element={<Navigate to="/agents/agents" replace />} />
@@ -281,6 +291,8 @@ export default function App() {
             <Route path="finance/invoices" element={<FinanceInvoices />} />
             <Route path="finance/payments" element={<FinancePayments />} />
             <Route path="finance/posting-rules" element={<PostingRulesPage />} />
+            <Route path="finance/collections" element={<FinanceCollectionsPage />} />
+            <Route path="finance/match" element={<FinanceMatchPage />} />
             <Route path="finance" element={<Navigate to="/finance/treasury" replace />} />
             <Route path="finance/:section" element={<FinanceHub />} />
             <Route path="domains/:package/:resource" element={<DomainList />} />
