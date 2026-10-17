@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next'
 import {
   LayoutDashboard,
   ListTodo,
+  BarChart3,
   LogOut,
   ChevronRight,
   ChevronDown,
@@ -933,6 +934,14 @@ export default function AppShell() {
             >
               <ListTodo size={16} /> {t('pages.work.nav', { defaultValue: 'My work' })}
             </NavLink>
+            {showAdvanced && (
+              <NavLink
+                to="/analytics"
+                className={({ isActive }) => `nav-link top ${isActive ? 'active' : ''}`}
+              >
+                <BarChart3 size={16} /> {t('nav.analytics', { defaultValue: 'Analytics' })}
+              </NavLink>
+            )}
           </div>
 
           {visibleGroups.map((group) => (

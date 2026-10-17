@@ -25,7 +25,8 @@
     "logout": "Logout",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "security": "Security"
+    "security": "Security",
+    "analytics": "Analytics"
   },
   "groups": {
     "core": "My work",
