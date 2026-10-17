@@ -39,6 +39,21 @@ class UrlMappings {
         "/api/kpi/dashboard-hero"(controller: 'kpiApi', action: 'dashboardHero', method: 'GET')
         "/api/kpi/$id"(controller: 'kpiApi', action: 'show', method: 'GET')
 
+        // GRRCBasics (G7 / PR-6) — /api/grrc/* (SILVER+ / Iron eval; Bronze refused)
+        "/api/grrc/risks"(controller: 'grrcApi') {
+            action = [GET: 'riskList', POST: 'riskCreate']
+        }
+        "/api/grrc/risks/$id"(controller: 'grrcApi') {
+            action = [GET: 'riskShow', PUT: 'riskUpdate', DELETE: 'riskDelete']
+        }
+        "/api/grrc/risks/$id/close"(controller: 'grrcApi', action: 'riskClose', method: 'POST')
+        "/api/grrc/compliance"(controller: 'grrcApi') {
+            action = [GET: 'complianceList', POST: 'complianceCreate']
+        }
+        "/api/grrc/compliance/$id"(controller: 'grrcApi') {
+            action = [GET: 'complianceShow', PUT: 'complianceUpdate', DELETE: 'complianceDelete']
+        }
+
         // Product version (VERSIONS.md V7) + system vitals
         "/api/version"(controller: 'versionApi', action: 'index', method: 'GET')
         "/api/version/stats"(controller: 'versionApi', action: 'stats', method: 'GET')
