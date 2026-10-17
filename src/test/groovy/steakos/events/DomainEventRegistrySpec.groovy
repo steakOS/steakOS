@@ -24,9 +24,10 @@ class DomainEventRegistrySpec extends Specification {
         expect:
         DomainEventRegistry.isRegistered(DomainEventNames.SALES_ORDER_CONFIRMED)
         DomainEventRegistry.isRegistered(DomainEventNames.SALES_OPPORTUNITY_WON)
+        DomainEventRegistry.isRegistered(DomainEventNames.SALES_PRICELIST_UPDATED)
         DomainEventRegistry.isRegistered(DomainEventNames.FINANCE_MATCH_COMPLETED)
         DomainEventRegistry.isRegistered(DomainEventNames.MESSAGING_OUTBOUND_SENT)
-        DomainEventRegistry.knownNames().size() >= 12
+        DomainEventRegistry.knownNames().size() >= 13
     }
 
     def "requireKnown rejects unknown names"() {
@@ -45,6 +46,7 @@ class DomainEventRegistrySpec extends Specification {
         where:
         name                                      | consumer
         DomainEventNames.SALES_ORDER_CONFIRMED    | 'finance'
+        DomainEventNames.SALES_PRICELIST_UPDATED  | 'audit'
         DomainEventNames.FINANCE_INVOICE_OVERDUE  | 'messaging'
         DomainEventNames.SCM_RECEIPT_POSTED       | 'finance'
     }

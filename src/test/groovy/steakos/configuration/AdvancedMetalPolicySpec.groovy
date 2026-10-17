@@ -54,6 +54,7 @@ class AdvancedMetalPolicySpec extends Specification {
         path                              | hit
         '/api/sales/pricelists'           | true
         '/api/sales/pricelists/1'         | true
+        '/api/sales/pricelists/resolve'   | true
         '/api/finance/collections'        | true
         '/finance/match'                  | true
         '/api/sales/customers'            | false

@@ -278,6 +278,16 @@ class UrlMappings {
         "/api/sales/orders/$id/confirm"(controller: 'salesApi', action: 'orderConfirm', method: 'POST')
         "/api/sales/orders/$id/cancel"(controller: 'salesApi', action: 'orderCancel', method: 'POST')
 
+        // SalesAdvanced price lists (OI-S04 / PR-4a) — gated SILVER+ via AdvancedRouteCatalog
+        "/api/sales/pricelists"(controller: 'salesPricingApi') {
+            action = [GET: 'list', POST: 'create']
+        }
+        "/api/sales/pricelists/resolve"(controller: 'salesPricingApi', action: 'resolve', method: 'GET')
+        "/api/sales/pricelists/$id"(controller: 'salesPricingApi') {
+            action = [GET: 'show', PUT: 'update', DELETE: 'delete']
+        }
+        "/api/sales/pricelists/$id/lines"(controller: 'salesPricingApi', action: 'lines', method: 'PUT')
+
         // Supply chain (SC kernel) — /api/scm/*
         "/api/scm/vendors"(controller: 'scmApi') {
             action = [GET: 'vendorList', POST: 'vendorCreate']

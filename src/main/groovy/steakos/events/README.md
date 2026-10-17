@@ -19,6 +19,7 @@ names will carry forward when persistence lands.
 |-----------|-------|--------------------|
 | Sales | `sales.order.confirmed` | Finance, Delivery, SCM |
 | SalesAdvanced | `sales.opportunity.won` | Sales / audit |
+| SalesAdvanced | `sales.pricelist.updated` | Sales / audit |
 | Finance | `finance.invoice.issued` / `.settled` / `.overdue` | Sales, Collections, Messaging |
 | FinanceAdvanced | `finance.match.completed` | AP / payables |
 | SCM | `scm.receipt.posted` | Finance match |

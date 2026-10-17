@@ -26,6 +26,7 @@ final class DomainEventNames {
     // Sales (Basics / Advanced)
     static final String SALES_ORDER_CONFIRMED = 'sales.order.confirmed'
     static final String SALES_OPPORTUNITY_WON = 'sales.opportunity.won'
+    static final String SALES_PRICELIST_UPDATED = 'sales.pricelist.updated'
 
     // Finance (Basics / Advanced)
     static final String FINANCE_INVOICE_ISSUED = 'finance.invoice.issued'
@@ -51,6 +52,7 @@ final class DomainEventNames {
     static final List<String> ALL = [
             SALES_ORDER_CONFIRMED,
             SALES_OPPORTUNITY_WON,
+            SALES_PRICELIST_UPDATED,
             FINANCE_INVOICE_ISSUED,
             FINANCE_INVOICE_SETTLED,
             FINANCE_INVOICE_OVERDUE,
@@ -70,6 +72,7 @@ final class DomainEventNames {
     static final Map<String, List<String>> INTENDED_CONSUMERS = [
             (SALES_ORDER_CONFIRMED)             : ['finance', 'delivery', 'scm'].asImmutable(),
             (SALES_OPPORTUNITY_WON)             : ['sales', 'audit'].asImmutable(),
+            (SALES_PRICELIST_UPDATED)           : ['sales', 'audit'].asImmutable(),
             (FINANCE_INVOICE_ISSUED)            : ['sales', 'messaging'].asImmutable(),
             (FINANCE_INVOICE_SETTLED)           : ['sales', 'messaging'].asImmutable(),
             (FINANCE_INVOICE_OVERDUE)           : ['sales', 'messaging', 'collections'].asImmutable(),
