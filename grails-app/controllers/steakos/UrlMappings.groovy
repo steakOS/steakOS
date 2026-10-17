@@ -32,6 +32,13 @@ class UrlMappings {
             action = [GET: 'show', PUT: 'update', DELETE: 'delete', POST: 'update']
         }
         "/api/dashboard/ceo"(controller: 'dashboardApi', action: 'ceo', method: 'GET')
+
+        // KPI registry (Silver WP-K0–K1) — /api/kpi/*
+        // Static paths before /api/kpi/$id so catalogue/hero are not captured as ids.
+        "/api/kpi/catalogue"(controller: 'kpiApi', action: 'catalogue', method: 'GET')
+        "/api/kpi/dashboard-hero"(controller: 'kpiApi', action: 'dashboardHero', method: 'GET')
+        "/api/kpi/$id"(controller: 'kpiApi', action: 'show', method: 'GET')
+
         // Product version (VERSIONS.md V7) + system vitals
         "/api/version"(controller: 'versionApi', action: 'index', method: 'GET')
         "/api/version/stats"(controller: 'versionApi', action: 'stats', method: 'GET')
