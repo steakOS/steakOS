@@ -54,6 +54,20 @@ class UrlMappings {
             action = [GET: 'complianceShow', PUT: 'complianceUpdate', DELETE: 'complianceDelete']
         }
 
+        // StakeholderBasics (Silver G7 / WP6) — /api/stakeholder/*
+        "/api/stakeholder/parties"(controller: 'stakeholderApi') {
+            action = [GET: 'partyList', POST: 'partyCreate']
+        }
+        "/api/stakeholder/parties/$id"(controller: 'stakeholderApi') {
+            action = [GET: 'partyShow', PUT: 'partyUpdate', DELETE: 'partyDelete']
+        }
+        "/api/stakeholder/comms"(controller: 'stakeholderApi') {
+            action = [GET: 'commsList', POST: 'commsCreate']
+        }
+        "/api/stakeholder/comms/$id"(controller: 'stakeholderApi') {
+            action = [GET: 'commsShow', PUT: 'commsUpdate', DELETE: 'commsDelete']
+        }
+
         // Product version (VERSIONS.md V7) + system vitals
         "/api/version"(controller: 'versionApi', action: 'index', method: 'GET')
         "/api/version/stats"(controller: 'versionApi', action: 'stats', method: 'GET')
