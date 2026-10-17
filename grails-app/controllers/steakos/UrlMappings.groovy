@@ -197,6 +197,16 @@ class UrlMappings {
         "/api/finance/revenue/invoices/$id/void"(controller: 'financeRevenueApi', action: 'voidInvoice', method: 'POST')
         "/api/finance/revenue/invoices/$id/pdf"(controller: 'financeRevenueApi', action: 'pdf', method: 'GET')
 
+        // FinanceAdvanced collections (PR-5a) — gated SILVER+ via AdvancedRouteCatalog
+        "/api/finance/collections"(controller: 'financeCollectionsApi', action: 'overdue', method: 'GET')
+        "/api/finance/collections/open"(controller: 'financeCollectionsApi', action: 'openQueue', method: 'GET')
+        "/api/finance/collections/activities/$activityId"(controller: 'financeCollectionsApi', action: 'updatePromiseStatus', method: 'PUT')
+        "/api/finance/collections/$id"(controller: 'financeCollectionsApi', action: 'show', method: 'GET')
+        "/api/finance/collections/$id/activities"(controller: 'financeCollectionsApi') {
+            action = [GET: 'listActivities', POST: 'createActivity']
+        }
+        "/api/finance/collections/$id/promise"(controller: 'financeCollectionsApi', action: 'createPromise', method: 'POST')
+
         // Finance ops F-S3–F-S6 (treasury, AP, plan, tax, payroll stub, control)
         "/api/finance/treasury/seed"(controller: 'financeOpsApi', action: 'treasurySeed', method: 'POST')
         "/api/finance/treasury/positions"(controller: 'financeOpsApi') {
