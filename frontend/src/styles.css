@@ -2471,6 +2471,40 @@ table.data tbody tr.row-selected td:last-child {
   margin: 0.75rem 0;
   padding-left: 1.2rem;
 }
+.setup-tier-honesty {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--steak-muted);
+  line-height: 1.35;
+}
+.setup-silver-options {
+  margin: 1rem 0 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--steak-border, #e7e5e4);
+  border-radius: 10px;
+  background: #fff7ed;
+}
+.setup-silver-options .section-label {
+  margin-top: 0;
+  font-size: 1rem;
+}
+.setup-depth-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+.setup-depth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--steak-border, #e7e5e4);
+  background: #fff;
+  font-size: 0.9rem;
+}
 .setup-summary {
   display: grid;
   grid-template-columns: 8rem 1fr;

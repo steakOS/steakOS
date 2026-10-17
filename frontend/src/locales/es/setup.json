@@ -163,18 +163,37 @@
     "title": "Elija su tamaño de inicio",
     "blurb": "Bronze es el paquete de equipo abierto a selección hoy. Silver y Gold son la escalera de crecimiento a medida que esos paquetes lleguen.",
     "bronzeBlurb": "Paquete de equipo — inicio recomendado",
-    "silverBlurb": "Empresa en crecimiento — próximamente",
+    "silverBlurb": "Empresa en crecimiento — ventas/finanzas Advanced, GRRC, Stakeholder, email/Telegram opcional. Aún no abierto.",
     "goldBlurb": "Superficie empresarial completa — próximamente",
     "available": "Abierto a selección",
     "comingSoon": "Próximamente",
+    "previewOnly": "Solo vista previa",
     "ladderNote": "Bronze es seleccionable ahora. Silver y Gold permanecen visibles como orientación hasta que se producticen.",
-    "notAvailable": "Aún no productizado — no abierto a selección de metal"
+    "notAvailable": "Aún no productizado — no abierto a selección de metal",
+    "silverLockedHint": "Aún no abierto. Cuando se productice: ventas/finanzas Advanced, escritorios GRRC + Stakeholder, email/Telegram opcional (desactivado por defecto)."
   },
   "families": {
     "title": "Qué va a usar",
     "blurb": "Familias activadas para {{tier}}. Bronze incluye los escritorios de equipo (ventas, finanzas, cadena de suministro, personal, TI y estrategia ligera).",
+    "blurbSilver": "Paquete fijo para {{tier}}: escritorios Bronze más GRRC y Stakeholder. Opciones de profundidad y mensajería abajo.",
     "seedCoa": "Sembrar un plan de cuentas inicial (recomendado)",
     "seedDemo": "Cargar datos de demostración (clientes de ejemplo, proveedor, artículos de catálogo, tarea)"
+  },
+  "silverOptions": {
+    "title": "Opciones del paquete Silver",
+    "previewNote": "Solo vista previa — Silver aún no está abierto a selección de metal. Finalizar sigue aplicando Bronze mientras Silver esté cerrado.",
+    "depthBlurb": "Ventas y Finanzas corren en profundidad Advanced en Silver (obligatorio del paquete). No se vuelven a Basics aquí.",
+    "depthLabel": "Profundidad de plugin",
+    "sales": "Ventas",
+    "finance": "Finanzas",
+    "messagingBlurb": "Mensajería saliente opcional. Déjela desactivada hasta añadir credenciales en Sistema → Integraciones.",
+    "messagingLabel": "Mensajería",
+    "emailEnabled": "Activar email saliente (configurar después)",
+    "telegramEnabled": "Activar avisos de Telegram (configurar después)",
+    "emailShort": "Email",
+    "telegramShort": "Telegram",
+    "packFixed": "Paquete — obligatorio",
+    "fixedPackNote": "GRRC y Stakeholder permanecen activos en Silver — no se desactivan individualmente aquí."
   },
   "privacy": {
     "title": "Datos de personal y privacidad",

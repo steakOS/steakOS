@@ -128,18 +128,37 @@
     "title": "Startgröße wählen",
     "blurb": "Bronze ist das Team-Paket, das heute wählbar ist. Silver und Gold sind die Wachstumsleiter, sobald diese Packs kommen.",
     "bronzeBlurb": "Team-Paket — empfohlener Start",
-    "silverBlurb": "Wachsendes Unternehmen — demnächst",
+    "silverBlurb": "Wachsendes Unternehmen — Vertrieb/Finanzen Advanced, GRRC, Stakeholder, optional E-Mail/Telegram. Noch nicht freigegeben.",
     "goldBlurb": "Volle Enterprise-Oberfläche — demnächst",
     "available": "Zur Auswahl freigegeben",
     "comingSoon": "Demnächst",
+    "previewOnly": "Nur Vorschau",
     "ladderNote": "Bronze ist jetzt wählbar. Silver und Gold bleiben zur Orientierung sichtbar, bis sie produktisiert sind.",
-    "notAvailable": "Noch nicht produktisiert — nicht zur Metallauswahl freigegeben"
+    "notAvailable": "Noch nicht produktisiert — nicht zur Metallauswahl freigegeben",
+    "silverLockedHint": "Noch nicht freigegeben. Wenn produktisiert: Vertrieb/Finanzen Advanced, GRRC- und Stakeholder-Desks, optional E-Mail/Telegram (standardmäßig aus)."
   },
   "families": {
     "title": "Was Sie nutzen",
     "blurb": "Aktivierte Families für {{tier}}. Bronze umfasst die Team-Desks (Vertrieb, Finanzen, Supply Chain, Personal, IT und schlanke Strategie).",
+    "blurbSilver": "Festes Paket für {{tier}}: Bronze-Desks plus GRRC und Stakeholder. Tiefe und Messaging darunter.",
     "seedCoa": "Starter-Kontenplan seed (empfohlen)",
     "seedDemo": "Demodaten laden (Beispielkunden, Lieferant, Katalogartikel, Aufgabe)"
+  },
+  "silverOptions": {
+    "title": "Silver-Paketoptionen",
+    "previewNote": "Nur Vorschau — Silver ist noch nicht zur Metallauswahl freigegeben. Abschluss wendet Bronze an, solange Silver geschlossen ist.",
+    "depthBlurb": "Vertrieb und Finanzen laufen auf Silver in Advanced-Tiefe (paketpflichtig). Hier nicht auf Basics zurückschaltbar.",
+    "depthLabel": "Plugin-Tiefe",
+    "sales": "Vertrieb",
+    "finance": "Finanzen",
+    "messagingBlurb": "Optionales Outbound-Messaging. Aus lassen, bis Zugangsdaten unter System → Integrationen hinterlegt sind.",
+    "messagingLabel": "Messaging",
+    "emailEnabled": "Outbound-E-Mail aktivieren (später konfigurieren)",
+    "telegramEnabled": "Telegram-Benachrichtigungen aktivieren (später konfigurieren)",
+    "emailShort": "E-Mail",
+    "telegramShort": "Telegram",
+    "packFixed": "Paket — erforderlich",
+    "fixedPackNote": "GRRC und Stakeholder bleiben bei Silver an — hier nicht einzeln abschaltbar."
   },
   "review": {
     "title": "Prüfen & abschließen",

@@ -32,13 +32,50 @@ const STEP_IDS = [
   'summary',
 ]
 const CELEBRATION_KEY = 'steakos.setupCelebration'
+/** Pack-fixed on Silver — not individually off (SI-04 / plan-wizard Q2). */
+const SILVER_FIXED_FAMILIES = ['grrc', 'stakeholder']
 
-function preferredTemplateFromTour() {
-  // Operator ladder: Bronze (open) · Silver/Gold (coming soon). Ignore legacy Iron/Copper.
+function openMetalCodes(tiers) {
+  return (tiers || [])
+    .filter(
+      (tier) =>
+        tier.openForMetalSelection === true ||
+        (tier.openForMetalSelection == null && tier.choosable === true),
+    )
+    .map((tier) => String(tier.code || '').toUpperCase())
+}
+
+/** QA only: ?previewSilver=1 or localStorage steakos.previewSilverWizard=1 */
+function previewSilverWizard() {
+  try {
+    if (typeof window !== 'undefined') {
+      const q = new URLSearchParams(window.location.search || '')
+      if (q.get('previewSilver') === '1') return true
+    }
+    return localStorage.getItem('steakos.previewSilverWizard') === '1'
+  } catch {
+    return false
+  }
+}
+
+function defaultPluginDepthForTier(tier) {
+  const t = String(tier || 'BRONZE').toUpperCase()
+  if (t === 'SILVER' || t === 'GOLD' || t === 'IRON') {
+    return { sales: 'ADVANCED', finance: 'ADVANCED' }
+  }
+  return { sales: 'BASICS', finance: 'BASICS' }
+}
+
+function defaultMessagingFlags() {
+  return { emailEnabled: false, telegramEnabled: false }
+}
+
+function preferredTemplateFromTour(openSet) {
+  // Accept tour preference only when that metal is open (API / openSet). Else Bronze.
   try {
     const t = (localStorage.getItem('steakos.preferredTemplate') || '').toUpperCase()
-    if (t === 'BRONZE') return 'BRONZE'
-    // Silver/Gold not open for selection yet — still land on Bronze
+    const open = openSet?.length ? openSet : ['BRONZE']
+    if (t && open.includes(t)) return t
   } catch {
     /* ignore */
   }
@@ -96,6 +133,10 @@ const EMPTY = {
   nostrOperatorNpub: '',
   templateTier: preferredTemplateFromTour(),
   enabledFamilies: null,
+  /** G5 depth map — Advanced pack-mandatory on Silver; Basics on Bronze. */
+  pluginDepth: defaultPluginDepthForTier(preferredTemplateFromTour()),
+  /** SI-R7 optional adapters — defaults off until credentials under Integrations. */
+  messaging: defaultMessagingFlags(),
   seedDemo: true,
   seedCoa: true,
   locale: 'en_US',
@@ -209,6 +250,7 @@ export default function SetupWizard() {
 
       clearCelebration()
       setPhase('wizard')
+      const open = openMetalCodes(st.tiers || [])
       const d = await setupApi.getDraft()
       if (d?.draft && typeof d.draft === 'object' && Object.keys(d.draft).length) {
         setDraft((prev) => {
@@ -228,7 +270,61 @@ export default function SetupWizard() {
             merged.siteAddressSameAsCompany = !sa || sa === co
             if (merged.siteAddressSameAsCompany) merged.siteAddress = merged.address || ''
           }
+          // Gate closed metals from tour/stale draft (keep tenant metal if already applied)
+          const draftTier = String(merged.templateTier || '').toUpperCase()
+          const statusTier = String(st.templateTier || '').toUpperCase()
+          const allowClosed =
+            previewSilverWizard() || (draftTier && draftTier === statusTier)
+          if (draftTier && !open.includes(draftTier) && !allowClosed) {
+            merged.templateTier = preferredTemplateFromTour(open)
+            merged.enabledFamilies = null
+          } else if (!draftTier) {
+            merged.templateTier = preferredTemplateFromTour(open)
+          }
+          const depthBase =
+            st.pluginDepth && typeof st.pluginDepth === 'object'
+              ? st.pluginDepth
+              : defaultPluginDepthForTier(merged.templateTier)
+          merged.pluginDepth = {
+            ...defaultPluginDepthForTier(merged.templateTier),
+            ...depthBase,
+            ...(merged.pluginDepth && typeof merged.pluginDepth === 'object'
+              ? merged.pluginDepth
+              : {}),
+          }
+          // Silver+ forces Advanced (G5) — UI badges are fixed, not toggles
+          if (['SILVER', 'GOLD', 'IRON'].includes(String(merged.templateTier).toUpperCase())) {
+            merged.pluginDepth = {
+              ...merged.pluginDepth,
+              sales: 'ADVANCED',
+              finance: 'ADVANCED',
+            }
+          }
+          const msgBase =
+            st.messaging && typeof st.messaging === 'object'
+              ? st.messaging
+              : defaultMessagingFlags()
+          merged.messaging = {
+            ...defaultMessagingFlags(),
+            ...msgBase,
+            ...(merged.messaging && typeof merged.messaging === 'object'
+              ? merged.messaging
+              : {}),
+          }
           return merged
+        })
+      } else {
+        setDraft((prev) => {
+          const tier = preferredTemplateFromTour(open)
+          return {
+            ...prev,
+            templateTier: tier,
+            pluginDepth: st.pluginDepth || defaultPluginDepthForTier(tier),
+            messaging: {
+              ...defaultMessagingFlags(),
+              ...(st.messaging && typeof st.messaging === 'object' ? st.messaging : {}),
+            },
+          }
         })
       }
       if (typeof d?.draftStep === 'number' && d.draftStep > 0) {
@@ -275,6 +371,32 @@ export default function SetupWizard() {
     )
   }, [draft.enabledFamilies, draft.templateTier, defaultFamiliesByTier])
 
+  const isSilverPack = useMemo(() => {
+    const t = String(draft.templateTier || '').toUpperCase()
+    return t === 'SILVER' || t === 'GOLD' || t === 'IRON'
+  }, [draft.templateTier])
+
+  /** Full Silver options when metal is Silver (or QA preview while selection closed). */
+  const showSilverOptions = isSilverPack || previewSilverWizard()
+
+  const openMetals = useMemo(() => openMetalCodes(tiers), [tiers])
+
+  const pluginDepth = useMemo(
+    () => ({
+      ...defaultPluginDepthForTier(draft.templateTier),
+      ...(draft.pluginDepth && typeof draft.pluginDepth === 'object' ? draft.pluginDepth : {}),
+    }),
+    [draft.pluginDepth, draft.templateTier],
+  )
+
+  const messaging = useMemo(
+    () => ({
+      ...defaultMessagingFlags(),
+      ...(draft.messaging && typeof draft.messaging === 'object' ? draft.messaging : {}),
+    }),
+    [draft.messaging],
+  )
+
   /** People data (HR) in pack → privacy ack required before finish */
   const needsHrPrivacyAck = useMemo(
     () => familiesForTier.includes('human'),
@@ -284,12 +406,41 @@ export default function SetupWizard() {
   const hrPrivacyAlreadyAcked = !!(status?.privacy?.hrAcknowledged)
   const [hrPrivacyChecked, setHrPrivacyChecked] = useState(false)
 
-  const patch = (fields) => setDraft((d) => ({ ...d, ...fields }))
+  const patch = (fields) => {
+    setDraft((d) => {
+      const next = { ...d, ...fields }
+      if (fields.templateTier != null) {
+        const tier = String(fields.templateTier).toUpperCase()
+        next.pluginDepth = defaultPluginDepthForTier(tier)
+        // Messaging stays operator choice; keep existing or default off
+        if (!next.messaging) next.messaging = defaultMessagingFlags()
+      }
+      return next
+    })
+  }
+
+  const patchMessaging = (key, value) => {
+    setDraft((d) => ({
+      ...d,
+      messaging: {
+        ...defaultMessagingFlags(),
+        ...(d.messaging && typeof d.messaging === 'object' ? d.messaging : {}),
+        [key]: value,
+      },
+    }))
+  }
 
   const saveDraft = async (nextStep = step) => {
     await setupApi.saveDraft({
       step: nextStep,
-      draft: { ...draft, enabledFamilies: familiesForTier },
+      draft: {
+        ...draft,
+        enabledFamilies: familiesForTier,
+        pluginDepth: isSilverPack
+          ? { ...pluginDepth, sales: 'ADVANCED', finance: 'ADVANCED' }
+          : pluginDepth,
+        messaging,
+      },
     })
   }
 
@@ -605,9 +756,22 @@ export default function SetupWizard() {
         const ack = await setupApi.privacyHrAck({})
         setStatus(ack?.status || status)
       }
+      // While Silver closed, never send SILVER from preview — backend also normalizes.
+      const applyTier = openMetals.includes(String(draft.templateTier || '').toUpperCase())
+        ? draft.templateTier
+        : preferredTemplateFromTour(openMetals)
+      const applyDepth = ['SILVER', 'GOLD', 'IRON'].includes(String(applyTier).toUpperCase())
+        ? { sales: 'ADVANCED', finance: 'ADVANCED' }
+        : defaultPluginDepthForTier(applyTier)
       await setupApi.apply({
         ...draft,
-        enabledFamilies: familiesForTier,
+        templateTier: applyTier,
+        enabledFamilies:
+          draft.enabledFamilies ||
+          defaultFamiliesByTier[applyTier] ||
+          defaultFamiliesByTier.BRONZE,
+        pluginDepth: applyDepth,
+        messaging,
         seedCoa: draft.seedCoa,
       })
       const report = await setupApi.check()
@@ -1435,7 +1599,8 @@ export default function SetupWizard() {
                       code: 'SILVER',
                       label: 'Silver',
                       blurb: t('template.silverBlurb', {
-                        defaultValue: 'Growing company — coming soon',
+                        defaultValue:
+                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram. Not open yet.',
                       }),
                       openForMetalSelection: false,
                     },
@@ -1453,7 +1618,18 @@ export default function SetupWizard() {
                 const openForMetalSelection =
                   tier.openForMetalSelection === true ||
                   (tier.openForMetalSelection == null && tier.choosable === true)
-                const locked = !openForMetalSelection
+                // Selection stays Bronze-only until PR-17; preview flag unlocks Silver card for UI rehearsal only
+                const code = String(tier.code || '').toUpperCase()
+                const previewUnlock = previewSilverWizard() && code === 'SILVER'
+                const locked = !openForMetalSelection && !previewUnlock
+                const blurb =
+                  code === 'SILVER'
+                    ? t('template.silverBlurb', {
+                        defaultValue:
+                          tier.blurb ||
+                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram. Not open yet.',
+                      })
+                    : tier.blurb
                 return (
                   <button
                     key={tier.code}
@@ -1478,13 +1654,25 @@ export default function SetupWizard() {
                         <span className="badge badge-muted" style={{ marginLeft: 8, fontWeight: 600 }}>
                           {t('template.comingSoon', { defaultValue: 'Coming soon' })}
                         </span>
+                      ) : previewUnlock && !openForMetalSelection ? (
+                        <span className="badge badge-muted" style={{ marginLeft: 8, fontWeight: 600 }}>
+                          {t('template.previewOnly', { defaultValue: 'Preview only' })}
+                        </span>
                       ) : (
                         <span className="badge badge-ok" style={{ marginLeft: 8, fontWeight: 600 }}>
                           {t('template.available', { defaultValue: 'Open for selection' })}
                         </span>
                       )}
                     </strong>
-                    <span>{tier.blurb}</span>
+                    <span>{blurb}</span>
+                    {locked && code === 'SILVER' && (
+                      <span className="setup-tier-honesty">
+                        {t('template.silverLockedHint', {
+                          defaultValue:
+                            'Not open yet. When productized: Sales/Finance Advanced, GRRC + Stakeholder desks, optional email/Telegram (off by default).',
+                        })}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -1495,12 +1683,95 @@ export default function SetupWizard() {
         {STEP_IDS[step] === 'families' && (
           <section className="setup-card">
             <h1>{t('families.title')}</h1>
-            <p>{t('families.blurb', { tier: draft.templateTier })}</p>
+            <p>
+              {isSilverPack
+                ? t('families.blurbSilver', {
+                    tier: draft.templateTier,
+                    defaultValue:
+                      'Fixed pack for {{tier}}: Bronze desks plus GRRC and Stakeholder. Depth and messaging options below.',
+                  })
+                : t('families.blurb', { tier: draft.templateTier })}
+            </p>
             <ul className="setup-family-list">
-              {familiesForTier.map((f) => (
-                <li key={f}>{f}</li>
-              ))}
+              {familiesForTier.map((f) => {
+                const fixed = isSilverPack && SILVER_FIXED_FAMILIES.includes(f)
+                return (
+                  <li key={f}>
+                    {f}
+                    {fixed ? (
+                      <span className="badge badge-muted" style={{ marginLeft: 8, fontWeight: 600 }}>
+                        {t('silverOptions.packFixed', { defaultValue: 'Pack — required' })}
+                      </span>
+                    ) : null}
+                  </li>
+                )
+              })}
             </ul>
+            {isSilverPack && (
+              <p className="setup-tip">
+                {t('silverOptions.fixedPackNote', {
+                  defaultValue:
+                    'GRRC and Stakeholder stay on for Silver — they are not individually switched off here.',
+                })}
+              </p>
+            )}
+            {showSilverOptions && (
+              <div className="setup-silver-options">
+                <h2 className="section-label">
+                  {t('silverOptions.title', { defaultValue: 'Silver pack options' })}
+                </h2>
+                {!isSilverPack && (
+                  <p className="setup-tip">
+                    {t('silverOptions.previewNote', {
+                      defaultValue:
+                        'Preview only — Silver is not open for metal selection yet. Finish still applies Bronze unless Silver is open.',
+                    })}
+                  </p>
+                )}
+                <p className="muted" style={{ fontSize: '0.9rem' }}>
+                  {t('silverOptions.depthBlurb', {
+                    defaultValue:
+                      'Sales and Finance run at Advanced depth on Silver (pack-mandatory). Not toggled back to Basics here.',
+                  })}
+                </p>
+                <div className="setup-depth-badges">
+                  <span className="setup-depth-badge">
+                    <strong>{t('silverOptions.sales', { defaultValue: 'Sales' })}</strong>
+                    <span className="badge badge-ok">{pluginDepth.sales || 'ADVANCED'}</span>
+                  </span>
+                  <span className="setup-depth-badge">
+                    <strong>{t('silverOptions.finance', { defaultValue: 'Finance' })}</strong>
+                    <span className="badge badge-ok">{pluginDepth.finance || 'ADVANCED'}</span>
+                  </span>
+                </div>
+                <p className="muted" style={{ fontSize: '0.9rem', marginTop: '0.85rem' }}>
+                  {t('silverOptions.messagingBlurb', {
+                    defaultValue:
+                      'Optional outbound messaging. Leave off until you add credentials under System → Integrations.',
+                  })}
+                </p>
+                <label className="setup-check">
+                  <input
+                    type="checkbox"
+                    checked={!!messaging.emailEnabled}
+                    onChange={(e) => patchMessaging('emailEnabled', e.target.checked)}
+                  />
+                  {t('silverOptions.emailEnabled', {
+                    defaultValue: 'Enable outbound email (configure later)',
+                  })}
+                </label>
+                <label className="setup-check">
+                  <input
+                    type="checkbox"
+                    checked={!!messaging.telegramEnabled}
+                    onChange={(e) => patchMessaging('telegramEnabled', e.target.checked)}
+                  />
+                  {t('silverOptions.telegramEnabled', {
+                    defaultValue: 'Enable Telegram notifies (configure later)',
+                  })}
+                </label>
+              </div>
+            )}
             <label className="setup-check">
               <input
                 type="checkbox"
@@ -1776,6 +2047,28 @@ export default function SetupWizard() {
               </dd>
               <dt>{t('families.title')}</dt>
               <dd>{familiesForTier.join(', ')}</dd>
+              {showSilverOptions && (
+                <>
+                  <dt>{t('silverOptions.depthLabel', { defaultValue: 'Plugin depth' })}</dt>
+                  <dd>
+                    {t('silverOptions.sales', { defaultValue: 'Sales' })}:{' '}
+                    {pluginDepth.sales || 'ADVANCED'} ·{' '}
+                    {t('silverOptions.finance', { defaultValue: 'Finance' })}:{' '}
+                    {pluginDepth.finance || 'ADVANCED'}
+                  </dd>
+                  <dt>{t('silverOptions.messagingLabel', { defaultValue: 'Messaging' })}</dt>
+                  <dd>
+                    {t('silverOptions.emailShort', { defaultValue: 'Email' })}:{' '}
+                    {messaging.emailEnabled
+                      ? t('yes', { ns: 'common' })
+                      : t('no', { ns: 'common' })}{' '}
+                    · {t('silverOptions.telegramShort', { defaultValue: 'Telegram' })}:{' '}
+                    {messaging.telegramEnabled
+                      ? t('yes', { ns: 'common' })
+                      : t('no', { ns: 'common' })}
+                  </dd>
+                </>
+              )}
               <dt>Accounts</dt>
               <dd>
                 Admin 2FA {adminTotpOk ? 'on' : 'off'} · CEO ({draft.ceoUsername || 'ceo'}) 2FA{' '}

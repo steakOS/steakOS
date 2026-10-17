@@ -163,18 +163,37 @@
     "title": "Choose your starting size",
     "blurb": "Bronze is the team pack open for selection today. Silver and Gold are the growth ladder as those packs ship.",
     "bronzeBlurb": "Team pack — recommended start",
-    "silverBlurb": "Growing company — coming soon",
+    "silverBlurb": "Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram. Not open yet.",
     "goldBlurb": "Full enterprise surface — coming soon",
     "available": "Open for selection",
     "comingSoon": "Coming soon",
+    "previewOnly": "Preview only",
     "ladderNote": "Bronze is selectable now. Silver and Gold stay visible for orientation until productized.",
-    "notAvailable": "Not productized yet — not open for metal selection"
+    "notAvailable": "Not productized yet — not open for metal selection",
+    "silverLockedHint": "Not open yet. When productized: Sales/Finance Advanced, GRRC + Stakeholder desks, optional email/Telegram (off by default)."
   },
   "families": {
     "title": "What you will use",
     "blurb": "Families enabled for {{tier}}. Bronze includes the team desks (sales, money, supply chain, people, IT, and thin strategy).",
+    "blurbSilver": "Fixed pack for {{tier}}: Bronze desks plus GRRC and Stakeholder. Depth and messaging options below.",
     "seedCoa": "Seed a starter chart of accounts (recommended)",
     "seedDemo": "Load demo data (sample customers, vendor, catalogue items, task)"
+  },
+  "silverOptions": {
+    "title": "Silver pack options",
+    "previewNote": "Preview only — Silver is not open for metal selection yet. Finish still applies Bronze unless Silver is open.",
+    "depthBlurb": "Sales and Finance run at Advanced depth on Silver (pack-mandatory). Not toggled back to Basics here.",
+    "depthLabel": "Plugin depth",
+    "sales": "Sales",
+    "finance": "Finance",
+    "messagingBlurb": "Optional outbound messaging. Leave off until you add credentials under System → Integrations.",
+    "messagingLabel": "Messaging",
+    "emailEnabled": "Enable outbound email (configure later)",
+    "telegramEnabled": "Enable Telegram notifies (configure later)",
+    "emailShort": "Email",
+    "telegramShort": "Telegram",
+    "packFixed": "Pack — required",
+    "fixedPackNote": "GRRC and Stakeholder stay on for Silver — they are not individually switched off here."
   },
   "privacy": {
     "title": "People data & privacy",
