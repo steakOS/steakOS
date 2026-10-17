@@ -36,7 +36,8 @@ class SetupState implements NpubOwned, Serializable {
 	String templateTier = 'BRONZE'
 	Integer draftStep = 0
 	String draftJson
-	Integer wizardVersion = 1
+	/** Align with SetupService.WIZARD_VERSION (Silver depth + messaging payload). */
+	Integer wizardVersion = 2
 	Date completedAt
 	String completedBy
 	String notes

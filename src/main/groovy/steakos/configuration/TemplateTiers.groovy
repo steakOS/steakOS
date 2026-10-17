@@ -183,6 +183,72 @@ class TemplateTiers {
         return out.size() > 1 ? new ArrayList<>(out) : new ArrayList<>(defaults)
     }
 
+    // --- Plugin depth (Sales/Finance Advanced; stored in CompanySetting template.pluginDepth) ---
+
+    static final String DEPTH_BASICS = 'BASICS'
+    static final String DEPTH_ADVANCED = 'ADVANCED'
+    static final String DEPTH_PRO = 'PRO'
+
+    static final List<String> DEPTH_CODES = [DEPTH_BASICS, DEPTH_ADVANCED, DEPTH_PRO].asImmutable()
+
+    /** Families that carry Basics/Advanced/Pro depth variants (PLUGINS G5). */
+    static final List<String> DEPTH_FAMILIES = ['sales', 'finance'].asImmutable()
+
+    /**
+     * Families that claim Advanced depth at Silver+ (G5). Used by gates / status defaults.
+     * Does not open metal selection — OPEN_FOR_METAL_SELECTION stays Bronze-only until DoD.
+     */
+    static List<String> advancedFamilies(String tier) {
+        String t = normalize(tier)
+        if (t == SILVER || t == GOLD || t == IRON) {
+            return new ArrayList<>(DEPTH_FAMILIES)
+        }
+        return []
+    }
+
+    /**
+     * Default pluginDepth map for a metal. Silver/Gold → Advanced sales+finance; else Basics.
+     */
+    static Map<String, String> defaultPluginDepth(String tier) {
+        Map<String, String> out = new LinkedHashMap<>()
+        List<String> advanced = advancedFamilies(tier)
+        DEPTH_FAMILIES.each { String f ->
+            out[f] = advanced.contains(f) ? DEPTH_ADVANCED : DEPTH_BASICS
+        }
+        return out
+    }
+
+    /**
+     * Sanitize a raw pluginDepth map. Unknown families dropped; invalid depths → BASICS.
+     * When tier is Silver+, sales/finance are forced to at least ADVANCED (G5 pack-mandatory).
+     */
+    static Map<String, String> sanitizePluginDepth(String tier, Map raw) {
+        Map<String, String> defaults = defaultPluginDepth(tier)
+        Map<String, String> out = new LinkedHashMap<>(defaults)
+        if (raw) {
+            raw.each { k, v ->
+                String family = k?.toString()?.trim()?.toLowerCase()
+                if (!family || !DEPTH_FAMILIES.contains(family)) return
+                String depth = normalizeDepth(v?.toString())
+                out[family] = depth
+            }
+        }
+        // G5 honesty: Silver+ always Advanced (or Pro) for sales/finance
+        advancedFamilies(tier).each { String f ->
+            String d = out[f] ?: DEPTH_BASICS
+            if (d == DEPTH_BASICS) {
+                out[f] = DEPTH_ADVANCED
+            }
+        }
+        return out
+    }
+
+    static String normalizeDepth(String depth) {
+        if (!depth?.trim()) return DEPTH_BASICS
+        String d = depth.trim().toUpperCase()
+        return DEPTH_CODES.contains(d) ? d : DEPTH_BASICS
+    }
+
     /**
      * Operator-facing ladder for setup wizard / tour (Bronze → Silver → Gold).
      * Iron and Copper are omitted — temp/dev only, not for metal selection UI.

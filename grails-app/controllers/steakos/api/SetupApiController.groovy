@@ -201,8 +201,8 @@ class SetupApiController {
 
     /**
      * POST /api/setup/template-tier — switch metal pack + families without wizard reset.
-     * Body: { "templateTier": "BRONZE" } optional enabledFamilies list.
-     * Only metals open for metal selection are accepted.
+     * Body: { "templateTier": "BRONZE" } optional enabledFamilies, pluginDepth, messaging.
+     * Only metals open for metal selection are accepted (Silver stays locked until DoD).
      */
     def templateTier() {
         if (isAgentPrincipal()) {
@@ -217,7 +217,10 @@ class SetupApiController {
                 return
             }
             List override = body.enabledFamilies instanceof List ? (body.enabledFamilies as List) : null
-            Map status = setupService.setTemplateTier(resolveNpub(body), tier, override)
+            Map options = [:]
+            if (body.pluginDepth instanceof Map) options.pluginDepth = body.pluginDepth
+            if (body.messaging instanceof Map) options.messaging = body.messaging
+            Map status = setupService.setTemplateTier(resolveNpub(body), tier, override, options ?: null)
             render([ok: true, status: status] as JSON)
         } catch (IllegalArgumentException e) {
             String msg = e.message ?: ''

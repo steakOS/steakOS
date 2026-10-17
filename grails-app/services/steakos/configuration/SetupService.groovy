@@ -44,7 +44,21 @@ class SetupService {
     steakos.nostr.NostrPublishService nostrPublishService
 
     static final String DEFAULT_NPUB = 'user:admin'
-    static final int WIZARD_VERSION = 1
+    /** Bumped for Silver depth + messaging payload (plan-wizard-versioning P2). */
+    static final int WIZARD_VERSION = 2
+
+    /** CompanySetting: JSON map {sales,finance,…} → BASICS|ADVANCED|PRO */
+    static final String KEY_PLUGIN_DEPTH = 'template.pluginDepth'
+    /** CompanySetting: outbound email adapter opt-in (default false). */
+    static final String KEY_MESSAGING_EMAIL = 'messaging.emailEnabled'
+    /** CompanySetting: Telegram notifies opt-in (default false). */
+    static final String KEY_MESSAGING_TELEGRAM = 'messaging.telegramEnabled'
+    /**
+     * Nested secret / config keys (Integrations only — never written by wizard draft plaintext):
+     * messaging.email.smtpHost, messaging.email.smtpPort, messaging.email.username,
+     * messaging.email.password (encrypted), messaging.email.fromAddress;
+     * messaging.telegram.botToken (encrypted), messaging.telegram.chatId, messaging.telegram.apiBase.
+     */
 
     SetupState ensureState(String npubOwner) {
         String npub = resolveNpub(npubOwner)
@@ -84,14 +98,18 @@ class SetupService {
     Map statusMap(String npubOwner) {
         SetupState s = ensureState(npubOwner)
         String npub = s.npubOwner
+        String tier = companyConfigService.getString(npub, 'template.tier', s.templateTier ?: TemplateTiers.DEFAULT_OPERATOR_TIER)
         [
                 setupComplete  : s.setupComplete,
                 templateTier   : s.templateTier,
                 draftStep      : s.draftStep,
-                wizardVersion  : s.wizardVersion,
+                wizardVersion  : s.wizardVersion ?: WIZARD_VERSION,
                 completedAt    : s.completedAt?.time,
                 completedBy    : s.completedBy,
                 enabledFamilies: companyConfigService.enabledFamilies(npub),
+                // Silver config (exposed even while Silver card locked — for future wizard)
+                pluginDepth    : readPluginDepth(npub, tier),
+                messaging      : readMessagingFlags(npub),
                 tiers          : TemplateTiers.catalog(),
                 npubOwner      : npub,
                 // Bronze BR-R6 — privacy ack when HR (human) is in pack
@@ -152,8 +170,16 @@ class SetupService {
             throw new IllegalStateException('Setup already complete — reset first to re-apply')
         }
         Map d = draft ?: [:]
-        // IR-02: only productized tiers may be applied (today: Bronze only)
-        String tier = TemplateTiers.normalizeMetalSelection(d.templateTier as String ?: s.templateTier)
+        // IR-02: only productized tiers may be applied (today: Bronze only).
+        // Explicit closed operator metals → hard 400 (clearer than silent Bronze fallback).
+        String requestedTier = d.templateTier as String
+        if (requestedTier?.trim()) {
+            String normalizedReq = TemplateTiers.normalize(requestedTier)
+            if (TemplateTiers.isOperatorFacing(normalizedReq) && !TemplateTiers.isOpenForMetalSelection(normalizedReq)) {
+                throw new IllegalArgumentException("metal not open for selection: ${normalizedReq}")
+            }
+        }
+        String tier = TemplateTiers.normalizeMetalSelection(requestedTier ?: s.templateTier)
 
         LegalEntity le = LegalEntity.findByNpubOwner(npub)
         if (!le) {
@@ -270,6 +296,12 @@ class SetupService {
         }
         companyConfigService.put(npub, 'template.tier', tier, 'template', 'string')
         companyConfigService.putJson(npub, 'template.enabledFamilies', families, 'template')
+        // Silver config keys (defaults: Advanced when Silver pack; messaging off)
+        Map depthRaw = extractPluginDepthFromDraft(d)
+        Map<String, String> pluginDepth = TemplateTiers.sanitizePluginDepth(tier, depthRaw)
+        persistPluginDepth(npub, pluginDepth)
+        Map messagingFlags = extractMessagingFromDraft(d)
+        persistMessagingFlags(npub, messagingFlags)
         companyConfigService.put(npub, 'finance.primaryValueRail', rail, 'finance', 'string')
         companyConfigService.put(npub, 'finance.functionalCurrency', le.functionalCurrency, 'finance', 'string')
         companyConfigService.put(npub, 'finance.dualSats', 'false', 'finance', 'boolean')
@@ -340,6 +372,8 @@ class SetupService {
                 siteId        : site.id,
                 templateTier  : tier,
                 families      : families,
+                pluginDepth   : pluginDepth,
+                messaging     : readMessagingFlags(npub),
                 coaCount      : coa?.size() ?: 0,
                 treasuryCount : treasuryCount,
                 btcIntegration: btcLevel ?: null,
@@ -415,9 +449,19 @@ class SetupService {
      * Switch template tier + default families for an existing tenant (Copper pack E2).
      * Only metals open for metal selection are accepted (OI-A07 / metal selection honesty).
      * Does not wipe seed data or reopen the wizard.
+     * When Silver opens: upgrades write Advanced pluginDepth + messaging defaults (off).
+     *
+     * @param options optional map: pluginDepth (Map), messaging (Map with emailEnabled/telegramEnabled)
      */
-    Map setTemplateTier(String npubOwner, String tierCode, List enabledFamiliesOverride = null) {
+    Map setTemplateTier(String npubOwner, String tierCode, List enabledFamiliesOverride = null, Map options = null) {
         String npub = resolveNpub(npubOwner)
+        // Reject closed metals before normalize fallback (explicit SILVER while locked → 400)
+        if (tierCode?.trim()) {
+            String normalizedReq = TemplateTiers.normalize(tierCode)
+            if (TemplateTiers.isOperatorFacing(normalizedReq) && !TemplateTiers.isOpenForMetalSelection(normalizedReq)) {
+                throw new IllegalArgumentException("metal not open for selection: ${normalizedReq}")
+            }
+        }
         String tier = TemplateTiers.normalizeMetalSelection(tierCode)
         if (!TemplateTiers.isOpenForMetalSelection(tier)) {
             throw new IllegalArgumentException("metal not open for selection: ${tierCode}")
@@ -435,6 +479,15 @@ class SetupService {
         }
         companyConfigService.put(npub, 'template.tier', tier, 'template', 'string')
         companyConfigService.putJson(npub, 'template.enabledFamilies', families, 'template')
+        // Depth: use override when provided, else pack defaults (Silver → Advanced)
+        Map depthRaw = options?.pluginDepth instanceof Map ? (options.pluginDepth as Map) : null
+        persistPluginDepth(npub, TemplateTiers.sanitizePluginDepth(tier, depthRaw))
+        // Messaging: override when provided; else keep existing or default false
+        if (options?.messaging instanceof Map) {
+            persistMessagingFlags(npub, options.messaging as Map)
+        } else if (companyConfigService.getString(npub, KEY_MESSAGING_EMAIL, null) == null) {
+            persistMessagingFlags(npub, [emailEnabled: false, telegramEnabled: false])
+        }
         SetupState s = ensureState(npub)
         s.templateTier = tier
         s.save(failOnError: true)
@@ -539,8 +592,10 @@ class SetupService {
                 bankAccounts : banks.collect { mapBankAccount(it as BankAccount) },
                 template     : [
                         tier            : tier,
-                        enabledFamilies : families
+                        enabledFamilies : families,
+                        pluginDepth     : readPluginDepth(npub, tier)
                 ],
+                messaging    : readMessagingFlags(npub),
                 finance      : [
                         primaryValueRail   : moneyPrefs.primaryValueRail,
                         functionalCurrency : finCur,
@@ -601,6 +656,57 @@ class SetupService {
                 externalRef   : ba.externalRef,
                 active        : ba.active
         ]
+    }
+
+    /** Read pluginDepth from CompanySetting; fall back to tier defaults. */
+    Map<String, String> readPluginDepth(String npub, String tier) {
+        Object raw = companyConfigService.getJson(npub, KEY_PLUGIN_DEPTH, null)
+        if (raw instanceof Map) {
+            return TemplateTiers.sanitizePluginDepth(tier, raw as Map)
+        }
+        return TemplateTiers.defaultPluginDepth(tier)
+    }
+
+    /** Messaging toggles only — never secrets. Defaults off. */
+    Map readMessagingFlags(String npub) {
+        [
+                emailEnabled   : companyConfigService.getBoolean(npub, KEY_MESSAGING_EMAIL, false),
+                telegramEnabled: companyConfigService.getBoolean(npub, KEY_MESSAGING_TELEGRAM, false)
+        ]
+    }
+
+    private void persistPluginDepth(String npub, Map<String, String> depth) {
+        companyConfigService.putJson(npub, KEY_PLUGIN_DEPTH, depth, 'template')
+    }
+
+    private void persistMessagingFlags(String npub, Map flags) {
+        boolean email = coerceBool(flags?.emailEnabled, false)
+        boolean telegram = coerceBool(flags?.telegramEnabled, false)
+        companyConfigService.put(npub, KEY_MESSAGING_EMAIL, email ? 'true' : 'false', 'messaging', 'boolean')
+        companyConfigService.put(npub, KEY_MESSAGING_TELEGRAM, telegram ? 'true' : 'false', 'messaging', 'boolean')
+    }
+
+    private static Map extractPluginDepthFromDraft(Map d) {
+        if (d.pluginDepth instanceof Map) return d.pluginDepth as Map
+        return null
+    }
+
+    private static Map extractMessagingFromDraft(Map d) {
+        if (d.messaging instanceof Map) return d.messaging as Map
+        Map out = [:]
+        if (d.emailEnabled != null) out.emailEnabled = d.emailEnabled
+        if (d.telegramEnabled != null) out.telegramEnabled = d.telegramEnabled
+        if (d.containsKey('messaging.emailEnabled')) out.emailEnabled = d['messaging.emailEnabled']
+        if (d.containsKey('messaging.telegramEnabled')) out.telegramEnabled = d['messaging.telegramEnabled']
+        return out
+    }
+
+    private static boolean coerceBool(Object v, boolean defaultValue) {
+        if (v == null) return defaultValue
+        if (v instanceof Boolean) return (Boolean) v
+        String s = v.toString().trim()
+        if (!s) return defaultValue
+        return s.equalsIgnoreCase('true') || s == '1'
     }
 
     private String resolveNpub(String npubOwner) {
