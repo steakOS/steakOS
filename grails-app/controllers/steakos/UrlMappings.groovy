@@ -312,6 +312,22 @@ class UrlMappings {
         }
         "/api/sales/pricelists/$id/lines"(controller: 'salesPricingApi', action: 'lines', method: 'PUT')
 
+        // SalesAdvanced light CRM (OI-S08 / PR-4b) — gated SILVER+ via AdvancedRouteCatalog
+        "/api/sales/crm/opportunities"(controller: 'salesCrmApi') {
+            action = [GET: 'list', POST: 'create']
+        }
+        "/api/sales/crm/opportunities/$id"(controller: 'salesCrmApi') {
+            action = [GET: 'show', PUT: 'update', DELETE: 'delete']
+        }
+        "/api/sales/crm/opportunities/$id/lost"(controller: 'salesCrmApi', action: 'markLost', method: 'POST')
+        "/api/sales/crm/opportunities/$id/convert"(controller: 'salesCrmApi', action: 'convert', method: 'POST')
+        "/api/sales/crm/opportunities/$id/activities"(controller: 'salesCrmApi') {
+            action = [GET: 'listActivities', POST: 'createActivity']
+        }
+        "/api/sales/crm/activities/$activityId"(controller: 'salesCrmApi') {
+            action = [PUT: 'updateActivity', DELETE: 'deleteActivity']
+        }
+
         // Supply chain (SC kernel) — /api/scm/*
         "/api/scm/vendors"(controller: 'scmApi') {
             action = [GET: 'vendorList', POST: 'vendorCreate']
