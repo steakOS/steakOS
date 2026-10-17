@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 The steakOS Authors
 #
-# KPI registry smoke (Silver PR-2 / WP-K0–K1).
+# KPI registry + feeds smoke (Silver PR-2 / PR-13).
 # Usage: BASE=http://127.0.0.1:6060 ./scripts/kpi-api-smoke.sh
 #
-# Asserts catalogue shape, single KPI, and Bronze counts-only hero.
-# Values may be status=planned until PR-13 feeds.
+# Asserts catalogue shape, live ship feed status, Bronze counts-only hero, ar-aging.
 set -euo pipefail
 BASE="${BASE:-http://127.0.0.1:6060}"
 COOKIE=$(mktemp)
@@ -31,6 +30,8 @@ for need in ['KPI-S01','KPI-F02','KPI-W01','KPI-S04','KPI-F05','KPI-I03']:
     assert need in ids, (need, sorted(ids))
 defer=[i for i in items if i.get('deferred')]
 assert len(defer)>=3, defer
+ship=[i for i in items if i.get('ship')]
+assert all(i.get('status')=='ready' for i in ship), [(i.get('id'), i.get('status')) for i in ship]
 print('OK catalogue ship=%s defer=%s total=%s' % (meta.get('shipCount'), meta.get('deferCount'), len(items)))
 "
 
@@ -41,8 +42,29 @@ d=json.load(sys.stdin)
 assert d.get('id')=='KPI-S01', d
 assert d.get('name'), d
 assert d.get('formula'), d
-assert (d.get('value') or {}).get('status') in ('planned','ready','deferred'), d.get('value')
-print('OK show', d.get('id'), d.get('status'), (d.get('value') or {}).get('message'))
+st=(d.get('value') or {}).get('status')
+assert st in ('ready','insufficient'), d.get('value')
+print('OK show', d.get('id'), d.get('status'), st, (d.get('value') or {}).get('message'))
+"
+
+echo "-- GET /api/kpi/KPI-S04 deferred --"
+curl -s -b "$COOKIE" "$BASE/api/kpi/KPI-S04" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+assert d.get('deferred') is True, d
+assert (d.get('value') or {}).get('status')=='deferred', d.get('value')
+print('OK deferred', d.get('id'))
+"
+
+echo "-- GET /api/kpi/ar-aging --"
+curl -s -b "$COOKIE" "$BASE/api/kpi/ar-aging" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+assert d.get('id')=='KPI-F01', d
+val=d.get('value') or {}
+assert val.get('status') in ('ready','insufficient'), val
+assert 'buckets' in val or val.get('status')=='insufficient', val
+print('OK ar-aging status=%s' % val.get('status'))
 "
 
 echo "-- GET /api/kpi/dashboard-hero (Bronze → counts-only) --"

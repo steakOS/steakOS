@@ -33,10 +33,11 @@ class UrlMappings {
         }
         "/api/dashboard/ceo"(controller: 'dashboardApi', action: 'ceo', method: 'GET')
 
-        // KPI registry (Silver WP-K0–K1) — /api/kpi/*
+        // KPI registry (Silver WP-K0–K1 + PR-13 feeds) — /api/kpi/*
         // Static paths before /api/kpi/$id so catalogue/hero are not captured as ids.
         "/api/kpi/catalogue"(controller: 'kpiApi', action: 'catalogue', method: 'GET')
         "/api/kpi/dashboard-hero"(controller: 'kpiApi', action: 'dashboardHero', method: 'GET')
+        "/api/kpi/ar-aging"(controller: 'kpiApi', action: 'arAging', method: 'GET')
         "/api/kpi/$id"(controller: 'kpiApi', action: 'show', method: 'GET')
 
         // GRRCBasics (G7 / PR-6) — /api/grrc/* (SILVER+ / Iron eval; Bronze refused)

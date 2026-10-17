@@ -47,12 +47,20 @@ class KpiCatalogueSpec extends Specification {
         }
     }
 
-    def "ship rows are planned until feeds"() {
+    def "ship rows are ready after PR-13 feeds"() {
         expect:
         KpiCatalogue.SHIP_IDS.every { String id ->
             Map row = KpiCatalogue.get(id)
-            !row.deferred && row.ship && row.status == KpiCatalogue.STATUS_PLANNED
+            !row.deferred && row.ship && row.status == KpiCatalogue.STATUS_READY
         }
+    }
+
+    def "silver-new stretch stays planned"() {
+        expect:
+        KpiCatalogue.get('KPI-I02').status == KpiCatalogue.STATUS_PLANNED
+        KpiCatalogue.get('KPI-F06').status == KpiCatalogue.STATUS_PLANNED
+        !KpiCatalogue.isShip('KPI-I02')
+        !KpiCatalogue.isShip('KPI-F06')
     }
 
     def "money and HR sensitivity cover F* and H*"() {

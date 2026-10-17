@@ -23,9 +23,9 @@ import steakos.configuration.TemplateTiers
 import steakos.security.RoleProfileService
 
 /**
- * KPI registry read API (Silver WP-K0–K1). Placeholder values until PR-13 feeds.
- * Tenant-scoped; money/HR sensitivity stubs via role matrix.
- * Not @Transactional yet — no GORM aggregates until PR-13 domain feeds.
+ * KPI registry read API (Silver WP-K0–K1 + PR-13 feeds).
+ * Tenant-scoped; money/HR sensitivity via role matrix. Bronze hero stays counts-only.
+ * Aggregations are transactional on {@link KpiFeedService}.
  */
 @Slf4j
 class KpiService {
@@ -33,6 +33,7 @@ class KpiService {
     SpringSecurityService springSecurityService
     CompanyConfigService companyConfigService
     RoleProfileService roleProfileService
+    KpiFeedService kpiFeedService
 
     /**
      * Full catalogue visible to the caller (RBAC-filtered).
@@ -56,7 +57,7 @@ class KpiService {
     }
 
     /**
-     * Single KPI definition + placeholder value envelope.
+     * Single KPI definition + live (or honest empty) value envelope.
      * @throws SecurityException when sensitivity denied
      * @throws IllegalArgumentException when id unknown
      */
@@ -74,14 +75,14 @@ class KpiService {
         body.npubOwner = npubOwner
         body.from = from?.time
         body.to = to?.time
-        body.value = placeholderValue(defn)
+        body.value = computeValue(defn, npubOwner, from, to)
         body.series = []
         body
     }
 
     /**
      * CEO hero strip. Bronze → counts-only / empty rich set (decision 2026-10-17).
-     * Silver → rich hero tile stubs (status planned until feeds).
+     * Silver → rich hero tiles with live feeds.
      */
     Map dashboardHero(String npubOwner) {
         String tier = resolveTier(npubOwner)
@@ -94,7 +95,7 @@ class KpiService {
                 Map defn = KpiCatalogue.get(hid)
                 if (defn && access.maySee(defn)) {
                     Map tile = enrichMeta(defn, access, tier)
-                    tile.value = placeholderValue(defn)
+                    tile.value = computeValue(defn, npubOwner, null, null)
                     tile.series = []
                     tiles << tile
                 }
@@ -107,12 +108,37 @@ class KpiService {
                 mode        : silverRich ? 'rich' : 'counts-only',
                 silverRich  : silverRich,
                 note        : silverRich
-                        ? 'Silver rich hero; values planned until PR-13 feeds'
+                        ? 'Silver rich hero with live KPI feeds'
                         : 'Bronze hero stays counts-only — use /api/dashboard/ceo for APQC pulse',
                 tiles       : tiles,
-                // Pointer for Bronze clients that still want Action-NOW counts
                 countsPulse : '/api/dashboard/ceo'
         ]
+    }
+
+    /**
+     * AR aging bucket map for Finance hub charts (money RBAC).
+     */
+    Map arAging(String npubOwner, Date asOf = null) {
+        Map defn = KpiCatalogue.get(KpiCatalogue.F01)
+        String tier = resolveTier(npubOwner)
+        AccessCtx access = resolveAccess(npubOwner, tier)
+        if (!access.maySee(defn)) {
+            throw new SecurityException("kpi forbidden: ${defn.id}")
+        }
+        Date when = asOf ?: new Date()
+        Map body = kpiFeedService != null
+                ? kpiFeedService.arAging(npubOwner, when)
+                : [npubOwner: npubOwner, asOf: when, value: placeholderValue(defn)]
+        body.templateTier = tier
+        body.id = KpiCatalogue.F01
+        body
+    }
+
+    private Map computeValue(Map defn, String npubOwner, Date from, Date to) {
+        if (kpiFeedService == null) {
+            return placeholderValue(defn)
+        }
+        kpiFeedService.compute(defn, npubOwner, from, to)
     }
 
     private Map enrichMeta(Map row, AccessCtx access, String tier) {

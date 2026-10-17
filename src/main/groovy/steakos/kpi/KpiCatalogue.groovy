@@ -18,7 +18,8 @@ package steakos.kpi
 /**
  * Silver light KPI catalogue (plan-kpi-analytics.md WP-K0).
  * 16 ship + 3 DEFER stable ids; I02/F06/Q03 also registered (silver-new / extra DEFER).
- * Values stay {@code planned} until PR-13 domain feeds.
+ * Ship rows are {@code ready} once PR-13 domain feeds land; DEFER stays deferred;
+ * silver-new stretch (I02/F06) stays planned.
  */
 final class KpiCatalogue {
 
@@ -32,6 +33,7 @@ final class KpiCatalogue {
 
     static final String STATUS_PLANNED = 'planned'
     static final String STATUS_READY = 'ready'
+    static final String STATUS_INSUFFICIENT = 'insufficient'
 
     // --- Sales ---
     static final String S01 = 'KPI-S01'
@@ -132,7 +134,7 @@ final class KpiCatalogue {
                 extraDeferCount: EXTRA_DEFER_IDS.size(),
                 totalCount    : ENTRIES.size(),
                 heroIds       : new ArrayList<>(HERO_IDS),
-                note          : 'Values status=planned until PR-13 domain feeds; Bronze hero stays counts-only'
+                note          : 'Ship KPI feeds live (PR-13); DEFER stay deferred; Bronze hero stays counts-only'
         ]
     }
 
@@ -220,20 +222,29 @@ final class KpiCatalogue {
     private static Map entry(String id, String name, String area, String maturity, boolean deferred,
                              String sensitivity, String formula, String unit, String drillRoute,
                              boolean hero, String blocker = null) {
+        boolean ship = SHIP_IDS.contains(id)
+        String status
+        if (deferred) {
+            status = 'deferred'
+        } else if (ship) {
+            status = STATUS_READY
+        } else {
+            // silver-new stretch (I02/F06) etc. — not in ship set
+            status = STATUS_PLANNED
+        }
         Map m = [
                 id          : id,
                 name        : name,
                 area        : area,
                 maturity    : maturity,
                 deferred    : deferred,
-                ship        : SHIP_IDS.contains(id),
+                ship        : ship,
                 sensitivity : sensitivity,
                 formula     : formula,
                 unit        : unit,
                 drillRoute  : drillRoute,
                 hero        : hero,
-                // PR-2 registry only — feeds land in PR-13+
-                status      : deferred ? 'deferred' : STATUS_PLANNED
+                status      : status
         ]
         if (blocker) {
             m.blocker = blocker

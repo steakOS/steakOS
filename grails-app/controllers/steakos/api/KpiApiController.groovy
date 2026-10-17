@@ -22,7 +22,7 @@ import steakos.configuration.TenantNpubService
 import steakos.kpi.KpiService
 
 /**
- * KPI read API — GET /api/kpi/* (Silver WP-K1).
+ * KPI read API — GET /api/kpi/* (Silver WP-K1 + PR-13 feeds).
  */
 @Slf4j
 @Secured(['IS_AUTHENTICATED_REMEMBERED'])
@@ -31,7 +31,8 @@ class KpiApiController {
     static allowedMethods = [
             catalogue    : 'GET',
             show         : 'GET',
-            dashboardHero: 'GET'
+            dashboardHero: 'GET',
+            arAging      : 'GET'
     ]
 
     KpiService kpiService
@@ -54,6 +55,13 @@ class KpiApiController {
     def dashboardHero() {
         wrap { String npub ->
             kpiService.dashboardHero(npub)
+        }
+    }
+
+    /** GET /api/kpi/ar-aging — Finance hub aging buckets (money RBAC). */
+    def arAging() {
+        wrap { String npub ->
+            kpiService.arAging(npub, parseDate(params.asOf))
         }
     }
 
