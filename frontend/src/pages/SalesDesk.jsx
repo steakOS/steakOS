@@ -30,7 +30,8 @@ import {
   Boxes,
   Briefcase,
 } from 'lucide-react'
-import { contentApi, salesApi, catalogueApi } from '../api/client'
+import { contentApi, salesApi, catalogueApi, meApi } from '../api/client'
+import { allowsSilverSurfaces } from '../utils/silverSurfaces'
 import CurrencySelect from '../components/CurrencySelect'
 import DocumentLinesEditor, {
   emptyDocLine,
@@ -102,6 +103,22 @@ export default function SalesDesk() {
   const [busy, setBusy] = useState(null)
   const [quoteFilter, setQuoteFilter] = useState('')
   const [orderFilter, setOrderFilter] = useState('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    meApi
+      .get()
+      .then((me) => {
+        if (!cancelled) setShowAdvanced(allowsSilverSurfaces(me?.templateTier))
+      })
+      .catch(() => {
+        if (!cancelled) setShowAdvanced(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const [customerForm, setCustomerForm] = useState(() => customerMasterSpec.empty())
   const [productForm, setProductForm] = useState(() => productMasterSpec.empty())
@@ -594,6 +611,16 @@ export default function SalesDesk() {
         <Link className="btn btn-secondary" to="/finance/invoices">
           {t('desk.financeInvoices')}
         </Link>
+        {showAdvanced && (
+          <>
+            <Link className="btn btn-secondary" to="/sales/pricing">
+              {t('features.pricing', { ns: 'common', defaultValue: 'Price lists' })}
+            </Link>
+            <Link className="btn btn-secondary" to="/sales/crm">
+              {t('features.crm', { ns: 'common', defaultValue: 'CRM' })}
+            </Link>
+          </>
+        )}
       </div>
 
       {tab === 'customers' && (

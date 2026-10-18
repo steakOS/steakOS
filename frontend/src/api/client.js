@@ -619,6 +619,14 @@ export const financeOpsApi = {
     const qs = q.toString()
     return api(`/api/finance/collections/${id}${qs ? `?${qs}` : ''}`)
   },
+  collectionsListActivities: (invoiceId) =>
+    api(`/api/finance/collections/${invoiceId}/activities`),
+  collectionsCreateActivity: (invoiceId, body) =>
+    api(`/api/finance/collections/${invoiceId}/activities`, { method: 'POST', body }),
+  collectionsCreatePromise: (invoiceId, body) =>
+    api(`/api/finance/collections/${invoiceId}/promise`, { method: 'POST', body }),
+  collectionsUpdatePromiseStatus: (activityId, body) =>
+    api(`/api/finance/collections/activities/${activityId}`, { method: 'PUT', body }),
 }
 
 /** OI-NOSTR01 — Nostr integration settings / probe */

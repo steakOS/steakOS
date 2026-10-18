@@ -72,4 +72,34 @@ class ApiPermissionMapperSpec extends Specification {
         r.family == 'scm'
         r.verb == 'create'
     }
+
+    def "grrc POST maps to desk create"() {
+        when:
+        Map r = ApiPermissionMapper.requireFor('POST', '/api/grrc/risks')
+
+        then:
+        r.kind == 'desk'
+        r.family == 'grrc'
+        r.verb == 'create'
+    }
+
+    def "stakeholder PUT maps to desk change"() {
+        when:
+        Map r = ApiPermissionMapper.requireFor('PUT', '/api/stakeholder/parties/12')
+
+        then:
+        r.kind == 'desk'
+        r.family == 'stakeholder'
+        r.verb == 'change'
+    }
+
+    def "domains grrc package maps to family"() {
+        when:
+        Map r = ApiPermissionMapper.requireFor('POST', '/api/domains/grrc/RiskItem')
+
+        then:
+        r.kind == 'desk'
+        r.family == 'grrc'
+        r.verb == 'create'
+    }
 }

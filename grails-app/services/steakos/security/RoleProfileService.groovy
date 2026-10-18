@@ -21,13 +21,15 @@ class RoleProfileService {
 
     static final List<String> ALL_DESK_FAMILIES = [
             'core', 'sales', 'scm', 'delivery', 'aftersales', 'finance',
-            'human', 'digital', 'capability', 'agents', 'strategy', 'development', 'asset'
+            'human', 'digital', 'capability', 'agents', 'strategy', 'development', 'asset',
+            'grrc', 'stakeholder'
     ].asImmutable()
 
     /** Profiles that always See the full metal pack (CEO system exceptions stay in matrix.system). */
     static final Set<String> ELEVATED_SEE_PROFILES = ['admin', 'ceo'].asImmutable() as Set
 
-    static final int MATRIX_VERSION = 1
+    /** Bumped when ALL_DESK_FAMILIES or default matrices change so system presets re-seed. */
+    static final int MATRIX_VERSION = 2
 
     AuthAccountService authAccountService
 
@@ -47,8 +49,20 @@ class RoleProfileService {
             } else if (existing.systemPreset) {
                 // Keep system preset home in sync (admin was stuck on /settings after an old edit)
                 String wantHome = d.defaultHome as String
+                boolean dirty = false
                 if (wantHome && existing.defaultHome != wantHome) {
                     existing.defaultHome = wantHome
+                    dirty = true
+                }
+                // Refresh matrix when catalogue grows (e.g. Silver grrc/stakeholder desks)
+                int haveVer = existing.matrixVersion ?: 0
+                if (haveVer < MATRIX_VERSION) {
+                    existing.matrixJson = JsonOutput.toJson(d.matrix)
+                    existing.matrixVersion = MATRIX_VERSION
+                    if (d.label) existing.label = d.label as String
+                    dirty = true
+                }
+                if (dirty) {
                     existing.save(failOnError: true)
                 }
             }
@@ -135,10 +149,12 @@ class RoleProfileService {
             }
             if (elevatedSee) {
                 see = true
-                // Elevated presets seed work=true on all desks — keep writes when metal pack includes fam
+                // Admin/CEO: writable for every family in the active metal pack, including
+                // desks added after the profile was first seeded (Silver GRRC/Stakeholder).
                 if (inWritePack && !readOnly) {
-                    create = create || (cell.create as boolean) || (cell.work as boolean)
-                    change = change || (cell.change as boolean) || (cell.work as boolean)
+                    create = true
+                    change = true
+                    delete = delete || (cell.delete as boolean)
                 }
             }
             desks[fam] = [

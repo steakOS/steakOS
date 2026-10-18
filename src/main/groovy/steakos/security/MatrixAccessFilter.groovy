@@ -56,15 +56,17 @@ class MatrixAccessFilter extends OncePerRequestFilter {
         }
 
         List enabledFamilies = null
+        String templateTier = null
         try {
             String npub = user.npub ?: 'user:admin'
             enabledFamilies = companyConfigService?.enabledFamilies(npub) as List
+            templateTier = companyConfigService?.getString(npub, 'template.tier', null)
         } catch (ignored) {
         }
 
         Map eff
         try {
-            eff = roleProfileService.effectivePermissions(user, enabledFamilies)
+            eff = roleProfileService.effectivePermissions(user, enabledFamilies, templateTier)
         } catch (Exception e) {
             log.warn("matrix resolve failed: ${e.message}")
             filterChain.doFilter(request, response)

@@ -25,7 +25,8 @@ import {
   Shield,
   RefreshCw,
 } from 'lucide-react'
-import { financeOpsApi } from '../api/client'
+import { financeOpsApi, meApi } from '../api/client'
+import { allowsSilverSurfaces } from '../utils/silverSurfaces'
 import useRecordView from '../hooks/useRecordView'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
@@ -63,6 +64,22 @@ export default function FinanceHub() {
   const [info, setInfo] = useState(null)
   const [busy, setBusy] = useState(false)
   const [period, setPeriod] = useState(periodNow())
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    meApi
+      .get()
+      .then((me) => {
+        if (!cancelled) setShowAdvanced(allowsSilverSurfaces(me?.templateTier))
+      })
+      .catch(() => {
+        if (!cancelled) setShowAdvanced(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const [positions, setPositions] = useState([])
   const [treasuryPage, setTreasuryPage] = useState({ max: 25, offset: 0, total: 0 })
@@ -193,6 +210,18 @@ export default function FinanceHub() {
           <Link to="/finance/posting-rules">
             {t('finance.postingRules.title', { defaultValue: 'Posting rules' })}
           </Link>
+          {showAdvanced && (
+            <>
+              {' · '}
+              <Link to="/finance/collections">
+                {t('features.collections', { ns: 'common', defaultValue: 'Collections' })}
+              </Link>
+              {' · '}
+              <Link to="/finance/match">
+                {t('features.threeWayMatch', { ns: 'common', defaultValue: 'Three-way match' })}
+              </Link>
+            </>
+          )}
         </p>
       </header>
 

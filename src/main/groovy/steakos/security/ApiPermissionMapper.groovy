@@ -136,6 +136,8 @@ final class ApiPermissionMapper {
         if (p.startsWith('/api/development') || p.startsWith('/api/dev')) return 'development'
         if (p.startsWith('/api/assets') || p.startsWith('/api/asset')) return 'asset'
         if (p.startsWith('/api/core') || p.startsWith('/api/tasks') || p.startsWith('/api/work')) return 'core'
+        if (p.startsWith('/api/grrc')) return 'grrc'
+        if (p.startsWith('/api/stakeholder')) return 'stakeholder'
         null
     }
 
@@ -157,6 +159,8 @@ final class ApiPermissionMapper {
             case 'development': return 'development'
             case 'asset': return 'asset'
             case 'core': return 'core'
+            case 'grrc': return 'grrc'
+            case 'stakeholder': return 'stakeholder'
             default: return null
         }
     }
