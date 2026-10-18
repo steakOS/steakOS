@@ -17,6 +17,7 @@ package steakos.core
 
 import grails.testing.gorm.DataTest
 import spock.lang.Specification
+import steakos.helper.DateParse
 
 /**
  * OI-WK01 Task unification — defaults, assignees, Eisenhower fields.
@@ -69,20 +70,22 @@ class TaskSpec extends Specification implements DataTest {
 
     def "optional schedule dates are allowed"() {
         given:
-        def start = Date.parse('yyyy-MM-dd', '2026-07-28')
-        def due = Date.parse('yyyy-MM-dd', '2026-08-01')
+        def start = DateParse.toDate('2026-07-28')
+        def due = DateParse.toDate('2026-08-01')
 
         when:
         def t = new Task(
                 npubOwner: 'npub1test',
                 name: 'Timed',
                 startAt: start,
+                endAt: DateParse.toDate('2026-07-30'),
                 deadlineAt: due
         )
 
         then:
         t.validate()
         t.startAt == start
+        t.endAt != null
         t.deadlineAt == due
     }
 

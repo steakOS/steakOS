@@ -70,6 +70,8 @@ dependencies {
     implementation "org.apache.grails:grails-data-hibernate5"
     implementation "org.apache.grails:grails-gsp"
     implementation "org.apache.grails:grails-spring-security:7.1.4"
+    // Groovy 4: Date.parse(fmt, str) / format live in groovy-dateutil (not core)
+    implementation "org.apache.groovy:groovy-dateutil"
     // AUTH01 QR for otpauth:// enrolment
     implementation "com.google.zxing:core:3.5.3"
     implementation "com.google.zxing:javase:3.5.3"

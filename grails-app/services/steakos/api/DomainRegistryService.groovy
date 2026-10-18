@@ -28,6 +28,7 @@ import steakos.human.Payroll
 import steakos.production.BillOfMaterials
 import steakos.production.BomItem
 import steakos.catalogue.CatalogueItem
+import steakos.helper.DateParse
 
 /**
  * Maps package/resource path segments to GORM domain classes (FE-2 dynamic CRUD).
@@ -1139,25 +1140,8 @@ class DomainRegistryService {
     }
 
     private static Date toDate(Object raw) {
-        if (raw == null || raw == '') {
-            return null
-        }
-        if (raw instanceof Date) {
-            return raw
-        }
-        String s = raw.toString().trim()
-        // yyyy-MM-dd or ISO
-        if (s.length() >= 10 && s.charAt(4) == '-' as char) {
-            try {
-                return Date.parse("yyyy-MM-dd", s.substring(0, 10))
-            } catch (ignored) {
-            }
-        }
-        try {
-            return new Date(Long.parseLong(s))
-        } catch (ignored) {
-            return null
-        }
+        // Groovy 4: Date.parse(fmt, str) needs groovy-dateutil; use java.time helper instead
+        return DateParse.toDate(raw)
     }
 
     private void ensureCache() {
