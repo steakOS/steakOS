@@ -39,10 +39,11 @@ class AdvancedMetalPolicySpec extends Specification {
         'nope'                       | false
     }
 
-    def "OPEN_FOR_METAL_SELECTION remains Bronze-only (PR-17 gate)"() {
+    def "OPEN_FOR_METAL_SELECTION includes Silver after PR-17; Gold stays closed"() {
         expect:
-        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE]
-        !TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
+        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE, TemplateTiers.SILVER]
+        TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
+        !TemplateTiers.isOpenForMetalSelection(TemplateTiers.GOLD)
     }
 
     @Unroll

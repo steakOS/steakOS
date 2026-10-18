@@ -47,10 +47,11 @@ class StakeholderMetalPolicySpec extends Specification {
         StakeholderMetalPolicy.denialMessage(TemplateTiers.BRONZE).contains('BRONZE')
     }
 
-    def "OPEN_FOR_METAL_SELECTION remains Bronze-only (PR-17 gate)"() {
+    def "OPEN_FOR_METAL_SELECTION includes Silver after PR-17"() {
         expect:
-        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE]
-        !TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
+        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE, TemplateTiers.SILVER]
+        TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
+        !TemplateTiers.isOpenForMetalSelection(TemplateTiers.GOLD)
     }
 
     def "StakeholderGateException carries code and tier"() {

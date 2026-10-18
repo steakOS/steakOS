@@ -43,9 +43,9 @@ class TemplateTiers {
 
     /**
      * Metals open for metal selection in wizard/settings today.
-     * Bronze is the commercial starting pack; Silver/Gold stay closed until productized.
+     * Bronze + Silver are productizable; Gold stays closed until productized.
      */
-    static final List<String> OPEN_FOR_METAL_SELECTION = [BRONZE].asImmutable()
+    static final List<String> OPEN_FOR_METAL_SELECTION = [BRONZE, SILVER].asImmutable()
 
     /**
      * Family codes used in nav / enablement.
@@ -108,7 +108,7 @@ class TemplateTiers {
             'strategy', 'development', 'asset'
     ].asImmutable()
 
-    /** Silver pack (when productized): Bronze + grrc + stakeholder. */
+    /** Silver pack (productizable): Bronze + grrc + stakeholder. */
     static final List<String> SILVER_FAMILIES = [
             'core', 'sales', 'scm', 'finance', 'delivery', 'aftersales', 'capability', 'agents',
             'human', 'digital',
@@ -196,7 +196,7 @@ class TemplateTiers {
 
     /**
      * Families that claim Advanced depth at Silver+ (G5). Used by gates / status defaults.
-     * Does not open metal selection — OPEN_FOR_METAL_SELECTION stays Bronze-only until DoD.
+     * Advanced families for the metal (Sales/Finance from Silver+).
      */
     static List<String> advancedFamilies(String tier) {
         String t = normalize(tier)
@@ -258,7 +258,7 @@ class TemplateTiers {
                 [code: BRONZE, label: 'Bronze', openForMetalSelection: isOpenForMetalSelection(BRONZE),
                  blurb: 'Team pack — sales, money, supply chain, delivery, people (HR), IT, and thin Strategy/Development/Asset. Recommended start.'],
                 [code: SILVER, label: 'Silver', openForMetalSelection: isOpenForMetalSelection(SILVER),
-                 blurb: 'Growing company (when productized) — Bronze plus GRRC and Stakeholder. Coming soon.'],
+                 blurb: 'Growing company — Bronze plus Sales/Finance Advanced, GRRC, and Stakeholder. Optional email/Telegram (off by default).'],
                 [code: GOLD, label: 'Gold', openForMetalSelection: isOpenForMetalSelection(GOLD),
                  blurb: 'Full enterprise surface + family Pros (when productized). Coming soon.']
         ]

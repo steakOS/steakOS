@@ -756,7 +756,7 @@ export default function SetupWizard() {
         const ack = await setupApi.privacyHrAck({})
         setStatus(ack?.status || status)
       }
-      // While Silver closed, never send SILVER from preview — backend also normalizes.
+      // Only apply metals that are open for selection (Gold stays closed; preview cannot escalate).
       const applyTier = openMetals.includes(String(draft.templateTier || '').toUpperCase())
         ? draft.templateTier
         : preferredTemplateFromTour(openMetals)
@@ -1600,9 +1600,9 @@ export default function SetupWizard() {
                       label: 'Silver',
                       blurb: t('template.silverBlurb', {
                         defaultValue:
-                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram. Not open yet.',
+                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram (off by default).',
                       }),
-                      openForMetalSelection: false,
+                      openForMetalSelection: true,
                     },
                     {
                       code: 'GOLD',
@@ -1618,7 +1618,7 @@ export default function SetupWizard() {
                 const openForMetalSelection =
                   tier.openForMetalSelection === true ||
                   (tier.openForMetalSelection == null && tier.choosable === true)
-                // Selection stays Bronze-only until PR-17; preview flag unlocks Silver card for UI rehearsal only
+                // Gold stays locked; preview flag still unlocks Silver card for UI rehearsal if API lags
                 const code = String(tier.code || '').toUpperCase()
                 const previewUnlock = previewSilverWizard() && code === 'SILVER'
                 const locked = !openForMetalSelection && !previewUnlock
@@ -1627,7 +1627,7 @@ export default function SetupWizard() {
                     ? t('template.silverBlurb', {
                         defaultValue:
                           tier.blurb ||
-                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram. Not open yet.',
+                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram (off by default).',
                       })
                     : tier.blurb
                 return (

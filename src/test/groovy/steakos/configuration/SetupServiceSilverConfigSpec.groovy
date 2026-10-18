@@ -20,7 +20,7 @@ import spock.lang.Specification
 import steakos.finance.Account
 
 /**
- * PR-3 — pluginDepth + messaging flags via CompanySetting; status exposes them while Silver locked.
+ * PR-3 pluginDepth + messaging flags; PR-17 Silver open for metal selection.
  */
 class SetupServiceSilverConfigSpec extends Specification implements DataTest {
 
@@ -86,7 +86,8 @@ class SetupServiceSilverConfigSpec extends Specification implements DataTest {
         status.pluginDepth.finance == TemplateTiers.DEPTH_BASICS
         status.messaging.emailEnabled == false
         status.messaging.telegramEnabled == false
-        status.tiers.find { it.code == 'SILVER' }.openForMetalSelection == false
+        status.tiers.find { it.code == 'SILVER' }.openForMetalSelection == true
+        status.tiers.find { it.code == 'GOLD' }.openForMetalSelection == false
     }
 
     def "readPluginDepth returns stored Advanced map"() {
@@ -103,9 +104,27 @@ class SetupServiceSilverConfigSpec extends Specification implements DataTest {
         d.finance == 'ADVANCED'
     }
 
-    def "setTemplateTier SILVER while closed throws METAL_NOT_OPEN"() {
+    def "setTemplateTier SILVER succeeds when open (PR-17)"() {
+        given:
+        String npub = 'user:admin'
+        stored.put("${npub}|privacy.hrAcknowledged".toString(), 'true')
+
         when:
-        setupService.setTemplateTier('user:admin', 'SILVER')
+        Map status = setupService.setTemplateTier(npub, 'SILVER')
+
+        then:
+        stored.get("${npub}|template.tier".toString()) == 'SILVER'
+        status.templateTier == 'SILVER'
+        status.pluginDepth.sales == 'ADVANCED'
+        status.pluginDepth.finance == 'ADVANCED'
+        (status.enabledFamilies as List).containsAll(['grrc', 'stakeholder'])
+        status.messaging.emailEnabled == false
+        status.messaging.telegramEnabled == false
+    }
+
+    def "setTemplateTier GOLD while closed throws METAL_NOT_OPEN"() {
+        when:
+        setupService.setTemplateTier('user:admin', 'GOLD')
 
         then:
         IllegalArgumentException ex = thrown()

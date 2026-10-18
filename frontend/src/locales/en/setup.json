@@ -161,14 +161,14 @@
   },
   "template": {
     "title": "Choose your starting size",
-    "blurb": "Bronze is the team pack open for selection today. Silver and Gold are the growth ladder as those packs ship.",
+    "blurb": "Bronze and Silver are open for selection. Gold stays on the ladder until that pack ships.",
     "bronzeBlurb": "Team pack — recommended start",
-    "silverBlurb": "Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram. Not open yet.",
+    "silverBlurb": "Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram (off by default).",
     "goldBlurb": "Full enterprise surface — coming soon",
     "available": "Open for selection",
     "comingSoon": "Coming soon",
     "previewOnly": "Preview only",
-    "ladderNote": "Bronze is selectable now. Silver and Gold stay visible for orientation until productized.",
+    "ladderNote": "Bronze and Silver are selectable now. Gold stays visible for orientation until productized.",
     "notAvailable": "Not productized yet — not open for metal selection",
     "silverLockedHint": "Not open yet. When productized: Sales/Finance Advanced, GRRC + Stakeholder desks, optional email/Telegram (off by default)."
   },
@@ -181,7 +181,7 @@
   },
   "silverOptions": {
     "title": "Silver pack options",
-    "previewNote": "Preview only — Silver is not open for metal selection yet. Finish still applies Bronze unless Silver is open.",
+    "previewNote": "Preview only — you are rehearsing Silver options. Finish applies an open metal (Bronze or Silver) from the selection step.",
     "depthBlurb": "Sales and Finance run at Advanced depth on Silver (pack-mandatory). Not toggled back to Basics here.",
     "depthLabel": "Plugin depth",
     "sales": "Sales",

@@ -18,15 +18,18 @@ package steakos.configuration
 import spock.lang.Specification
 
 /**
- * PR-3 — pluginDepth helpers for Silver (selection still closed).
+ * PR-3 pluginDepth helpers + PR-17 Silver open for metal selection.
  */
 class TemplateTiersPluginDepthSpec extends Specification {
 
-    def "OPEN_FOR_METAL_SELECTION stays Bronze-only"() {
+    def "OPEN_FOR_METAL_SELECTION includes Bronze and Silver (PR-17)"() {
         expect:
-        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE]
-        !TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
-        TemplateTiers.normalizeMetalSelection('SILVER') == TemplateTiers.BRONZE
+        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE, TemplateTiers.SILVER]
+        TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
+        TemplateTiers.isOpenForMetalSelection(TemplateTiers.BRONZE)
+        !TemplateTiers.isOpenForMetalSelection(TemplateTiers.GOLD)
+        TemplateTiers.normalizeMetalSelection('SILVER') == TemplateTiers.SILVER
+        TemplateTiers.normalizeMetalSelection('GOLD') == TemplateTiers.BRONZE
     }
 
     def "Bronze defaultPluginDepth is Basics for sales and finance"() {
@@ -90,12 +93,16 @@ class TemplateTiersPluginDepthSpec extends Specification {
         d.finance == TemplateTiers.DEPTH_ADVANCED
     }
 
-    def "catalog still marks Silver closed"() {
+    def "catalog marks Silver open and Gold closed"() {
         when:
         def silver = TemplateTiers.catalog().find { it.code == TemplateTiers.SILVER }
+        def gold = TemplateTiers.catalog().find { it.code == TemplateTiers.GOLD }
 
         then:
-        silver.openForMetalSelection == false
-        (silver.blurb as String).toLowerCase().contains('coming soon')
+        silver.openForMetalSelection == true
+        !(silver.blurb as String).toLowerCase().contains('coming soon')
+        (silver.blurb as String).toLowerCase().contains('advanced')
+        gold.openForMetalSelection == false
+        (gold.blurb as String).toLowerCase().contains('coming soon')
     }
 }

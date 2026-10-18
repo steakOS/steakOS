@@ -40,10 +40,10 @@ class GrrcMetalPolicySpec extends Specification {
         'nope'                       | false
     }
 
-    def "OPEN_FOR_METAL_SELECTION remains Bronze-only (PR-17 gate)"() {
+    def "OPEN_FOR_METAL_SELECTION includes Silver; GRRC still Silver-only family"() {
         expect:
-        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE]
-        !TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
+        TemplateTiers.OPEN_FOR_METAL_SELECTION == [TemplateTiers.BRONZE, TemplateTiers.SILVER]
+        TemplateTiers.isOpenForMetalSelection(TemplateTiers.SILVER)
         TemplateTiers.SILVER_FAMILIES.contains('grrc')
         !TemplateTiers.BRONZE_FAMILIES.contains('grrc')
     }
