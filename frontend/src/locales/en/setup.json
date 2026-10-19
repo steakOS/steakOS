@@ -163,19 +163,19 @@
     "title": "Choose your starting size",
     "blurb": "Bronze and Silver are open for selection. Gold stays on the ladder until that pack ships.",
     "bronzeBlurb": "Team pack — recommended start",
-    "silverBlurb": "Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram (off by default).",
+    "silverBlurb": "Growing company — Advanced sales/finance, Governance, Stakeholder, optional email/Telegram (off by default).",
     "goldBlurb": "Full enterprise surface — coming soon",
     "available": "Open for selection",
     "comingSoon": "Coming soon",
     "previewOnly": "Preview only",
     "ladderNote": "Bronze and Silver are selectable now. Gold stays visible for orientation until productized.",
     "notAvailable": "Not productized yet — not open for metal selection",
-    "silverLockedHint": "Not open yet. When productized: Sales/Finance Advanced, GRRC + Stakeholder desks, optional email/Telegram (off by default)."
+    "silverLockedHint": "Not open yet. When productized: Sales/Finance Advanced, Governance + Stakeholder desks, optional email/Telegram (off by default)."
   },
   "families": {
     "title": "What you will use",
     "blurb": "Families enabled for {{tier}}. Bronze includes the team desks (sales, money, supply chain, people, IT, and thin strategy).",
-    "blurbSilver": "Fixed pack for {{tier}}: Bronze desks plus GRRC and Stakeholder. Depth and messaging options below.",
+    "blurbSilver": "Fixed pack for {{tier}}: Bronze desks plus Governance and Stakeholder. Depth and messaging options below.",
     "seedCoa": "Seed a starter chart of accounts (recommended)",
     "seedDemo": "Load demo data (sample customers, vendor, catalogue items, task)"
   },
@@ -193,7 +193,7 @@
     "emailShort": "Email",
     "telegramShort": "Telegram",
     "packFixed": "Pack — required",
-    "fixedPackNote": "GRRC and Stakeholder stay on for Silver — they are not individually switched off here."
+    "fixedPackNote": "Governance and Stakeholder stay on for Silver — they are not individually switched off here."
   },
   "privacy": {
     "title": "People data & privacy",

@@ -50,7 +50,7 @@
     "catalogue": "Catalogar",
     "security": "Seguridad",
     "supplychain": "cadena de suministro",
-    "grrc": "GRRC",
+    "grrc": "Gobernanza",
     "stakeholder": "Partes interesadas"
   },
   "features": {
@@ -83,7 +83,7 @@
     "hives": "Urticaria",
     "hitl": "HITL",
     "memory": "Memoria",
-    "grrcDesk": "Escritorio GRRC",
+    "grrcDesk": "Escritorio de Gobernanza",
     "stakeholderDesk": "Escritorio de partes interesadas",
     "pricing": "Listas de precios",
     "crm": "CRM",
@@ -685,14 +685,19 @@
       "packOptionsSaved": "Opciones del pack guardadas.",
       "savePackOptions": "Guardar opciones del pack",
       "templateUpgradeTitle": "Pack de plantilla",
-      "templateUpgradeBlurb": "Metal actual y packs abiertos. Subir a Silver añade escritorios GRRC y Stakeholder, profundidad Advanced y email/Telegram opcional. Los datos existentes se conservan.",
+      "templateUpgradeBlurb": "Metal actual y packs abiertos. Subir a Silver añade escritorios de Gobernanza y Stakeholder, profundidad Advanced y email/Telegram opcional. Los datos existentes se conservan.",
       "templateUpgradeSilver": "Actualizar a Silver",
       "templateUpgradeSilverLocked": "Silver aún no está abierto para selección de metal. Las opciones del pack aparecen aquí cuando este inquilino esté en Silver.",
       "templateUpgradeConfirmTitle": "¿Actualizar a {{tier}}?",
-      "templateUpgradeConfirmBody": "Añade escritorios GRRC y Stakeholder, profundidad Advanced de Ventas/Finanzas y email/Telegram opcional (desactivado por defecto). Los datos Bronze se conservan.",
+      "templateUpgradeConfirmBody": "Añade escritorios de Gobernanza y Stakeholder, profundidad Advanced de Ventas/Finanzas y email/Telegram opcional (desactivado por defecto). Los datos Bronze se conservan.",
       "templateUpgradeConfirm": "Sí, actualizar",
       "templateUpgradeDone": "Plantilla actualizada a {{tier}}.",
-      "openMetals": "Abiertos: {{list}}"
+      "openMetals": "Abiertos: {{list}}",
+      "activeCompany": "Empresa activa",
+      "activeCompanyHint": "Elija la empresa en la que trabaja. Se guarda para su usuario y se usa en cada inicio de sesión.",
+      "companyField": "Empresa",
+      "companySwitched": "Empresa guardada. Recargando…",
+      "onlyOneCompany": "Solo tiene acceso a una empresa."
     },
     "integrations": {
       "adminOnly": "El administrador puede cambiar el nivel de Nostr y retransmitir la URL. El CEO puede revisar aquí.",
@@ -1092,7 +1097,12 @@
     "movedAt": "Se mudó a",
     "lotId": "Lote",
     "sourceType": "Tipo de fuente",
-    "sourceId": "Identificación de fuente"
+    "sourceId": "Identificación de fuente",
+    "itManaged": "Gestionado por TI",
+    "financialDepreciation": "Depreciación financiera",
+    "financialDepreciationHint": "Si está marcado, los agentes del módulo Finanzas pueden tomar este activo y contabilizar valores de depreciación en un periodo financiero.",
+    "requiresMaintenance": "El activo requiere mantenimiento",
+    "requiresMaintenanceHint": "Si está marcado, se espera mantenimiento físico. Adjunte el plan del fabricante (XLSX o PDF) al registro; más adelante los agentes podrán crear actividades de taller o mantenimiento para alargar la vida del activo."
   },
   "schemaForm": {
     "noEditableFields": "No hay campos editables en el esquema: verifique las restricciones del dominio.",

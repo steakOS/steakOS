@@ -52,6 +52,16 @@ class PhysicalAsset implements NpubOwned, AccessControl, Classifiable, Attachabl
 	Boolean itManaged = Boolean.FALSE
 	/** Permanent FK to digital.ConfigItem when IT-managed */
 	Long configItemId
+	/**
+	 * When true, Finance-module agents may pick this asset up and post depreciation
+	 * values in a financial period (Basics flag; posting engine later).
+	 */
+	Boolean financialDepreciation = Boolean.FALSE
+	/**
+	 * When true, physical maintenance is expected. Attach manufacturer schedule
+	 * (XLSX/PDF) via Object Companion; later agents may create shopfloor/maintenance activities.
+	 */
+	Boolean requiresMaintenance = Boolean.FALSE
 
 	static constraints = {
 		DomainTraitConstraints.applyNpubOwned(delegate)
@@ -68,6 +78,8 @@ class PhysicalAsset implements NpubOwned, AccessControl, Classifiable, Attachabl
 				inList: ['DRAFT', 'IN_SERVICE', 'MAINTENANCE', 'RETIRED']
 		itManaged nullable: false
 		configItemId nullable: true
+		financialDepreciation nullable: false
+		requiresMaintenance nullable: false
 	}
 
 	static mapping = {

@@ -543,9 +543,9 @@
   },
   "asset": {
     "title": "Anlagen",
-    "subtitle": "Einstiegsstufe — physisches Anlagenregister (nicht Digital-CMDB).",
+    "subtitle": "Einstiegsstufe — physisches Asset-Register. Flags für finanzielle Abschreibung (Finanz-Agenten) und erforderliche Wartung (Plan anhängen; später Shopfloor-/Wartungsaktivitäten).",
     "register": "Physische Anlagen",
-    "registerHint": "Eigene physische Anlagen leicht erfassen.",
+    "registerHint": "Name, Kennzeichen, Ort, Verantwortlicher, Status. Optional IT-Link, finanzielle Abschreibung und Wartungs-Flags.",
     "digitalLink": "Digital- / IT-Desk öffnen →"
   },
   "banking": {
@@ -566,13 +566,13 @@
     "list": "Aufträge"
   },
   "grrc": {
-    "title": "GRRC",
-    "subtitle": "Governance, Risiko, Remediation und Compliance — Basics-Register. Silver-Paket / Iron-Eval.",
+    "title": "Governance",
+    "subtitle": "Risiko, Resilienz und Compliance im Dienst von Rechenschaft, Transparenz, Fairness und Unabhängigkeit. Basics-Register. Silver-Paket / Iron-Eval.",
     "risks": "Risiken",
     "compliance": "Compliance",
     "emptyRisks": "Noch keine Risiken. Legen Sie oben eines an, um das Register zu starten.",
     "emptyCompliance": "Noch keine Compliance-Einträge. Erfassen Sie oben eine Richtlinie oder Kontrolle.",
-    "loadError": "GRRC-Daten konnten nicht geladen werden",
+    "loadError": "Governance-Daten konnten nicht geladen werden",
     "loading": "Laden…",
     "count": "{{total}} Eintrag/Einträge",
     "colName": "Name",
@@ -581,7 +581,7 @@
     "colSeverity": "Schwere",
     "colKind": "Art",
     "silverRequired": "Silver-Paket erforderlich",
-    "silverRequiredBody": "GRRC gehört zum Silver-Paket. Upgraden Sie dieses Unternehmen auf Silver (oder nutzen Sie Iron-Eval), um Risiko- und Compliance-Register zu öffnen.",
+    "silverRequiredBody": "Governance gehört zum Silver-Paket. Upgraden Sie dieses Unternehmen auf Silver (oder nutzen Sie Iron-Eval), um Risiko- und Compliance-Register zu öffnen.",
     "newRisk": "Neues Risiko",
     "createRisk": "Risiko anlegen",
     "closeRisk": "Risiko schließen",
@@ -600,7 +600,7 @@
     "fieldLikelihood": "Wahrscheinlichkeit",
     "fieldOwner": "Verantwortlich",
     "fieldDescription": "Beschreibung",
-    "fieldTreatment": "Behandlungsnotiz",
+    "fieldTreatment": "Risiko-Minderung",
     "fieldKind": "Art",
     "fieldStatus": "Status",
     "fieldEffectiveFrom": "Gültig ab",

@@ -470,6 +470,17 @@ Candidates → hire · HR files · time · payroll periods · goals · policies 
              body: '''# Digital / IT desk
 
 Systems, data assets, solutions, IT changes, CIs, internal tickets.'''],
+            [key: 'asset.desk', title: 'Assets desk', route: '/assets', family: 'asset',
+             body: '''# Assets desk
+
+Physical plant, vehicles, and tools (AssetBasics register).
+
+- **Register** — name, tag, location, owner, status
+- **IT managed** — permanent link to a Digital ConfigItem (edit hostname/IP on the Digital desk)
+- **Financial depreciation** — when checked, Finance-module agents may pick the asset up and post depreciation values in a financial period
+- **Asset requires maintenance** — when checked, physical maintenance is expected; attach the manufacturer schedule (XLSX or PDF) on the record via Object Companion. Later, agents may create shopfloor or maintenance activities to extend asset life
+
+Flags are Basics intent markers; automatic depreciation posting and maintenance work orders deepen later.'''],
             [key: 'capability.hub', title: 'Capability hub', route: '/capability', family: 'capability',
              body: '''# Capability hub
 
@@ -1517,6 +1528,7 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             'help.tax.ust'       : 'Deutsche USt-Steuercodes',
             'help.tax.reverseCharge': 'Reverse Charge & innergemeinschaftliche Lieferung (IG)',
             'finance.postingRules': 'Buchungsregeln (Auto-Journale)',
+            'asset.desk'         : 'Asset-Arbeitsplatz',
     ].asImmutable()
 
     private static final Map FEATURE_TITLES_ES = [
@@ -1531,6 +1543,7 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             'help.users.danger'  : 'Seguridad: Admin, CEO y desactivar',
             'help.users.privacy' : 'Privacidad, RR. HH. y solo lectura',
             'help.roles.demo'    : 'Practicar roles (Demo / formación)',
+            'asset.desk'         : 'Escritorio de activos',
     ].asImmutable()
 
     private static final Map FEATURE_BODIES_DE = [
@@ -1883,6 +1896,16 @@ Am Datensatz:
 - **Link**
 - **Datei**
 - **Inhalt** (Notiz, Hilfe, Risiko, …)''',
+            'asset.desk'    : '''# Asset-Arbeitsplatz
+
+Physische Anlagen, Fahrzeuge und Werkzeuge (AssetBasics-Register).
+
+- **Register** — Name, Kennzeichen, Ort, Verantwortlicher, Status
+- **IT-verwaltet** — dauerhafter Link zu einem Digital-ConfigItem (Hostname/IP nur am Digital-Desk)
+- **Finanzielle Abschreibung** — wenn aktiv, können Finanz-Agenten das Asset aufgreifen und Abschreibungswerte in einer Finanzperiode buchen
+- **Asset erfordert Wartung** — wenn aktiv, ist physische Wartung vorgesehen; Hersteller-Wartungsplan (XLSX oder PDF) am Datensatz über Object Companion anhängen. Später können Agenten Shopfloor- oder Wartungsaktivitäten anlegen, um die Nutzungsdauer zu verlängern
+
+Die Flags sind Basics-Absichtsmarker; automatische Abschreibungsbuchung und Wartungsaufträge vertiefen später.''',
     ].asImmutable()
 
     private static final Map FEATURE_BODIES_ES = [
@@ -2152,6 +2175,16 @@ En el registro:
 - **Enlace**
 - **Archivo**
 - **Contenido** (nota, ayuda, riesgo, …)''',
+            'asset.desk'    : '''# Escritorio de activos
+
+Planta física, vehículos y herramientas (registro AssetBasics).
+
+- **Registro** — nombre, etiqueta, ubicación, responsable, estado
+- **Gestionado por TI** — enlace permanente a un ConfigItem Digital (edite hostname/IP en el escritorio Digital)
+- **Depreciación financiera** — si está marcado, los agentes de Finanzas pueden tomar el activo y contabilizar depreciación en un periodo financiero
+- **El activo requiere mantenimiento** — si está marcado, se espera mantenimiento físico; adjunte el plan del fabricante (XLSX o PDF) en el registro con Object Companion. Más adelante los agentes podrán crear actividades de taller o mantenimiento para alargar la vida del activo
+
+Los flags son marcadores de intención Basics; la contabilización automática de depreciación y las órdenes de mantenimiento se profundizan más adelante.''',
     ].asImmutable()
 
     private static String humanize(String resource) {

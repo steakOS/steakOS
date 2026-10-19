@@ -232,12 +232,20 @@ def main() -> int:
     print(f"=== {mode} export ===")
     print(f"write: {len(plan_write)} (ADR {len(adrs)}, PDR {len(pdrs)})")
     print(f"delete: {len(del_adr) + len(del_pdr)} (adr {len(del_adr)}, pdr {len(del_pdr)})")
+    def _rel(p: Path) -> str:
+        for root in (DOCS_ROOT, REPO):
+            try:
+                return str(p.resolve().relative_to(root.resolve()))
+            except ValueError:
+                continue
+        return str(p)
+
     for p, _ in plan_write[:8]:
-        print(f"  WRITE {p.relative_to(REPO)}")
+        print(f"  WRITE {_rel(p)}")
     if len(plan_write) > 8:
         print(f"  ... +{len(plan_write) - 8} more writes")
     for p in (del_adr + del_pdr)[:12]:
-        print(f"  DELETE {p.relative_to(REPO)}")
+        print(f"  DELETE {_rel(p)}")
     if len(del_adr) + len(del_pdr) > 12:
         print(f"  ... +{len(del_adr) + len(del_pdr) - 12} more deletes")
 

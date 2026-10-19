@@ -50,7 +50,7 @@
     "catalogue": "Katalog",
     "security": "Sicherheit",
     "supplychain": "Lieferkette",
-    "grrc": "GRRC",
+    "grrc": "Governance",
     "stakeholder": "Stakeholder"
   },
   "features": {
@@ -83,7 +83,7 @@
     "hives": "Schwärme",
     "hitl": "HITL",
     "memory": "Gedächtnis",
-    "grrcDesk": "GRRC-Arbeitsplatz",
+    "grrcDesk": "Governance-Arbeitsplatz",
     "stakeholderDesk": "Stakeholder-Arbeitsplatz",
     "pricing": "Preislisten",
     "crm": "CRM",
@@ -685,14 +685,19 @@
       "packOptionsSaved": "Pack-Optionen gespeichert.",
       "savePackOptions": "Pack-Optionen speichern",
       "templateUpgradeTitle": "Vorlagen-Pack",
-      "templateUpgradeBlurb": "Aktuelles Metall und offene Packs. Upgrade auf Silber fügt GRRC- und Stakeholder-Desks, Advanced-Tiefe und optionales E-Mail/Telegram hinzu. Bestehende Daten bleiben.",
+      "templateUpgradeBlurb": "Aktuelles Metall und offene Packs. Upgrade auf Silber fügt Governance- und Stakeholder-Desks, Advanced-Tiefe und optionales E-Mail/Telegram hinzu. Bestehende Daten bleiben.",
       "templateUpgradeSilver": "Auf Silber upgraden",
       "templateUpgradeSilverLocked": "Silber ist noch nicht zur Metallauswahl freigegeben. Pack-Optionen erscheinen hier, sobald dieser Mandant auf Silber ist.",
       "templateUpgradeConfirmTitle": "Auf {{tier}} upgraden?",
-      "templateUpgradeConfirmBody": "Fügt GRRC- und Stakeholder-Desks, Advanced-Tiefe für Vertrieb/Finanzen und optionales E-Mail/Telegram hinzu (standardmäßig aus). Bestehende Bronze-Daten bleiben.",
+      "templateUpgradeConfirmBody": "Fügt Governance- und Stakeholder-Desks, Advanced-Tiefe für Vertrieb/Finanzen und optionales E-Mail/Telegram hinzu (standardmäßig aus). Bestehende Bronze-Daten bleiben.",
       "templateUpgradeConfirm": "Ja, upgraden",
       "templateUpgradeDone": "Vorlage auf {{tier}} aktualisiert.",
-      "openMetals": "Offen: {{list}}"
+      "openMetals": "Offen: {{list}}",
+      "activeCompany": "Aktive Firma",
+      "activeCompanyHint": "Wählen Sie die Firma, in der Sie arbeiten. Wird für Ihren Benutzer gespeichert und bei jeder Anmeldung verwendet.",
+      "companyField": "Firma",
+      "companySwitched": "Firma gespeichert. Neu laden…",
+      "onlyOneCompany": "Sie haben nur Zugriff auf eine Firma."
     },
     "integrations": {
       "adminOnly": "Admin kann Nostr-Stufe und Relay-URL ändern. CEO kann hier einsehen.",
@@ -1092,7 +1097,12 @@
     "movedAt": "Bewegt am",
     "lotId": "Los",
     "sourceType": "Quelltyp",
-    "sourceId": "Quell-ID"
+    "sourceId": "Quell-ID",
+    "itManaged": "IT-verwaltet",
+    "financialDepreciation": "Finanzielle Abschreibung",
+    "financialDepreciationHint": "Wenn aktiv, können Finanz-Agenten dieses Asset aufgreifen und Abschreibungswerte in einer Finanzperiode buchen.",
+    "requiresMaintenance": "Asset erfordert Wartung",
+    "requiresMaintenanceHint": "Wenn aktiv, ist physische Wartung vorgesehen. Hersteller-Wartungsplan (XLSX oder PDF) am Datensatz anhängen; später können Agenten Shopfloor-/Wartungsaktivitäten anlegen, um die Nutzungsdauer zu verlängern."
   },
   "schemaForm": {
     "noEditableFields": "Keine bearbeitbaren Felder im Schema — Domain-Constraints prüfen.",

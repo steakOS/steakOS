@@ -204,7 +204,7 @@ export default function GrrcDesk() {
         />
       </label>
       <label>
-        {t('grrc.fieldTreatment', { defaultValue: 'Treatment note' })}
+        {t('grrc.fieldTreatment', { defaultValue: 'Mitigation plan' })}
         <textarea
           rows={2}
           value={form.treatmentNote || ''}
@@ -318,12 +318,12 @@ export default function GrrcDesk() {
       <header className="page-header" style={{ marginBottom: '1.25rem' }}>
         <h1 className="page-title">
           <ShieldAlert size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          {t('grrc.title', { defaultValue: 'GRRC' })}
+          {t('grrc.title', { defaultValue: 'Governance' })}
         </h1>
         <p className="page-sub">
           {t('grrc.subtitle', {
             defaultValue:
-              'Governance, risk, remediation, and compliance — Basics register. Silver pack / Iron eval.',
+              'Risk, Resilience, and Compliance supporting Accountability, Transparency, Fairness, and Independence. Basics register. Silver pack / Iron eval.',
           })}
         </p>
       </header>
@@ -337,7 +337,7 @@ export default function GrrcDesk() {
           <p className="muted" style={{ margin: '0.5rem 0 0' }}>
             {t('grrc.silverRequiredBody', {
               defaultValue:
-                'GRRC is part of the Silver pack. Upgrade this company to Silver (or use Iron eval) to open the risk and compliance registers.',
+                'Governance is part of the Silver pack. Upgrade this company to Silver (or use Iron eval) to open the risk and compliance registers.',
             })}
           </p>
         </section>
@@ -452,7 +452,7 @@ export default function GrrcDesk() {
                 {selected.description && <p>{selected.description}</p>}
                 {selected.status !== 'CLOSED' && (
                   <label>
-                    {t('grrc.fieldTreatment', { defaultValue: 'Treatment note' })}
+                    {t('grrc.fieldTreatment', { defaultValue: 'Mitigation plan' })}
                     <textarea
                       rows={2}
                       value={closeNote}
@@ -462,7 +462,7 @@ export default function GrrcDesk() {
                 )}
                 {selected.status === 'CLOSED' && selected.treatmentNote && (
                   <p className="muted">
-                    <strong>{t('grrc.fieldTreatment', { defaultValue: 'Treatment note' })}:</strong>{' '}
+                    <strong>{t('grrc.fieldTreatment', { defaultValue: 'Mitigation plan' })}:</strong>{' '}
                     {selected.treatmentNote}
                   </p>
                 )}

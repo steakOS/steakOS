@@ -30,7 +30,7 @@ export default function AssetDesk() {
         <p className="page-sub">
           {t('asset.subtitle', {
             defaultValue:
-              'Entry Level/Light Process — physical asset register. Enable “IT managed” to create a permanent ConfigItem; edit hostname/IP only on the Digital desk.',
+              'Entry Level — physical asset register. Flags for financial depreciation (Finance agents) and required maintenance (attach schedule; later shopfloor/maintenance activities).',
           })}
         </p>
       </header>
@@ -45,7 +45,8 @@ export default function AssetDesk() {
         </div>
         <p className="muted" style={{ margin: 0 }}>
           {t('asset.registerHint', {
-            defaultValue: 'Name, tag, location, owner, status. Optional permanent IT CMDB link.',
+            defaultValue:
+              'Name, tag, location, owner, status. Optional IT link, financial depreciation, and maintenance flags.',
           })}
         </p>
       </Link>

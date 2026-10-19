@@ -26,6 +26,8 @@ import steakos.User
 class CompanyContextService {
 
     static final String SESSION_ACTIVE_COMPANY_ID = 'STEAKOS_ACTIVE_COMPANY_ID'
+    /** Per-user durable preference (alongside ui.locale). */
+    static final String PREF_ACTIVE_COMPANY_ID = 'ui.activeCompanyId'
     static final String DEMO_NAME = 'Orange Steak House'
     static final String HEARD_COOK_NAME = 'Heard & Cook Architects'
     /** Distinct tenant keys for DEMO rows (PDR-026 npub-per-company). */
@@ -233,12 +235,51 @@ class CompanyContextService {
         ]
     }
 
+    Long preferredCompanyId(User user) {
+        if (!user?.username) return null
+        UserPreference p = UserPreference.findByUsernameAndPrefKey(user.username, PREF_ACTIVE_COMPANY_ID)
+        String raw = p?.prefValue?.trim()
+        if (!raw) return null
+        try {
+            return raw.toLong()
+        } catch (NumberFormatException ignored) {
+            return null
+        }
+    }
+
+    void persistPreferredCompany(User user, Long companyId) {
+        if (!user?.username || companyId == null) return
+        UserPreference p = UserPreference.findByUsernameAndPrefKey(user.username, PREF_ACTIVE_COMPANY_ID)
+        if (!p) {
+            p = new UserPreference(username: user.username, prefKey: PREF_ACTIVE_COMPANY_ID, category: 'ui')
+        }
+        p.prefValue = companyId.toString()
+        p.category = 'ui'
+        p.lastUpdatedBy = user.username
+        p.save(failOnError: true)
+    }
+
+    /**
+     * Bind session + durable pref to {@code le} when the user has membership.
+     * Used after setup / new company configuration so login lands on that company.
+     */
+    LegalEntity adoptCompany(User user, HttpSession session, LegalEntity le) {
+        if (!user || !le) return null
+        ensureMembership(user, le, le.code == LegalEntity.CODE_PRIMARY)
+        if (session != null) {
+            session.setAttribute(SESSION_ACTIVE_COMPANY_ID, le.id as Long)
+        }
+        persistPreferredCompany(user, le.id as Long)
+        le
+    }
+
     Long resolveActiveCompanyId(User user, HttpSession session) {
         List<LegalEntity> cos = companiesFor(user)
         if (!cos) return null
         if (cos.size() == 1) {
             Long only = cos[0].id as Long
             session?.setAttribute(SESSION_ACTIVE_COMPANY_ID, only)
+            persistPreferredCompany(user, only)
             return only
         }
         Object raw = session?.getAttribute(SESSION_ACTIVE_COMPANY_ID)
@@ -246,19 +287,30 @@ class CompanyContextService {
         if (sid != null && cos.any { it.id == sid }) {
             return sid
         }
-        // Prefer default membership, else leave unset so picker shows (D3)
+        Long pref = preferredCompanyId(user)
+        if (pref != null && cos.any { it.id == pref }) {
+            session?.setAttribute(SESSION_ACTIVE_COMPANY_ID, pref)
+            return pref
+        }
         UserCompanyMembership defM = UserCompanyMembership.findByUserAndIsDefault(user, true)
         if (defM?.legalEntity?.id && cos.any { it.id == defM.legalEntity.id }) {
-            // Do not auto-bind when 2+ — picker required once per session until chosen
-            return null
+            Long defId = defM.legalEntity.id as Long
+            session?.setAttribute(SESSION_ACTIVE_COMPANY_ID, defId)
+            persistPreferredCompany(user, defId)
+            return defId
         }
-        null
+        LegalEntity live = cos.find { it.kind != LegalEntity.KIND_DEMO && it.code == LegalEntity.CODE_PRIMARY }
+                ?: cos.find { it.kind != LegalEntity.KIND_DEMO }
+                ?: cos[0]
+        Long fallback = live.id as Long
+        session?.setAttribute(SESSION_ACTIVE_COMPANY_ID, fallback)
+        persistPreferredCompany(user, fallback)
+        fallback
     }
 
+    /** Legacy flag — always false once a membership exists; company is chosen via Settings. */
     boolean needsCompanyPick(User user, HttpSession session) {
-        List<LegalEntity> cos = companiesFor(user)
-        if (cos.size() < 2) return false
-        resolveActiveCompanyId(user, session) == null
+        false
     }
 
     LegalEntity activeCompany(User user, HttpSession session) {
@@ -280,6 +332,7 @@ class CompanyContextService {
             throw new SecurityException('No access to that company')
         }
         session.setAttribute(SESSION_ACTIVE_COMPANY_ID, le.id as Long)
+        persistPreferredCompany(user, le.id as Long)
         le
     }
 
@@ -287,12 +340,11 @@ class CompanyContextService {
         ensureBootstrapped()
         List<Map> companies = companyMapsFor(user)
         Long activeId = resolveActiveCompanyId(user, session)
-        boolean needPick = companies.size() >= 2 && activeId == null
         [
                 companies       : companies,
                 activeCompanyId : activeId,
                 activeCompany   : activeId ? companyMap(LegalEntity.get(activeId)) : null,
-                needCompanyPick : needPick
+                needCompanyPick : false
         ]
     }
 }

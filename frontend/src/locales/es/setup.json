@@ -163,19 +163,19 @@
     "title": "Elija su tamaño de inicio",
     "blurb": "Bronze y Silver están abiertos a selección. Gold permanece en la escalera hasta que ese paquete llegue.",
     "bronzeBlurb": "Paquete de equipo — inicio recomendado",
-    "silverBlurb": "Empresa en crecimiento — ventas/finanzas Advanced, GRRC, Stakeholder, email/Telegram opcional (desactivado por defecto).",
+    "silverBlurb": "Empresa en crecimiento — ventas/finanzas Advanced, Gobernanza, Stakeholder, email/Telegram opcional (desactivado por defecto).",
     "goldBlurb": "Superficie empresarial completa — próximamente",
     "available": "Abierto a selección",
     "comingSoon": "Próximamente",
     "previewOnly": "Solo vista previa",
     "ladderNote": "Bronze y Silver son seleccionables ahora. Gold permanece visible como orientación hasta que se productice.",
     "notAvailable": "Aún no productizado — no abierto a selección de metal",
-    "silverLockedHint": "Aún no abierto. Cuando se productice: ventas/finanzas Advanced, escritorios GRRC + Stakeholder, email/Telegram opcional (desactivado por defecto)."
+    "silverLockedHint": "Aún no abierto. Cuando se productice: ventas/finanzas Advanced, escritorios de Gobernanza + Stakeholder, email/Telegram opcional (desactivado por defecto)."
   },
   "families": {
     "title": "Qué va a usar",
     "blurb": "Familias activadas para {{tier}}. Bronze incluye los escritorios de equipo (ventas, finanzas, cadena de suministro, personal, TI y estrategia ligera).",
-    "blurbSilver": "Paquete fijo para {{tier}}: escritorios Bronze más GRRC y Stakeholder. Opciones de profundidad y mensajería abajo.",
+    "blurbSilver": "Paquete fijo para {{tier}}: escritorios Bronze más Gobernanza y Stakeholder. Opciones de profundidad y mensajería abajo.",
     "seedCoa": "Sembrar un plan de cuentas inicial (recomendado)",
     "seedDemo": "Cargar datos de demostración (clientes de ejemplo, proveedor, artículos de catálogo, tarea)"
   },
@@ -193,7 +193,7 @@
     "emailShort": "Correo",
     "telegramShort": "Telegram",
     "packFixed": "Paquete — obligatorio",
-    "fixedPackNote": "GRRC y Stakeholder permanecen activos en Silver — no se desactivan individualmente aquí."
+    "fixedPackNote": "Gobernanza y Stakeholder permanecen activos en Silver — no se desactivan individualmente aquí."
   },
   "privacy": {
     "title": "Datos de personal y privacidad",

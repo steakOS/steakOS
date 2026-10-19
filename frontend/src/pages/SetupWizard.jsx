@@ -1600,7 +1600,7 @@ export default function SetupWizard() {
                       label: 'Silver',
                       blurb: t('template.silverBlurb', {
                         defaultValue:
-                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram (off by default).',
+                          'Growing company — Advanced sales/finance, Governance, Stakeholder, optional email/Telegram (off by default).',
                       }),
                       openForMetalSelection: true,
                     },
@@ -1627,7 +1627,7 @@ export default function SetupWizard() {
                     ? t('template.silverBlurb', {
                         defaultValue:
                           tier.blurb ||
-                          'Growing company — Advanced sales/finance, GRRC, Stakeholder, optional email/Telegram (off by default).',
+                          'Growing company — Advanced sales/finance, Governance, Stakeholder, optional email/Telegram (off by default).',
                       })
                     : tier.blurb
                 return (
@@ -1669,7 +1669,7 @@ export default function SetupWizard() {
                       <span className="setup-tier-honesty">
                         {t('template.silverLockedHint', {
                           defaultValue:
-                            'Not open yet. When productized: Sales/Finance Advanced, GRRC + Stakeholder desks, optional email/Telegram (off by default).',
+                            'Not open yet. When productized: Sales/Finance Advanced, Governance + Stakeholder desks, optional email/Telegram (off by default).',
                         })}
                       </span>
                     )}
@@ -1688,7 +1688,7 @@ export default function SetupWizard() {
                 ? t('families.blurbSilver', {
                     tier: draft.templateTier,
                     defaultValue:
-                      'Fixed pack for {{tier}}: Bronze desks plus GRRC and Stakeholder. Depth and messaging options below.',
+                      'Fixed pack for {{tier}}: Bronze desks plus Governance and Stakeholder. Depth and messaging options below.',
                   })
                 : t('families.blurb', { tier: draft.templateTier })}
             </p>
@@ -1711,7 +1711,7 @@ export default function SetupWizard() {
               <p className="setup-tip">
                 {t('silverOptions.fixedPackNote', {
                   defaultValue:
-                    'GRRC and Stakeholder stay on for Silver — they are not individually switched off here.',
+                    'Governance and Stakeholder stay on for Silver — they are not individually switched off here.',
                 })}
               </p>
             )}

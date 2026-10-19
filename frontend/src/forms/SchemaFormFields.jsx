@@ -45,7 +45,7 @@ export default function SchemaFormFields({
     return <p className="muted">{t('schemaForm.noEditableFields')}</p>
   }
 
-  // Prefer name first, then description, key FKs / qty, then rest
+  // Prefer name first, then description, key FKs / qty, then rest; asset flags last
   const ordered = [...fields].sort((a, b) => {
     const rank = (n) => {
       if (n === 'name') return 0
@@ -54,6 +54,10 @@ export default function SchemaFormFields({
       if (n === 'qtyDelta' || n === 'quantity') return 3
       if (n === 'reason') return 4
       if (n === 'status') return 90
+      if (n === 'itManaged') return 94
+      if (n === 'configItemId') return 95
+      if (n === 'financialDepreciation') return 96
+      if (n === 'requiresMaintenance') return 97
       return 50
     }
     return rank(a.name) - rank(b.name) || a.name.localeCompare(b.name)
@@ -81,26 +85,35 @@ export default function SchemaFormFields({
         }
 
         if (field.type === 'boolean') {
+          const hintKey = `fields.${field.name}Hint`
+          const hint = t(hintKey, { defaultValue: '' })
           return (
-            <label key={field.name} className="checkbox-label">
-              <input
-                type="checkbox"
-                name={field.name}
-                checked={!!val}
-                disabled={disabled}
-                onChange={(e) =>
-                  onChange({
-                    target: {
-                      name: field.name,
-                      type: 'checkbox',
-                      checked: e.target.checked,
-                      value: e.target.checked,
-                    },
-                  })
-                }
-              />
-              {label}
-            </label>
+            <div key={field.name} style={{ marginBottom: 8 }}>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name={field.name}
+                  checked={!!val}
+                  disabled={disabled}
+                  onChange={(e) =>
+                    onChange({
+                      target: {
+                        name: field.name,
+                        type: 'checkbox',
+                        checked: e.target.checked,
+                        value: e.target.checked,
+                      },
+                    })
+                  }
+                />
+                {label}
+              </label>
+              {hint ? (
+                <p className="muted" style={{ margin: '4px 0 0 1.5rem', fontSize: 13 }}>
+                  {hint}
+                </p>
+              ) : null}
+            </div>
           )
         }
 

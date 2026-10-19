@@ -124,7 +124,7 @@ class MeApiController {
         ] as JSON)
     }
 
-    /** PDR-026 — set active company for this session. */
+    /** Set active company for this session and persist per-user preference. */
     def selectCompany() {
         try {
             User u = springSecurityService.currentUser as User
@@ -152,9 +152,19 @@ class MeApiController {
     def preferences() {
         User u = springSecurityService.currentUser as User
         String loc = localeService.getUserLocale(u?.username)
+        Long companyId = null
+        try {
+            companyId = companyContextService?.preferredCompanyId(u)
+            if (companyId == null && u != null) {
+                companyId = companyContextService?.resolveActiveCompanyId(u, session)
+            }
+        } catch (ignored) {
+        }
         render([
-                'ui.locale': loc,
-                locale     : loc
+                'ui.locale'           : loc,
+                locale                : loc,
+                'ui.activeCompanyId'  : companyId,
+                activeCompanyId       : companyId
         ] as JSON)
     }
 
@@ -163,18 +173,32 @@ class MeApiController {
             User u = springSecurityService.currentUser as User
             Map body = (request.JSON as Map) ?: [:]
             String code = (body['ui.locale'] ?: body.locale) as String
-            if (!code) {
-                render(status: 400, text: ([error: 'ui.locale required', code: 'INVALID_LOCALE'] as JSON))
+            Long companyId = null
+            if (body['ui.activeCompanyId'] != null || body.activeCompanyId != null || body.companyId != null) {
+                def raw = body['ui.activeCompanyId'] ?: body.activeCompanyId ?: body.companyId
+                companyId = raw instanceof Number ? (raw as Number).longValue() : raw?.toString()?.toLong()
+            }
+            if (!code && companyId == null) {
+                render(status: 400, text: ([error: 'ui.locale or ui.activeCompanyId required', code: 'INVALID_PREFS'] as JSON))
                 return
             }
-            localeService.setUserLocale(u.username, code)
-            String accept = request.getHeader('Accept-Language')
-            render([
-                    ok    : true,
-                    locale: localeService.resolveForUser(u.username, accept, code)
-            ] as JSON)
+            Map out = [ok: true]
+            if (code) {
+                localeService.setUserLocale(u.username, code)
+                String accept = request.getHeader('Accept-Language')
+                out.locale = localeService.resolveForUser(u.username, accept, code)
+            }
+            if (companyId != null) {
+                LegalEntity le = companyContextService.selectCompany(u, session, companyId)
+                out.activeCompanyId = le.id
+                out.activeCompany = companyContextService.companyMap(le)
+                out['ui.activeCompanyId'] = le.id
+            }
+            render(out as JSON)
+        } catch (SecurityException e) {
+            render(status: 403, text: ([error: e.message, code: 'COMPANY_FORBIDDEN'] as JSON))
         } catch (IllegalArgumentException e) {
-            render(status: 400, text: ([error: e.message, code: 'INVALID_LOCALE'] as JSON))
+            render(status: 400, text: ([error: e.message, code: 'INVALID_PREFS'] as JSON))
         }
     }
 }

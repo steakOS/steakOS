@@ -128,19 +128,19 @@
     "title": "Startgröße wählen",
     "blurb": "Bronze und Silver sind zur Auswahl freigegeben. Gold bleibt auf der Leiter, bis dieses Pack kommt.",
     "bronzeBlurb": "Team-Paket — empfohlener Start",
-    "silverBlurb": "Wachsendes Unternehmen — Vertrieb/Finanzen Advanced, GRRC, Stakeholder, optional E-Mail/Telegram (standardmäßig aus).",
+    "silverBlurb": "Wachsendes Unternehmen — Vertrieb/Finanzen Advanced, Governance, Stakeholder, optional E-Mail/Telegram (standardmäßig aus).",
     "goldBlurb": "Volle Enterprise-Oberfläche — demnächst",
     "available": "Zur Auswahl freigegeben",
     "comingSoon": "Demnächst",
     "previewOnly": "Nur Vorschau",
     "ladderNote": "Bronze und Silver sind jetzt wählbar. Gold bleibt zur Orientierung sichtbar, bis es produktisiert ist.",
     "notAvailable": "Noch nicht produktisiert — nicht zur Metallauswahl freigegeben",
-    "silverLockedHint": "Noch nicht freigegeben. Wenn produktisiert: Vertrieb/Finanzen Advanced, GRRC- und Stakeholder-Desks, optional E-Mail/Telegram (standardmäßig aus)."
+    "silverLockedHint": "Noch nicht freigegeben. Wenn produktisiert: Vertrieb/Finanzen Advanced, Governance- und Stakeholder-Desks, optional E-Mail/Telegram (standardmäßig aus)."
   },
   "families": {
     "title": "Was Sie nutzen",
     "blurb": "Aktivierte Families für {{tier}}. Bronze umfasst die Team-Desks (Vertrieb, Finanzen, Supply Chain, Personal, IT und schlanke Strategie).",
-    "blurbSilver": "Festes Paket für {{tier}}: Bronze-Desks plus GRRC und Stakeholder. Tiefe und Messaging darunter.",
+    "blurbSilver": "Festes Paket für {{tier}}: Bronze-Desks plus Governance und Stakeholder. Tiefe und Messaging darunter.",
     "seedCoa": "Starter-Kontenplan seed (empfohlen)",
     "seedDemo": "Demodaten laden (Beispielkunden, Lieferant, Katalogartikel, Aufgabe)"
   },
@@ -158,7 +158,7 @@
     "emailShort": "E-Mail",
     "telegramShort": "Telegram",
     "packFixed": "Paket — erforderlich",
-    "fixedPackNote": "GRRC und Stakeholder bleiben bei Silver an — hier nicht einzeln abschaltbar."
+    "fixedPackNote": "Governance und Stakeholder bleiben bei Silver an — hier nicht einzeln abschaltbar."
   },
   "review": {
     "title": "Prüfen & abschließen",

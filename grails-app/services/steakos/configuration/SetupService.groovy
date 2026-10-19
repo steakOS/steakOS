@@ -19,6 +19,7 @@ import grails.gorm.transactions.Transactional
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
+import steakos.User
 import steakos.finance.Account
 import steakos.finance.FinanceLedgerService
 import steakos.finance.FinanceTreasuryService
@@ -214,6 +215,16 @@ class SetupService {
 
         try {
             companyContextService?.ensureBootstrapped()
+        } catch (ignored) {
+        }
+
+        // New/configured company becomes the actor's active company (Settings preference).
+        try {
+            User actorUser = User.findByUsername(actor ?: 'admin')
+            if (actorUser && le) {
+                companyContextService?.ensureMembership(actorUser, le, true)
+                companyContextService?.persistPreferredCompany(actorUser, le.id as Long)
+            }
         } catch (ignored) {
         }
 

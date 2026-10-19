@@ -543,9 +543,9 @@
   },
   "asset": {
     "title": "Assets",
-    "subtitle": "Entry Level — physical asset register (not Digital CMDB).",
+    "subtitle": "Entry Level — physical asset register. Flags for financial depreciation (Finance agents) and required maintenance (attach schedule; later shopfloor/maintenance activities).",
     "register": "Physical assets",
-    "registerHint": "Track owned physical assets lightly.",
+    "registerHint": "Name, tag, location, owner, status. Optional IT link, financial depreciation, and maintenance flags.",
     "digitalLink": "Open Digital / IT desk →"
   },
   "banking": {
@@ -566,13 +566,13 @@
     "list": "Orders"
   },
   "grrc": {
-    "title": "GRRC",
-    "subtitle": "Governance, risk, remediation, and compliance — Basics register. Silver pack / Iron eval.",
+    "title": "Governance",
+    "subtitle": "Risk, Resilience, and Compliance supporting Accountability, Transparency, Fairness, and Independence. Basics register. Silver pack / Iron eval.",
     "risks": "Risks",
     "compliance": "Compliance",
     "emptyRisks": "No risks yet. Add one above to start the register.",
     "emptyCompliance": "No compliance items yet. Register a policy or control above.",
-    "loadError": "Could not load GRRC data",
+    "loadError": "Could not load Governance data",
     "loading": "Loading…",
     "count": "{{total}} item(s)",
     "colName": "Name",
@@ -581,7 +581,7 @@
     "colSeverity": "Severity",
     "colKind": "Kind",
     "silverRequired": "Silver pack required",
-    "silverRequiredBody": "GRRC is part of the Silver pack. Upgrade this company to Silver (or use Iron eval) to open the risk and compliance registers.",
+    "silverRequiredBody": "Governance is part of the Silver pack. Upgrade this company to Silver (or use Iron eval) to open the risk and compliance registers.",
     "newRisk": "New risk",
     "createRisk": "Create risk",
     "closeRisk": "Close risk",
@@ -600,7 +600,7 @@
     "fieldLikelihood": "Likelihood",
     "fieldOwner": "Owner",
     "fieldDescription": "Description",
-    "fieldTreatment": "Treatment note",
+    "fieldTreatment": "Mitigation plan",
     "fieldKind": "Kind",
     "fieldStatus": "Status",
     "fieldEffectiveFrom": "Effective from",

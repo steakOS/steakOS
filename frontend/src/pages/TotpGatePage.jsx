@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { authApi, meApi } from '../api/client'
+import { authApi } from '../api/client'
 import AuthAppGuide from '../components/AuthAppGuide'
 import { logoutHref } from '../i18n'
 
@@ -25,15 +25,7 @@ export default function TotpGatePage() {
     setError(null)
     try {
       await authApi.totpVerify(code.trim())
-      let home = '/dashboard'
-      try {
-        const me = await meApi.get()
-        if (me?.needCompanyPick) home = '/select-company'
-        else home = '/dashboard'
-      } catch {
-        /* use dashboard */
-      }
-      navigate(home, { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err.message || t('actions.error'))
     } finally {

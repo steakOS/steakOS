@@ -258,7 +258,7 @@ class TemplateTiers {
                 [code: BRONZE, label: 'Bronze', openForMetalSelection: isOpenForMetalSelection(BRONZE),
                  blurb: 'Team pack — sales, money, supply chain, delivery, people (HR), IT, and thin Strategy/Development/Asset. Recommended start.'],
                 [code: SILVER, label: 'Silver', openForMetalSelection: isOpenForMetalSelection(SILVER),
-                 blurb: 'Growing company — Bronze plus Sales/Finance Advanced, GRRC, and Stakeholder. Optional email/Telegram (off by default).'],
+                 blurb: 'Growing company — Bronze plus Sales/Finance Advanced, Governance, and Stakeholder. Optional email/Telegram (off by default).'],
                 [code: GOLD, label: 'Gold', openForMetalSelection: isOpenForMetalSelection(GOLD),
                  blurb: 'Full enterprise surface + family Pros (when productized). Coming soon.']
         ]

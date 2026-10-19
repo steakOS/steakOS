@@ -204,7 +204,7 @@ function salesFeatureLinks(t, { showAdvanced = false } = {}) {
 function grrcFeatureLinks(t) {
   return [
     {
-      name: t('features.grrcDesk', { defaultValue: 'GRRC desk' }),
+      name: t('features.grrcDesk', { defaultValue: 'Governance desk' }),
       path: '/grrc',
       icon: ShieldAlert,
     },
@@ -629,10 +629,8 @@ export default function AppShell() {
   const [cmdOpen, setCmdOpen] = useState(false)
   const [readOnly, setReadOnly] = useState(false)
   const [meUsername, setMeUsername] = useState(null)
-  const [companies, setCompanies] = useState([])
   const [activeCompany, setActiveCompany] = useState(null)
   const [meCompanyCurrency, setMeCompanyCurrency] = useState(null)
-  const [companyBusy, setCompanyBusy] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isCeo, setIsCeo] = useState(false)
 
@@ -853,16 +851,11 @@ export default function AppShell() {
       if (Array.isArray(me.enabledFamilies) && me.enabledFamilies.length) {
         setEnabledFamilies(me.enabledFamilies)
       }
-      if (Array.isArray(me.companies)) setCompanies(me.companies)
       if (me.activeCompany) setActiveCompany(me.activeCompany)
       else setActiveCompany(null)
       setMeCompanyCurrency(
         me.companyCurrency || me.activeCompany?.companyCurrency || null,
       )
-      if (me.needCompanyPick && !window.location.pathname.startsWith('/select-company')) {
-        window.location.href = '/select-company'
-        return
-      }
       if (me.totpRequired && !window.location.pathname.startsWith('/totp')) {
         window.location.href = '/totp'
       }
@@ -1114,44 +1107,6 @@ export default function AppShell() {
             </div>
           </div>
           <div className="topbar-actions">
-            {companies.length > 1 && (
-              <label
-                className="muted topbar-company-switcher"
-                style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
-              >
-                <span className="topbar-logout-label">
-                  {t('pages.company.nav', { defaultValue: 'Company' })}
-                </span>
-                <select
-                  value={activeCompany?.id ?? ''}
-                  disabled={companyBusy}
-                  aria-label={t('shell.activeCompany', { defaultValue: 'Active company' })}
-                  onChange={async (e) => {
-                    const id = Number(e.target.value)
-                    if (!id) return
-                    setCompanyBusy(true)
-                    try {
-                      const r = await meApi.selectCompany(id)
-                      setActiveCompany(r.activeCompany || companies.find((c) => c.id === id))
-                      window.location.reload()
-                    } catch {
-                      /* keep prior */
-                    } finally {
-                      setCompanyBusy(false)
-                    }
-                  }}
-                >
-                  {companies.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                      {c.demo || c.kind === 'DEMO'
-                        ? t('shell.demoSuffix', { defaultValue: ' (Demo)' })
-                        : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
             <button
               type="button"
               className="btn btn-ghost"

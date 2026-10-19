@@ -122,7 +122,9 @@ class DomainRegistryService {
 
     /** Hidden on Strategy / Development / Asset light create forms (G4 entry-level UI). */
     private static final Set G4_LIGHT_FORM_HIDE = [
-            'access', 'catalogueItemId', 'deputyNpub'
+            'access', 'catalogueItemId', 'deputyNpub',
+            // Asset CI link is server-managed when itManaged; do not edit on Asset form
+            'configItemId'
     ].asImmutable() as Set
 
     /** Trait / noise fields hidden on inventory-style masters (keep catalogueItemId visible). */
@@ -155,7 +157,8 @@ class DomainRegistryService {
 
     private static final List BOOLEAN_FIELDS = [
             'enabled', 'active', 'systemAccount', 'posted', 'recurring',
-            'isService', 'trackLots', 'itManaged'
+            'isService', 'trackLots', 'itManaged',
+            'financialDepreciation', 'requiresMaintenance'
     ].asImmutable()
 
     Class resolve(String pkg, String resource) {
@@ -651,6 +654,10 @@ class DomainRegistryService {
             case 'quantity': return 3
             case 'reason': return 4
             case 'status': return 90
+            case 'itManaged': return 94
+            case 'configItemId': return 95
+            case 'financialDepreciation': return 96
+            case 'requiresMaintenance': return 97
             default: return 50
         }
     }

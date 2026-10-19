@@ -45,6 +45,10 @@ export default function SettingsPage() {
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   const [resetError, setResetError] = useState(null)
   const [localeMsg, setLocaleMsg] = useState(null)
+  const [companies, setCompanies] = useState([])
+  const [activeCompanyId, setActiveCompanyId] = useState(null)
+  const [companyBusy, setCompanyBusy] = useState(false)
+  const [companyMsg, setCompanyMsg] = useState(null)
   const [seedMsg, setSeedMsg] = useState(null)
   const [agentTokens, setAgentTokens] = useState([])
   const [agentUsername, setAgentUsername] = useState('HiveA:bookkeeper')
@@ -147,9 +151,13 @@ export default function SettingsPage() {
         const me = await meApi.get()
         setIsAdmin(!!me?.isAdmin)
         setIsCeo(!!me?.isCeo)
+        setCompanies(Array.isArray(me?.companies) ? me.companies : [])
+        setActiveCompanyId(me?.activeCompanyId ?? me?.activeCompany?.id ?? null)
       } catch {
         setIsAdmin(false)
         setIsCeo(false)
+        setCompanies([])
+        setActiveCompanyId(null)
       }
       try {
         const tok = await agentTokenApi.list(false)
@@ -270,6 +278,27 @@ export default function SettingsPage() {
     }
   }
 
+  const onCompanyChange = async (e) => {
+    const id = Number(e.target.value)
+    if (!id || id === Number(activeCompanyId)) return
+    setCompanyBusy(true)
+    setCompanyMsg(null)
+    setError(null)
+    try {
+      const r = await meApi.selectCompany(id)
+      setActiveCompanyId(r?.activeCompanyId ?? id)
+      setCompanyMsg(
+        t('pages.settings.companySwitched', {
+          defaultValue: 'Company saved. Reloading…',
+        }),
+      )
+      window.location.reload()
+    } catch (err) {
+      setError(err.message || String(err))
+      setCompanyBusy(false)
+    }
+  }
+
   const beginReset = () => {
     setResetError(null)
     setError(null)
@@ -349,6 +378,214 @@ export default function SettingsPage() {
           </select>
         </label>
         {localeMsg && <p className="muted" style={{ marginTop: 8 }}>{localeMsg}</p>}
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h2>
+          {t('pages.settings.activeCompany', { defaultValue: 'Active company' })}
+        </h2>
+        <p className="page-sub">
+          {t('pages.settings.activeCompanyHint', {
+            defaultValue:
+              'Choose which company you work in. Saved for your user and used on every login.',
+          })}
+        </p>
+        {companies.length === 0 ? (
+          <p className="muted">{t('actions.loading')}</p>
+        ) : (
+          <label>
+            {t('pages.settings.companyField', { defaultValue: 'Company' })}
+            <select
+              value={activeCompanyId ?? ''}
+              disabled={companyBusy || companies.length < 2}
+              onChange={onCompanyChange}
+              aria-label={t('pages.settings.activeCompany', {
+                defaultValue: 'Active company',
+              })}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                  {c.demo || c.kind === 'DEMO'
+                    ? t('shell.demoSuffix', { defaultValue: ' (Demo)' })
+                    : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {companies.length === 1 && (
+          <p className="muted" style={{ marginTop: 8 }}>
+            {t('pages.settings.onlyOneCompany', {
+              defaultValue: 'You only have access to one company.',
+            })}
+          </p>
+        )}
+        {companyMsg && (
+          <p className="muted" style={{ marginTop: 8 }}>
+            {companyMsg}
+          </p>
+        )}
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h2>{t('pages.settings.demoCompanies', { defaultValue: 'Demo companies' })}</h2>
+        <p className="page-sub">
+          {t('pages.settings.demoBlurb', {
+            defaultValue:
+              'Each demo is isolated from your live company. Reset only wipes that demo’s showcase data.',
+          })}
+        </p>
+        {seedMsg && <p className="muted">{seedMsg}</p>}
+
+        <h3 className="section-label">
+          {t('pages.settings.demoOrangeTitle', { defaultValue: 'Orange Steak House' })}
+        </h3>
+        <p className="muted" style={{ fontSize: 13 }}>
+          {t('pages.settings.demoOrangeBlurb', {
+            defaultValue: 'Restaurant / hospitality showcase.',
+          })}
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={async () => {
+              if (
+                !window.confirm(
+                  t('pages.settings.demoConfirmResetOrange', {
+                    defaultValue:
+                      'Reset Orange Steak House demo data? Live company and Heard & Cook are not touched.',
+                  }),
+                )
+              ) {
+                return
+              }
+              setBusy(true)
+              setError(null)
+              setSeedMsg(null)
+              try {
+                const r = await setupApi.demoReset()
+                setSeedMsg(
+                  r.message ||
+                    t('pages.settings.demoOrangeResetDone', {
+                      defaultValue: 'Orange Steak House reset complete',
+                    }),
+                )
+              } catch (e) {
+                setError(e.message || String(e))
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {t('pages.settings.demoResetOrange', { defaultValue: 'Reset Orange Steak House' })}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              setError(null)
+              setSeedMsg(null)
+              try {
+                const r = await setupApi.demoSeed()
+                setSeedMsg(
+                  r.message ||
+                    (r.skipped
+                      ? t('pages.settings.demoOrangeAlready', {
+                          defaultValue: 'Orange already seeded',
+                        })
+                      : t('pages.settings.demoOrangeSeeded', { defaultValue: 'Orange seeded' })),
+                )
+              } catch (e) {
+                setError(e.message || String(e))
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {t('pages.settings.demoSeedOrange', { defaultValue: 'Seed Orange (if empty)' })}
+          </button>
+        </div>
+
+        <h3 className="section-label">
+          {t('pages.settings.demoHeardTitle', { defaultValue: 'Heard & Cook Architects' })}
+        </h3>
+        <p className="muted" style={{ fontSize: 13 }}>
+          {t('pages.settings.demoHeardBlurb', {
+            defaultValue:
+              'Indian Rocks Beach, FL — residential/commercial design, plan DVDs, kitchen studio.',
+          })}
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={async () => {
+              if (
+                !window.confirm(
+                  t('pages.settings.demoConfirmResetHeard', {
+                    defaultValue:
+                      'Reset Heard & Cook Architects demo data? Live company and Orange Steak House are not touched.',
+                  }),
+                )
+              ) {
+                return
+              }
+              setBusy(true)
+              setError(null)
+              setSeedMsg(null)
+              try {
+                const r = await setupApi.heardCookReset()
+                setSeedMsg(
+                  r.message ||
+                    t('pages.settings.demoHeardResetDone', {
+                      defaultValue: 'Heard & Cook reset complete',
+                    }),
+                )
+              } catch (e) {
+                setError(e.message || String(e))
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {t('pages.settings.demoResetHeard', { defaultValue: 'Reset Heard & Cook' })}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              setError(null)
+              setSeedMsg(null)
+              try {
+                const r = await setupApi.heardCookSeed()
+                setSeedMsg(
+                  r.message ||
+                    (r.skipped
+                      ? t('pages.settings.demoHeardAlready', {
+                          defaultValue: 'Heard & Cook already seeded',
+                        })
+                      : t('pages.settings.demoHeardSeeded', {
+                          defaultValue: 'Heard & Cook seeded',
+                        })),
+                )
+              } catch (e) {
+                setError(e.message || String(e))
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {t('pages.settings.demoSeedHeard', { defaultValue: 'Seed Heard & Cook (if empty)' })}
+          </button>
+        </div>
       </div>
 
       {/* Company profile, Integrations hub, Bitcoin level, Hermes tokens → System → Integrations / Company */}
@@ -596,166 +833,6 @@ export default function SettingsPage() {
       )}
 
       <div className="card" style={{ marginTop: 16 }}>
-        <h2>{t('pages.settings.demoCompanies', { defaultValue: 'Demo companies' })}</h2>
-        <p className="page-sub">
-          {t('pages.settings.demoBlurb', {
-            defaultValue:
-              'Each demo is isolated from your live company. Reset only wipes that demo’s showcase data.',
-          })}
-        </p>
-        {seedMsg && <p className="muted">{seedMsg}</p>}
-
-        <h3 className="section-label">
-          {t('pages.settings.demoOrangeTitle', { defaultValue: 'Orange Steak House' })}
-        </h3>
-        <p className="muted" style={{ fontSize: 13 }}>
-          {t('pages.settings.demoOrangeBlurb', {
-            defaultValue: 'Restaurant / hospitality showcase.',
-          })}
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={busy}
-            onClick={async () => {
-              if (
-                !window.confirm(
-                  t('pages.settings.demoConfirmResetOrange', {
-                    defaultValue:
-                      'Reset Orange Steak House demo data? Live company and Heard & Cook are not touched.',
-                  }),
-                )
-              ) {
-                return
-              }
-              setBusy(true)
-              setError(null)
-              setSeedMsg(null)
-              try {
-                const r = await setupApi.demoReset()
-                setSeedMsg(
-                  r.message ||
-                    t('pages.settings.demoOrangeResetDone', {
-                      defaultValue: 'Orange Steak House reset complete',
-                    }),
-                )
-              } catch (e) {
-                setError(e.message || String(e))
-              } finally {
-                setBusy(false)
-              }
-            }}
-          >
-            {t('pages.settings.demoResetOrange', { defaultValue: 'Reset Orange Steak House' })}
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true)
-              setError(null)
-              setSeedMsg(null)
-              try {
-                const r = await setupApi.demoSeed()
-                setSeedMsg(
-                  r.message ||
-                    (r.skipped
-                      ? t('pages.settings.demoOrangeAlready', {
-                          defaultValue: 'Orange already seeded',
-                        })
-                      : t('pages.settings.demoOrangeSeeded', { defaultValue: 'Orange seeded' })),
-                )
-              } catch (e) {
-                setError(e.message || String(e))
-              } finally {
-                setBusy(false)
-              }
-            }}
-          >
-            {t('pages.settings.demoSeedOrange', { defaultValue: 'Seed Orange (if empty)' })}
-          </button>
-        </div>
-
-        <h3 className="section-label">
-          {t('pages.settings.demoHeardTitle', { defaultValue: 'Heard & Cook Architects' })}
-        </h3>
-        <p className="muted" style={{ fontSize: 13 }}>
-          {t('pages.settings.demoHeardBlurb', {
-            defaultValue:
-              'Indian Rocks Beach, FL — residential/commercial design, plan DVDs, kitchen studio.',
-          })}
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={busy}
-            onClick={async () => {
-              if (
-                !window.confirm(
-                  t('pages.settings.demoConfirmResetHeard', {
-                    defaultValue:
-                      'Reset Heard & Cook Architects demo data? Live company and Orange Steak House are not touched.',
-                  }),
-                )
-              ) {
-                return
-              }
-              setBusy(true)
-              setError(null)
-              setSeedMsg(null)
-              try {
-                const r = await setupApi.heardCookReset()
-                setSeedMsg(
-                  r.message ||
-                    t('pages.settings.demoHeardResetDone', {
-                      defaultValue: 'Heard & Cook reset complete',
-                    }),
-                )
-              } catch (e) {
-                setError(e.message || String(e))
-              } finally {
-                setBusy(false)
-              }
-            }}
-          >
-            {t('pages.settings.demoResetHeard', { defaultValue: 'Reset Heard & Cook' })}
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true)
-              setError(null)
-              setSeedMsg(null)
-              try {
-                const r = await setupApi.heardCookSeed()
-                setSeedMsg(
-                  r.message ||
-                    (r.skipped
-                      ? t('pages.settings.demoHeardAlready', {
-                          defaultValue: 'Heard & Cook already seeded',
-                        })
-                      : t('pages.settings.demoHeardSeeded', {
-                          defaultValue: 'Heard & Cook seeded',
-                        })),
-                )
-              } catch (e) {
-                setError(e.message || String(e))
-              } finally {
-                setBusy(false)
-              }
-            }}
-          >
-            {t('pages.settings.demoSeedHeard', { defaultValue: 'Seed Heard & Cook (if empty)' })}
-          </button>
-        </div>
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
         <h2>{t('pages.settings.setupStatus')}</h2>
         {!status ? (
           <p>{t('actions.loading')}</p>
@@ -823,7 +900,7 @@ export default function SettingsPage() {
           <p className="page-sub">
             {t('pages.settings.templateUpgradeBlurb', {
               defaultValue:
-                'Current metal and open packs. Upgrading to Silver adds GRRC and Stakeholder desks, Sales/Finance Advanced depth, and optional email/Telegram. Existing data stays.',
+                'Current metal and open packs. Upgrading to Silver adds Governance and Stakeholder desks, Sales/Finance Advanced depth, and optional email/Telegram. Existing data stays.',
             })}
           </p>
           <p>
@@ -875,7 +952,7 @@ export default function SettingsPage() {
                     <p>
                       {t('pages.settings.templateUpgradeConfirmBody', {
                         defaultValue:
-                          'Adds GRRC and Stakeholder desks, Sales/Finance Advanced depth, and optional email/Telegram (off by default). Existing Bronze data stays.',
+                          'Adds Governance and Stakeholder desks, Sales/Finance Advanced depth, and optional email/Telegram (off by default). Existing Bronze data stays.',
                       })}
                     </p>
                     {upgradeError && (

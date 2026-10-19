@@ -543,9 +543,9 @@
   },
   "asset": {
     "title": "Activos",
-    "subtitle": "Nivel de entrada: registro de activos físicos (no CMDB digital).",
+    "subtitle": "Nivel básico — registro de activos físicos. Flags de depreciación financiera (agentes de Finanzas) y mantenimiento requerido (adjuntar plan; más adelante actividades de taller/mantenimiento).",
     "register": "Activos físicos",
-    "registerHint": "Realice un seguimiento ligero de los activos físicos propios.",
+    "registerHint": "Nombre, etiqueta, ubicación, responsable, estado. Enlace TI opcional, depreciación financiera y flags de mantenimiento.",
     "digitalLink": "Abrir escritorio digital / TI →"
   },
   "banking": {
@@ -566,13 +566,13 @@
     "list": "Órdenes"
   },
   "grrc": {
-    "title": "GRRC",
-    "subtitle": "Gobernanza, riesgo, remediación y cumplimiento — registro Basics. Paquete Silver / eval. Iron.",
+    "title": "Gobernanza",
+    "subtitle": "Riesgo, resiliencia y cumplimiento al servicio de la rendición de cuentas, transparencia, equidad e independencia. Registro Basics. Paquete Silver / eval. Iron.",
     "risks": "Riesgos",
     "compliance": "Cumplimiento",
     "emptyRisks": "Aún no hay riesgos. Añada uno arriba para iniciar el registro.",
     "emptyCompliance": "Aún no hay elementos de cumplimiento. Registre una política o control arriba.",
-    "loadError": "No se pudieron cargar los datos de GRRC",
+    "loadError": "No se pudieron cargar los datos de Gobernanza",
     "loading": "Cargando…",
     "count": "{{total}} elemento(s)",
     "colName": "Nombre",
@@ -581,7 +581,7 @@
     "colSeverity": "Gravedad",
     "colKind": "Tipo",
     "silverRequired": "Se requiere el paquete Silver",
-    "silverRequiredBody": "GRRC forma parte del paquete Silver. Actualice esta empresa a Silver (o use eval. Iron) para abrir los registros de riesgo y cumplimiento.",
+    "silverRequiredBody": "Gobernanza forma parte del paquete Silver. Actualice esta empresa a Silver (o use eval. Iron) para abrir los registros de riesgo y cumplimiento.",
     "newRisk": "Nuevo riesgo",
     "createRisk": "Crear riesgo",
     "closeRisk": "Cerrar riesgo",

@@ -123,6 +123,16 @@ class SetupApiController {
                     demo = [error: e.message]
                 }
             }
+            // Completing setup adopts the configured (LIVE primary) company for this user.
+            try {
+                User u = springSecurityService.currentUser as User
+                steakos.configuration.LegalEntity primary =
+                        steakos.configuration.LegalEntity.findByCode(steakos.configuration.LegalEntity.CODE_PRIMARY)
+                if (u && primary) {
+                    companyContextService?.adoptCompany(u, session, primary)
+                }
+            } catch (ignored) {
+            }
             render([ok: true, status: setupService.statusMap(npub), demoSeed: demo, heardCookSeed: heard] as JSON)
         } catch (IllegalStateException e) {
             render(status: 400, text: ([error: e.message, code: 'SETUP_INCOMPLETE'] as JSON))

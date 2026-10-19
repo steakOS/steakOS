@@ -16,7 +16,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import AppShell from './layout/AppShell'
-import { meApi, setupApi } from './api/client'
+import { setupApi } from './api/client'
 
 // Lazy pages: one bad/corrupt module transform must not blank the entire SPA boot.
 const DashboardCeo = lazy(() => import('./pages/DashboardCeo'))
@@ -59,8 +59,6 @@ const TotpGatePage = lazy(() => import('./pages/TotpGatePage'))
 const SecuritySettingsPage = lazy(() => import('./pages/SecuritySettingsPage'))
 const UsersAdminPage = lazy(() => import('./pages/UsersAdminPage'))
 const RolesPage = lazy(() => import('./pages/RolesPage'))
-const SelectCompanyPage = lazy(() => import('./pages/SelectCompanyPage'))
-
 function RouteFallback() {
   return (
     <div className="setup-loading-screen">
@@ -159,74 +157,9 @@ function SetupGate({ children }) {
   return children
 }
 
-/** AUTH03 — land on role default home (after company pick if needed). */
+/** AUTH03 — land on dashboard (company comes from per-user pref / Settings). */
 function HomeRedirect() {
-  const [to, setTo] = useState(null)
-  useEffect(() => {
-    let cancelled = false
-    meApi
-      .get()
-      .then((me) => {
-        if (cancelled) return
-        if (me?.needCompanyPick) setTo('/select-company')
-        else setTo('/dashboard')
-      })
-      .catch(() => {
-        if (!cancelled) setTo('/dashboard')
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-  if (!to) return <RouteFallback />
-  return <Navigate to={to} replace />
-}
-
-/** PDR-026 — force company picker when 2+ memberships and none active. */
-function CompanyPickGate({ children }) {
-  const location = useLocation()
-  const [ready, setReady] = useState(false)
-  const [needPick, setNeedPick] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    const onSelect = location.pathname.startsWith('/select-company')
-    const onTotp = location.pathname.startsWith('/totp')
-    const onSetup = location.pathname.startsWith('/setup')
-    if (onSelect || onTotp || onSetup) {
-      setNeedPick(false)
-      setReady(true)
-      return undefined
-    }
-    meApi
-      .get()
-      .then((me) => {
-        if (cancelled) return
-        setNeedPick(!!me?.needCompanyPick)
-        setReady(true)
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setNeedPick(false)
-          setReady(true)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [location.pathname])
-
-  if (!ready) {
-    return (
-      <div className="setup-loading-screen">
-        <p className="muted">Loading…</p>
-      </div>
-    )
-  }
-  if (needPick && !location.pathname.startsWith('/select-company')) {
-    return <Navigate to="/select-company" replace />
-  }
-  return children
+  return <Navigate to="/dashboard" replace />
 }
 
 /** Safety: if SPA ever mounts on /tour, leave React and load static tour. */
@@ -244,7 +177,6 @@ function TourEscape() {
 export default function App() {
   return (
     <SetupGate>
-      <CompanyPickGate>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
           <Route path="setup/*" element={<SetupWizard />} />
@@ -252,7 +184,8 @@ export default function App() {
           <Route path="tour/*" element={<TourEscape />} />
           {/* AUTH01 — no AppShell chrome until TOTP ok */}
           <Route path="totp" element={<TotpGatePage />} />
-          <Route path="select-company" element={<SelectCompanyPage />} />
+          {/* Legacy bookmark: company pick moved to Settings */}
+          <Route path="select-company" element={<Navigate to="/settings" replace />} />
           <Route element={<AppShell />}>
             <Route index element={<HomeRedirect />} />
             <Route path="dashboard" element={<DashboardCeo />} />
@@ -306,7 +239,6 @@ export default function App() {
           <Route path="*" element={<HomeRedirect />} />
         </Routes>
         </Suspense>
-      </CompanyPickGate>
     </SetupGate>
   )
 }
