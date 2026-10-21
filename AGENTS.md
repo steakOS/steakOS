@@ -14,14 +14,17 @@ Build for simplicity, sovereignty, auditability, and incremental delivery.
 
 **Follow Apache Grails conventions** wherever they apply. Prefer the framework’s way over custom structure unless an accepted product decision explicitly overrides it (the React SPA is the intentional UX override).
 
-## Two trees (do not mix)
+## Three folders under `~/Dev/grails` (do not mix)
 
 | Tree | Path (this machine) | Role | Publish |
 |------|---------------------|------|---------|
-| **Application monorepo** | `/home/matt/Dev/grails/steakOS` | Runnable product source | Canonical hub on the operator LAN forge; public mirrors later |
-| **Private companion** | `/home/matt/Dev/grails/steakOS-dev` | Design records, masterplans, branding assets, research archive, extra fixtures | Hub-only private repo — **not** for public internet mirrors |
+| **Application monorepo** | `/home/matt/Dev/grails/steakOS` | **Shipped product** source | Canonical hub on the operator LAN forge; public mirrors later |
+| **Private companion** | `/home/matt/Dev/grails/steakOS-dev` | **Internal** — design records, BCR, sites staging, masterplans, fixtures | Hub-only private repo — **not** for public internet mirrors |
+| **Archive** | `/home/matt/Dev/grails/archive` | **Old** checkouts, finished PR worktrees, experiments | Local only; not an active work tree |
 
-This application tree **must not** point at paths under the companion (`docs/`, `artifacts/`, `archive/`, `testdata/`). Those folders live only in `steakOS-dev`.
+`~/Dev/grails` must contain **only** these three top-level directories. No `steakOS-wt-*`, no loose `worktrees/`, no extra clones beside them. See `.grok/rules/steakos-grails-layout.md`.
+
+This application tree **must not** point at paths under the companion (`docs/`, `artifacts/`, `archive/`, `testdata/`). Those folders live only in `steakOS-dev` (companion `archive/` is unrelated to `~/Dev/grails/archive`).
 
 Architecture and product locks live in the operator’s decision store and the private companion. Agents working in this tree: read **code and these instructions**; when a lasting design choice is needed, update the companion / decision store — do not recreate a public `docs/adr` or `docs/pdr` tree here.
 
