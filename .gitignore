@@ -80,3 +80,7 @@ var/
 .grok/
 *.log
 frontend/.vite/
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/

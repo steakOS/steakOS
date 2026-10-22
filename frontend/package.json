@@ -9,6 +9,8 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:nielsen": "playwright test e2e/nielsen-desk-shell.spec.js",
     "i18n:scaffold": "node scripts/locale-scaffold.mjs",
     "i18n:translate": "node scripts/locale-translate.mjs",
     "i18n:parity": "node scripts/locale-parity.mjs"

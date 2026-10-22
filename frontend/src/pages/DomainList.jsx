@@ -13,16 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw, Pencil, Trash2, Eye, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react'
 import { domainsApi } from '../api/client'
 import {
+  deskHref,
+  domainListReturnKey,
   findResource,
   getCreateMeta,
   getInteraction,
   getLineChildForParent,
+  listReturnHref,
 } from '../config/domainRegistry'
 import { catalogLifecycle, lifecycleBadgeClass } from '../config/catalogLifecycle'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
@@ -81,11 +84,12 @@ export default function DomainList() {
   const interaction =
     createMeta.interaction || getInteraction(pkg, resource) || 'domainFullPage'
   const deskPath = createMeta.deskPath
+  const defaultTab = createMeta.defaultTab
   const deskLabel =
     createMeta.deskLabel ||
     t('masterData.deskDefault', { ns: 'common', defaultValue: 'process desk' })
   const lifecycle = catalogLifecycle(pkg, resource)
-  const preferDesk = interaction === 'deskShell' && deskPath
+  const preferDesk = interaction === 'deskShell' && !!deskPath
   const lifecycleLabel =
     lifecycle === 'in_use'
       ? t('pages.catalogs.inUse', { ns: 'common' })
@@ -107,6 +111,7 @@ export default function DomainList() {
 
   const [qDraft, setQDraft] = useState('')
   const [q, setQ] = useState('')
+  const returnOffsetApplied = useRef(false)
 
   const filters = useMemo(() => (q.trim() ? { q: q.trim() } : {}), [q])
 
@@ -134,10 +139,102 @@ export default function DomainList() {
     setViewing(null)
     setError(null)
     setErrorDetail(null)
-    setQ('')
-    setQDraft('')
     setExpandedIds(new Set())
+    returnOffsetApplied.current = false
+    const params = new URLSearchParams(
+      typeof window !== 'undefined' ? window.location.search : '',
+    )
+    const urlQ = params.get('q') || ''
+    setQ(urlQ)
+    setQDraft(urlQ)
   }, [pkg, resource])
+
+  // Restore pager from ?offset=&max= once after list mounts / resource change
+  useEffect(() => {
+    if (loading || returnOffsetApplied.current) return
+    const params = new URLSearchParams(
+      typeof window !== 'undefined' ? window.location.search : '',
+    )
+    const urlMax = params.get('max')
+    const urlOffset = params.get('offset')
+    if (!urlMax && !urlOffset) {
+      returnOffsetApplied.current = true
+      return
+    }
+    returnOffsetApplied.current = true
+    const run = async () => {
+      try {
+        if (urlMax && Number(urlMax) !== max) {
+          await setMax(Number(urlMax))
+        }
+        if (urlOffset && Number(urlOffset) > 0) {
+          await setOffset(Number(urlOffset))
+        }
+      } catch (e) {
+        showError(e, t('actions.loadFailed', { ns: 'common' }))
+      }
+    }
+    run()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, pkg, resource])
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        domainListReturnKey(pkg, resource),
+        JSON.stringify({
+          q: q.trim(),
+          offset,
+          max,
+        }),
+      )
+    } catch {
+      /* ignore */
+    }
+  }, [pkg, resource, q, offset, max])
+
+  const listQuerySuffix = useMemo(() => {
+    const href = listReturnHref(pkg, resource, { q, offset, max })
+    const i = href.indexOf('?')
+    return i >= 0 ? href.slice(i) : ''
+  }, [pkg, resource, q, offset, max])
+
+  const deskOpenHref = useCallback(
+    (rowId) =>
+      deskHref({
+        deskPath,
+        defaultTab,
+        id: rowId,
+        returnQ: q.trim() || undefined,
+      }),
+    [deskPath, defaultTab, q],
+  )
+
+  const deskNewHref = useMemo(
+    () =>
+      deskHref({
+        deskPath,
+        defaultTab,
+        new: true,
+        returnQ: q.trim() || undefined,
+      }),
+    [deskPath, defaultTab, q],
+  )
+
+  const deskTabHref = useMemo(
+    () => deskHref({ deskPath, defaultTab }),
+    [deskPath, defaultTab],
+  )
+
+  const domainFormHref = useCallback(
+    (rowId) => `/domains/${pkg}/${resource}/${rowId}${listQuerySuffix}`,
+    [pkg, resource, listQuerySuffix],
+  )
+
+  const domainNewHref = useMemo(
+    () => `/domains/${pkg}/${resource}/new${listQuerySuffix}`,
+    [pkg, resource, listQuerySuffix],
+  )
 
   const load = () => {
     setError(null)
@@ -233,10 +330,18 @@ export default function DomainList() {
       </button>
       <Link
         className="btn btn-secondary"
-        to={`/domains/${pkg}/${resource}/${row.id}`}
-        title={t('actions.edit', { ns: 'common' })}
+        to={preferDesk ? deskOpenHref(row.id) : domainFormHref(row.id)}
+        title={
+          preferDesk
+            ? t('masterData.openDesk', {
+                ns: 'common',
+                desk: deskLabel,
+                defaultValue: 'Open on {{desk}}',
+              })
+            : t('actions.edit', { ns: 'common' })
+        }
       >
-        <Pencil size={14} />
+        {preferDesk ? <ExternalLink size={14} /> : <Pencil size={14} />}
       </Link>
       <button
         type="button"
@@ -291,7 +396,7 @@ export default function DomainList() {
               'Create new records on the {{desk}} — master data is for list, view, and edit support.',
           })}{' '}
           {preferDesk && (
-            <Link to={deskPath} className="btn btn-secondary" style={{ marginLeft: 8 }}>
+            <Link to={deskTabHref} className="btn btn-secondary" style={{ marginLeft: 8 }}>
               {t('masterData.openDesk', {
                 ns: 'common',
                 desk: deskLabel,
@@ -350,18 +455,27 @@ export default function DomainList() {
         recordId={viewing?.id}
         seed={viewing}
         editPath={
-          viewing?.id != null ? `/domains/${pkg}/${resource}/${viewing.id}` : undefined
+          viewing?.id != null
+            ? preferDesk
+              ? deskOpenHref(viewing.id)
+              : domainFormHref(viewing.id)
+            : undefined
         }
       />
 
       <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
-        {createMode === 'domain' && (
-          <Link className="btn btn-primary" to={`/domains/${pkg}/${resource}/new`}>
+        {createMode === 'domain' && preferDesk && deskPath && (
+          <Link className="btn btn-primary" to={deskNewHref}>
+            <Plus size={16} /> {t('actions.create', { ns: 'common' })}
+          </Link>
+        )}
+        {createMode === 'domain' && !preferDesk && (
+          <Link className="btn btn-primary" to={domainNewHref}>
             <Plus size={16} /> {t('actions.create', { ns: 'common' })}
           </Link>
         )}
         {createMode === 'deskRedirect' && deskPath && (
-          <Link className="btn btn-primary" to={deskPath}>
+          <Link className="btn btn-primary" to={deskNewHref}>
             <ExternalLink size={16} />{' '}
             {t('masterData.openDesk', {
               ns: 'common',
@@ -371,7 +485,7 @@ export default function DomainList() {
           </Link>
         )}
         {createMode === 'parentOnly' && deskPath && (
-          <Link className="btn" to={deskPath}>
+          <Link className="btn" to={deskTabHref}>
             <ExternalLink size={16} />{' '}
             {t('masterData.openParentDesk', {
               ns: 'common',

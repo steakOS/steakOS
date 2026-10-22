@@ -18,7 +18,13 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-route
 import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 import { domainsApi } from '../api/client'
-import { getCreateMeta } from '../config/domainRegistry'
+import {
+  deskHref,
+  domainListReturnKey,
+  getCreateMeta,
+  getInteraction,
+  listReturnHref,
+} from '../config/domainRegistry'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import MasterEntityFields from '../forms/MasterEntityFields'
 import SchemaFormFields, {
@@ -221,6 +227,47 @@ export default function DomainForm() {
   )
   const isNew = !id || id === 'new'
   const createMeta = useMemo(() => getCreateMeta(pkg, resource), [pkg, resource])
+  const interaction =
+    createMeta.interaction || getInteraction(pkg, resource) || 'domainFullPage'
+  const preferDesk = interaction === 'deskShell' && !!createMeta.deskPath
+  const listReturnHrefResolved = useMemo(() => {
+    const fromSearch = (() => {
+      const params = new URLSearchParams(location.search || '')
+      const q = params.get('q') || params.get('returnQ') || ''
+      const offset = params.get('offset')
+      const max = params.get('max')
+      if (q || offset || max) {
+        return listReturnHref(pkg, resource, { q, offset, max })
+      }
+      return null
+    })()
+    if (fromSearch) return fromSearch
+    try {
+      const raw = sessionStorage.getItem(domainListReturnKey(pkg, resource))
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        return listReturnHref(pkg, resource, {
+          q: parsed?.q,
+          offset: parsed?.offset,
+          max: parsed?.max,
+        })
+      }
+    } catch {
+      /* ignore */
+    }
+    return listReturnHref(pkg, resource)
+  }, [pkg, resource, location.search])
+
+  const deskOpenHrefResolved = useMemo(() => {
+    if (!createMeta.deskPath) return null
+    return deskHref({
+      deskPath: createMeta.deskPath,
+      defaultTab: createMeta.defaultTab,
+      id: isNew ? undefined : id,
+      new: isNew,
+    })
+  }, [createMeta.deskPath, createMeta.defaultTab, isNew, id])
+
   const masterSpec = useMemo(() => getMasterFormSpec(pkg, resource), [pkg, resource])
   const isMasterPack = !!masterSpec
   const isLegacySpecial = LEGACY_SPECIAL.has(resource) && !isMasterPack
@@ -744,7 +791,7 @@ export default function DomainForm() {
         )
       } else {
         await domainsApi.update(pkg, resource, id, body)
-        navigate(`/domains/${pkg}/${resource}`)
+        navigate(listReturnHrefResolved)
       }
     } catch (err) {
       setError(err.message)
@@ -759,16 +806,26 @@ export default function DomainForm() {
     }
   }
 
+  const deskLabel =
+    createMeta.deskLabel ||
+    t('masterData.deskDefault', { ns: 'common', defaultValue: 'process desk' })
+
   // P0: process / line creates must not use empty DomainForm (after all hooks)
   if (isNew && createMeta.createMode === 'deskRedirect' && createMeta.deskPath) {
-    return <Navigate to={createMeta.deskPath} replace />
+    return (
+      <Navigate
+        to={deskHref({
+          deskPath: createMeta.deskPath,
+          defaultTab: createMeta.defaultTab,
+          new: true,
+        })}
+        replace
+      />
+    )
   }
 
   if (isNew && (createMeta.createMode === 'parentOnly' || createMeta.createMode === 'blocked')) {
     const deskPath = createMeta.deskPath
-    const deskLabel =
-      createMeta.deskLabel ||
-      t('masterData.deskDefault', { ns: 'common', defaultValue: 'process desk' })
     return (
       <div>
         <h1 className="page-title">
@@ -796,7 +853,14 @@ export default function DomainForm() {
           </p>
           <div className="toolbar" style={{ marginBottom: 0 }}>
             {deskPath && (
-              <Link className="btn btn-primary" to={deskPath}>
+              <Link
+                className="btn btn-primary"
+                to={deskHref({
+                  deskPath,
+                  defaultTab: createMeta.defaultTab,
+                  new: true,
+                })}
+              >
                 <ExternalLink size={16} />{' '}
                 {t('masterData.openDesk', {
                   ns: 'common',
@@ -805,7 +869,7 @@ export default function DomainForm() {
                 })}
               </Link>
             )}
-            <Link className="btn" to={`/domains/${pkg}/${resource}`}>
+            <Link className="btn" to={listReturnHrefResolved}>
               {t('actions.back', { ns: 'common', defaultValue: 'Back to list' })}
             </Link>
             {createMeta.parentResource && (
@@ -830,6 +894,34 @@ export default function DomainForm() {
 
   return (
     <div>
+      <div
+        className="toolbar domain-form-sticky-nav"
+        style={{
+          position: 'sticky',
+          top: 'calc(var(--app-topbar-offset, 3.5rem) + 0.25rem)',
+          zIndex: 3,
+          marginBottom: '0.75rem',
+          padding: '0.5rem 0',
+          background: 'color-mix(in srgb, var(--steak-bg, #f6f4f1) 92%, transparent)',
+          backdropFilter: 'blur(6px)',
+          flexWrap: 'wrap',
+          gap: 8,
+        }}
+      >
+        <Link className="btn" to={listReturnHrefResolved}>
+          {t('actions.back', { ns: 'common', defaultValue: 'Back to list' })}
+        </Link>
+        {preferDesk && deskOpenHrefResolved && (
+          <Link className="btn btn-primary" to={deskOpenHrefResolved}>
+            <ExternalLink size={16} />{' '}
+            {t('masterData.openDesk', {
+              ns: 'common',
+              desk: deskLabel,
+              defaultValue: 'Open on {{desk}}',
+            })}
+          </Link>
+        )}
+      </div>
       <h1 className="page-title">
         {isNew ? t('actions.create', { ns: 'common' }) : t('actions.edit', { ns: 'common' })}{' '}
         {resourceLabel}
@@ -1507,9 +1599,19 @@ export default function DomainForm() {
               ? t('actions.create', { ns: 'common' })
               : t('actions.save', { ns: 'common' })}
           </button>
-          <Link className="btn" to={`/domains/${pkg}/${resource}`}>
+          <Link className="btn" to={listReturnHrefResolved}>
             {t('actions.cancel', { ns: 'common' })}
           </Link>
+          {preferDesk && deskOpenHrefResolved && (
+            <Link className="btn btn-secondary" to={deskOpenHrefResolved}>
+              <ExternalLink size={16} />{' '}
+              {t('masterData.openDesk', {
+                ns: 'common',
+                desk: deskLabel,
+                defaultValue: 'Open on {{desk}}',
+              })}
+            </Link>
+          )}
         </div>
       </form>
 

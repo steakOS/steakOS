@@ -157,11 +157,22 @@ export default function HelpDrawer({
     setTicketMsg(null)
     try {
       const subject = (ticketForm.name || defaultSubject()).trim()
+      const ctxLine = [
+        helpContext?.desk && `desk=${helpContext.desk}`,
+        helpContext?.tab && `tab=${helpContext.tab}`,
+        helpContext?.resource && `resource=${helpContext.resource}`,
+        helpContext?.objectId != null && `id=${helpContext.objectId}`,
+        helpContext?.status && `status=${helpContext.status}`,
+        `path=${helpContext?.path || location.pathname}`,
+      ]
+        .filter(Boolean)
+        .join(' ')
       const ticket = await digitalApi.tickets.create({
         name: subject,
         ticketKind: ticketForm.ticketKind,
         priority: ticketForm.priority,
-        // Context for IT: current path in description-like fields if API ignores unknown keys it's ok
+        description: ctxLine || undefined,
+        impactNote: ctxLine || undefined,
       })
       setTicketMsg(
         t('ticketCreated', {
@@ -183,7 +194,8 @@ export default function HelpDrawer({
         className="help-drawer"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Help"
+        aria-modal="true"
+        aria-label={t('title', { defaultValue: 'Help' })}
       >
         <header className="help-drawer-header">
           <div>

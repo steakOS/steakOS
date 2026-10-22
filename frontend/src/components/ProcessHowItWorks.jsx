@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { GitBranch, X } from 'lucide-react'
@@ -30,6 +30,13 @@ export default function ProcessHowItWorks({ processCode, label }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const triggerRef = useRef(null)
+
+  const closeOverlay = () => {
+    setOpen(false)
+    // WP-1: Esc/close returns focus to “How it works”
+    queueMicrotask(() => triggerRef.current?.focus?.())
+  }
 
   const buttonLabel =
     label ||
@@ -63,6 +70,18 @@ export default function ProcessHowItWorks({ processCode, label }) {
     }
   }, [open, processCode])
 
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        closeOverlay()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   const localized = useMemo(() => {
     if (!data) return null
     return localizeProcess(
@@ -77,6 +96,7 @@ export default function ProcessHowItWorks({ processCode, label }) {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         className="btn btn-ghost"
         onClick={() => setOpen(true)}
@@ -93,7 +113,7 @@ export default function ProcessHowItWorks({ processCode, label }) {
               <h2 style={{ margin: 0, fontSize: '1.1rem' }}>
                 {localized?.name || processCode}
               </h2>
-              <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+              <button type="button" className="btn btn-ghost" onClick={closeOverlay}>
                 <X size={16} />
               </button>
             </div>
@@ -126,12 +146,12 @@ export default function ProcessHowItWorks({ processCode, label }) {
                     <Link
                       className="btn"
                       to={`/capability/processes?code=${encodeURIComponent(processCode)}`}
-                      onClick={() => setOpen(false)}
+                      onClick={closeOverlay}
                     >
                       {t('ui.openBrowser', { ns: 'processes' })}
                     </Link>
                   )}
-                  <button type="button" className="btn btn-primary" onClick={() => setOpen(false)}>
+                  <button type="button" className="btn btn-primary" onClick={closeOverlay}>
                     {t('actions.close', { defaultValue: 'Close' })}
                   </button>
                 </div>

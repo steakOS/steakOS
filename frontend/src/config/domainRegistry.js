@@ -29,18 +29,26 @@ import registry from './domainRegistry.json'
  *   blocked      — no create until specialized form exists
  */
 
-/** @type {Record<string, { entityClass: string, createMode: string, interaction?: 'deskShell'|'domainFullPage'|'capability', deskPath?: string, deskLabel?: string, parentResource?: string, reason?: string }>} */
+/** @type {Record<string, { entityClass: string, createMode: string, interaction?: 'deskShell'|'domainFullPage'|'capability', deskPath?: string, defaultTab?: string, deskLabel?: string, parentResource?: string, reason?: string }>} */
 export const CREATE_META = {
   // —— core ——
   'core/Task': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
 
   // —— sales ——
-  'sales/Customer': { entityClass: 'A', createMode: 'domain', interaction: 'deskShell' },
+  'sales/Customer': {
+    entityClass: 'A',
+    createMode: 'domain',
+    interaction: 'deskShell',
+    deskPath: '/sales',
+    defaultTab: 'customers',
+    deskLabel: 'Sales desk',
+  },
   'sales/CustomerQuote': {
     entityClass: 'B',
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/sales',
+    defaultTab: 'quotes',
     deskLabel: 'Sales desk',
   },
   'sales/QuoteLine': {
@@ -50,12 +58,14 @@ export const CREATE_META = {
     parentResource: 'CustomerQuote',
     parentAssoc: 'quote',
     deskPath: '/sales',
+    defaultTab: 'quotes',
   },
   'sales/SalesOrder': {
     entityClass: 'B',
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/sales',
+    defaultTab: 'orders',
     deskLabel: 'Sales desk',
   },
   'sales/OrderLine': {
@@ -65,18 +75,27 @@ export const CREATE_META = {
     parentResource: 'SalesOrder',
     parentAssoc: 'salesOrder',
     deskPath: '/sales',
+    defaultTab: 'orders',
   },
   'sales/GoToMarket': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
   'sales/Market': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
   'sales/SalesPlan': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
 
   // —— procurement / SCM ——
-  'procurement/Vendor': { entityClass: 'A', createMode: 'domain', interaction: 'deskShell' },
+  'procurement/Vendor': {
+    entityClass: 'A',
+    createMode: 'domain',
+    interaction: 'deskShell',
+    deskPath: '/scm/buyers',
+    defaultTab: 'vendors',
+    deskLabel: 'Buyers Desk',
+  },
   'procurement/PurchaseOrder': {
     entityClass: 'B',
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/scm/buyers',
+    defaultTab: 'purchase',
     deskLabel: 'Buyers Desk',
   },
   'procurement/PurchaseOrderLine': {
@@ -86,12 +105,14 @@ export const CREATE_META = {
     parentResource: 'PurchaseOrder',
     parentAssoc: 'purchaseOrder',
     deskPath: '/scm/buyers',
+    defaultTab: 'purchase',
   },
   'procurement/Receipt': {
     entityClass: 'D',
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/scm/buyers',
+    defaultTab: 'purchase',
     deskLabel: 'Buyers Desk',
   },
   'procurement/ReceiptLine': {
@@ -101,6 +122,7 @@ export const CREATE_META = {
     parentResource: 'Receipt',
     parentAssoc: 'receipt',
     deskPath: '/scm/buyers',
+    defaultTab: 'purchase',
   },
   'procurement/Contract': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
   'procurement/SourcingCategory': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
@@ -112,6 +134,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/scm/buyers',
+    defaultTab: 'products',
     deskLabel: 'Buyers Desk (goods/services) / Delivery (fulfilled services)',
   },
   'production/Component': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
@@ -128,6 +151,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/scm/shopfloor',
+    defaultTab: 'production',
     deskLabel: 'Shop Floor Control',
   },
   'production/Lot': {
@@ -135,6 +159,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/scm/shopfloor',
+    defaultTab: 'inventory',
     deskLabel: 'Shop Floor Control',
   },
   'production/Check': {
@@ -142,6 +167,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/scm/shopfloor',
+    defaultTab: 'quality',
     deskLabel: 'Shop Floor Control',
   },
   'production/StockMove': {
@@ -149,6 +175,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/scm/shopfloor',
+    defaultTab: 'inventory',
     deskLabel: 'Shop Floor Control',
   },
 
@@ -159,6 +186,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/delivery',
+    defaultTab: 'orders',
     deskLabel: 'Delivery desk',
   },
   'delivery/ServiceOrderLine': {
@@ -168,6 +196,7 @@ export const CREATE_META = {
     parentResource: 'ServiceOrder',
     parentAssoc: 'serviceOrder',
     deskPath: '/delivery',
+    defaultTab: 'orders',
   },
 
   // —— aftersales (service package) ——
@@ -176,6 +205,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/aftersales',
+    defaultTab: 'claims',
     deskLabel: 'AfterSales desk',
     reason: 'Requires warranty association and process status',
   },
@@ -184,6 +214,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/aftersales',
+    defaultTab: 'inquiries',
     deskLabel: 'AfterSales desk',
   },
   'service/Rma': {
@@ -191,6 +222,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/aftersales',
+    defaultTab: 'rmas',
     deskLabel: 'AfterSales desk',
   },
   'service/Satisfaction': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
@@ -200,6 +232,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/aftersales',
+    defaultTab: 'warranties',
     deskLabel: 'AfterSales desk',
   },
 
@@ -215,6 +248,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'candidates',
     deskLabel: 'HR desk',
   },
   'human/Goal': {
@@ -222,6 +256,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'goals',
     deskLabel: 'HR desk',
   },
   'human/HRFile': {
@@ -229,6 +264,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'files',
     deskLabel: 'HR desk',
     reason: 'Creates/links User — must go through HR process API',
   },
@@ -237,6 +273,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'plans',
     deskLabel: 'HR desk',
   },
   'human/PartyAccess': {
@@ -244,6 +281,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'parties',
     deskLabel: 'HR desk',
   },
   'human/Payroll': {
@@ -251,6 +289,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'payroll',
     deskLabel: 'HR desk',
   },
   'human/Policy': {
@@ -258,6 +297,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'policies',
     deskLabel: 'HR desk',
   },
   'human/TimeTrack': {
@@ -265,6 +305,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/hr',
+    defaultTab: 'time',
     deskLabel: 'HR desk',
   },
 
@@ -274,6 +315,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/digital',
+    defaultTab: 'cmdb',
     deskLabel: 'Digital desk',
   },
   'digital/Data': {
@@ -281,6 +323,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/digital',
+    defaultTab: 'data',
     deskLabel: 'Digital desk',
   },
   'digital/ITChange': {
@@ -288,6 +331,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/digital',
+    defaultTab: 'changes',
     deskLabel: 'Digital desk',
   },
   'digital/ItTicket': {
@@ -295,6 +339,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/digital',
+    defaultTab: 'support',
     deskLabel: 'Digital desk',
   },
   'digital/Solution': {
@@ -302,6 +347,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/digital',
+    defaultTab: 'solutions',
     deskLabel: 'Digital desk',
   },
   'digital/System': {
@@ -309,6 +355,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/digital',
+    defaultTab: 'systems',
     deskLabel: 'Digital desk',
   },
 
@@ -326,6 +373,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/finance/invoices',
+    defaultTab: 'invoices',
     deskLabel: 'Finance · Invoices',
   },
   'finance/JournalEntry': {
@@ -355,6 +403,7 @@ export const CREATE_META = {
     createMode: 'deskRedirect',
     interaction: 'deskShell',
     deskPath: '/finance/invoices',
+    defaultTab: 'invoices',
     deskLabel: 'Finance · Invoices',
     reason: 'Requires invoice association',
   },
@@ -469,7 +518,7 @@ export const CREATE_META = {
     entityClass: 'D',
     createMode: 'deskRedirect',
     interaction: 'deskShell',
-    deskPath: '/agents/approvals',
+    deskPath: '/agents/hitl',
     deskLabel: 'Agents hub',
   },
   'agents/Hive': {
@@ -543,7 +592,9 @@ export function getCreateMeta(pkg, resourceName) {
     return {
       entityClass: explicit.entityClass || 'E',
       createMode: explicit.createMode || 'domain',
+      interaction: explicit.interaction || null,
       deskPath: explicit.deskPath || null,
+      defaultTab: explicit.defaultTab || null,
       deskLabel: explicit.deskLabel || null,
       parentResource: explicit.parentResource || null,
       parentAssoc: explicit.parentAssoc || null,
@@ -552,12 +603,57 @@ export function getCreateMeta(pkg, resourceName) {
   }
   return {
     ...inferMeta(pkg, resourceName),
+    interaction: null,
     deskPath: null,
+    defaultTab: null,
     deskLabel: null,
     parentResource: null,
     parentAssoc: null,
     reason: null,
   }
+}
+
+/**
+ * Desk deep-link: `/sales?tab=customers&id=123` or `&new=1`.
+ * @param {{ deskPath: string, defaultTab?: string|null, id?: string|number|null, new?: boolean, returnQ?: string|null }} opts
+ */
+export function deskHref({ deskPath, defaultTab, id, new: isNew = false, returnQ } = {}) {
+  if (!deskPath) return '/'
+  const qIdx = deskPath.indexOf('?')
+  const path = qIdx >= 0 ? deskPath.slice(0, qIdx) : deskPath
+  const params = new URLSearchParams(qIdx >= 0 ? deskPath.slice(qIdx + 1) : '')
+  if (defaultTab) params.set('tab', defaultTab)
+  if (isNew) {
+    params.set('new', '1')
+    params.delete('id')
+  } else if (id != null && id !== '') {
+    params.set('id', String(id))
+  }
+  if (returnQ) params.set('returnQ', returnQ)
+  const qs = params.toString()
+  return qs ? `${path}?${qs}` : path
+}
+
+/** sessionStorage key for DomainList → DomainForm return query */
+export function domainListReturnKey(pkg, resource) {
+  return `steakos.domainListReturn.${pkg}.${resource}`
+}
+
+/**
+ * Domain master-data list URL with optional search/pager restore.
+ * @param {string} pkg
+ * @param {string} resource
+ * @param {{ q?: string, offset?: number|string, max?: number|string }} [opts]
+ */
+export function listReturnHref(pkg, resource, { q, offset, max } = {}) {
+  const params = new URLSearchParams()
+  if (q != null && String(q).trim() !== '') params.set('q', String(q).trim())
+  if (offset != null && offset !== '' && Number(offset) > 0) {
+    params.set('offset', String(offset))
+  }
+  if (max != null && max !== '' && Number(max) > 0) params.set('max', String(max))
+  const qs = params.toString()
+  return `/domains/${pkg}/${resource}${qs ? `?${qs}` : ''}`
 }
 
 /** Whether master-data DomainForm may create this resource */
@@ -603,7 +699,9 @@ function enrichResource(pkg, res) {
     ...res,
     entityClass: res.entityClass || meta.entityClass,
     createMode: res.createMode || meta.createMode,
+    interaction: res.interaction || meta.interaction,
     deskPath: res.deskPath || meta.deskPath,
+    defaultTab: res.defaultTab || meta.defaultTab,
     deskLabel: res.deskLabel || meta.deskLabel,
     parentResource: res.parentResource || meta.parentResource,
     createReason: res.createReason || meta.reason,

@@ -13,10 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ShieldAlert, RefreshCw, Plus } from 'lucide-react'
 import { grrcApi } from '../api/client'
+import DeskShell from '../components/desk/DeskShell'
+import DeskNewFab from '../components/DeskNewFab'
+import ConfirmDialog from '../components/ConfirmDialog'
+import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import useDeskMemory from '../hooks/useDeskMemory'
+import useDeskKeyboard from '../hooks/useDeskKeyboard'
+import useNarrowViewport from '../hooks/useNarrowViewport'
 
 const SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 const LIKELIHOODS = ['LOW', 'MEDIUM', 'HIGH']
@@ -62,11 +69,51 @@ function statusClass(s) {
 }
 
 /**
- * GRRCBasics desk (G7) — risk + compliance registers. Silver pack / Iron eval.
+ * GRRCBasics desk (G7) — DeskShell master–detail (ADR-047 / Nielsen).
  */
 export default function GrrcDesk() {
   const { t } = useTranslation(['desks', 'common'])
-  const [tab, setTab] = useState('risks')
+  const narrow = useNarrowViewport()
+
+  const [tab, setTab] = useState(() => {
+    if (typeof window === 'undefined') return 'risks'
+    const urlTab = new URLSearchParams(window.location.search).get('tab')
+    return urlTab === 'compliance' ? 'compliance' : 'risks'
+  })
+  const [selectedId, setSelectedId] = useState(() => {
+    if (typeof window === 'undefined') return null
+    return new URLSearchParams(window.location.search).get('id') || null
+  })
+  const [newExpanded, setNewExpanded] = useState(false)
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const [pendingNav, setPendingNav] = useState(null)
+  const [companyId] = useState('default')
+
+  const { saveMemory } = useDeskMemory({ deskKey: 'grrc', companyId })
+
+  useDeskSelection({
+    deskKey: 'grrc',
+    defaultTab: 'risks',
+    tab,
+    setTab,
+    selectedId,
+    setSelectedId,
+  })
+
+  useEffect(() => {
+    saveMemory({ tab })
+  }, [tab, saveMemory])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('new') === '1') {
+      setNewExpanded(true)
+      params.delete('new')
+      const qs = params.toString()
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
+    }
+  }, [])
+
   const [risks, setRisks] = useState([])
   const [compliance, setCompliance] = useState([])
   const [riskTotal, setRiskTotal] = useState(0)
@@ -82,6 +129,14 @@ export default function GrrcDesk() {
   const [info, setInfo] = useState(null)
   const [silverGate, setSilverGate] = useState(false)
   const [closeNote, setCloseNote] = useState('')
+
+  const tabs = useMemo(
+    () => [
+      { id: 'risks', label: t('grrc.risks', { defaultValue: 'Risks' }) },
+      { id: 'compliance', label: t('grrc.compliance', { defaultValue: 'Compliance' }) },
+    ],
+    [t],
+  )
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -116,11 +171,33 @@ export default function GrrcDesk() {
   useEffect(() => {
     load()
   }, [load])
+
+  const items = tab === 'risks' ? risks : compliance
+  const total = tab === 'risks' ? riskTotal : compTotal
+
   useEffect(() => {
-    setSelected(null)
     setEditing(false)
     setCloseNote('')
-  }, [tab])
+    if (!selectedId) {
+      setSelected(null)
+      return
+    }
+    const row = items.find((x) => String(x.id) === String(selectedId))
+    if (row) {
+      setSelected(row)
+      setCloseNote(row.treatmentNote || '')
+    } else if (!loading) {
+      setSelected(null)
+    }
+  }, [tab, selectedId, items, loading])
+
+  useEffect(() => {
+    if (!selectedId) return
+    const id = window.requestAnimationFrame(() => {
+      scrollSelectedIntoView('.desk-shell-list')
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [selectedId, selected?.id, tab])
 
   const run = async (fn) => {
     setBusy(true)
@@ -139,16 +216,95 @@ export default function GrrcDesk() {
     }
   }
 
-  const selectRow = (row) => {
-    setSelected(row)
-    setEditing(false)
-    setCloseNote(row.treatmentNote || '')
-  }
-
   const confirmDelete = (label) =>
     window.confirm(
       t('actions.confirmDelete', { ns: 'common', label, defaultValue: `Delete ${label}?` }),
     )
+
+  const resetCreateForms = useCallback(() => {
+    setRiskForm(emptyRisk())
+    setCompForm(emptyCompliance())
+  }, [])
+
+  const createDirty = useMemo(() => {
+    if (tab === 'risks') {
+      const d = emptyRisk()
+      return Boolean(
+        (riskForm.name || '').trim() ||
+          (riskForm.description || '').trim() ||
+          riskForm.severity !== d.severity ||
+          riskForm.likelihood !== d.likelihood ||
+          (riskForm.ownerName || '').trim() ||
+          (riskForm.treatmentNote || '').trim(),
+      )
+    }
+    const d = emptyCompliance()
+    return Boolean(
+      (compForm.name || '').trim() ||
+        (compForm.description || '').trim() ||
+        compForm.itemKind !== d.itemKind ||
+        compForm.status !== d.status ||
+        (compForm.ownerName || '').trim() ||
+        compForm.effectiveFrom,
+    )
+  }, [tab, riskForm, compForm])
+
+  const applyCollapseCreate = useCallback(() => {
+    setNewExpanded(false)
+    resetCreateForms()
+  }, [resetCreateForms])
+
+  const requestToggleNew = useCallback(() => {
+    if (newExpanded && createDirty) {
+      setPendingNav({ type: 'collapse' })
+      setDiscardOpen(true)
+      return
+    }
+    if (newExpanded) applyCollapseCreate()
+    else setNewExpanded(true)
+  }, [newExpanded, createDirty, applyCollapseCreate])
+
+  const requestTabChange = useCallback(
+    (nextTab) => {
+      if (nextTab === tab) return
+      if (newExpanded && createDirty) {
+        setPendingNav({ type: 'tab', tab: nextTab })
+        setDiscardOpen(true)
+        return
+      }
+      setNewExpanded(false)
+      resetCreateForms()
+      setSelectedId(null)
+      setTab(nextTab)
+    },
+    [tab, newExpanded, createDirty, resetCreateForms],
+  )
+
+  const keyboardIds = useMemo(() => items.map((i) => i.id), [items])
+
+  useDeskKeyboard({
+    enabled: !newExpanded && !silverGate,
+    itemIds: keyboardIds,
+    selectedId,
+    setSelectedId,
+    onToggleNew: requestToggleNew,
+  })
+
+  const confirmDiscard = useCallback(() => {
+    const nav = pendingNav
+    setDiscardOpen(false)
+    setPendingNav(null)
+    applyCollapseCreate()
+    if (nav?.type === 'tab' && nav.tab) {
+      setSelectedId(null)
+      setTab(nav.tab)
+    }
+  }, [pendingNav, applyCollapseCreate])
+
+  const cancelDiscard = useCallback(() => {
+    setDiscardOpen(false)
+    setPendingNav(null)
+  }, [])
 
   const riskFields = (form, setForm) => (
     <>
@@ -280,8 +436,82 @@ export default function GrrcDesk() {
     </>
   )
 
-  const items = tab === 'risks' ? risks : compliance
-  const total = tab === 'risks' ? riskTotal : compTotal
+  const hasSelection = Boolean(selected?.id)
+
+  const helpContext = useMemo(() => {
+    const base = { desk: 'grrc', tab }
+    if (selected) {
+      return {
+        ...base,
+        resource: tab === 'risks' ? 'Risk' : 'ComplianceItem',
+        objectId: selected.id,
+        status: selected.status,
+      }
+    }
+    return base
+  }, [tab, selected])
+
+  const newLabel =
+    tab === 'risks'
+      ? t('grrc.newRisk', { defaultValue: 'New risk' })
+      : t('grrc.newCompliance', { defaultValue: 'New compliance item' })
+
+  const newPanel =
+    tab === 'risks' ? (
+      <form
+        className="form-grid"
+        onSubmit={(e) => {
+          e.preventDefault()
+          run(async () => {
+            const created = await grrcApi.risks.create(riskForm)
+            setInfo(
+              t('toast.namedCreated', {
+                ns: 'common',
+                what: t('grrc.riskLabel', { defaultValue: 'Risk' }),
+                name: created.name,
+              }),
+            )
+            resetCreateForms()
+            setNewExpanded(false)
+            setSelectedId(String(created.id))
+          })
+        }}
+      >
+        {riskFields(riskForm, setRiskForm)}
+        <button type="submit" className="btn btn-primary" disabled={!!busy}>
+          <Plus size={16} /> {t('grrc.createRisk', { defaultValue: 'Create risk' })}
+        </button>
+      </form>
+    ) : (
+      <form
+        className="form-grid"
+        onSubmit={(e) => {
+          e.preventDefault()
+          run(async () => {
+            const created = await grrcApi.compliance.create({
+              ...compForm,
+              effectiveFrom: compForm.effectiveFrom || null,
+            })
+            setInfo(
+              t('toast.namedCreated', {
+                ns: 'common',
+                what: t('grrc.complianceLabel', { defaultValue: 'Compliance item' }),
+                name: created.name,
+              }),
+            )
+            resetCreateForms()
+            setNewExpanded(false)
+            setSelectedId(String(created.id))
+          })
+        }}
+      >
+        {complianceFields(compForm, setCompForm)}
+        <button type="submit" className="btn btn-primary" disabled={!!busy}>
+          <Plus size={16} />{' '}
+          {t('grrc.createCompliance', { defaultValue: 'Create compliance item' })}
+        </button>
+      </form>
+    )
 
   const listTable = (cols, emptyKey, emptyDefault) =>
     items.length === 0 ? (
@@ -300,8 +530,9 @@ export default function GrrcDesk() {
             {items.map((row) => (
               <tr
                 key={row.id}
+                data-selected={selected?.id === row.id ? 'true' : undefined}
                 className={selected?.id === row.id ? 'row-selected' : 'row-click'}
-                onClick={() => selectRow(row)}
+                onClick={() => setSelectedId(String(row.id))}
               >
                 {cols.map((c) => (
                   <td key={c.key}>{c.render(row)}</td>
@@ -313,21 +544,319 @@ export default function GrrcDesk() {
       </div>
     )
 
+  const list =
+    tab === 'risks' ? (
+      <>
+        <h2 className="section-label" style={{ marginTop: 0 }}>
+          {t('grrc.risksList', { defaultValue: 'Risks' })} ({total})
+        </h2>
+        {loading && !error && !silverGate ? (
+          <p className="muted">{t('grrc.loading', { defaultValue: 'Loading…' })}</p>
+        ) : (
+          listTable(
+            [
+              {
+                key: 'name',
+                label: t('grrc.colName', { defaultValue: 'Name' }),
+                render: (r) => r.name || `#${r.id}`,
+              },
+              {
+                key: 'status',
+                label: t('grrc.colStatus', { defaultValue: 'Status' }),
+                render: (r) => <span className={statusClass(r.status)}>{r.status || '—'}</span>,
+              },
+              {
+                key: 'sev',
+                label: t('grrc.colSeverity', { defaultValue: 'Severity' }),
+                render: (r) => r.severity || '—',
+              },
+            ],
+            'grrc.emptyRisks',
+            'No risks yet. Add one with New to start the register.',
+          )
+        )}
+      </>
+    ) : (
+      <>
+        <h2 className="section-label" style={{ marginTop: 0 }}>
+          {t('grrc.complianceList', { defaultValue: 'Compliance' })} ({total})
+        </h2>
+        {loading && !error && !silverGate ? (
+          <p className="muted">{t('grrc.loading', { defaultValue: 'Loading…' })}</p>
+        ) : (
+          listTable(
+            [
+              {
+                key: 'name',
+                label: t('grrc.colName', { defaultValue: 'Name' }),
+                render: (r) => r.name || `#${r.id}`,
+              },
+              {
+                key: 'status',
+                label: t('grrc.colStatus', { defaultValue: 'Status' }),
+                render: (r) => <span className={statusClass(r.status)}>{r.status || '—'}</span>,
+              },
+              {
+                key: 'kind',
+                label: t('grrc.colKind', { defaultValue: 'Kind' }),
+                render: (r) => r.itemKind || '—',
+              },
+            ],
+            'grrc.emptyCompliance',
+            'No compliance items yet. Register a policy or control with New.',
+          )
+        )}
+      </>
+    )
+
+  let detail = null
+  if (selected && tab === 'risks') {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        {!editing && (
+          <>
+            <div className="inv-detail-hero">
+              <div>
+                <div className="about-display" style={{ fontSize: '1.25rem' }}>
+                  {selected.name}
+                </div>
+                <div className="muted">
+                  <span className={statusClass(selected.status)}>{selected.status}</span>
+                  {' · '}
+                  {selected.severity} / {selected.likelihood}
+                  {selected.ownerName ? ` · ${selected.ownerName}` : ''}
+                </div>
+              </div>
+            </div>
+            {selected.description && <p>{selected.description}</p>}
+            {selected.status !== 'CLOSED' && (
+              <label>
+                {t('grrc.fieldTreatment', { defaultValue: 'Mitigation plan' })}
+                <textarea
+                  rows={2}
+                  value={closeNote}
+                  onChange={(e) => setCloseNote(e.target.value)}
+                />
+              </label>
+            )}
+            {selected.status === 'CLOSED' && selected.treatmentNote && (
+              <p className="muted">
+                <strong>{t('grrc.fieldTreatment', { defaultValue: 'Mitigation plan' })}:</strong>{' '}
+                {selected.treatmentNote}
+              </p>
+            )}
+            <div className="toolbar">
+              <button
+                type="button"
+                className="btn"
+                disabled={!!busy}
+                onClick={() => {
+                  setEditForm({
+                    name: selected.name || '',
+                    description: selected.description || '',
+                    severity: selected.severity || 'MEDIUM',
+                    likelihood: selected.likelihood || 'MEDIUM',
+                    ownerName: selected.ownerName || '',
+                    treatmentNote: selected.treatmentNote || '',
+                    status: selected.status || 'OPEN',
+                  })
+                  setEditing(true)
+                }}
+              >
+                {t('actions.edit', { ns: 'common', defaultValue: 'Edit' })}
+              </button>
+              {selected.status !== 'CLOSED' && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!!busy}
+                  onClick={() =>
+                    run(async () => {
+                      const closed = await grrcApi.risks.close(selected.id, {
+                        treatmentNote: closeNote,
+                      })
+                      setInfo(
+                        t('toast.closedName', {
+                          ns: 'common',
+                          name: closed.name || selected.name,
+                        }),
+                      )
+                      setSelected(closed)
+                      setSelectedId(String(closed.id))
+                    })
+                  }
+                >
+                  {t('grrc.closeRisk', { defaultValue: 'Close risk' })}
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={!!busy}
+                onClick={() => {
+                  if (!confirmDelete(selected.name)) return
+                  run(async () => {
+                    await grrcApi.risks.delete(selected.id)
+                    setSelectedId(null)
+                    setInfo(
+                      t('grrc.deleted', {
+                        defaultValue: 'Deleted {{name}}',
+                        name: selected.name,
+                      }),
+                    )
+                  })
+                }}
+              >
+                {t('actions.delete', { ns: 'common', defaultValue: 'Delete' })}
+              </button>
+            </div>
+          </>
+        )}
+        {editing && (
+          <form
+            className="form-grid"
+            onSubmit={(e) => {
+              e.preventDefault()
+              run(async () => {
+                const updated = await grrcApi.risks.update(selected.id, editForm)
+                setSelected(updated)
+                setEditing(false)
+                setInfo(
+                  t('toast.namedStatus', {
+                    ns: 'common',
+                    what: t('grrc.riskLabel', { defaultValue: 'Risk' }),
+                    name: updated.name,
+                    status: updated.status,
+                  }),
+                )
+              })
+            }}
+          >
+            {riskFields(editForm, setEditForm)}
+            <div className="toolbar">
+              <button type="submit" className="btn btn-primary" disabled={!!busy}>
+                {t('actions.save', { ns: 'common', defaultValue: 'Save' })}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setEditing(false)}
+                disabled={!!busy}
+              >
+                {t('actions.cancel', { ns: 'common', defaultValue: 'Cancel' })}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    )
+  } else if (selected && tab === 'compliance') {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        {!editing && (
+          <>
+            <div className="inv-detail-hero">
+              <div>
+                <div className="about-display" style={{ fontSize: '1.25rem' }}>
+                  {selected.name}
+                </div>
+                <div className="muted">
+                  <span className={statusClass(selected.status)}>{selected.status}</span>
+                  {' · '}
+                  {selected.itemKind}
+                  {selected.ownerName ? ` · ${selected.ownerName}` : ''}
+                  {selected.effectiveFrom ? ` · ${toDateInput(selected.effectiveFrom)}` : ''}
+                </div>
+              </div>
+            </div>
+            {selected.description && <p>{selected.description}</p>}
+            <div className="toolbar">
+              <button
+                type="button"
+                className="btn"
+                disabled={!!busy}
+                onClick={() => {
+                  setEditForm({
+                    name: selected.name || '',
+                    description: selected.description || '',
+                    itemKind: selected.itemKind || 'POLICY',
+                    status: selected.status || 'DRAFT',
+                    ownerName: selected.ownerName || '',
+                    effectiveFrom: toDateInput(selected.effectiveFrom),
+                  })
+                  setEditing(true)
+                }}
+              >
+                {t('actions.edit', { ns: 'common', defaultValue: 'Edit' })}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={!!busy}
+                onClick={() => {
+                  if (!confirmDelete(selected.name)) return
+                  run(async () => {
+                    await grrcApi.compliance.delete(selected.id)
+                    setSelectedId(null)
+                    setInfo(
+                      t('grrc.deleted', {
+                        defaultValue: 'Deleted {{name}}',
+                        name: selected.name,
+                      }),
+                    )
+                  })
+                }}
+              >
+                {t('actions.delete', { ns: 'common', defaultValue: 'Delete' })}
+              </button>
+            </div>
+          </>
+        )}
+        {editing && (
+          <form
+            className="form-grid"
+            onSubmit={(e) => {
+              e.preventDefault()
+              run(async () => {
+                const updated = await grrcApi.compliance.update(selected.id, {
+                  ...editForm,
+                  effectiveFrom: editForm.effectiveFrom || null,
+                })
+                setSelected(updated)
+                setEditing(false)
+                setInfo(
+                  t('toast.namedStatus', {
+                    ns: 'common',
+                    what: t('grrc.complianceLabel', { defaultValue: 'Compliance item' }),
+                    name: updated.name,
+                    status: updated.status,
+                  }),
+                )
+              })
+            }}
+          >
+            {complianceFields(editForm, setEditForm)}
+            <div className="toolbar">
+              <button type="submit" className="btn btn-primary" disabled={!!busy}>
+                {t('actions.save', { ns: 'common', defaultValue: 'Save' })}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setEditing(false)}
+                disabled={!!busy}
+              >
+                {t('actions.cancel', { ns: 'common', defaultValue: 'Cancel' })}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="page">
-      <header className="page-header" style={{ marginBottom: '1.25rem' }}>
-        <h1 className="page-title">
-          <ShieldAlert size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          {t('grrc.title', { defaultValue: 'Governance' })}
-        </h1>
-        <p className="page-sub">
-          {t('grrc.subtitle', {
-            defaultValue:
-              'Risk, Resilience, and Compliance supporting Accountability, Transparency, Fairness, and Independence. Basics register. Silver pack / Iron eval.',
-          })}
-        </p>
-      </header>
-
       {error && <div className="banner-error">{error}</div>}
       {info && <div className="banner-info">{info}</div>}
 
@@ -343,410 +872,69 @@ export default function GrrcDesk() {
         </section>
       )}
 
-      <div className="toolbar">
+      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
         <button type="button" className="btn" onClick={load} disabled={loading || !!busy}>
           <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common', defaultValue: 'Refresh' })}
         </button>
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {['risks', 'compliance'].map((id) => (
-            <button
-              key={id}
-              type="button"
-              className={`btn ${tab === id ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setTab(id)}
-            >
-              {t(`grrc.${id}`, { defaultValue: id === 'risks' ? 'Risks' : 'Compliance' })}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {loading && !error && !silverGate && (
-        <p className="muted">{t('grrc.loading', { defaultValue: 'Loading…' })}</p>
-      )}
-
-      {!silverGate && tab === 'risks' && (
-        <div className="two-col finance-tx-grid">
-          <div>
-            <section className="card">
-              <h2 className="section-label" style={{ marginTop: 0 }}>
-                {t('grrc.newRisk', { defaultValue: 'New risk' })}
-              </h2>
-              <form
-                className="form-grid"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  run(async () => {
-                    const created = await grrcApi.risks.create(riskForm)
-                    setInfo(
-                      t('toast.namedCreated', {
-                        ns: 'common',
-                        what: t('grrc.riskLabel', { defaultValue: 'Risk' }),
-                        name: created.name,
-                      }),
-                    )
-                    setRiskForm(emptyRisk())
-                    setSelected(created)
-                  })
-                }}
-              >
-                {riskFields(riskForm, setRiskForm)}
-                <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                  <Plus size={16} /> {t('grrc.createRisk', { defaultValue: 'Create risk' })}
-                </button>
-              </form>
-            </section>
-            <section className="card">
-              <h2 className="section-label" style={{ marginTop: 0 }}>
-                {t('grrc.risksList', { defaultValue: 'Risks' })} ({total})
-              </h2>
-              {listTable(
-                [
-                  {
-                    key: 'name',
-                    label: t('grrc.colName', { defaultValue: 'Name' }),
-                    render: (r) => r.name || `#${r.id}`,
-                  },
-                  {
-                    key: 'status',
-                    label: t('grrc.colStatus', { defaultValue: 'Status' }),
-                    render: (r) => (
-                      <span className={statusClass(r.status)}>{r.status || '—'}</span>
-                    ),
-                  },
-                  {
-                    key: 'sev',
-                    label: t('grrc.colSeverity', { defaultValue: 'Severity' }),
-                    render: (r) => r.severity || '—',
-                  },
-                ],
-                'grrc.emptyRisks',
-                'No risks yet. Add one above to start the register.',
-              )}
-            </section>
-          </div>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('grrc.riskDetail', { defaultValue: 'Risk detail' })}
-            </h2>
-            {!selected && (
-              <p className="muted">
-                {t('grrc.selectRisk', { defaultValue: 'Select a risk from the list.' })}
-              </p>
-            )}
-            {selected && !editing && (
+      {!silverGate && (
+        <>
+          <DeskShell
+            title={
               <>
-                <div className="inv-detail-hero">
-                  <div>
-                    <div className="about-display" style={{ fontSize: '1.25rem' }}>
-                      {selected.name}
-                    </div>
-                    <div className="muted">
-                      <span className={statusClass(selected.status)}>{selected.status}</span>
-                      {' · '}
-                      {selected.severity} / {selected.likelihood}
-                      {selected.ownerName ? ` · ${selected.ownerName}` : ''}
-                    </div>
-                  </div>
-                </div>
-                {selected.description && <p>{selected.description}</p>}
-                {selected.status !== 'CLOSED' && (
-                  <label>
-                    {t('grrc.fieldTreatment', { defaultValue: 'Mitigation plan' })}
-                    <textarea
-                      rows={2}
-                      value={closeNote}
-                      onChange={(e) => setCloseNote(e.target.value)}
-                    />
-                  </label>
-                )}
-                {selected.status === 'CLOSED' && selected.treatmentNote && (
-                  <p className="muted">
-                    <strong>{t('grrc.fieldTreatment', { defaultValue: 'Mitigation plan' })}:</strong>{' '}
-                    {selected.treatmentNote}
-                  </p>
-                )}
-                <div className="toolbar">
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={!!busy}
-                    onClick={() => {
-                      setEditForm({
-                        name: selected.name || '',
-                        description: selected.description || '',
-                        severity: selected.severity || 'MEDIUM',
-                        likelihood: selected.likelihood || 'MEDIUM',
-                        ownerName: selected.ownerName || '',
-                        treatmentNote: selected.treatmentNote || '',
-                        status: selected.status || 'OPEN',
-                      })
-                      setEditing(true)
-                    }}
-                  >
-                    {t('actions.edit', { ns: 'common', defaultValue: 'Edit' })}
-                  </button>
-                  {selected.status !== 'CLOSED' && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      disabled={!!busy}
-                      onClick={() =>
-                        run(async () => {
-                          const closed = await grrcApi.risks.close(selected.id, {
-                            treatmentNote: closeNote,
-                          })
-                          setInfo(
-                            t('toast.closedName', {
-                              ns: 'common',
-                              name: closed.name || selected.name,
-                            }),
-                          )
-                          setSelected(closed)
-                        })
-                      }
-                    >
-                      {t('grrc.closeRisk', { defaultValue: 'Close risk' })}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    disabled={!!busy}
-                    onClick={() => {
-                      if (!confirmDelete(selected.name)) return
-                      run(async () => {
-                        await grrcApi.risks.delete(selected.id)
-                        setSelected(null)
-                        setInfo(
-                          t('grrc.deleted', {
-                            defaultValue: 'Deleted {{name}}',
-                            name: selected.name,
-                          }),
-                        )
-                      })
-                    }}
-                  >
-                    {t('actions.delete', { ns: 'common', defaultValue: 'Delete' })}
-                  </button>
-                </div>
+                <ShieldAlert size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
+                {t('grrc.title', { defaultValue: 'Governance' })}
               </>
-            )}
-            {selected && editing && (
-              <form
-                className="form-grid"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  run(async () => {
-                    const updated = await grrcApi.risks.update(selected.id, editForm)
-                    setSelected(updated)
-                    setEditing(false)
-                    setInfo(
-                      t('toast.namedStatus', {
-                        ns: 'common',
-                        what: t('grrc.riskLabel', { defaultValue: 'Risk' }),
-                        name: updated.name,
-                        status: updated.status,
-                      }),
-                    )
+            }
+            subtitle={t('grrc.subtitle', {
+              defaultValue:
+                'Risk, Resilience, and Compliance supporting Accountability, Transparency, Fairness, and Independence. Basics register. Silver pack / Iron eval.',
+            })}
+            tabs={tabs}
+            activeTab={tab}
+            onTabChange={requestTabChange}
+            newLabel={newLabel}
+            newExpanded={newExpanded}
+            onToggleNew={requestToggleNew}
+            newPanel={newPanel}
+            list={list}
+            hasSelection={hasSelection}
+            emptyTitle={
+              tab === 'risks'
+                ? t('grrc.selectRisk', { defaultValue: 'Select a risk from the list.' })
+                : t('grrc.selectCompliance', {
+                    defaultValue: 'Select a compliance item from the list.',
                   })
-                }}
-              >
-                {riskFields(editForm, setEditForm)}
-                <div className="toolbar">
-                  <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                    {t('actions.save', { ns: 'common', defaultValue: 'Save' })}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => setEditing(false)}
-                    disabled={!!busy}
-                  >
-                    {t('actions.cancel', { ns: 'common', defaultValue: 'Cancel' })}
-                  </button>
-                </div>
-              </form>
-            )}
-          </section>
-        </div>
-      )}
+            }
+            emptyBody={t('desk.emptyBody', {
+              ns: 'common',
+              defaultValue: 'Choose a row from the list to see details.',
+            })}
+            detail={detail}
+            helpContext={helpContext}
+            narrowSheetOpen={narrow && hasSelection}
+            onCloseSheet={() => setSelectedId(null)}
+          />
 
-      {!silverGate && tab === 'compliance' && (
-        <div className="two-col finance-tx-grid">
-          <div>
-            <section className="card">
-              <h2 className="section-label" style={{ marginTop: 0 }}>
-                {t('grrc.newCompliance', { defaultValue: 'New compliance item' })}
-              </h2>
-              <form
-                className="form-grid"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  run(async () => {
-                    const created = await grrcApi.compliance.create({
-                      ...compForm,
-                      effectiveFrom: compForm.effectiveFrom || null,
-                    })
-                    setInfo(
-                      t('toast.namedCreated', {
-                        ns: 'common',
-                        what: t('grrc.complianceLabel', { defaultValue: 'Compliance item' }),
-                        name: created.name,
-                      }),
-                    )
-                    setCompForm(emptyCompliance())
-                    setSelected(created)
-                  })
-                }}
-              >
-                {complianceFields(compForm, setCompForm)}
-                <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                  <Plus size={16} />{' '}
-                  {t('grrc.createCompliance', { defaultValue: 'Create compliance item' })}
-                </button>
-              </form>
-            </section>
-            <section className="card">
-              <h2 className="section-label" style={{ marginTop: 0 }}>
-                {t('grrc.complianceList', { defaultValue: 'Compliance' })} ({total})
-              </h2>
-              {listTable(
-                [
-                  {
-                    key: 'name',
-                    label: t('grrc.colName', { defaultValue: 'Name' }),
-                    render: (r) => r.name || `#${r.id}`,
-                  },
-                  {
-                    key: 'status',
-                    label: t('grrc.colStatus', { defaultValue: 'Status' }),
-                    render: (r) => (
-                      <span className={statusClass(r.status)}>{r.status || '—'}</span>
-                    ),
-                  },
-                  {
-                    key: 'kind',
-                    label: t('grrc.colKind', { defaultValue: 'Kind' }),
-                    render: (r) => r.itemKind || '—',
-                  },
-                ],
-                'grrc.emptyCompliance',
-                'No compliance items yet. Register a policy or control above.',
-              )}
-            </section>
-          </div>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('grrc.complianceDetail', { defaultValue: 'Compliance detail' })}
-            </h2>
-            {!selected && (
-              <p className="muted">
-                {t('grrc.selectCompliance', {
-                  defaultValue: 'Select a compliance item from the list.',
-                })}
-              </p>
-            )}
-            {selected && !editing && (
-              <>
-                <div className="inv-detail-hero">
-                  <div>
-                    <div className="about-display" style={{ fontSize: '1.25rem' }}>
-                      {selected.name}
-                    </div>
-                    <div className="muted">
-                      <span className={statusClass(selected.status)}>{selected.status}</span>
-                      {' · '}
-                      {selected.itemKind}
-                      {selected.ownerName ? ` · ${selected.ownerName}` : ''}
-                      {selected.effectiveFrom ? ` · ${toDateInput(selected.effectiveFrom)}` : ''}
-                    </div>
-                  </div>
-                </div>
-                {selected.description && <p>{selected.description}</p>}
-                <div className="toolbar">
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={!!busy}
-                    onClick={() => {
-                      setEditForm({
-                        name: selected.name || '',
-                        description: selected.description || '',
-                        itemKind: selected.itemKind || 'POLICY',
-                        status: selected.status || 'DRAFT',
-                        ownerName: selected.ownerName || '',
-                        effectiveFrom: toDateInput(selected.effectiveFrom),
-                      })
-                      setEditing(true)
-                    }}
-                  >
-                    {t('actions.edit', { ns: 'common', defaultValue: 'Edit' })}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    disabled={!!busy}
-                    onClick={() => {
-                      if (!confirmDelete(selected.name)) return
-                      run(async () => {
-                        await grrcApi.compliance.delete(selected.id)
-                        setSelected(null)
-                        setInfo(
-                          t('grrc.deleted', {
-                            defaultValue: 'Deleted {{name}}',
-                            name: selected.name,
-                          }),
-                        )
-                      })
-                    }}
-                  >
-                    {t('actions.delete', { ns: 'common', defaultValue: 'Delete' })}
-                  </button>
-                </div>
-              </>
-            )}
-            {selected && editing && (
-              <form
-                className="form-grid"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  run(async () => {
-                    const updated = await grrcApi.compliance.update(selected.id, {
-                      ...editForm,
-                      effectiveFrom: editForm.effectiveFrom || null,
-                    })
-                    setSelected(updated)
-                    setEditing(false)
-                    setInfo(
-                      t('toast.namedStatus', {
-                        ns: 'common',
-                        what: t('grrc.complianceLabel', { defaultValue: 'Compliance item' }),
-                        name: updated.name,
-                        status: updated.status,
-                      }),
-                    )
-                  })
-                }}
-              >
-                {complianceFields(editForm, setEditForm)}
-                <div className="toolbar">
-                  <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                    {t('actions.save', { ns: 'common', defaultValue: 'Save' })}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => setEditing(false)}
-                    disabled={!!busy}
-                  >
-                    {t('actions.cancel', { ns: 'common', defaultValue: 'Cancel' })}
-                  </button>
-                </div>
-              </form>
-            )}
-          </section>
-        </div>
+          <DeskNewFab label={newLabel} onClick={() => !newExpanded && requestToggleNew()} />
+
+          <ConfirmDialog
+            open={discardOpen}
+            title={t('desk.discardCreateTitle', {
+              ns: 'common',
+              defaultValue: 'Discard create form?',
+            })}
+            body={t('desk.discardCreateBody', {
+              ns: 'common',
+              defaultValue: 'You have unsaved changes in the create form. Discard them?',
+            })}
+            confirmLabel={t('desk.discard', { ns: 'common', defaultValue: 'Discard' })}
+            tone="danger"
+            onConfirm={confirmDiscard}
+            onCancel={cancelDiscard}
+          />
+        </>
       )}
     </div>
   )

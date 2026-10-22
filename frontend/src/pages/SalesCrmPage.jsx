@@ -13,13 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ContactRound, Plus, RefreshCw, Ban, Check } from 'lucide-react'
 import { salesApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrencySelect from '../components/CurrencySelect'
+import DeskShell from '../components/desk/DeskShell'
+import DeskNewFab from '../components/DeskNewFab'
+import ConfirmDialog from '../components/ConfirmDialog'
+import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import useDeskMemory from '../hooks/useDeskMemory'
+import useDeskKeyboard from '../hooks/useDeskKeyboard'
+import useNarrowViewport from '../hooks/useNarrowViewport'
 
 const STAGES = ['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST']
 const OPEN = new Set(['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'])
@@ -78,9 +85,48 @@ function oppBody(src) {
   return body
 }
 
-/** SalesAdvanced light CRM desk (OI-S08) — opportunities, stages, activities. */
+/**
+ * SalesAdvanced light CRM desk (OI-S08) — DeskShell master–detail (ADR-047).
+ */
 export default function SalesCrmPage() {
   const { t } = useTranslation(['desks', 'common', 'sales'])
+  const narrow = useNarrowViewport()
+
+  const [tab] = useState('opportunities')
+  const [selectedId, setSelectedId] = useState(() => {
+    if (typeof window === 'undefined') return null
+    return new URLSearchParams(window.location.search).get('id') || null
+  })
+  const [newExpanded, setNewExpanded] = useState(false)
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const [pendingNav, setPendingNav] = useState(null)
+  const [companyId] = useState('default')
+
+  const { saveMemory } = useDeskMemory({ deskKey: 'sales-crm', companyId })
+
+  useDeskSelection({
+    deskKey: 'sales-crm',
+    defaultTab: 'opportunities',
+    tab,
+    setTab: () => {},
+    selectedId,
+    setSelectedId,
+  })
+
+  useEffect(() => {
+    saveMemory({ tab })
+  }, [tab, saveMemory])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('new') === '1') {
+      setNewExpanded(true)
+      params.delete('new')
+      const qs = params.toString()
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
+    }
+  }, [])
+
   const [openOnly, setOpenOnly] = useState(true)
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
@@ -116,24 +162,104 @@ export default function SalesCrmPage() {
     load()
   }, [load])
 
-  const selectOpp = async (id) => {
-    setBusy('select')
-    setError(null)
-    try {
-      const full = await salesApi.crm.getOpportunity(id)
-      setSelected(full)
-      setStageDraft(full.stage || 'LEAD')
-      setActivities(full.activities || [])
+  const selectOpp = useCallback(
+    async (id) => {
+      if (!id) {
+        setSelected(null)
+        setActivities([])
+        return
+      }
+      setBusy('select')
+      setError(null)
       try {
-        const acts = await salesApi.crm.listActivities(id)
-        setActivities(acts?.items || full.activities || [])
-      } catch { /* keep embedded */ }
-    } catch (e) {
-      setError(friendlyErr(e, t))
-    } finally {
-      setBusy(null)
+        const full = await salesApi.crm.getOpportunity(id)
+        setSelected(full)
+        setStageDraft(full.stage || 'LEAD')
+        setActivities(full.activities || [])
+        try {
+          const acts = await salesApi.crm.listActivities(id)
+          setActivities(acts?.items || full.activities || [])
+        } catch {
+          /* keep embedded */
+        }
+      } catch (e) {
+        setError(friendlyErr(e, t))
+      } finally {
+        setBusy(null)
+      }
+    },
+    [t],
+  )
+
+  useEffect(() => {
+    selectOpp(selectedId)
+  }, [selectedId, selectOpp])
+
+  useEffect(() => {
+    if (!selectedId) return
+    const id = window.requestAnimationFrame(() => {
+      scrollSelectedIntoView('.desk-shell-list')
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [selectedId, selected?.id])
+
+  const resetCreateForms = useCallback(() => {
+    setForm(emptyOpp())
+  }, [])
+
+  const createDirty = useMemo(() => {
+    const d = emptyOpp()
+    return Boolean(
+      (form.name || '').trim() ||
+        form.stage !== d.stage ||
+        form.customerId ||
+        (form.contactName || '').trim() ||
+        (form.contactEmail || '').trim() ||
+        form.expectedAmountEur !== '' ||
+        form.currencyCode !== d.currencyCode ||
+        form.expectedCloseDate ||
+        (form.ownerName || '').trim() ||
+        form.source ||
+        (form.description || '').trim(),
+    )
+  }, [form])
+
+  const applyCollapseCreate = useCallback(() => {
+    setNewExpanded(false)
+    resetCreateForms()
+  }, [resetCreateForms])
+
+  const requestToggleNew = useCallback(() => {
+    if (newExpanded && createDirty) {
+      setPendingNav({ type: 'collapse' })
+      setDiscardOpen(true)
+      return
     }
-  }
+    if (newExpanded) applyCollapseCreate()
+    else setNewExpanded(true)
+  }, [newExpanded, createDirty, applyCollapseCreate])
+
+  const keyboardIds = useMemo(() => items.map((i) => i.id), [items])
+
+  useDeskKeyboard({
+    enabled: !newExpanded,
+    itemIds: keyboardIds,
+    selectedId,
+    setSelectedId,
+    onToggleNew: requestToggleNew,
+  })
+
+  const confirmDiscard = useCallback(() => {
+    setDiscardOpen(false)
+    setPendingNav(null)
+    applyCollapseCreate()
+    void pendingNav
+  }, [pendingNav, applyCollapseCreate])
+
+  const cancelDiscard = useCallback(() => {
+    setDiscardOpen(false)
+    setPendingNav(null)
+  }, [])
 
   const onCreate = async (e) => {
     e.preventDefault()
@@ -144,9 +270,10 @@ export default function SalesCrmPage() {
     try {
       const opp = await salesApi.crm.createOpportunity(oppBody(form))
       setInfo(t('crm.created', { defaultValue: 'Opportunity “{{name}}” created.', name: opp.name }))
-      setForm(emptyOpp())
+      resetCreateForms()
+      setNewExpanded(false)
       await load()
-      await selectOpp(opp.id)
+      setSelectedId(String(opp.id))
     } catch (err) {
       setError(friendlyErr(err, t))
     } finally {
@@ -174,9 +301,11 @@ export default function SalesCrmPage() {
   const onConvert = async () => {
     if (!selected?.id) return
     if (!selected.customerId) {
-      setError(t('crm.convertNeedsCustomer', {
-        defaultValue: 'Link a customer before converting to a quote.',
-      }))
+      setError(
+        t('crm.convertNeedsCustomer', {
+          defaultValue: 'Link a customer before converting to a quote.',
+        }),
+      )
       return
     }
     setBusy('convert')
@@ -185,9 +314,17 @@ export default function SalesCrmPage() {
     try {
       const result = await salesApi.crm.convert(selected.id, {})
       const qLabel = result?.quote?.quoteNumber || result?.quote?.id || '—'
-      setInfo(result?.alreadyConverted
-        ? t('crm.alreadyConverted', { defaultValue: 'Already converted — quote {{quote}}.', quote: qLabel })
-        : t('crm.converted', { defaultValue: 'Converted to draft quote {{quote}}.', quote: qLabel }))
+      setInfo(
+        result?.alreadyConverted
+          ? t('crm.alreadyConverted', {
+              defaultValue: 'Already converted — quote {{quote}}.',
+              quote: qLabel,
+            })
+          : t('crm.converted', {
+              defaultValue: 'Converted to draft quote {{quote}}.',
+              quote: qLabel,
+            }),
+      )
       await load()
       await selectOpp(selected.id)
     } catch (err) {
@@ -220,269 +357,455 @@ export default function SalesCrmPage() {
   }
 
   const isTerminal = selected?.stage === 'WON' || selected?.stage === 'LOST'
+  const hasSelection = Boolean(selected?.id)
+
+  const helpContext = useMemo(() => {
+    const base = { desk: 'sales-crm', tab: 'opportunities' }
+    if (selected) {
+      return {
+        ...base,
+        resource: 'Opportunity',
+        objectId: selected.id,
+        status: selected.stage,
+      }
+    }
+    return base
+  }, [selected])
+
+  const newPanel = (
+    <form className="form-grid" onSubmit={onCreate}>
+      <label>
+        {t('crm.fieldName', { defaultValue: 'Name' })} *
+        <input
+          required
+          value={form.name}
+          disabled={!!busy}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <div className="form-row-2">
+        <label>
+          {t('crm.fieldStage', { defaultValue: 'Stage' })}
+          <select
+            value={form.stage}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, stage: e.target.value }))}
+          >
+            {STAGES.filter((s) => s !== 'WON' && s !== 'LOST').map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t('crm.fieldSource', { defaultValue: 'Source' })}
+          <select
+            value={form.source}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
+          >
+            <option value="">—</option>
+            {SOURCES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <label>
+        {t('crm.fieldCustomer', { defaultValue: 'Customer' })}
+        <CustomerSelect
+          id="crm-new-customer"
+          value={form.customerId}
+          disabled={!!busy}
+          onChange={(id) => setForm((f) => ({ ...f, customerId: id || '' }))}
+        />
+      </label>
+      <div className="form-row-2">
+        <label>
+          {t('crm.fieldContactName', { defaultValue: 'Contact name' })}
+          <input
+            value={form.contactName}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
+          />
+        </label>
+        <label>
+          {t('crm.fieldContactEmail', { defaultValue: 'Contact email' })}
+          <input
+            type="email"
+            value={form.contactEmail}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
+          />
+        </label>
+      </div>
+      <div className="form-row-2">
+        <label>
+          {t('crm.fieldAmount', { defaultValue: 'Expected amount' })}
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={form.expectedAmountEur}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, expectedAmountEur: e.target.value }))}
+          />
+        </label>
+        <label>
+          {t('crm.fieldCurrency', { defaultValue: 'Currency' })}
+          <CurrencySelect
+            id="crm-new-ccy"
+            value={form.currencyCode}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, currencyCode: e.target.value }))}
+          />
+        </label>
+      </div>
+      <div className="form-row-2">
+        <label>
+          {t('crm.fieldCloseDate', { defaultValue: 'Expected close' })}
+          <input
+            type="date"
+            value={form.expectedCloseDate}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, expectedCloseDate: e.target.value }))}
+          />
+        </label>
+        <label>
+          {t('crm.fieldOwner', { defaultValue: 'Owner' })}
+          <input
+            value={form.ownerName}
+            disabled={!!busy}
+            onChange={(e) => setForm((f) => ({ ...f, ownerName: e.target.value }))}
+          />
+        </label>
+      </div>
+      <label>
+        {t('crm.fieldDescription', { defaultValue: 'Description' })}
+        <textarea
+          rows={2}
+          value={form.description}
+          disabled={!!busy}
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+        />
+      </label>
+      <button type="submit" className="btn btn-primary" disabled={!!busy}>
+        <Plus size={16} /> {t('crm.create', { defaultValue: 'Create opportunity' })}
+      </button>
+    </form>
+  )
+
+  const toolbar = (
+    <>
+      <button
+        type="button"
+        className={`btn ${openOnly ? 'btn-primary' : 'btn-ghost'} filter-select`}
+        onClick={() => setOpenOnly(true)}
+        disabled={!!busy}
+      >
+        {t('crm.filterOpen', { defaultValue: 'Open' })}
+      </button>
+      <button
+        type="button"
+        className={`btn ${!openOnly ? 'btn-primary' : 'btn-ghost'}`}
+        onClick={() => setOpenOnly(false)}
+        disabled={!!busy}
+      >
+        {t('crm.filterAll', { defaultValue: 'All' })}
+      </button>
+    </>
+  )
+
+  const list = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {openOnly
+          ? t('crm.openOpps', { defaultValue: 'Open opportunities' })
+          : t('crm.allOpps', { defaultValue: 'All opportunities' })}
+        {!loading && (
+          <span className="muted" style={{ fontWeight: 400, marginLeft: 8 }}>
+            ({total})
+          </span>
+        )}
+      </h2>
+      {loading ? (
+        <p className="muted">{t('crm.loading', { defaultValue: 'Loading…' })}</p>
+      ) : items.length === 0 ? (
+        <p className="muted">
+          {openOnly
+            ? t('crm.empty', {
+                defaultValue: 'No open opportunities. Create one with New.',
+              })
+            : t('crm.emptyAll', {
+                defaultValue: 'No opportunities yet. Create one with New.',
+              })}
+        </p>
+      ) : (
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>{t('crm.colName', { defaultValue: 'Name' })}</th>
+                <th>{t('crm.colStage', { defaultValue: 'Stage' })}</th>
+                <th>{t('crm.colCustomer', { defaultValue: 'Customer' })}</th>
+                <th>{t('crm.colAmount', { defaultValue: 'Amount' })}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((row) => (
+                <tr
+                  key={row.id}
+                  data-selected={selected?.id === row.id ? 'true' : undefined}
+                  className={selected?.id === row.id ? 'row-selected' : 'row-click'}
+                  onClick={() => setSelectedId(String(row.id))}
+                >
+                  <td>{row.name || `#${row.id}`}</td>
+                  <td>
+                    <span className={stageBadge(row.stage)}>{row.stage || '—'}</span>
+                  </td>
+                  <td>{row.customerName || row.contactName || row.customerId || '—'}</td>
+                  <td>
+                    {row.expectedAmountEur != null
+                      ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+
+  let detail = null
+  if (selected) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        <div className="inv-detail-hero">
+          <div>
+            <div className="about-display" style={{ fontSize: '1.25rem' }}>
+              {selected.name}
+            </div>
+            <div className="muted">
+              <span className={stageBadge(selected.stage)}>{selected.stage}</span>
+              {selected.contactName ? ` · ${selected.contactName}` : ''}
+              {selected.contactEmail ? ` · ${selected.contactEmail}` : ''}
+              {selected.ownerName ? ` · ${selected.ownerName}` : ''}
+              {selected.expectedCloseDate
+                ? ` · ${t('crm.closes', { defaultValue: 'closes' })} ${toDateInput(selected.expectedCloseDate)}`
+                : ''}
+              {selected.resultingQuoteId
+                ? ` · ${t('crm.quoteId', { defaultValue: 'quote' })} #${selected.resultingQuoteId}`
+                : ''}
+            </div>
+          </div>
+        </div>
+        {selected.description && <p>{selected.description}</p>}
+
+        {!isTerminal && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'wrap',
+              alignItems: 'end',
+              marginBottom: '1rem',
+            }}
+          >
+            <label style={{ margin: 0 }}>
+              {t('crm.fieldStage', { defaultValue: 'Stage' })}
+              <select
+                value={stageDraft}
+                disabled={!!busy}
+                onChange={(e) => setStageDraft(e.target.value)}
+              >
+                {STAGES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="btn"
+              disabled={!!busy}
+              onClick={() =>
+                runAction(
+                  'stage',
+                  () => salesApi.crm.updateOpportunity(selected.id, { stage: stageDraft }),
+                  t('crm.stageUpdated', { defaultValue: 'Stage updated.' }),
+                )
+              }
+            >
+              {t('crm.updateStage', { defaultValue: 'Update stage' })}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={!!busy}
+              onClick={() =>
+                runAction(
+                  'lost',
+                  () => salesApi.crm.markLost(selected.id, {}),
+                  t('crm.markedLost', { defaultValue: 'Opportunity marked lost.' }),
+                )
+              }
+            >
+              <Ban size={16} /> {t('crm.markLost', { defaultValue: 'Mark lost' })}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onConvert}
+              disabled={!!busy}
+            >
+              <Check size={16} />{' '}
+              {t('crm.convert', { defaultValue: 'Convert to customer / quote' })}
+            </button>
+          </div>
+        )}
+
+        <h3 className="section-label">{t('crm.activities', { defaultValue: 'Activities' })}</h3>
+        {activities.length === 0 ? (
+          <p className="muted">
+            {t('crm.activitiesEmpty', { defaultValue: 'No activities yet. Add a note below.' })}
+          </p>
+        ) : (
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>{t('crm.colKind', { defaultValue: 'Kind' })}</th>
+                  <th>{t('crm.colDescription', { defaultValue: 'Description' })}</th>
+                  <th>{t('crm.colDue', { defaultValue: 'Due' })}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.kind || '—'}</td>
+                    <td>{a.description || a.name || '—'}</td>
+                    <td>{a.dueDate ? toDateInput(a.dueDate) : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!isTerminal && (
+          <form className="form-grid" style={{ marginTop: '0.75rem' }} onSubmit={onAddActivity}>
+            <div className="form-row-2">
+              <label>
+                {t('crm.fieldActKind', { defaultValue: 'Kind' })}
+                <select
+                  value={actForm.kind}
+                  disabled={!!busy}
+                  onChange={(e) => setActForm((f) => ({ ...f, kind: e.target.value }))}
+                >
+                  {ACT_KINDS.map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {t('crm.fieldDueDate', { defaultValue: 'Due date' })}
+                <input
+                  type="date"
+                  value={actForm.dueDate}
+                  disabled={!!busy}
+                  onChange={(e) => setActForm((f) => ({ ...f, dueDate: e.target.value }))}
+                />
+              </label>
+            </div>
+            <label>
+              {t('crm.fieldActDescription', { defaultValue: 'Note / description' })} *
+              <textarea
+                required
+                rows={2}
+                value={actForm.description}
+                disabled={!!busy}
+                onChange={(e) => setActForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </label>
+            <button type="submit" className="btn btn-primary" disabled={!!busy}>
+              <Plus size={16} /> {t('crm.addActivity', { defaultValue: 'Add activity' })}
+            </button>
+          </form>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="page">
-      <header className="page-header">
-        <h1>
-          <ContactRound size={22} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          {t('crm.title', { defaultValue: 'CRM' })}
-        </h1>
-        <p className="page-sub">
-          {t('crm.subtitle', {
-            defaultValue: 'SalesAdvanced light opportunities and activities. Silver pack / Iron eval.',
-          })}
-        </p>
-        <p><Link to="/sales">{t('crm.backSales', { defaultValue: '← Sales desk' })}</Link></p>
-      </header>
-
       {error && <div className="banner-error">{error}</div>}
       {info && <div className="banner-info">{info}</div>}
 
-      <div className="toolbar" style={{ marginBottom: '1rem', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
         <button type="button" className="btn" onClick={load} disabled={loading || !!busy}>
           <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common', defaultValue: 'Refresh' })}
         </button>
-        <button type="button" className={`btn ${openOnly ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => setOpenOnly(true)} disabled={!!busy}>
-          {t('crm.filterOpen', { defaultValue: 'Open' })}
-        </button>
-        <button type="button" className={`btn ${!openOnly ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => setOpenOnly(false)} disabled={!!busy}>
-          {t('crm.filterAll', { defaultValue: 'All' })}
-        </button>
+        <Link className="btn btn-secondary" to="/sales">
+          {t('crm.backSales', { defaultValue: '← Sales desk' })}
+        </Link>
       </div>
 
-      <div className="two-col finance-tx-grid list-first-narrow">
-        <section className="card">
-          <h2 className="section-label" style={{ marginTop: 0 }}>
-            {t('crm.newOpp', { defaultValue: 'New opportunity' })}
-          </h2>
-          <form className="form-grid" onSubmit={onCreate}>
-            <label>
-              {t('crm.fieldName', { defaultValue: 'Name' })} *
-              <input required value={form.name} disabled={!!busy}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-            </label>
-            <div className="form-row-2">
-              <label>
-                {t('crm.fieldStage', { defaultValue: 'Stage' })}
-                <select value={form.stage} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, stage: e.target.value }))}>
-                  {STAGES.filter((s) => s !== 'WON' && s !== 'LOST').map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                {t('crm.fieldSource', { defaultValue: 'Source' })}
-                <select value={form.source} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}>
-                  <option value="">—</option>
-                  {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </label>
-            </div>
-            <label>
-              {t('crm.fieldCustomer', { defaultValue: 'Customer' })}
-              <CustomerSelect id="crm-new-customer" value={form.customerId} disabled={!!busy}
-                onChange={(id) => setForm((f) => ({ ...f, customerId: id || '' }))} />
-            </label>
-            <div className="form-row-2">
-              <label>
-                {t('crm.fieldContactName', { defaultValue: 'Contact name' })}
-                <input value={form.contactName} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))} />
-              </label>
-              <label>
-                {t('crm.fieldContactEmail', { defaultValue: 'Contact email' })}
-                <input type="email" value={form.contactEmail} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))} />
-              </label>
-            </div>
-            <div className="form-row-2">
-              <label>
-                {t('crm.fieldAmount', { defaultValue: 'Expected amount' })}
-                <input type="number" step="0.01" min="0" value={form.expectedAmountEur} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, expectedAmountEur: e.target.value }))} />
-              </label>
-              <label>
-                {t('crm.fieldCurrency', { defaultValue: 'Currency' })}
-                <CurrencySelect id="crm-new-ccy" value={form.currencyCode} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, currencyCode: e.target.value }))} />
-              </label>
-            </div>
-            <div className="form-row-2">
-              <label>
-                {t('crm.fieldCloseDate', { defaultValue: 'Expected close' })}
-                <input type="date" value={form.expectedCloseDate} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, expectedCloseDate: e.target.value }))} />
-              </label>
-              <label>
-                {t('crm.fieldOwner', { defaultValue: 'Owner' })}
-                <input value={form.ownerName} disabled={!!busy}
-                  onChange={(e) => setForm((f) => ({ ...f, ownerName: e.target.value }))} />
-              </label>
-            </div>
-            <label>
-              {t('crm.fieldDescription', { defaultValue: 'Description' })}
-              <textarea rows={2} value={form.description} disabled={!!busy}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-            </label>
-            <button type="submit" className="btn btn-primary" disabled={!!busy}>
-              <Plus size={16} /> {t('crm.create', { defaultValue: 'Create opportunity' })}
-            </button>
-          </form>
-        </section>
+      <DeskShell
+        title={
+          <>
+            <ContactRound size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
+            {t('crm.title', { defaultValue: 'CRM' })}
+          </>
+        }
+        subtitle={t('crm.subtitle', {
+          defaultValue: 'SalesAdvanced light opportunities and activities. Silver pack / Iron eval.',
+        })}
+        newLabel={t('crm.newOpp', { defaultValue: 'New opportunity' })}
+        newExpanded={newExpanded}
+        onToggleNew={requestToggleNew}
+        newPanel={newPanel}
+        toolbar={toolbar}
+        list={list}
+        hasSelection={hasSelection}
+        emptyTitle={t('wb.selectItem', { ns: 'common', defaultValue: 'Select an item' })}
+        emptyBody={t('desk.emptyBody', {
+          ns: 'common',
+          defaultValue: 'Choose a row from the list to see details.',
+        })}
+        detail={detail}
+        helpContext={helpContext}
+        narrowSheetOpen={narrow && hasSelection}
+        onCloseSheet={() => setSelectedId(null)}
+      />
 
-        <section className="card">
-          <h2 className="section-label" style={{ marginTop: 0 }}>
-            {openOnly
-              ? t('crm.openOpps', { defaultValue: 'Open opportunities' })
-              : t('crm.allOpps', { defaultValue: 'All opportunities' })}
-            {!loading && <span className="muted" style={{ fontWeight: 400, marginLeft: 8 }}>({total})</span>}
-          </h2>
-          {loading ? (
-            <p className="muted">{t('crm.loading', { defaultValue: 'Loading…' })}</p>
-          ) : items.length === 0 ? (
-            <p className="muted">
-              {openOnly
-                ? t('crm.empty', { defaultValue: 'No open opportunities. Create one with the form on the left.' })
-                : t('crm.emptyAll', { defaultValue: 'No opportunities yet. Create one with the form on the left.' })}
-            </p>
-          ) : (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t('crm.colName', { defaultValue: 'Name' })}</th>
-                    <th>{t('crm.colStage', { defaultValue: 'Stage' })}</th>
-                    <th>{t('crm.colCustomer', { defaultValue: 'Customer' })}</th>
-                    <th>{t('crm.colAmount', { defaultValue: 'Amount' })}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((row) => (
-                    <tr key={row.id}
-                      className={selected?.id === row.id ? 'row-selected' : 'row-click'}
-                      onClick={() => selectOpp(row.id)}>
-                      <td>{row.name || `#${row.id}`}</td>
-                      <td><span className={stageBadge(row.stage)}>{row.stage || '—'}</span></td>
-                      <td>{row.customerName || row.contactName || row.customerId || '—'}</td>
-                      <td>{row.expectedAmountEur != null
-                        ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
-                        : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </div>
+      <DeskNewFab
+        label={t('crm.newOpp', { defaultValue: 'New opportunity' })}
+        onClick={() => !newExpanded && requestToggleNew()}
+      />
 
-      {selected && (
-        <section className="card" style={{ marginTop: '1rem' }}>
-          <h2 className="section-label" style={{ marginTop: 0 }}>
-            {t('crm.detail', { defaultValue: 'Selected opportunity' })} — {selected.name}
-          </h2>
-          <p className="muted" style={{ marginTop: 0 }}>
-            <span className={stageBadge(selected.stage)}>{selected.stage}</span>
-            {selected.contactName ? ` · ${selected.contactName}` : ''}
-            {selected.contactEmail ? ` · ${selected.contactEmail}` : ''}
-            {selected.ownerName ? ` · ${selected.ownerName}` : ''}
-            {selected.expectedCloseDate
-              ? ` · ${t('crm.closes', { defaultValue: 'closes' })} ${toDateInput(selected.expectedCloseDate)}`
-              : ''}
-            {selected.resultingQuoteId
-              ? ` · ${t('crm.quoteId', { defaultValue: 'quote' })} #${selected.resultingQuoteId}`
-              : ''}
-          </p>
-          {selected.description && <p>{selected.description}</p>}
-
-          {!isTerminal && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'end', marginBottom: '1rem' }}>
-              <label style={{ margin: 0 }}>
-                {t('crm.fieldStage', { defaultValue: 'Stage' })}
-                <select value={stageDraft} disabled={!!busy}
-                  onChange={(e) => setStageDraft(e.target.value)}>
-                  {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </label>
-              <button type="button" className="btn" disabled={!!busy}
-                onClick={() => runAction('stage',
-                  () => salesApi.crm.updateOpportunity(selected.id, { stage: stageDraft }),
-                  t('crm.stageUpdated', { defaultValue: 'Stage updated.' }))}>
-                {t('crm.updateStage', { defaultValue: 'Update stage' })}
-              </button>
-              <button type="button" className="btn" disabled={!!busy}
-                onClick={() => runAction('lost',
-                  () => salesApi.crm.markLost(selected.id, {}),
-                  t('crm.markedLost', { defaultValue: 'Opportunity marked lost.' }))}>
-                <Ban size={16} /> {t('crm.markLost', { defaultValue: 'Mark lost' })}
-              </button>
-              <button type="button" className="btn btn-primary" onClick={onConvert} disabled={!!busy}>
-                <Check size={16} /> {t('crm.convert', { defaultValue: 'Convert to customer / quote' })}
-              </button>
-            </div>
-          )}
-
-          <h3 className="section-label">{t('crm.activities', { defaultValue: 'Activities' })}</h3>
-          {activities.length === 0 ? (
-            <p className="muted">
-              {t('crm.activitiesEmpty', { defaultValue: 'No activities yet. Add a note below.' })}
-            </p>
-          ) : (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t('crm.colKind', { defaultValue: 'Kind' })}</th>
-                    <th>{t('crm.colDescription', { defaultValue: 'Description' })}</th>
-                    <th>{t('crm.colDue', { defaultValue: 'Due' })}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activities.map((a) => (
-                    <tr key={a.id}>
-                      <td>{a.kind || '—'}</td>
-                      <td>{a.description || a.name || '—'}</td>
-                      <td>{a.dueDate ? toDateInput(a.dueDate) : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {!isTerminal && (
-            <form className="form-grid" style={{ marginTop: '0.75rem' }} onSubmit={onAddActivity}>
-              <div className="form-row-2">
-                <label>
-                  {t('crm.fieldActKind', { defaultValue: 'Kind' })}
-                  <select value={actForm.kind} disabled={!!busy}
-                    onChange={(e) => setActForm((f) => ({ ...f, kind: e.target.value }))}>
-                    {ACT_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
-                  </select>
-                </label>
-                <label>
-                  {t('crm.fieldDueDate', { defaultValue: 'Due date' })}
-                  <input type="date" value={actForm.dueDate} disabled={!!busy}
-                    onChange={(e) => setActForm((f) => ({ ...f, dueDate: e.target.value }))} />
-                </label>
-              </div>
-              <label>
-                {t('crm.fieldActDescription', { defaultValue: 'Note / description' })} *
-                <textarea required rows={2} value={actForm.description} disabled={!!busy}
-                  onChange={(e) => setActForm((f) => ({ ...f, description: e.target.value }))} />
-              </label>
-              <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                <Plus size={16} /> {t('crm.addActivity', { defaultValue: 'Add activity' })}
-              </button>
-            </form>
-          )}
-        </section>
-      )}
+      <ConfirmDialog
+        open={discardOpen}
+        title={t('desk.discardCreateTitle', {
+          ns: 'common',
+          defaultValue: 'Discard create form?',
+        })}
+        body={t('desk.discardCreateBody', {
+          ns: 'common',
+          defaultValue: 'You have unsaved changes in the create form. Discard them?',
+        })}
+        confirmLabel={t('desk.discard', { ns: 'common', defaultValue: 'Discard' })}
+        tone="danger"
+        onConfirm={confirmDiscard}
+        onCancel={cancelDiscard}
+      />
     </div>
   )
 }
