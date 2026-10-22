@@ -208,7 +208,11 @@
     "new": "Neu",
     "emptyTitle": "Eintrag wählen",
     "emptyBody": "Wählen Sie eine Zeile in der Liste, um Details zu sehen.",
-    "closeSheet": "Detail schließen"
+    "closeSheet": "Detail schließen",
+    "discardCreateTitle": "Erfassungsformular verwerfen?",
+    "discardCreateBody": "Es gibt ungespeicherte Änderungen im Erfassungsformular. Verwerfen?",
+    "discard": "Verwerfen",
+    "attachmentsNotes": "Anhänge & Notizen"
   },
   "confirm": {
     "title": "Bestätigen"

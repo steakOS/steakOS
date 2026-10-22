@@ -208,7 +208,11 @@
     "new": "Nuevo",
     "emptyTitle": "Seleccione un elemento",
     "emptyBody": "Elija una fila de la lista para ver los detalles.",
-    "closeSheet": "Cerrar detalle"
+    "closeSheet": "Cerrar detalle",
+    "discardCreateTitle": "¿Descartar el formulario de creación?",
+    "discardCreateBody": "Hay cambios sin guardar en el formulario de creación. ¿Descartarlos?",
+    "discard": "Descartar",
+    "attachmentsNotes": "Adjuntos y notas"
   },
   "confirm": {
     "title": "Confirmar"

@@ -208,7 +208,11 @@
     "new": "New",
     "emptyTitle": "Select an item",
     "emptyBody": "Choose a row from the list to see details.",
-    "closeSheet": "Close detail"
+    "closeSheet": "Close detail",
+    "discardCreateTitle": "Discard create form?",
+    "discardCreateBody": "You have unsaved changes in the create form. Discard them?",
+    "discard": "Discard",
+    "attachmentsNotes": "Attachments & notes"
   },
   "confirm": {
     "title": "Confirm"

@@ -54,6 +54,19 @@ import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
 import CustomerSelect from '../components/CustomerSelect'
+import DeskShell from '../components/desk/DeskShell'
+import ConfirmDialog from '../components/ConfirmDialog'
+import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import useDeskMemory from '../hooks/useDeskMemory'
+import useNarrowViewport from '../hooks/useNarrowViewport'
+import { activeStepIndex } from '../config/processStatusMaps'
+
+const DEFAULT_QUOTE_LINES = () => [
+  emptyDocLine({ name: 'Consulting day', quantity: '1', unitPriceEur: '500' }),
+]
+const DEFAULT_ORDER_LINES = () => [
+  emptyDocLine({ name: 'Product', quantity: '1', unitPriceEur: '100' }),
+]
 
 async function fetchContentMap(pkg, resource, rows) {
   if (!rows?.length) return {}
@@ -73,12 +86,33 @@ async function fetchContentMap(pkg, resource, rows) {
   }
 }
 
+function linesDirty(lines, defaultsFactory) {
+  const payload = linesToApiPayload(lines)
+  const defPayload = linesToApiPayload(defaultsFactory())
+  if (payload.length !== defPayload.length) return true
+  for (let i = 0; i < payload.length; i += 1) {
+    const a = payload[i]
+    const b = defPayload[i]
+    if (
+      a.name !== b.name ||
+      String(a.quantity) !== String(b.quantity) ||
+      String(a.unitPriceEur) !== String(b.unitPriceEur) ||
+      (a.catalogueItemId || null) !== (b.catalogueItemId || null)
+    ) {
+      return true
+    }
+  }
+  return false
+}
+
 /**
  * Sales commercial desk (S-S1–S-S3): Customer → Quote(+lines) → Order → Finance DRAFT invoice.
+ * DeskShell layout (ADR-047 / Nielsen WP-0, WP-2, WP-6).
  */
 export default function SalesDesk() {
   const { t } = useTranslation(['sales', 'common', 'content'])
   const { viewModal, ViewButton } = useRecordView()
+  const narrow = useNarrowViewport()
   const tabs = useMemo(
     () => [
       { id: 'customers', label: t('desk.tabs.customers'), icon: Users },
@@ -89,7 +123,56 @@ export default function SalesDesk() {
     ],
     [t],
   )
-  const [tab, setTab] = useState('quotes')
+
+  const [tab, setTab] = useState(() => {
+    if (typeof window === 'undefined') return 'quotes'
+    const urlTab = new URLSearchParams(window.location.search).get('tab')
+    if (urlTab) return urlTab
+    try {
+      const raw = window.localStorage.getItem('steakos.desk.default.sales')
+      const parsed = raw ? JSON.parse(raw) : null
+      if (parsed?.tab) return String(parsed.tab)
+    } catch {
+      /* ignore */
+    }
+    return 'quotes'
+  })
+  const [selectedId, setSelectedId] = useState(() => {
+    if (typeof window === 'undefined') return null
+    const id = new URLSearchParams(window.location.search).get('id')
+    return id || null
+  })
+  const [newExpanded, setNewExpanded] = useState(false)
+  const [companyId, setCompanyId] = useState('default')
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const [pendingNav, setPendingNav] = useState(null)
+
+  const { loadMemory, saveMemory } = useDeskMemory({ deskKey: 'sales', companyId })
+
+  useDeskSelection({
+    deskKey: 'sales',
+    defaultTab: 'quotes',
+    tab,
+    setTab,
+    selectedId,
+    setSelectedId,
+  })
+
+  useEffect(() => {
+    saveMemory({ tab })
+  }, [tab, saveMemory])
+
+  useEffect(() => {
+    if (companyId === 'default') return
+    const mem = loadMemory()
+    const urlTab = new URLSearchParams(window.location.search).get('tab')
+    if (!urlTab && mem?.tab && mem.tab !== tab) {
+      setTab(mem.tab)
+    }
+    // company-scoped restore once id is known
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId])
+
   const [customers, setCustomers] = useState([])
   const [quotes, setQuotes] = useState([])
   const [orders, setOrders] = useState([])
@@ -110,7 +193,10 @@ export default function SalesDesk() {
     meApi
       .get()
       .then((me) => {
-        if (!cancelled) setShowAdvanced(allowsSilverSurfaces(me?.templateTier))
+        if (cancelled) return
+        setShowAdvanced(allowsSilverSurfaces(me?.templateTier))
+        const cid = me?.activeCompanyId ?? me?.activeCompany?.id
+        if (cid != null && cid !== '') setCompanyId(String(cid))
       })
       .catch(() => {
         if (!cancelled) setShowAdvanced(false)
@@ -137,9 +223,7 @@ export default function SalesDesk() {
     currencyCode: 'EUR',
   })
   const [quoteWarnings, setQuoteWarnings] = useState([])
-  const [quoteLines, setQuoteLines] = useState(() => [
-    emptyDocLine({ name: 'Consulting day', quantity: '1', unitPriceEur: '500' }),
-  ])
+  const [quoteLines, setQuoteLines] = useState(DEFAULT_QUOTE_LINES)
   const [pendingQuoteContent, setPendingQuoteContent] = useState([])
   const [pendingOrderContent, setPendingOrderContent] = useState([])
   const [quoteContentMap, setQuoteContentMap] = useState({})
@@ -152,9 +236,7 @@ export default function SalesDesk() {
     currencyCode: 'EUR',
   })
   const [orderWarnings, setOrderWarnings] = useState([])
-  const [orderLines, setOrderLines] = useState(() => [
-    emptyDocLine({ name: 'Product', quantity: '1', unitPriceEur: '100' }),
-  ])
+  const [orderLines, setOrderLines] = useState(DEFAULT_ORDER_LINES)
 
   const [custPage, setCustPage] = useState({ max: 25, offset: 0, total: 0 })
   const [quotePage, setQuotePage] = useState({ max: 25, offset: 0, total: 0 })
@@ -276,19 +358,61 @@ export default function SalesDesk() {
     setOrderWarnings(Array.isArray(full?.warnings) ? full.warnings : [])
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      try {
+        if (tab === 'quotes') {
+          if (selectedId) {
+            await selectQuote(selectedId)
+          } else if (!cancelled) {
+            setSelectedQuote(null)
+            setQuoteWarnings([])
+          }
+          if (!cancelled) setSelectedOrder(null)
+        } else if (tab === 'orders') {
+          if (selectedId) {
+            await selectOrder(selectedId)
+          } else if (!cancelled) {
+            setSelectedOrder(null)
+            setOrderWarnings([])
+          }
+          if (!cancelled) setSelectedQuote(null)
+        } else if (!cancelled) {
+          setSelectedQuote(null)
+          setSelectedOrder(null)
+        }
+      } catch (e) {
+        if (!cancelled) setError(e.message || String(e))
+      }
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [tab, selectedId, selectQuote, selectOrder])
+
+  useEffect(() => {
+    if (!selectedId) return
+    const id = window.requestAnimationFrame(() => {
+      scrollSelectedIntoView('.desk-shell-list')
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [selectedId, tab, selectedQuote?.id, selectedOrder?.id])
+
   const refresh = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       await loadAll()
-      if (selectedQuote?.id) await selectQuote(selectedQuote.id)
-      if (selectedOrder?.id) await selectOrder(selectedOrder.id)
+      if (tab === 'quotes' && selectedId) await selectQuote(selectedId)
+      if (tab === 'orders' && selectedId) await selectOrder(selectedId)
     } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)
     }
-  }, [loadAll, selectQuote, selectOrder, selectedQuote?.id, selectedOrder?.id])
+  }, [loadAll, selectQuote, selectOrder, selectedId, tab])
 
   useEffect(() => {
     setLoading(true)
@@ -297,8 +421,128 @@ export default function SalesDesk() {
       .finally(() => setLoading(false))
   }, [loadAll])
 
+  const resetCreateForms = useCallback(() => {
+    setQuoteForm({ customerId: '', name: '', currencyCode: 'EUR' })
+    setQuoteLines(DEFAULT_QUOTE_LINES())
+    setPendingQuoteContent([])
+    setQuoteWarnings([])
+    setOrderForm({ customerId: '', name: '', currencyCode: 'EUR' })
+    setOrderLines(DEFAULT_ORDER_LINES())
+    setPendingOrderContent([])
+    setOrderWarnings([])
+    setCustomerForm(customerMasterSpec.empty())
+    setProductForm(productMasterSpec.empty())
+    setSvcForm(serviceMasterSpec.empty())
+  }, [])
+
+  const createDirty = useMemo(() => {
+    if (tab === 'quotes') {
+      return Boolean(
+        quoteForm.customerId ||
+          (quoteForm.name || '').trim() ||
+          quoteForm.currencyCode !== 'EUR' ||
+          pendingQuoteContent.length ||
+          linesDirty(quoteLines, DEFAULT_QUOTE_LINES),
+      )
+    }
+    if (tab === 'orders') {
+      return Boolean(
+        orderForm.customerId ||
+          (orderForm.name || '').trim() ||
+          orderForm.currencyCode !== 'EUR' ||
+          pendingOrderContent.length ||
+          linesDirty(orderLines, DEFAULT_ORDER_LINES),
+      )
+    }
+    if (tab === 'customers') {
+      const empty = customerMasterSpec.empty()
+      return Boolean((customerForm.name || '').trim() || customerForm.email || customerForm.phone)
+        || customerForm.customerKind !== empty.customerKind
+        || customerForm.currencyCode !== empty.currencyCode
+    }
+    if (tab === 'products') {
+      return Boolean((productForm.name || '').trim() || (productForm.sku || '').trim())
+    }
+    if (tab === 'services') {
+      return Boolean((svcForm.name || '').trim() || (svcForm.code || '').trim())
+    }
+    return false
+  }, [
+    tab,
+    quoteForm,
+    quoteLines,
+    pendingQuoteContent,
+    orderForm,
+    orderLines,
+    pendingOrderContent,
+    customerForm,
+    productForm,
+    svcForm,
+  ])
+
+  const quoteCanSubmit =
+    Boolean(quoteForm.customerId) && linesToApiPayload(quoteLines).length > 0
+  const orderCanSubmit =
+    Boolean(orderForm.customerId) && linesToApiPayload(orderLines).length > 0
+  const customerCanSubmit = Boolean((customerForm.name || '').trim())
+  const productCanSubmit = Boolean(
+    (productForm.name || '').trim() && (productForm.unit || '').trim(),
+  )
+  const serviceCanSubmit = Boolean((svcForm.name || '').trim() && (svcForm.unit || '').trim())
+
+  const applyCollapseCreate = useCallback(() => {
+    setNewExpanded(false)
+    resetCreateForms()
+  }, [resetCreateForms])
+
+  const requestToggleNew = useCallback(() => {
+    if (newExpanded && createDirty) {
+      setPendingNav({ type: 'collapse' })
+      setDiscardOpen(true)
+      return
+    }
+    if (newExpanded) {
+      applyCollapseCreate()
+    } else {
+      setNewExpanded(true)
+    }
+  }, [newExpanded, createDirty, applyCollapseCreate])
+
+  const requestTabChange = useCallback(
+    (nextTab) => {
+      if (nextTab === tab) return
+      if (newExpanded && createDirty) {
+        setPendingNav({ type: 'tab', tab: nextTab })
+        setDiscardOpen(true)
+        return
+      }
+      setTab(nextTab)
+      setSelectedId(null)
+      setNewExpanded(false)
+      resetCreateForms()
+    },
+    [tab, newExpanded, createDirty, resetCreateForms],
+  )
+
+  const confirmDiscard = useCallback(() => {
+    const nav = pendingNav
+    setDiscardOpen(false)
+    setPendingNav(null)
+    applyCollapseCreate()
+    if (nav?.type === 'tab' && nav.tab) {
+      setTab(nav.tab)
+      setSelectedId(null)
+    }
+  }, [pendingNav, applyCollapseCreate])
+
+  const cancelDiscard = useCallback(() => {
+    setDiscardOpen(false)
+    setPendingNav(null)
+  }, [])
+
   const onCreateProduct = async (e) => {
     e.preventDefault()
+    if (!productCanSubmit) return
     setBusy('prod')
     setError(null)
     setInfo(null)
@@ -318,6 +562,7 @@ export default function SalesDesk() {
         }),
       )
       setProductForm(productMasterSpec.empty())
+      setNewExpanded(false)
       await loadAll()
     } catch (err) {
       setError(err.message)
@@ -328,6 +573,7 @@ export default function SalesDesk() {
 
   const onCreateService = async (e) => {
     e.preventDefault()
+    if (!serviceCanSubmit) return
     setBusy('svc')
     setError(null)
     setInfo(null)
@@ -348,6 +594,7 @@ export default function SalesDesk() {
         }),
       )
       setSvcForm(serviceMasterSpec.empty())
+      setNewExpanded(false)
       await loadAll()
     } catch (err) {
       setError(err.message)
@@ -358,14 +605,23 @@ export default function SalesDesk() {
 
   const onCreateCustomer = async (e) => {
     e.preventDefault()
+    if (!customerCanSubmit) return
     setBusy('cust')
     setError(null)
     setInfo(null)
     try {
       const c = await salesApi.customers.create(customerMasterSpec.toBody(customerForm))
-      setInfo(t('toast.namedCreated', { ns: 'common', what: t('labels.customer', { ns: 'common' }), name: c.name }))
+      setInfo(
+        t('toast.namedCreated', {
+          ns: 'common',
+          what: t('labels.customer', { ns: 'common' }),
+          name: c.name,
+        }),
+      )
       setCustomerForm(customerMasterSpec.empty())
+      setNewExpanded(false)
       await loadAll()
+      setSelectedId(null)
       setTab('quotes')
     } catch (err) {
       setError(err.message)
@@ -376,6 +632,7 @@ export default function SalesDesk() {
 
   const onCreateQuote = async (e) => {
     e.preventDefault()
+    if (!quoteCanSubmit) return
     setBusy('quote')
     setError(null)
     setInfo(null)
@@ -394,7 +651,7 @@ export default function SalesDesk() {
       }
       const q = await salesApi.quotes.create(body)
       setQuoteWarnings(Array.isArray(q?.warnings) ? q.warnings : [])
-      setQuoteLines([emptyDocLine({ name: 'Consulting day', quantity: '1', unitPriceEur: '500' })])
+      setQuoteLines(DEFAULT_QUOTE_LINES())
       setQuoteForm({ customerId: '', name: '', currencyCode: 'EUR' })
       let contentNote = ''
       if (pendingQuoteContent.length) {
@@ -406,7 +663,6 @@ export default function SalesDesk() {
         )
         if (att.errors?.length) {
           contentNote = ` · content attach failed: ${att.errors[0]}`
-          // keep pending only if nothing attached
           if (att.ok > 0) setPendingQuoteContent([])
         } else {
           contentNote = att.ok > 0 ? ` · ${att.ok} content item(s) attached` : ''
@@ -417,11 +673,14 @@ export default function SalesDesk() {
         `Quote ${q.quoteNumber} · ${q.quoteStatus} · ${Number(q.amountEur).toFixed(2)} EUR${contentNote}`,
       )
       if (contentNote.includes('failed')) {
-        setError(`Quote saved, but content was not attached: ${contentNote.replace(/^ · content attach failed: /, '')}`)
+        setError(
+          `Quote saved, but content was not attached: ${contentNote.replace(/^ · content attach failed: /, '')}`,
+        )
       }
+      setNewExpanded(false)
       await loadAll()
-      await selectQuote(q.id)
       setTab('quotes')
+      setSelectedId(String(q.id))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -460,10 +719,11 @@ export default function SalesDesk() {
           (result.alreadyAccepted ? ' (already)' : ''),
       )
       await loadAll()
-      await selectQuote(selectedQuote.id)
       if (order?.id) {
-        await selectOrder(order.id)
         setTab('orders')
+        setSelectedId(String(order.id))
+      } else {
+        await selectQuote(selectedQuote.id)
       }
     } catch (err) {
       setError(err.message)
@@ -491,6 +751,7 @@ export default function SalesDesk() {
 
   const onCreateOrder = async (e) => {
     e.preventDefault()
+    if (!orderCanSubmit) return
     setBusy('order')
     setError(null)
     setInfo(null)
@@ -513,12 +774,20 @@ export default function SalesDesk() {
         await attachPendingContent('sales', 'SalesOrder', o.id, pendingOrderContent)
         setPendingOrderContent([])
       }
-      setOrderLines([emptyDocLine({ name: 'Product', quantity: '1', unitPriceEur: '100' })])
+      setOrderLines(DEFAULT_ORDER_LINES())
       setOrderForm({ customerId: '', name: '', currencyCode: 'EUR' })
-      setInfo(t('toast.namedStatus', { ns: 'common', what: t('labels.order', { ns: 'common' }), name: o.orderNumber, status: o.orderStatus }))
+      setInfo(
+        t('toast.namedStatus', {
+          ns: 'common',
+          what: t('labels.order', { ns: 'common' }),
+          name: o.orderNumber,
+          status: o.orderStatus,
+        }),
+      )
+      setNewExpanded(false)
       await loadAll()
-      await selectOrder(o.id)
       setTab('orders')
+      setSelectedId(String(o.id))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -573,41 +842,1072 @@ export default function SalesDesk() {
     return 'badge badge-draft'
   }
 
+  const newLabel = useMemo(() => {
+    if (tab === 'customers') return t('customer.new')
+    if (tab === 'quotes') return t('quote.new')
+    if (tab === 'orders') return t('order.direct')
+    if (tab === 'products') return t('product.new')
+    if (tab === 'services') return t('service.new')
+    return t('desk.new', { ns: 'common', defaultValue: 'New' })
+  }, [tab, t])
+
+  const hasSelection = useMemo(() => {
+    if (tab === 'quotes') return Boolean(selectedQuote?.id)
+    if (tab === 'orders') return Boolean(selectedOrder?.id)
+    return false
+  }, [tab, selectedQuote?.id, selectedOrder?.id])
+
+  const helpContext = useMemo(() => {
+    const base = { desk: 'sales', tab }
+    if (tab === 'quotes' && selectedQuote) {
+      return {
+        ...base,
+        resource: 'CustomerQuote',
+        objectId: selectedQuote.id,
+        status: selectedQuote.quoteStatus,
+        processCode: 'SALES_QUOTE_TO_ORDER',
+      }
+    }
+    if (tab === 'orders' && selectedOrder) {
+      return {
+        ...base,
+        resource: 'SalesOrder',
+        objectId: selectedOrder.id,
+        status: selectedOrder.orderStatus,
+        processCode: 'SALES_QUOTE_TO_ORDER',
+      }
+    }
+    return base
+  }, [tab, selectedQuote, selectedOrder])
+
+  const processStatus =
+    tab === 'quotes'
+      ? selectedQuote?.quoteStatus
+      : tab === 'orders'
+        ? selectedOrder?.orderStatus
+        : null
+  const processStep =
+    processStatus != null ? activeStepIndex('SALES_QUOTE_TO_ORDER', processStatus) : -1
+
+  const processSlot =
+    tab === 'quotes' || tab === 'orders' ? (
+      <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
+        <ProcessHowItWorks processCode="SALES_QUOTE_TO_ORDER" />
+        {processStep >= 0 && (
+          <span className="muted" style={{ fontSize: '0.85rem' }}>
+            {t('desk.processStep', {
+              ns: 'common',
+              defaultValue: 'Step {{n}}',
+              n: processStep + 1,
+            })}{' '}
+            · {processStatus}
+          </span>
+        )}
+      </div>
+    ) : null
+
+  const collapsedContentRail = (pkg, resource, id, onChanged) => (
+    <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+      <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+        {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+      </summary>
+      <ContentRail package={pkg} resource={resource} id={id} onChanged={onChanged} />
+    </details>
+  )
+
+  // —— create panels ——
+  const quoteCreatePanel = (
+    <form className="form-grid" onSubmit={onCreateQuote}>
+      <label>
+        {t('quote.customer')}
+        <CustomerSelect
+          value={quoteForm.customerId}
+          onChange={(id) => setQuoteForm((f) => ({ ...f, customerId: id || '' }))}
+          disabled={!!busy}
+        />
+      </label>
+      <label>
+        {t('quote.name')}
+        <input
+          value={quoteForm.name}
+          onChange={(e) => setQuoteForm((f) => ({ ...f, name: e.target.value }))}
+          placeholder={t('wb.autoIfEmpty', { ns: 'common' })}
+        />
+      </label>
+      <label>
+        {t('quote.currency', { defaultValue: 'Document currency' })}
+        <CurrencySelect
+          name="currencyCode"
+          value={quoteForm.currencyCode}
+          onChange={(e) =>
+            setQuoteForm((f) => ({ ...f, currencyCode: e.target.value || 'EUR' }))
+          }
+          disabled={!!busy}
+          required
+        />
+      </label>
+      {quoteWarnings?.length > 0 && (
+        <div className="banner-info" role="status">
+          {quoteWarnings.map((w) => (
+            <div key={w.code + w.message}>{w.message}</div>
+          ))}
+        </div>
+      )}
+      <DocumentLinesEditor
+        forChannel="sale"
+        lines={quoteLines}
+        onChange={setQuoteLines}
+        disabled={!!busy}
+      />
+      <PendingContentComposer
+        package="sales"
+        resource="CustomerQuote"
+        pending={pendingQuoteContent}
+        onChange={setPendingQuoteContent}
+        title={t('pending.titleQuote', { ns: 'content' })}
+        hint={t('pending.hintQuote', { ns: 'content' })}
+      />
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={!!busy || !quoteCanSubmit}
+      >
+        <Plus size={16} /> {busy === 'quote' ? '…' : t('quote.create')}
+      </button>
+    </form>
+  )
+
+  const orderCreatePanel = (
+    <form className="form-grid" onSubmit={onCreateOrder}>
+      <label>
+        {t('order.customer')}
+        <CustomerSelect
+          value={orderForm.customerId}
+          onChange={(id) => setOrderForm((f) => ({ ...f, customerId: id || '' }))}
+          disabled={!!busy}
+        />
+      </label>
+      <label>
+        {t('order.name')}
+        <input
+          value={orderForm.name}
+          onChange={(e) => setOrderForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        {t('order.currency', { defaultValue: 'Document currency' })}
+        <CurrencySelect
+          name="currencyCode"
+          value={orderForm.currencyCode}
+          onChange={(e) =>
+            setOrderForm((f) => ({ ...f, currencyCode: e.target.value || 'EUR' }))
+          }
+          disabled={!!busy}
+          required
+        />
+      </label>
+      {orderWarnings?.length > 0 && (
+        <div className="banner-info" role="status">
+          {orderWarnings.map((w) => (
+            <div key={w.code + w.message}>{w.message}</div>
+          ))}
+        </div>
+      )}
+      <DocumentLinesEditor
+        forChannel="sale"
+        lines={orderLines}
+        onChange={setOrderLines}
+        disabled={!!busy}
+      />
+      <PendingContentComposer
+        package="sales"
+        resource="SalesOrder"
+        pending={pendingOrderContent}
+        onChange={setPendingOrderContent}
+      />
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={!!busy || !orderCanSubmit}
+      >
+        <Plus size={16} /> {busy === 'order' ? '…' : t('order.create')}
+      </button>
+    </form>
+  )
+
+  const customerCreatePanel = (
+    <form className="form-grid" onSubmit={onCreateCustomer}>
+      <MasterEntityFields
+        spec={customerMasterSpec}
+        form={customerForm}
+        onChange={onMasterField(setCustomerForm)}
+        disabled={!!busy}
+        showDescription={false}
+      />
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={!!busy || !customerCanSubmit}
+      >
+        <Plus size={16} /> {busy === 'cust' ? '…' : t('customer.create')}
+      </button>
+    </form>
+  )
+
+  const productCreatePanel = (
+    <>
+      <p className="muted" style={{ fontSize: '0.85rem', marginTop: 0 }}>
+        {t('product.hint')}
+      </p>
+      <form className="form-grid" onSubmit={onCreateProduct}>
+        <MasterEntityFields
+          spec={productMasterSpec}
+          form={productForm}
+          onChange={onMasterField(setProductForm)}
+          disabled={!!busy}
+          showDescription={false}
+        />
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!!busy || !productCanSubmit}
+        >
+          <Plus size={16} /> {t('product.create')}
+        </button>
+      </form>
+    </>
+  )
+
+  const serviceCreatePanel = (
+    <>
+      <p className="muted" style={{ fontSize: '0.85rem', marginTop: 0 }}>
+        {t('service.hint')}
+      </p>
+      <form className="form-grid" onSubmit={onCreateService}>
+        <MasterEntityFields
+          spec={serviceMasterSpec}
+          form={svcForm}
+          onChange={onMasterField(setSvcForm)}
+          disabled={!!busy}
+          showDescription={false}
+        />
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!!busy || !serviceCanSubmit}
+        >
+          <Plus size={16} /> {t('service.create')}
+        </button>
+      </form>
+    </>
+  )
+
+  const newPanel =
+    tab === 'quotes'
+      ? quoteCreatePanel
+      : tab === 'orders'
+        ? orderCreatePanel
+        : tab === 'customers'
+          ? customerCreatePanel
+          : tab === 'products'
+            ? productCreatePanel
+            : tab === 'services'
+              ? serviceCreatePanel
+              : null
+
+  // —— toolbars ——
+  const quoteToolbar = (
+    <select
+      value={quoteFilter}
+      onChange={(e) => {
+        setQuoteFilter(e.target.value)
+        setQuotePage((pg) => ({ ...pg, offset: 0 }))
+      }}
+      className="filter-select"
+    >
+      <option value="">{t('quote.filterAll')}</option>
+      {['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'].map((s) => (
+        <option key={s} value={s}>
+          {t(`status.${s}`, { defaultValue: s })}
+        </option>
+      ))}
+    </select>
+  )
+
+  const orderToolbar = (
+    <select
+      value={orderFilter}
+      onChange={(e) => {
+        setOrderFilter(e.target.value)
+        setOrderPage((pg) => ({ ...pg, offset: 0 }))
+      }}
+      className="filter-select"
+    >
+      <option value="">{t('quote.filterAll')}</option>
+      {['DRAFT', 'CONFIRMED', 'CLOSED', 'CANCELLED'].map((s) => (
+        <option key={s} value={s}>
+          {t(`status.${s}`, { defaultValue: s })}
+        </option>
+      ))}
+    </select>
+  )
+
+  // —— lists ——
+  const quotesList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('quote.list')} ({quotes.length})
+      </h2>
+      {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
+      <ResponsiveDataList
+        items={quotes}
+        empty={t('quote.empty')}
+        loading={loading}
+        selectedKey={selectedQuote?.id}
+        onSelect={(q) => setSelectedId(String(q.id))}
+        fields={[
+          {
+            id: 'number',
+            primary: true,
+            render: (q) => (
+              <>
+                <span className="mono">{q.quoteNumber}</span>{' '}
+                <span className={statusClass(q.quoteStatus)}>
+                  {t(`status.${q.quoteStatus}`, { defaultValue: q.quoteStatus })}
+                </span>
+              </>
+            ),
+          },
+          {
+            id: 'customer',
+            secondary: true,
+            render: (q) => q.customerName || '—',
+          },
+          {
+            id: 'eur',
+            meta: true,
+            render: (q) =>
+              q.amountEur != null ? `${Number(q.amountEur).toFixed(2)} EUR` : '—',
+          },
+        ]}
+        actions={(q) => <ViewButton pkg="sales" resource="CustomerQuote" record={q} />}
+      >
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('quote.table.number')}</th>
+                <th>{t('quote.table.customer')}</th>
+                <th>EUR</th>
+                <th className="col-priority-low">{t('quote.table.content')}</th>
+                <th>{t('quote.table.status')}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {quotes.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="muted">
+                    {t('quote.empty')}
+                  </td>
+                </tr>
+              )}
+              {quotes.map((q) => (
+                <tr
+                  key={q.id}
+                  data-selected={selectedQuote?.id === q.id ? 'true' : undefined}
+                  className={selectedQuote?.id === q.id ? 'row-selected' : 'row-click'}
+                  onClick={() => setSelectedId(String(q.id))}
+                >
+                  <td className="mono">{q.quoteNumber}</td>
+                  <td>{q.customerName || '—'}</td>
+                  <td>{q.amountEur != null ? Number(q.amountEur).toFixed(2) : '—'}</td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={quoteContentMap[q.id]} />
+                  </td>
+                  <td>
+                    <span className={statusClass(q.quoteStatus)}>
+                      {t(`status.${q.quoteStatus}`, { defaultValue: q.quoteStatus })}
+                    </span>
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <ViewButton pkg="sales" resource="CustomerQuote" record={q} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveDataList>
+      <ListPager
+        total={quotePage.total}
+        max={quotePage.max}
+        offset={quotePage.offset}
+        disabled={loading}
+        onOffset={(o) => setQuotePage((pg) => ({ ...pg, offset: o }))}
+        onMax={(m) => setQuotePage((pg) => ({ ...pg, max: m, offset: 0 }))}
+      />
+    </>
+  )
+
+  const ordersList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('order.list')} ({orders.length})
+      </h2>
+      {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
+      <ResponsiveDataList
+        items={orders}
+        empty={t('order.empty')}
+        loading={loading}
+        selectedKey={selectedOrder?.id}
+        onSelect={(o) => setSelectedId(String(o.id))}
+        fields={[
+          {
+            id: 'number',
+            primary: true,
+            render: (o) => (
+              <>
+                <span className="mono">{o.orderNumber}</span>{' '}
+                <span className={statusClass(o.orderStatus)}>{o.orderStatus}</span>
+              </>
+            ),
+          },
+          {
+            id: 'customer',
+            secondary: true,
+            render: (o) => o.customerName || '—',
+          },
+          {
+            id: 'eur',
+            meta: true,
+            render: (o) =>
+              o.amountEur != null ? `${Number(o.amountEur).toFixed(2)} EUR` : '—',
+          },
+        ]}
+        actions={(o) => <ViewButton pkg="sales" resource="SalesOrder" record={o} />}
+      >
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('order.table.number')}</th>
+                <th>{t('order.table.customer')}</th>
+                <th>EUR</th>
+                <th>{t('order.table.status')}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="muted">
+                    {t('order.empty')}
+                  </td>
+                </tr>
+              )}
+              {orders.map((o) => (
+                <tr
+                  key={o.id}
+                  data-selected={selectedOrder?.id === o.id ? 'true' : undefined}
+                  className={selectedOrder?.id === o.id ? 'row-selected' : 'row-click'}
+                  onClick={() => setSelectedId(String(o.id))}
+                >
+                  <td className="mono">{o.orderNumber}</td>
+                  <td>{o.customerName || '—'}</td>
+                  <td>
+                    {o.amountEur != null ? Number(o.amountEur).toFixed(2).toString() : '—'}
+                  </td>
+                  <td>
+                    <span className={statusClass(o.orderStatus)}>{o.orderStatus}</span>
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <ViewButton pkg="sales" resource="SalesOrder" record={o} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveDataList>
+      <ListPager
+        total={orderPage.total}
+        max={orderPage.max}
+        offset={orderPage.offset}
+        disabled={loading}
+        onOffset={(o) => setOrderPage((pg) => ({ ...pg, offset: o }))}
+        onMax={(m) => setOrderPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+      />
+    </>
+  )
+
+  const customersList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('customer.list')} ({customers.length})
+      </h2>
+      {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
+      <ResponsiveDataList
+        items={customers}
+        empty={t('customer.empty')}
+        loading={loading}
+        fields={[
+          { id: 'name', primary: true, render: (c) => c.name },
+          { id: 'email', secondary: true, render: (c) => c.email || '—' },
+          { id: 'kind', priority: 'low', render: (c) => c.customerKind },
+          { id: 'ccy', priority: 'low', render: (c) => c.currencyCode },
+        ]}
+        actions={(c) => <ViewButton pkg="sales" resource="Customer" record={c} />}
+      >
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('customer.table.name')}</th>
+                <th className="col-priority-low">{t('customer.table.kind')}</th>
+                <th>{t('customer.table.email')}</th>
+                <th className="col-priority-low">{t('customer.table.content')}</th>
+                <th className="col-priority-low">{t('wb.ccy', { ns: 'common' })}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {customers.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="muted">
+                    {t('customer.empty')}
+                  </td>
+                </tr>
+              )}
+              {customers.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.name}</td>
+                  <td className="col-priority-low">{c.customerKind}</td>
+                  <td className="muted">{c.email || '—'}</td>
+                  <td className="col-priority-low">
+                    <ContentChannelIcons summary={customerContentMap[c.id]} />
+                  </td>
+                  <td className="mono col-priority-low">{c.currencyCode}</td>
+                  <td>
+                    <ViewButton pkg="sales" resource="Customer" record={c} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveDataList>
+      <ListPager
+        total={custPage.total}
+        max={custPage.max}
+        offset={custPage.offset}
+        disabled={loading}
+        onOffset={(o) => setCustPage((pg) => ({ ...pg, offset: o }))}
+        onMax={(m) => setCustPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+      />
+    </>
+  )
+
+  const productsList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('product.list')} ({prodPage.total || products.length})
+      </h2>
+      <ResponsiveDataList
+        items={products}
+        empty={t('product.empty')}
+        fields={[
+          { id: 'name', primary: true, render: (p) => p.name },
+          {
+            id: 'sku',
+            secondary: true,
+            render: (p) => <span className="mono">{p.code || p.sku || '—'}</span>,
+          },
+          { id: 'type', meta: true, render: (p) => p.nature || 'GOODS' },
+        ]}
+        actions={(p) => <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />}
+      >
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('wb.name', { ns: 'common' })}</th>
+                <th>{t('product.sku')}</th>
+                <th className="col-priority-low">
+                  {t('wb.type', { ns: 'common', defaultValue: 'Type' })}
+                </th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.name}</td>
+                  <td className="mono">{p.code || p.sku || '—'}</td>
+                  <td className="muted col-priority-low">{p.nature || 'GOODS'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />
+                  </td>
+                </tr>
+              ))}
+              {!products.length && (
+                <tr>
+                  <td colSpan={4} className="muted">
+                    {t('product.empty')}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveDataList>
+      <ListPager
+        total={prodPage.total}
+        max={prodPage.max}
+        offset={prodPage.offset}
+        disabled={loading}
+        onOffset={(o) => setProdPage((pg) => ({ ...pg, offset: o }))}
+        onMax={(m) => setProdPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+      />
+    </>
+  )
+
+  const servicesList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('service.list')} ({svcPage.total || services.length})
+      </h2>
+      <ResponsiveDataList
+        items={services}
+        empty={t('service.empty')}
+        fields={[
+          { id: 'name', primary: true, render: (s) => s.name },
+          {
+            id: 'eur',
+            secondary: true,
+            render: (s) =>
+              (s.listPrice ?? s.listPriceEur) != null
+                ? `${Number(s.listPrice ?? s.listPriceEur).toFixed(2)} EUR`
+                : '—',
+          },
+          {
+            id: 'unit',
+            meta: true,
+            label: t('wb.unit', { ns: 'common' }),
+            render: (s) => s.unit || '—',
+          },
+        ]}
+        actions={(s) => <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />}
+      >
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('wb.name', { ns: 'common' })}</th>
+                <th className="col-priority-low">{t('wb.unit', { ns: 'common' })}</th>
+                <th>EUR</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {services.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.name}</td>
+                  <td className="col-priority-low">{s.unit}</td>
+                  <td>
+                    {(s.listPrice ?? s.listPriceEur) != null
+                      ? Number(s.listPrice ?? s.listPriceEur).toFixed(2)
+                      : '—'}
+                  </td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />
+                  </td>
+                </tr>
+              ))}
+              {!services.length && (
+                <tr>
+                  <td colSpan={4} className="muted">
+                    {t('service.empty')}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveDataList>
+      <ListPager
+        total={svcPage.total}
+        max={svcPage.max}
+        offset={svcPage.offset}
+        disabled={loading}
+        onOffset={(o) => setSvcPage((pg) => ({ ...pg, offset: o }))}
+        onMax={(m) => setSvcPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+      />
+    </>
+  )
+
+  const list =
+    tab === 'quotes'
+      ? quotesList
+      : tab === 'orders'
+        ? ordersList
+        : tab === 'customers'
+          ? customersList
+          : tab === 'products'
+            ? productsList
+            : tab === 'services'
+              ? servicesList
+              : null
+
+  const toolbar =
+    tab === 'quotes' ? quoteToolbar : tab === 'orders' ? orderToolbar : null
+
+  // —— detail + footer ——
+  let detail = null
+  let detailFooter = null
+
+  if (tab === 'quotes' && selectedQuote) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        <div className="inv-detail-hero">
+          <div>
+            <div className="about-display" style={{ fontSize: '1.35rem' }}>
+              {selectedQuote.quoteNumber}
+            </div>
+            <div className="muted">
+              {selectedQuote.customerName || t('quote.noCustomer')} ·{' '}
+              <span className={statusClass(selectedQuote.quoteStatus)}>
+                {t(`status.${selectedQuote.quoteStatus}`, {
+                  defaultValue: selectedQuote.quoteStatus,
+                })}
+              </span>
+              {selectedQuote.currencyCode ? ` · ${selectedQuote.currencyCode}` : ''}
+            </div>
+          </div>
+          <div className="inv-amount">
+            {selectedQuote.netAmountEur != null || selectedQuote.taxAmountEur != null ? (
+              <div style={{ textAlign: 'right', fontSize: '0.85rem' }}>
+                <div className="muted">
+                  {t('quote.net', { defaultValue: 'Net' })}{' '}
+                  {Number(selectedQuote.netAmountEur ?? 0).toFixed(2)}
+                </div>
+                <div className="muted">
+                  {t('quote.vat', { defaultValue: 'VAT' })}{' '}
+                  {Number(selectedQuote.taxAmountEur ?? 0).toFixed(2)}
+                </div>
+                <div>
+                  <strong>
+                    {t('quote.gross', { defaultValue: 'Gross' })}{' '}
+                    {Number(selectedQuote.amountEur || 0).toFixed(2)}{' '}
+                    {selectedQuote.currencyCode || 'EUR'}
+                  </strong>
+                </div>
+              </div>
+            ) : (
+              <>
+                {Number(selectedQuote.amountEur || 0).toFixed(2)}{' '}
+                {selectedQuote.currencyCode || 'EUR'}
+              </>
+            )}
+            {selectedQuote.amountSats != null && (
+              <div className="muted mono" style={{ fontSize: '0.8rem' }}>
+                {selectedQuote.amountSats} sats
+              </div>
+            )}
+          </div>
+        </div>
+        {(selectedQuote.warnings || quoteWarnings)?.length > 0 && (
+          <div className="banner-info" role="status" style={{ marginBottom: 8 }}>
+            {(selectedQuote.warnings || quoteWarnings).map((w) => (
+              <div key={w.code + w.message}>{w.message}</div>
+            ))}
+          </div>
+        )}
+
+        <div className="toolbar">
+          {['DRAFT', 'SENT'].includes(selectedQuote.quoteStatus) && (
+            <button type="button" className="btn" onClick={onRejectQuote} disabled={!!busy}>
+              <X size={16} /> {t('quote.reject')}
+            </button>
+          )}
+          {selectedQuote.resultingOrderId && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                setTab('orders')
+                setSelectedId(String(selectedQuote.resultingOrderId))
+              }}
+            >
+              {t('quote.openOrder', { id: selectedQuote.resultingOrderId })}
+            </button>
+          )}
+          <a
+            className="btn"
+            href={salesApi.quotes.pdfUrl(selectedQuote.id)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <FileText size={16} /> Download quote PDF
+          </a>
+        </div>
+
+        <h3 className="section-label">{t('quote.lines')}</h3>
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('quote.lineNo')}</th>
+                <th>{t('quote.lineName')}</th>
+                <th>{t('quote.lineQty')}</th>
+                <th>{t('quote.lineUnit')}</th>
+                <th>{t('quote.lineTotal')}</th>
+                <th>{t('docLines.taxCode', { defaultValue: 'Tax code' })}</th>
+                <th>{t('quote.vat', { defaultValue: 'VAT' })}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(selectedQuote.lines || []).length === 0 && (
+                <tr>
+                  <td colSpan={7} className="muted">
+                    {t('quote.noLines')}
+                  </td>
+                </tr>
+              )}
+              {(selectedQuote.lines || []).map((l) => (
+                <tr key={l.id || l.lineNo}>
+                  <td>{l.lineNo}</td>
+                  <td>{l.name}</td>
+                  <td>{l.quantity}</td>
+                  <td>{Number(l.unitPriceEur).toFixed(2)}</td>
+                  <td>{Number(l.lineTotalEur).toFixed(2)}</td>
+                  <td className="mono col-priority-low">{l.taxCode || '—'}</td>
+                  <td>
+                    {l.taxAmountEur != null ? Number(l.taxAmountEur).toFixed(2) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {collapsedContentRail('sales', 'CustomerQuote', selectedQuote.id, async () =>
+          setQuoteContentMap(await fetchContentMap('sales', 'CustomerQuote', quotes)),
+        )}
+      </div>
+    )
+
+    if (['DRAFT', 'SENT'].includes(selectedQuote.quoteStatus)) {
+      const primaryIsSend = selectedQuote.quoteStatus === 'DRAFT'
+      detailFooter = (
+        <>
+          {primaryIsSend ? (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onSendQuote}
+              disabled={!!busy}
+            >
+              <Send size={16} /> {busy === 'send' ? '…' : t('quote.send')}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onAcceptQuote}
+              disabled={!!busy}
+            >
+              <Check size={16} /> {busy === 'accept' ? '…' : t('quote.acceptToOrder')}
+            </button>
+          )}
+          {primaryIsSend && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={onAcceptQuote}
+              disabled={!!busy}
+            >
+              <Check size={16} /> {t('quote.acceptToOrder')}
+            </button>
+          )}
+        </>
+      )
+    }
+  }
+
+  if (tab === 'orders' && selectedOrder) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        <div className="inv-detail-hero">
+          <div>
+            <div className="about-display" style={{ fontSize: '1.35rem' }}>
+              {selectedOrder.orderNumber}
+            </div>
+            <div className="muted">
+              {selectedOrder.customerName || t('quote.noCustomer')} ·{' '}
+              <span className={statusClass(selectedOrder.orderStatus)}>
+                {selectedOrder.orderStatus}
+              </span>
+              {selectedOrder.currencyCode ? ` · ${selectedOrder.currencyCode}` : ''}
+            </div>
+            {selectedOrder.sourceQuoteId && (
+              <div className="muted" style={{ fontSize: '0.85rem' }}>
+                From quote #{selectedOrder.sourceQuoteId}
+              </div>
+            )}
+          </div>
+          <div className="inv-amount">
+            {selectedOrder.netAmountEur != null || selectedOrder.taxAmountEur != null ? (
+              <div style={{ textAlign: 'right', fontSize: '0.85rem' }}>
+                <div className="muted">
+                  {t('quote.net', { defaultValue: 'Net' })}{' '}
+                  {Number(selectedOrder.netAmountEur ?? 0).toFixed(2)}
+                </div>
+                <div className="muted">
+                  {t('quote.vat', { defaultValue: 'VAT' })}{' '}
+                  {Number(selectedOrder.taxAmountEur ?? 0).toFixed(2)}
+                </div>
+                <div>
+                  <strong>
+                    {t('quote.gross', { defaultValue: 'Gross' })}{' '}
+                    {Number(selectedOrder.amountEur || 0).toFixed(2)}{' '}
+                    {selectedOrder.currencyCode || 'EUR'}
+                  </strong>
+                </div>
+              </div>
+            ) : (
+              <>
+                {Number(selectedOrder.amountEur || 0).toFixed(2)}{' '}
+                {selectedOrder.currencyCode || 'EUR'}
+              </>
+            )}
+            {selectedOrder.amountSats != null && (
+              <div className="muted mono" style={{ fontSize: '0.8rem' }}>
+                {selectedOrder.amountSats} sats
+              </div>
+            )}
+          </div>
+        </div>
+        {(selectedOrder.warnings || orderWarnings)?.length > 0 && (
+          <div className="banner-info" role="status" style={{ marginBottom: 8 }}>
+            {(selectedOrder.warnings || orderWarnings).map((w) => (
+              <div key={w.code + w.message}>{w.message}</div>
+            ))}
+          </div>
+        )}
+
+        <div className="toolbar">
+          {selectedOrder.orderStatus === 'DRAFT' && (
+            <button type="button" className="btn" onClick={onCancelOrder} disabled={!!busy}>
+              <Ban size={16} /> Cancel
+            </button>
+          )}
+          {selectedOrder.financeInvoiceId && (
+            <Link
+              className="btn btn-secondary"
+              to="/finance/invoices"
+              title={`Invoice id ${selectedOrder.financeInvoiceId}`}
+            >
+              Finance invoice #{selectedOrder.financeInvoiceId} →
+            </Link>
+          )}
+          <a
+            className="btn"
+            href={salesApi.orders.pdfUrl(selectedOrder.id)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <FileText size={16} /> Download sales order PDF
+          </a>
+        </div>
+
+        <h3 className="section-label">{t('quote.lines')}</h3>
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{t('quote.lineName')}</th>
+                <th>Qty</th>
+                <th>{t('quote.lineUnit')}</th>
+                <th>{t('quote.lineTotal')}</th>
+                <th>{t('docLines.taxCode', { defaultValue: 'Tax code' })}</th>
+                <th>{t('quote.vat', { defaultValue: 'VAT' })}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(selectedOrder.lines || []).length === 0 && (
+                <tr>
+                  <td colSpan={7} className="muted">
+                    {t('quote.noLines')}
+                  </td>
+                </tr>
+              )}
+              {(selectedOrder.lines || []).map((l) => (
+                <tr key={l.id || l.lineNo}>
+                  <td>{l.lineNo}</td>
+                  <td>{l.name}</td>
+                  <td>{l.quantity}</td>
+                  <td>{Number(l.unitPriceEur).toFixed(2)}</td>
+                  <td>{Number(l.lineTotalEur).toFixed(2)}</td>
+                  <td className="mono col-priority-low">{l.taxCode || '—'}</td>
+                  <td>
+                    {l.taxAmountEur != null ? Number(l.taxAmountEur).toFixed(2) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {collapsedContentRail('sales', 'SalesOrder', selectedOrder.id, async () =>
+          setOrderContentMap(await fetchContentMap('sales', 'SalesOrder', orders)),
+        )}
+      </div>
+    )
+
+    if (selectedOrder.orderStatus === 'DRAFT') {
+      detailFooter = (
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={onConfirmOrder}
+          disabled={!!busy}
+        >
+          <Check size={16} /> {busy === 'confirm' ? '…' : t('order.confirmFinance')}
+        </button>
+      )
+    }
+  }
+
+  const emptyTitle =
+    tab === 'quotes'
+      ? t('quote.selectHint')
+      : tab === 'orders'
+        ? t('order.selectHint')
+        : t('desk.emptyTitle', { ns: 'common' })
+
+  const emptyBody =
+    tab === 'customers' || tab === 'products' || tab === 'services'
+      ? t('desk.emptyBodyMasters', {
+          ns: 'common',
+          defaultValue: 'Use + New to create, or View on a row for the full record.',
+        })
+      : t('desk.emptyBody', { ns: 'common' })
+
+  // silence unused picker list (kept for future typeahead)
+  void customerOptions
+
   return (
     <div className="page sales-desk-page">
-      <header className="page-header" style={{ marginBottom: '1.25rem' }}>
-        <h1 className="page-title">
-          <ShoppingCart size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          {t('desk.title')}
-        </h1>
-        <p className="page-sub">{t('desk.subtitle')}</p>
-      </header>
-
       {error && <div className="banner-error">{error}</div>}
       {info && <div className="banner-info">{info}</div>}
-
       {viewModal}
 
-      <div className="toolbar">
+      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
         <button type="button" className="btn" onClick={refresh} disabled={loading || !!busy}>
           <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
         </button>
-        <ProcessHowItWorks processCode="SALES_QUOTE_TO_ORDER" />
-        <div className="tab-row desk-tabs toolbar-scroll">
-          {tabs.map((tabDef) => {
-            const Icon = tabDef.icon
-            return (
-              <button
-                key={tabDef.id}
-                type="button"
-                className={`btn ${tab === tabDef.id ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => setTab(tabDef.id)}
-              >
-                <Icon size={14} /> {tabDef.label}
-              </button>
-            )
-          })}
-        </div>
         <Link className="btn btn-secondary" to="/finance/invoices">
           {t('desk.financeInvoices')}
         </Link>
@@ -623,947 +1923,51 @@ export default function SalesDesk() {
         )}
       </div>
 
-      {tab === 'customers' && (
-        <div className="two-col finance-tx-grid list-first-narrow">
-          <DeskNewFab label={t('customer.new')} />
-          <section id="desk-create" className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('customer.new')}
-            </h2>
-            <form className="form-grid" onSubmit={onCreateCustomer}>
-              <MasterEntityFields
-                spec={customerMasterSpec}
-                form={customerForm}
-                onChange={onMasterField(setCustomerForm)}
-                disabled={!!busy}
-                showDescription={false}
-              />
-              <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                <Plus size={16} /> {busy === 'cust' ? '…' : t('customer.create')}
-              </button>
-            </form>
-          </section>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('customer.list')} ({customers.length})
-            </h2>
-            {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
-            <ResponsiveDataList
-              items={customers}
-              empty={t('customer.empty')}
-              loading={loading}
-              fields={[
-                { id: 'name', primary: true, render: (c) => c.name },
-                {
-                  id: 'email',
-                  secondary: true,
-                  render: (c) => c.email || '—',
-                },
-                {
-                  id: 'kind',
-                  priority: 'low',
-                  render: (c) => c.customerKind,
-                },
-                {
-                  id: 'ccy',
-                  priority: 'low',
-                  render: (c) => c.currencyCode,
-                },
-              ]}
-              actions={(c) => (
-                <ViewButton pkg="sales" resource="Customer" record={c} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('customer.table.name')}</th>
-                      <th className="col-priority-low">{t('customer.table.kind')}</th>
-                      <th>{t('customer.table.email')}</th>
-                      <th className="col-priority-low">{t('customer.table.content')}</th>
-                      <th className="col-priority-low">{t('wb.ccy', { ns: 'common' })}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customers.length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="muted">
-                          {t('customer.empty')}
-                        </td>
-                      </tr>
-                    )}
-                    {customers.map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.name}</td>
-                        <td className="col-priority-low">{c.customerKind}</td>
-                        <td className="muted">{c.email || '—'}</td>
-                        <td className="col-priority-low">
-                          <ContentChannelIcons summary={customerContentMap[c.id]} />
-                        </td>
-                        <td className="mono col-priority-low">{c.currencyCode}</td>
-                        <td>
-                          <ViewButton pkg="sales" resource="Customer" record={c} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={custPage.total}
-              max={custPage.max}
-              offset={custPage.offset}
-              disabled={loading}
-              onOffset={(o) => setCustPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setCustPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-        </div>
-      )}
+      <DeskShell
+        title={
+          <>
+            <ShoppingCart size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
+            {t('desk.title')}
+          </>
+        }
+        subtitle={t('desk.subtitle')}
+        tabs={tabs}
+        activeTab={tab}
+        onTabChange={requestTabChange}
+        newLabel={newLabel}
+        newExpanded={newExpanded}
+        onToggleNew={requestToggleNew}
+        newPanel={newPanel}
+        toolbar={toolbar}
+        list={list}
+        hasSelection={hasSelection}
+        emptyTitle={emptyTitle}
+        emptyBody={emptyBody}
+        detail={detail}
+        detailFooter={detailFooter}
+        processSlot={processSlot}
+        helpContext={helpContext}
+        narrowSheetOpen={narrow && hasSelection}
+        onCloseSheet={() => setSelectedId(null)}
+      />
 
-      {tab === 'quotes' && (
-        <div className="two-col finance-tx-grid">
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('quote.new')}
-            </h2>
-            <form className="form-grid" onSubmit={onCreateQuote}>
-              <label>
-                {t('quote.customer')}
-                <CustomerSelect
-                  value={quoteForm.customerId}
-                  onChange={(id) => setQuoteForm((f) => ({ ...f, customerId: id || '' }))}
-                  disabled={!!busy}
-                />
-              </label>
-              <label>
-                {t('quote.name')}
-                <input
-                  value={quoteForm.name}
-                  onChange={(e) => setQuoteForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder={t('wb.autoIfEmpty', { ns: 'common' })}
-                />
-              </label>
-              <label>
-                {t('quote.currency', { defaultValue: 'Document currency' })}
-                <CurrencySelect
-                  name="currencyCode"
-                  value={quoteForm.currencyCode}
-                  onChange={(e) =>
-                    setQuoteForm((f) => ({ ...f, currencyCode: e.target.value || 'EUR' }))
-                  }
-                  disabled={!!busy}
-                  required
-                />
-              </label>
-              {quoteWarnings?.length > 0 && (
-                <div className="banner-info" role="status">
-                  {quoteWarnings.map((w) => (
-                    <div key={w.code + w.message}>{w.message}</div>
-                  ))}
-                </div>
-              )}
-              <DocumentLinesEditor
-                forChannel="sale"
-                lines={quoteLines}
-                onChange={setQuoteLines}
-                disabled={!!busy}
-              />
-              <PendingContentComposer
-                package="sales"
-                resource="CustomerQuote"
-                pending={pendingQuoteContent}
-                onChange={setPendingQuoteContent}
-                title={t('pending.titleQuote', { ns: 'content' })}
-                hint={t('pending.hintQuote', { ns: 'content' })}
-              />
-              <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                <Plus size={16} /> {busy === 'quote' ? '…' : t('quote.create')}
-              </button>
-            </form>
+      <DeskNewFab label={newLabel} onClick={() => !newExpanded && requestToggleNew()} />
 
-            <div className="toolbar" style={{ marginTop: '1rem' }}>
-              <select
-                value={quoteFilter}
-                onChange={(e) => {
-                  setQuoteFilter(e.target.value)
-                  setQuotePage((pg) => ({ ...pg, offset: 0 }))
-                }}
-                className="filter-select"
-              >
-                <option value="">{t('quote.filterAll')}</option>
-                {['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'].map((s) => (
-                  <option key={s} value={s}>
-                    {t(`status.${s}`, { defaultValue: s })}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <h2 className="section-label">{t('quote.list')} ({quotes.length})</h2>
-            {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
-            <ResponsiveDataList
-              items={quotes}
-              empty={t('quote.empty')}
-              loading={loading}
-              selectedKey={selectedQuote?.id}
-              onSelect={(q) => selectQuote(q.id)}
-              fields={[
-                {
-                  id: 'number',
-                  primary: true,
-                  render: (q) => (
-                    <>
-                      <span className="mono">{q.quoteNumber}</span>{' '}
-                      <span className={statusClass(q.quoteStatus)}>
-                        {t(`status.${q.quoteStatus}`, { defaultValue: q.quoteStatus })}
-                      </span>
-                    </>
-                  ),
-                },
-                {
-                  id: 'customer',
-                  secondary: true,
-                  render: (q) => q.customerName || '—',
-                },
-                {
-                  id: 'eur',
-                  meta: true,
-                  render: (q) =>
-                    q.amountEur != null ? `${Number(q.amountEur).toFixed(2)} EUR` : '—',
-                },
-              ]}
-              actions={(q) => (
-                <ViewButton pkg="sales" resource="CustomerQuote" record={q} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('quote.table.number')}</th>
-                      <th>{t('quote.table.customer')}</th>
-                      <th>EUR</th>
-                      <th className="col-priority-low">{t('quote.table.content')}</th>
-                      <th>{t('quote.table.status')}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {quotes.length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="muted">
-                          {t('quote.empty')}
-                        </td>
-                      </tr>
-                    )}
-                    {quotes.map((q) => (
-                      <tr
-                        key={q.id}
-                        className={selectedQuote?.id === q.id ? 'row-selected' : 'row-click'}
-                        onClick={() => selectQuote(q.id)}
-                      >
-                        <td className="mono">{q.quoteNumber}</td>
-                        <td>{q.customerName || '—'}</td>
-                        <td>{q.amountEur != null ? Number(q.amountEur).toFixed(2) : '—'}</td>
-                        <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
-                          <ContentChannelIcons summary={quoteContentMap[q.id]} />
-                        </td>
-                        <td>
-                          <span className={statusClass(q.quoteStatus)}>
-                            {t(`status.${q.quoteStatus}`, { defaultValue: q.quoteStatus })}
-                          </span>
-                        </td>
-                        <td onClick={(e) => e.stopPropagation()}>
-                          <ViewButton pkg="sales" resource="CustomerQuote" record={q} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={quotePage.total}
-              max={quotePage.max}
-              offset={quotePage.offset}
-              disabled={loading}
-              onOffset={(o) => setQuotePage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setQuotePage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('quote.detail')}
-            </h2>
-            {!selectedQuote && <p className="muted">{t('quote.selectHint')}</p>}
-            {selectedQuote && (
-              <>
-                <div className="inv-detail-hero">
-                  <div>
-                    <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                      {selectedQuote.quoteNumber}
-                    </div>
-                    <div className="muted">
-                      {selectedQuote.customerName || t('quote.noCustomer')} ·{' '}
-                      <span className={statusClass(selectedQuote.quoteStatus)}>
-                        {t(`status.${selectedQuote.quoteStatus}`, {
-                          defaultValue: selectedQuote.quoteStatus,
-                        })}
-                      </span>
-                      {selectedQuote.currencyCode ? ` · ${selectedQuote.currencyCode}` : ''}
-                    </div>
-                  </div>
-                  <div className="inv-amount">
-                    {selectedQuote.netAmountEur != null || selectedQuote.taxAmountEur != null ? (
-                      <div style={{ textAlign: 'right', fontSize: '0.85rem' }}>
-                        <div className="muted">
-                          {t('quote.net', { defaultValue: 'Net' })}{' '}
-                          {Number(selectedQuote.netAmountEur ?? 0).toFixed(2)}
-                        </div>
-                        <div className="muted">
-                          {t('quote.vat', { defaultValue: 'VAT' })}{' '}
-                          {Number(selectedQuote.taxAmountEur ?? 0).toFixed(2)}
-                        </div>
-                        <div>
-                          <strong>
-                            {t('quote.gross', { defaultValue: 'Gross' })}{' '}
-                            {Number(selectedQuote.amountEur || 0).toFixed(2)}{' '}
-                            {selectedQuote.currencyCode || 'EUR'}
-                          </strong>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        {Number(selectedQuote.amountEur || 0).toFixed(2)}{' '}
-                        {selectedQuote.currencyCode || 'EUR'}
-                      </>
-                    )}
-                    {selectedQuote.amountSats != null && (
-                      <div className="muted mono" style={{ fontSize: '0.8rem' }}>
-                        {selectedQuote.amountSats} sats
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {(selectedQuote.warnings || quoteWarnings)?.length > 0 && (
-                  <div className="banner-info" role="status" style={{ marginBottom: 8 }}>
-                    {(selectedQuote.warnings || quoteWarnings).map((w) => (
-                      <div key={w.code + w.message}>{w.message}</div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="toolbar">
-                  {['DRAFT', 'SENT'].includes(selectedQuote.quoteStatus) && (
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={onSendQuote}
-                      disabled={!!busy || selectedQuote.quoteStatus === 'SENT'}
-                    >
-                      <Send size={16} /> {busy === 'send' ? '…' : t('quote.send')}
-                    </button>
-                  )}
-                  {['DRAFT', 'SENT'].includes(selectedQuote.quoteStatus) && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={onAcceptQuote}
-                      disabled={!!busy}
-                    >
-                      <Check size={16} />{' '}
-                      {busy === 'accept' ? '…' : t('quote.acceptToOrder')}
-                    </button>
-                  )}
-                  {['DRAFT', 'SENT'].includes(selectedQuote.quoteStatus) && (
-                    <button type="button" className="btn" onClick={onRejectQuote} disabled={!!busy}>
-                      <X size={16} /> {t('quote.reject')}
-                    </button>
-                  )}
-                  {selectedQuote.resultingOrderId && (
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => {
-                        selectOrder(selectedQuote.resultingOrderId)
-                        setTab('orders')
-                      }}
-                    >
-                      {t('quote.openOrder', { id: selectedQuote.resultingOrderId })}
-                    </button>
-                  )}
-                  <a
-                    className="btn"
-                    href={salesApi.quotes.pdfUrl(selectedQuote.id)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <FileText size={16} /> Download quote PDF
-                  </a>
-                </div>
-
-                <h3 className="section-label">{t('quote.lines')}</h3>
-                <div className="table-wrap">
-                  <table className="data">
-                    <thead>
-                      <tr>
-                        <th>{t('quote.lineNo')}</th>
-                        <th>{t('quote.lineName')}</th>
-                        <th>{t('quote.lineQty')}</th>
-                        <th>{t('quote.lineUnit')}</th>
-                        <th>{t('quote.lineTotal')}</th>
-                        <th>{t('docLines.taxCode', { defaultValue: 'Tax code' })}</th>
-                        <th>{t('quote.vat', { defaultValue: 'VAT' })}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(selectedQuote.lines || []).length === 0 && (
-                        <tr>
-                          <td colSpan={7} className="muted">
-                            {t('quote.noLines')}
-                          </td>
-                        </tr>
-                      )}
-                      {(selectedQuote.lines || []).map((l) => (
-                        <tr key={l.id || l.lineNo}>
-                          <td>{l.lineNo}</td>
-                          <td>{l.name}</td>
-                          <td>{l.quantity}</td>
-                          <td>{Number(l.unitPriceEur).toFixed(2)}</td>
-                          <td>{Number(l.lineTotalEur).toFixed(2)}</td>
-                          <td className="mono col-priority-low">{l.taxCode || '—'}</td>
-                          <td>{l.taxAmountEur != null ? Number(l.taxAmountEur).toFixed(2) : '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <ContentRail
-                  package="sales"
-                  resource="CustomerQuote"
-                  id={selectedQuote.id}
-                  onChanged={async () =>
-                    setQuoteContentMap(await fetchContentMap('sales', 'CustomerQuote', quotes))
-                  }
-                />
-              </>
-            )}
-          </section>
-        </div>
-      )}
-
-      {tab === 'orders' && (
-        <div className="two-col finance-tx-grid">
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('order.direct')}
-            </h2>
-            <form className="form-grid" onSubmit={onCreateOrder}>
-              <label>
-                {t('order.customer')}
-                <CustomerSelect
-                  value={orderForm.customerId}
-                  onChange={(id) => setOrderForm((f) => ({ ...f, customerId: id || '' }))}
-                  disabled={!!busy}
-                />
-              </label>
-              <label>
-                {t('order.name')}
-                <input
-                  value={orderForm.name}
-                  onChange={(e) => setOrderForm((f) => ({ ...f, name: e.target.value }))}
-                />
-              </label>
-              <label>
-                {t('order.currency', { defaultValue: 'Document currency' })}
-                <CurrencySelect
-                  name="currencyCode"
-                  value={orderForm.currencyCode}
-                  onChange={(e) =>
-                    setOrderForm((f) => ({ ...f, currencyCode: e.target.value || 'EUR' }))
-                  }
-                  disabled={!!busy}
-                  required
-                />
-              </label>
-              {orderWarnings?.length > 0 && (
-                <div className="banner-info" role="status">
-                  {orderWarnings.map((w) => (
-                    <div key={w.code + w.message}>{w.message}</div>
-                  ))}
-                </div>
-              )}
-              <DocumentLinesEditor
-                forChannel="sale"
-                lines={orderLines}
-                onChange={setOrderLines}
-                disabled={!!busy}
-              />
-              <PendingContentComposer
-                package="sales"
-                resource="SalesOrder"
-                pending={pendingOrderContent}
-                onChange={setPendingOrderContent}
-              />
-              <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                <Plus size={16} /> {busy === 'order' ? '…' : t('order.create')}
-              </button>
-            </form>
-
-            <div className="toolbar" style={{ marginTop: '1rem' }}>
-              <select
-                value={orderFilter}
-                onChange={(e) => {
-                  setOrderFilter(e.target.value)
-                  setOrderPage((pg) => ({ ...pg, offset: 0 }))
-                }}
-                className="filter-select"
-              >
-                <option value="">{t('quote.filterAll')}</option>
-                {['DRAFT', 'CONFIRMED', 'CLOSED', 'CANCELLED'].map((s) => (
-                  <option key={s} value={s}>
-                    {t(`status.${s}`, { defaultValue: s })}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <h2 className="section-label">{t('order.list')} ({orders.length})</h2>
-            {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
-            <ResponsiveDataList
-              items={orders}
-              empty={t('order.empty')}
-              loading={loading}
-              selectedKey={selectedOrder?.id}
-              onSelect={(o) => selectOrder(o.id)}
-              fields={[
-                {
-                  id: 'number',
-                  primary: true,
-                  render: (o) => (
-                    <>
-                      <span className="mono">{o.orderNumber}</span>{' '}
-                      <span className={statusClass(o.orderStatus)}>{o.orderStatus}</span>
-                    </>
-                  ),
-                },
-                {
-                  id: 'customer',
-                  secondary: true,
-                  render: (o) => o.customerName || '—',
-                },
-                {
-                  id: 'eur',
-                  meta: true,
-                  render: (o) =>
-                    o.amountEur != null ? `${Number(o.amountEur).toFixed(2)} EUR` : '—',
-                },
-              ]}
-              actions={(o) => (
-                <ViewButton pkg="sales" resource="SalesOrder" record={o} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('order.table.number')}</th>
-                      <th>{t('order.table.customer')}</th>
-                      <th>EUR</th>
-                      <th>{t('order.table.status')}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="muted">
-                          {t('order.empty')}
-                        </td>
-                      </tr>
-                    )}
-                    {orders.map((o) => (
-                      <tr
-                        key={o.id}
-                        className={selectedOrder?.id === o.id ? 'row-selected' : 'row-click'}
-                        onClick={() => selectOrder(o.id)}
-                      >
-                        <td className="mono">{o.orderNumber}</td>
-                        <td>{o.customerName || '—'}</td>
-                        <td>
-                          {o.amountEur != null ? Number(o.amountEur).toFixed(2).toString() : '—'}
-                        </td>
-                        <td>
-                          <span className={statusClass(o.orderStatus)}>{o.orderStatus}</span>
-                        </td>
-                        <td onClick={(e) => e.stopPropagation()}>
-                          <ViewButton pkg="sales" resource="SalesOrder" record={o} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={orderPage.total}
-              max={orderPage.max}
-              offset={orderPage.offset}
-              disabled={loading}
-              onOffset={(o) => setOrderPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setOrderPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Order detail
-            </h2>
-            {!selectedOrder && <p className="muted">{t('order.selectHint')}</p>}
-            {selectedOrder && (
-              <>
-                <div className="inv-detail-hero">
-                  <div>
-                    <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                      {selectedOrder.orderNumber}
-                    </div>
-                    <div className="muted">
-                      {selectedOrder.customerName || t('quote.noCustomer')} ·{' '}
-                      <span className={statusClass(selectedOrder.orderStatus)}>
-                        {selectedOrder.orderStatus}
-                      </span>
-                      {selectedOrder.currencyCode ? ` · ${selectedOrder.currencyCode}` : ''}
-                    </div>
-                    {selectedOrder.sourceQuoteId && (
-                      <div className="muted" style={{ fontSize: '0.85rem' }}>
-                        From quote #{selectedOrder.sourceQuoteId}
-                      </div>
-                    )}
-                  </div>
-                  <div className="inv-amount">
-                    {selectedOrder.netAmountEur != null || selectedOrder.taxAmountEur != null ? (
-                      <div style={{ textAlign: 'right', fontSize: '0.85rem' }}>
-                        <div className="muted">
-                          {t('quote.net', { defaultValue: 'Net' })}{' '}
-                          {Number(selectedOrder.netAmountEur ?? 0).toFixed(2)}
-                        </div>
-                        <div className="muted">
-                          {t('quote.vat', { defaultValue: 'VAT' })}{' '}
-                          {Number(selectedOrder.taxAmountEur ?? 0).toFixed(2)}
-                        </div>
-                        <div>
-                          <strong>
-                            {t('quote.gross', { defaultValue: 'Gross' })}{' '}
-                            {Number(selectedOrder.amountEur || 0).toFixed(2)}{' '}
-                            {selectedOrder.currencyCode || 'EUR'}
-                          </strong>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        {Number(selectedOrder.amountEur || 0).toFixed(2)}{' '}
-                        {selectedOrder.currencyCode || 'EUR'}
-                      </>
-                    )}
-                    {selectedOrder.amountSats != null && (
-                      <div className="muted mono" style={{ fontSize: '0.8rem' }}>
-                        {selectedOrder.amountSats} sats
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {(selectedOrder.warnings || orderWarnings)?.length > 0 && (
-                  <div className="banner-info" role="status" style={{ marginBottom: 8 }}>
-                    {(selectedOrder.warnings || orderWarnings).map((w) => (
-                      <div key={w.code + w.message}>{w.message}</div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="toolbar">
-                  {selectedOrder.orderStatus === 'DRAFT' && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={onConfirmOrder}
-                      disabled={!!busy}
-                    >
-                      <Check size={16} />{' '}
-                      {busy === 'confirm' ? '…' : t('order.confirmFinance')}
-                    </button>
-                  )}
-                  {selectedOrder.orderStatus === 'DRAFT' && (
-                    <button type="button" className="btn" onClick={onCancelOrder} disabled={!!busy}>
-                      <Ban size={16} /> Cancel
-                    </button>
-                  )}
-                  {selectedOrder.financeInvoiceId && (
-                    <Link
-                      className="btn btn-secondary"
-                      to="/finance/invoices"
-                      title={`Invoice id ${selectedOrder.financeInvoiceId}`}
-                    >
-                      Finance invoice #{selectedOrder.financeInvoiceId} →
-                    </Link>
-                  )}
-                  <a
-                    className="btn"
-                    href={salesApi.orders.pdfUrl(selectedOrder.id)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <FileText size={16} /> Download sales order PDF
-                  </a>
-                </div>
-
-                <h3 className="section-label">{t('quote.lines')}</h3>
-                <div className="table-wrap">
-                  <table className="data">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>{t('quote.lineName')}</th>
-                        <th>Qty</th>
-                        <th>{t('quote.lineUnit')}</th>
-                        <th>{t('quote.lineTotal')}</th>
-                        <th>{t('docLines.taxCode', { defaultValue: 'Tax code' })}</th>
-                        <th>{t('quote.vat', { defaultValue: 'VAT' })}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(selectedOrder.lines || []).length === 0 && (
-                        <tr>
-                          <td colSpan={7} className="muted">
-                            {t('quote.noLines')}
-                          </td>
-                        </tr>
-                      )}
-                      {(selectedOrder.lines || []).map((l) => (
-                        <tr key={l.id || l.lineNo}>
-                          <td>{l.lineNo}</td>
-                          <td>{l.name}</td>
-                          <td>{l.quantity}</td>
-                          <td>{Number(l.unitPriceEur).toFixed(2)}</td>
-                          <td>{Number(l.lineTotalEur).toFixed(2)}</td>
-                          <td className="mono col-priority-low">{l.taxCode || '—'}</td>
-                          <td>{l.taxAmountEur != null ? Number(l.taxAmountEur).toFixed(2) : '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <ContentRail
-                  package="sales"
-                  resource="SalesOrder"
-                  id={selectedOrder.id}
-                  onChanged={async () =>
-                    setOrderContentMap(await fetchContentMap('sales', 'SalesOrder', orders))
-                  }
-                />
-              </>
-            )}
-          </section>
-        </div>
-      )}
-
-      {tab === 'products' && (
-        <div className="two-col finance-tx-grid list-first-narrow">
-          <DeskNewFab label={t('product.new')} />
-          <section id="desk-create" className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('product.new')}
-            </h2>
-            <p className="muted" style={{ fontSize: '0.85rem', marginTop: 0 }}>
-              {t('product.hint')}
-            </p>
-            <form className="form-grid" onSubmit={onCreateProduct}>
-              <MasterEntityFields
-                spec={productMasterSpec}
-                form={productForm}
-                onChange={onMasterField(setProductForm)}
-                disabled={!!busy}
-                showDescription={false}
-              />
-              <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                <Plus size={16} /> {t('product.create')}
-              </button>
-            </form>
-          </section>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('product.list')} ({prodPage.total || products.length})
-            </h2>
-            <ResponsiveDataList
-              items={products}
-              empty={t('product.empty')}
-              fields={[
-                { id: 'name', primary: true, render: (p) => p.name },
-                {
-                  id: 'sku',
-                  secondary: true,
-                  render: (p) => (
-                    <span className="mono">{p.code || p.sku || '—'}</span>
-                  ),
-                },
-                {
-                  id: 'type',
-                  meta: true,
-                  render: (p) => p.nature || 'GOODS',
-                },
-              ]}
-              actions={(p) => (
-                <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.name', { ns: 'common' })}</th>
-                      <th>{t('product.sku')}</th>
-                      <th className="col-priority-low">
-                        {t('wb.type', { ns: 'common', defaultValue: 'Type' })}
-                      </th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((p) => (
-                      <tr key={p.id}>
-                        <td>{p.name}</td>
-                        <td className="mono">{p.code || p.sku || '—'}</td>
-                        <td className="muted col-priority-low">{p.nature || 'GOODS'}</td>
-                        <td style={{ whiteSpace: 'nowrap' }}>
-                          <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />
-                        </td>
-                      </tr>
-                    ))}
-                    {!products.length && (
-                      <tr>
-                        <td colSpan={4} className="muted">
-                          {t('product.empty')}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={prodPage.total}
-              max={prodPage.max}
-              offset={prodPage.offset}
-              disabled={loading}
-              onOffset={(o) => setProdPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setProdPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-        </div>
-      )}
-
-      {tab === 'services' && (
-        <div className="two-col finance-tx-grid list-first-narrow">
-          <DeskNewFab label={t('service.new')} />
-          <section id="desk-create" className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('service.new')}
-            </h2>
-            <p className="muted" style={{ fontSize: '0.85rem', marginTop: 0 }}>
-              {t('service.hint')}
-            </p>
-            <form className="form-grid" onSubmit={onCreateService}>
-              <MasterEntityFields
-                spec={serviceMasterSpec}
-                form={svcForm}
-                onChange={onMasterField(setSvcForm)}
-                disabled={!!busy}
-                showDescription={false}
-              />
-              <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                <Plus size={16} /> {t('service.create')}
-              </button>
-            </form>
-          </section>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('service.list')} ({svcPage.total || services.length})
-            </h2>
-            <ResponsiveDataList
-              items={services}
-              empty={t('service.empty')}
-              fields={[
-                { id: 'name', primary: true, render: (s) => s.name },
-                {
-                  id: 'eur',
-                  secondary: true,
-                  render: (s) =>
-                    (s.listPrice ?? s.listPriceEur) != null
-                      ? `${Number(s.listPrice ?? s.listPriceEur).toFixed(2)} EUR`
-                      : '—',
-                },
-                {
-                  id: 'unit',
-                  meta: true,
-                  label: t('wb.unit', { ns: 'common' }),
-                  render: (s) => s.unit || '—',
-                },
-              ]}
-              actions={(s) => (
-                <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.name', { ns: 'common' })}</th>
-                      <th className="col-priority-low">{t('wb.unit', { ns: 'common' })}</th>
-                      <th>EUR</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {services.map((s) => (
-                      <tr key={s.id}>
-                        <td>{s.name}</td>
-                        <td className="col-priority-low">{s.unit}</td>
-                        <td>
-                          {(s.listPrice ?? s.listPriceEur) != null
-                            ? Number(s.listPrice ?? s.listPriceEur).toFixed(2)
-                            : '—'}
-                        </td>
-                        <td style={{ whiteSpace: 'nowrap' }}>
-                          <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />
-                        </td>
-                      </tr>
-                    ))}
-                    {!services.length && (
-                      <tr>
-                        <td colSpan={4} className="muted">
-                          {t('service.empty')}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={svcPage.total}
-              max={svcPage.max}
-              offset={svcPage.offset}
-              disabled={loading}
-              onOffset={(o) => setSvcPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setSvcPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-        </div>
-      )}
+      <ConfirmDialog
+        open={discardOpen}
+        title={t('desk.discardCreateTitle', {
+          ns: 'common',
+          defaultValue: 'Discard create form?',
+        })}
+        body={t('desk.discardCreateBody', {
+          ns: 'common',
+          defaultValue: 'You have unsaved changes in the create form. Discard them?',
+        })}
+        confirmLabel={t('desk.discard', { ns: 'common', defaultValue: 'Discard' })}
+        tone="danger"
+        onConfirm={confirmDiscard}
+        onCancel={cancelDiscard}
+      />
     </div>
   )
 }

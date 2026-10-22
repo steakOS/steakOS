@@ -63,6 +63,7 @@ export default function ResponsiveDataList({
           <div
             key={key}
             role="listitem"
+            data-selected={selected ? 'true' : undefined}
             className={`data-card${selected ? ' is-selected' : ''}${clickable ? ' is-clickable' : ''}`}
             onClick={clickable ? () => onSelect(item) : undefined}
             onKeyDown={

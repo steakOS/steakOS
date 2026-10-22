@@ -17,14 +17,21 @@ import { useTranslation } from 'react-i18next'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 
 /**
- * D3 sticky “New” control on narrow — jumps to create block (`#desk-create` by default).
+ * D3 sticky “New” control on narrow — expands create (onClick) or jumps to `#desk-create`.
  * Hidden on wide viewports.
  */
-export default function DeskNewFab({ href = '#desk-create', label }) {
+export default function DeskNewFab({ href = '#desk-create', label, onClick }) {
   const { t } = useTranslation('common')
   const narrow = useNarrowViewport()
   if (!narrow) return null
   const text = label || t('actions.new')
+  if (typeof onClick === 'function') {
+    return (
+      <button type="button" className="desk-new-fab" onClick={onClick}>
+        + {text}
+      </button>
+    )
+  }
   return (
     <a className="desk-new-fab" href={href}>
       + {text}
