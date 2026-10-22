@@ -78,6 +78,31 @@ import { domainResourceLabel } from '../utils/domainLabels'
 import { allowsSilverSurfaces } from '../utils/silverSurfaces'
 
 /**
+ * ADR-044 — read HelpContext that DeskShell stamps on `.desk-shell-root`
+ * via data-help-* so AppShell HelpDrawer can resolve without prop drilling.
+ */
+function readDeskShellHelpContext(pathname) {
+  if (typeof document === 'undefined') return null
+  const el = document.querySelector('.desk-shell-root[data-help-desk]')
+  if (!el) return null
+  const ctx = {
+    path: pathname || el.getAttribute('data-help-path') || '/',
+    desk: el.getAttribute('data-help-desk'),
+  }
+  const tab = el.getAttribute('data-help-tab')
+  const resource = el.getAttribute('data-help-resource')
+  const objectId = el.getAttribute('data-help-object-id')
+  const status = el.getAttribute('data-help-status')
+  const processCode = el.getAttribute('data-help-process')
+  if (tab) ctx.tab = tab
+  if (resource) ctx.resource = resource
+  if (objectId) ctx.objectId = objectId
+  if (status) ctx.status = status
+  if (processCode) ctx.processCode = processCode
+  return ctx
+}
+
+/**
  * AUTH03 — System nav by role.
  * Admin + CEO: full System menu for now (roles matrix later may narrow).
  * Help / tour / IT Support live under the Help group (not System).
@@ -626,6 +651,11 @@ export default function AppShell() {
   const [helpNavOpen, setHelpNavOpen] = useState(true)
   const [helpOpen, setHelpOpen] = useState(false)
   const [helpTopic, setHelpTopic] = useState(null)
+  // Snapshot DeskShell HelpContext when opening help (ADR-044); refresh on route change
+  const deskHelpContext = useMemo(
+    () => (helpOpen ? readDeskShellHelpContext(location.pathname) : null),
+    [helpOpen, location.pathname, location.search],
+  )
   const [cmdOpen, setCmdOpen] = useState(false)
   const [readOnly, setReadOnly] = useState(false)
   const [meUsername, setMeUsername] = useState(null)
@@ -1229,6 +1259,7 @@ export default function AppShell() {
       <HelpDrawer
         open={helpOpen}
         initialTopic={helpTopic}
+        helpContext={deskHelpContext}
         onClose={() => {
           setHelpOpen(false)
           setHelpTopic(null)

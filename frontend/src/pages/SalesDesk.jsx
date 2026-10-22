@@ -58,6 +58,7 @@ import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
+import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { activeStepIndex } from '../config/processStatusMaps'
 
@@ -522,6 +523,23 @@ export default function SalesDesk() {
       setNewExpanded(true)
     }
   }, [newExpanded, createDirty, applyCollapseCreate])
+
+  const keyboardIds = useMemo(() => {
+    if (tab === 'quotes') return quotes.map((q) => q.id)
+    if (tab === 'orders') return orders.map((o) => o.id)
+    if (tab === 'customers') return customers.map((c) => c.id)
+    if (tab === 'products') return products.map((p) => p.id)
+    if (tab === 'services') return services.map((s) => s.id)
+    return []
+  }, [tab, quotes, orders, customers, products, services])
+
+  useDeskKeyboard({
+    enabled: !newExpanded,
+    itemIds: keyboardIds,
+    selectedId,
+    setSelectedId,
+    onToggleNew: requestToggleNew,
+  })
 
   const requestTabChange = useCallback(
     (nextTab) => {

@@ -33,6 +33,7 @@ import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
+import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { activeStepIndex } from '../config/processStatusMaps'
 
@@ -274,6 +275,16 @@ export default function FinanceInvoices() {
       setNewExpanded(true)
     }
   }, [newExpanded, createDirty, applyCollapseCreate])
+
+  const keyboardIds = useMemo(() => items.map((i) => i.id), [items])
+
+  useDeskKeyboard({
+    enabled: !newExpanded,
+    itemIds: keyboardIds,
+    selectedId,
+    setSelectedId,
+    onToggleNew: requestToggleNew,
+  })
 
   const confirmDiscard = useCallback(() => {
     setDiscardOpen(false)

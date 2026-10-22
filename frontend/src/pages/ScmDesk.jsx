@@ -57,6 +57,7 @@ import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
+import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { activeStepIndex } from '../config/processStatusMaps'
 
@@ -810,6 +811,20 @@ export default function ScmDesk({ desk = 'buyers' }) {
     if (newExpanded) applyCollapseCreate()
     else setNewExpanded(true)
   }, [tab, newExpanded, createDirty, applyCollapseCreate])
+
+  const keyboardIds = useMemo(() => {
+    if (tab === 'purchase') return pos.map((p) => p.id)
+    if (tab === 'production') return prods.map((p) => p.id)
+    return []
+  }, [tab, pos, prods])
+
+  useDeskKeyboard({
+    enabled: !newExpanded && (tab === 'purchase' || tab === 'production'),
+    itemIds: keyboardIds,
+    selectedId,
+    setSelectedId,
+    onToggleNew: tab === 'inventory' ? undefined : requestToggleNew,
+  })
 
   const requestTabChange = useCallback(
     (nextTab) => {
