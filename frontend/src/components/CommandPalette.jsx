@@ -210,6 +210,29 @@ export default function CommandPalette({ open, onClose }) {
 
   if (!open) return null
 
+  const recentGroup = t('pages.commandPalette.groupRecent', { defaultValue: 'Recent' })
+  const recentItems = useMemo(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('steakos.cmd.recent') || '[]')
+      if (!Array.isArray(raw)) return []
+      return raw.slice(0, 8).map((r) => ({
+        label: r.label || r.path,
+        path: r.path,
+        group: recentGroup,
+        keywords: 'recent',
+      }))
+    } catch {
+      return []
+    }
+  }, [open, recentGroup])
+
+  const filteredWithRecent = useMemo(() => {
+    if (q.trim()) return filtered
+    const paths = new Set(filtered.map((i) => i.path))
+    const extras = recentItems.filter((r) => r.path && !paths.has(r.path))
+    return [...extras, ...filtered].slice(0, 24)
+  }, [filtered, recentItems, q])
+
   const go = (item) => {
     onClose()
     if (item.external || (item.path.startsWith('/tour') && !item.helpKey)) {
@@ -219,8 +242,48 @@ export default function CommandPalette({ open, onClose }) {
     const path = item.helpKey
       ? `${item.path}${item.path.includes('?') ? '&' : '?'}help=${encodeURIComponent(item.helpKey)}`
       : item.path
+    try {
+      const prev = JSON.parse(localStorage.getItem('steakos.cmd.recent') || '[]')
+      const next = [
+        { label: item.label, path },
+        ...(Array.isArray(prev) ? prev : []).filter((r) => r.path !== path),
+      ].slice(0, 12)
+      localStorage.setItem('steakos.cmd.recent', JSON.stringify(next))
+    } catch {
+      /* ignore */
+    }
     navigate(path)
   }
+
+  // WP-9: quick actions always available
+  const quickActions = useMemo(
+    () => [
+      {
+        label: t('pages.commandPalette.newQuote', { defaultValue: 'New quote' }),
+        path: '/sales?tab=quotes&new=1',
+        group: t('pages.commandPalette.groupWork'),
+        keywords: 'new quote create sales',
+      },
+      {
+        label: t('pages.commandPalette.openSales', { defaultValue: 'Open Sales desk' }),
+        path: '/sales',
+        group: t('pages.commandPalette.groupWork'),
+        keywords: 'sales quotes orders',
+      },
+    ],
+    [t],
+  )
+
+  const shown = useMemo(() => {
+    if (q.trim()) {
+      const s = q.trim().toLowerCase()
+      const qa = quickActions.filter((i) =>
+        `${i.label} ${i.path} ${i.keywords || ''}`.toLowerCase().includes(s),
+      )
+      return [...qa, ...filteredWithRecent].slice(0, 24)
+    }
+    return [...quickActions, ...filteredWithRecent].slice(0, 24)
+  }, [q, quickActions, filteredWithRecent])
 
   return (
     <div className="cmd-backdrop" onClick={onClose} role="presentation">
@@ -233,11 +296,11 @@ export default function CommandPalette({ open, onClose }) {
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Escape') onClose()
-            if (e.key === 'Enter' && filtered[0]) go(filtered[0])
+            if (e.key === 'Enter' && shown[0]) go(shown[0])
           }}
         />
         <ul className="cmd-list">
-          {filtered.map((item) => (
+          {shown.map((item) => (
             <li key={`${item.path}:${item.helpKey || ''}:${item.label}`}>
               <button type="button" className="cmd-item" onClick={() => go(item)}>
                 <span>{item.label}</span>

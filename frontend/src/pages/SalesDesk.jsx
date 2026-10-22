@@ -158,6 +158,21 @@ export default function SalesDesk() {
     setSelectedId,
   })
 
+  // Command palette / deep-link: ?new=1 expands create once
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('new') === '1') {
+      setNewExpanded(true)
+      params.delete('new')
+      const qs = params.toString()
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${qs ? `?${qs}` : ''}`,
+      )
+    }
+  }, [])
+
   useEffect(() => {
     saveMemory({ tab })
   }, [tab, saveMemory])
