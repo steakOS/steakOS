@@ -30,7 +30,7 @@ import {
   Users,
   FileText,
 } from 'lucide-react'
-import { aftersalesApi, salesApi, catalogueApi } from '../api/client'
+import { aftersalesApi, salesApi, catalogueApi, meApi } from '../api/client'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
 import ProcessHowItWorks from '../components/ProcessHowItWorks'
 import ContentRail from '../components/ContentRail'
@@ -43,6 +43,13 @@ import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import CustomerSelect from '../components/CustomerSelect'
+import DeskNewFab from '../components/DeskNewFab'
+import DeskShell from '../components/desk/DeskShell'
+import ConfirmDialog from '../components/ConfirmDialog'
+import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import useDeskMemory from '../hooks/useDeskMemory'
+import useNarrowViewport from '../hooks/useNarrowViewport'
+import { activeStepIndex } from '../config/processStatusMaps'
 
 const TAB_DEFS = [
   { id: 'inquiries', labelKey: 'aftersales.tabs.inquiries', icon: MessageSquare },
@@ -59,11 +66,74 @@ const TAB_DEFS = [
 export default function AfterSalesDesk() {
   const { t } = useTranslation(['desks', 'common', 'content'])
   const { viewModal, ViewButton } = useRecordView()
-  const TABS = useMemo(
-    () => TAB_DEFS.map((d) => ({ ...d, label: t(d.labelKey) })),
+  const tabs = useMemo(
+    () => TAB_DEFS.map((d) => ({ id: d.id, label: t(d.labelKey), icon: d.icon })),
     [t],
   )
-  const [tab, setTab] = useState('inquiries')
+  const narrow = useNarrowViewport()
+  const [tab, setTab] = useState(() => {
+    if (typeof window === 'undefined') return 'inquiries'
+    const urlTab = new URLSearchParams(window.location.search).get('tab')
+    if (urlTab) return urlTab
+    try {
+      const raw = window.localStorage.getItem('steakos.desk.default.aftersales')
+      const parsed = raw ? JSON.parse(raw) : null
+      if (parsed?.tab) return String(parsed.tab)
+    } catch {
+      /* ignore */
+    }
+    return 'inquiries'
+  })
+  const [selectedId, setSelectedId] = useState(() => {
+    if (typeof window === 'undefined') return null
+    const id = new URLSearchParams(window.location.search).get('id')
+    return id || null
+  })
+  const [newExpanded, setNewExpanded] = useState(false)
+  const [companyId, setCompanyId] = useState('default')
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const [pendingNav, setPendingNav] = useState(null)
+
+  const { loadMemory, saveMemory } = useDeskMemory({ deskKey: 'aftersales', companyId })
+
+  useDeskSelection({
+    deskKey: 'aftersales',
+    defaultTab: 'inquiries',
+    tab,
+    setTab,
+    selectedId,
+    setSelectedId,
+  })
+
+  useEffect(() => {
+    saveMemory({ tab })
+  }, [tab, saveMemory])
+
+  useEffect(() => {
+    if (companyId === 'default') return
+    const mem = loadMemory()
+    const urlTab = new URLSearchParams(window.location.search).get('tab')
+    if (!urlTab && mem?.tab && mem.tab !== tab) {
+      setTab(mem.tab)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId])
+
+  useEffect(() => {
+    let cancelled = false
+    meApi
+      .get()
+      .then((me) => {
+        if (cancelled) return
+        const cid = me?.activeCompanyId ?? me?.activeCompany?.id
+        if (cid != null && cid !== '') setCompanyId(String(cid))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const [customers, setCustomers] = useState([])
   const [levels, setLevels] = useState([])
   const [inquiries, setInquiries] = useState([])
@@ -268,28 +338,68 @@ export default function AfterSalesDesk() {
     setSelectedRma(await aftersalesApi.rmas.get(id))
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      try {
+        if (tab === 'inquiries') {
+          if (selectedId) await selectInquiry(selectedId)
+          else if (!cancelled) setSelectedInq(null)
+          if (!cancelled) {
+            setSelectedClaim(null)
+            setSelectedRma(null)
+          }
+        } else if (tab === 'claims') {
+          if (selectedId) await selectClaim(selectedId)
+          else if (!cancelled) setSelectedClaim(null)
+          if (!cancelled) {
+            setSelectedInq(null)
+            setSelectedRma(null)
+          }
+        } else if (tab === 'rmas') {
+          if (selectedId) await selectRma(selectedId)
+          else if (!cancelled) setSelectedRma(null)
+          if (!cancelled) {
+            setSelectedInq(null)
+            setSelectedClaim(null)
+          }
+        } else if (!cancelled) {
+          setSelectedInq(null)
+          setSelectedClaim(null)
+          setSelectedRma(null)
+        }
+      } catch (e) {
+        if (!cancelled) setError(e.message || String(e))
+      }
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [tab, selectedId, selectInquiry, selectClaim, selectRma])
+
+  useEffect(() => {
+    if (!selectedId) return
+    const id = window.requestAnimationFrame(() => {
+      scrollSelectedIntoView('.desk-shell-list')
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [selectedId, tab, selectedInq?.id, selectedClaim?.id, selectedRma?.id])
+
   const refresh = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       await loadAll()
-      if (selectedInq?.id) await selectInquiry(selectedInq.id)
-      if (selectedClaim?.id) await selectClaim(selectedClaim.id)
-      if (selectedRma?.id) await selectRma(selectedRma.id)
+      if (tab === 'inquiries' && selectedId) await selectInquiry(selectedId)
+      if (tab === 'claims' && selectedId) await selectClaim(selectedId)
+      if (tab === 'rmas' && selectedId) await selectRma(selectedId)
     } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)
     }
-  }, [
-    loadAll,
-    selectInquiry,
-    selectClaim,
-    selectRma,
-    selectedInq?.id,
-    selectedClaim?.id,
-    selectedRma?.id,
-  ])
+  }, [loadAll, selectInquiry, selectClaim, selectRma, selectedId, tab])
 
   useEffect(() => {
     setLoading(true)
@@ -324,7 +434,6 @@ export default function AfterSalesDesk() {
       setInfo(t('toast.namedCreatedId', { ns: 'common', what: t('labels.customer', { ns: 'common' }), name: c.name, id: c.id }))
       setCustomerForm({ name: '', email: '', contactName: '', customerKind: 'ORGANIZATION' })
       await loadAll()
-      // pre-select on open forms
       setInqForm((f) => ({ ...f, customerId: String(c.id) }))
       setWarForm((f) => ({ ...f, customerId: String(c.id) }))
       setRmaForm((f) => ({ ...f, customerId: String(c.id) }))
@@ -351,6 +460,7 @@ export default function AfterSalesDesk() {
       setLevelForm({ name: '', code: '', responseHours: '24', resolveHours: '72', channel: 'ANY' })
       setLevelPage((pg) => ({ ...pg, offset: 0 }))
       await loadAll()
+      setNewExpanded(false)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -390,8 +500,10 @@ export default function AfterSalesDesk() {
         description: '',
       })
       setInqPage((pg) => ({ ...pg, offset: 0 }))
+      setNewExpanded(false)
       await loadAll()
-      await selectInquiry(i.id)
+      setSelectedId(String(i.id))
+      setTab('inquiries')
       setTab('inquiries')
     } catch (err) {
       setError(err.message)
@@ -440,6 +552,7 @@ export default function AfterSalesDesk() {
       setInfo(t('toast.warrantyReg', { ns: 'common', number: w.warrantyNumber }))
       setWarForm({ name: '', customerId: '', productName: '', catalogueItemId: '' })
       setWarPage((pg) => ({ ...pg, offset: 0 }))
+      setNewExpanded(false)
       await loadAll()
       setTab('warranties')
     } catch (err) {
@@ -468,8 +581,10 @@ export default function AfterSalesDesk() {
       setInfo(t('toast.numberOpened', { ns: 'common', what: t('labels.claim', { ns: 'common' }), number: c.claimNumber }))
       setClaimForm({ warrantyId: '', claimAmountEur: '0', claimAmountSats: '', description: '' })
       setClaimPage((pg) => ({ ...pg, offset: 0 }))
+      setNewExpanded(false)
       await loadAll()
-      await selectClaim(c.id)
+      setSelectedId(String(c.id))
+      setTab('claims')
       setTab('claims')
     } catch (err) {
       setError(err.message)
@@ -550,8 +665,10 @@ export default function AfterSalesDesk() {
         expectedRefundEur: '',
       })
       setRmaPage((pg) => ({ ...pg, offset: 0 }))
+      setNewExpanded(false)
       await loadAll()
-      await selectRma(r.id)
+      setSelectedId(String(r.id))
+      setTab('rmas')
       setTab('rmas')
     } catch (err) {
       setError(err.message)
@@ -628,191 +745,205 @@ export default function AfterSalesDesk() {
     </div>
   )
 
-  return (
-    <div className="page delivery-desk-page">
-      <header className="page-header" style={{ marginBottom: '1.25rem' }}>
-        <h1 className="page-title">
-          <Headphones size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          {t('aftersales.title')}
-        </h1>
-        <p className="page-sub">{t('aftersales.subtitle')}</p>
-      </header>
 
-      {error && <div className="banner-error">{error}</div>}
-      {info && <div className="banner-info">{info}</div>}
+  const resetCreateForms = useCallback(() => {
+    setLevelForm({ name: '', code: '', responseHours: '24', resolveHours: '72', channel: 'ANY' })
+    setInqForm({
+      name: '',
+      kind: 'REQUEST',
+      channel: 'EMAIL',
+      priority: 'NORMAL',
+      customerId: '',
+      serviceLevelId: '',
+      description: '',
+    })
+    setWarForm({ name: '', customerId: '', productName: '', catalogueItemId: '' })
+    setClaimForm({ warrantyId: '', claimAmountEur: '0', claimAmountSats: '', description: '' })
+    setRmaForm({
+      customerId: '',
+      catalogueItemId: '',
+      productName: '',
+      quantity: '1',
+      reason: '',
+      expectedRefundEur: '',
+    })
+    setPendingInqContent([])
+    setPendingClaimContent([])
+    setPendingRmaContent([])
+  }, [])
 
-      {viewModal}
+  const createDirty = useMemo(() => {
+    if (tab === 'levels') {
+      return Boolean((levelForm.name || '').trim() || (levelForm.code || '').trim())
+    }
+    if (tab === 'inquiries') {
+      return Boolean(
+        (inqForm.name || '').trim() ||
+          inqForm.customerId ||
+          inqForm.serviceLevelId ||
+          (inqForm.description || '').trim() ||
+          pendingInqContent.length ||
+          inqForm.kind !== 'REQUEST' ||
+          inqForm.channel !== 'EMAIL' ||
+          inqForm.priority !== 'NORMAL',
+      )
+    }
+    if (tab === 'warranties') {
+      return Boolean(
+        (warForm.name || '').trim() ||
+          warForm.customerId ||
+          warForm.productName ||
+          warForm.catalogueItemId,
+      )
+    }
+    if (tab === 'claims') {
+      return Boolean(
+        claimForm.warrantyId ||
+          claimForm.description ||
+          claimForm.claimAmountSats ||
+          claimForm.claimAmountEur !== '0' ||
+          pendingClaimContent.length,
+      )
+    }
+    if (tab === 'rmas') {
+      return Boolean(
+        rmaForm.customerId ||
+          rmaForm.catalogueItemId ||
+          rmaForm.productName ||
+          rmaForm.reason ||
+          rmaForm.expectedRefundEur ||
+          rmaForm.quantity !== '1' ||
+          pendingRmaContent.length,
+      )
+    }
+    return false
+  }, [tab, levelForm, inqForm, warForm, claimForm, rmaForm, pendingInqContent, pendingClaimContent, pendingRmaContent])
 
-      <div className="toolbar">
-        <button type="button" className="btn" onClick={refresh} disabled={loading || !!busy}>
-          <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
-        </button>
+  const applyCollapseCreate = useCallback(() => {
+    setNewExpanded(false)
+    resetCreateForms()
+  }, [resetCreateForms])
+
+  const requestToggleNew = useCallback(() => {
+    if (newExpanded && createDirty) {
+      setPendingNav({ type: 'collapse' })
+      setDiscardOpen(true)
+      return
+    }
+    if (newExpanded) applyCollapseCreate()
+    else setNewExpanded(true)
+  }, [newExpanded, createDirty, applyCollapseCreate])
+
+  const requestTabChange = useCallback(
+    (nextTab) => {
+      if (nextTab === tab) return
+      if (newExpanded && createDirty) {
+        setPendingNav({ type: 'tab', tab: nextTab })
+        setDiscardOpen(true)
+        return
+      }
+      setTab(nextTab)
+      setSelectedId(null)
+      setNewExpanded(false)
+      resetCreateForms()
+    },
+    [tab, newExpanded, createDirty, resetCreateForms],
+  )
+
+  const confirmDiscard = useCallback(() => {
+    const nav = pendingNav
+    setDiscardOpen(false)
+    setPendingNav(null)
+    applyCollapseCreate()
+    if (nav?.type === 'tab' && nav.tab) {
+      setTab(nav.tab)
+      setSelectedId(null)
+    }
+  }, [pendingNav, applyCollapseCreate])
+
+  const cancelDiscard = useCallback(() => {
+    setDiscardOpen(false)
+    setPendingNav(null)
+  }, [])
+
+  const newLabel = useMemo(() => {
+    if (tab === 'inquiries') return t('aftersales.newInquiry', { defaultValue: 'New inquiry' })
+    if (tab === 'warranties') return t('aftersales.newWarranty', { defaultValue: 'New warranty' })
+    if (tab === 'claims') return t('aftersales.newClaim', { defaultValue: 'New claim' })
+    if (tab === 'rmas') return t('aftersales.newRma', { defaultValue: 'New RMA' })
+    if (tab === 'levels') return t('aftersales.newLevel', { defaultValue: 'New service level' })
+    return t('desk.new', { ns: 'common', defaultValue: 'New' })
+  }, [tab, t])
+
+  const hasSelection = useMemo(() => {
+    if (tab === 'inquiries') return Boolean(selectedInq?.id)
+    if (tab === 'claims') return Boolean(selectedClaim?.id)
+    if (tab === 'rmas') return Boolean(selectedRma?.id)
+    return false
+  }, [tab, selectedInq?.id, selectedClaim?.id, selectedRma?.id])
+
+  const helpContext = useMemo(() => {
+    const base = { desk: 'aftersales', tab, processCode: 'AS_INQUIRY' }
+    if (tab === 'inquiries' && selectedInq) {
+      return {
+        ...base,
+        resource: 'Inquiry',
+        objectId: selectedInq.id,
+        status: selectedInq.caseStatus,
+      }
+    }
+    if (tab === 'claims' && selectedClaim) {
+      return {
+        ...base,
+        resource: 'Claims',
+        objectId: selectedClaim.id,
+        status: selectedClaim.claimStatus,
+      }
+    }
+    if (tab === 'rmas' && selectedRma) {
+      return {
+        ...base,
+        resource: 'Rma',
+        objectId: selectedRma.id,
+        status: selectedRma.rmaStatus,
+      }
+    }
+    return base
+  }, [tab, selectedInq, selectedClaim, selectedRma])
+
+  const processStatus = tab === 'inquiries' ? selectedInq?.caseStatus : null
+  const processStep =
+    processStatus != null ? activeStepIndex('AS_INQUIRY', processStatus) : -1
+
+  const processSlot =
+    tab === 'inquiries' ? (
+      <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
         <ProcessHowItWorks processCode="AS_INQUIRY" />
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {TABS.map((tabDef) => {
-            const Icon = tabDef.icon
-            return (
-              <button
-                key={tabDef.id}
-                type="button"
-                className={`btn ${tab === tabDef.id ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => setTab(tabDef.id)}
-              >
-                <Icon size={14} /> {tabDef.label}
-              </button>
-            )
-          })}
-        </div>
-        <button
-          type="button"
-          className={`btn ${showNewCustomer ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => setShowNewCustomer((v) => !v)}
-        >
-          <Users size={14} /> {t('aftersales.newCustomer')}
-        </button>
-        <Link className="btn btn-secondary" to="/sales">
-          {t('aftersales.salesDesk')}
-        </Link>
-        <Link className="btn btn-secondary" to="/delivery">
-          {t('aftersales.deliveryDesk')}
-        </Link>
+        {processStep >= 0 && (
+          <span className="muted" style={{ fontSize: '0.85rem' }}>
+            {t('desk.processStep', {
+              ns: 'common',
+              defaultValue: 'Step {{n}}',
+              n: processStep + 1,
+            })}{' '}
+            · {processStatus}
+          </span>
+        )}
       </div>
+    ) : null
 
-      {showNewCustomer && (
-        <div className="two-col finance-tx-grid list-first-narrow" style={{ marginBottom: '1rem' }}>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('aftersales.newCustomer')}
-            </h2>
-            <p className="muted" style={{ marginTop: 0, fontSize: '0.9rem' }}>
-              For end customers reached via a distributor (or any case not already on the sales
-              books). Uses the Sales Customer domain.
-            </p>
-            <form className="form-grid" onSubmit={onCreateCustomer}>
-              <label>
-                Name *
-                <input
-                  required
-                  value={customerForm.name}
-                  onChange={(e) => setCustomerForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder={t('aftersales.customerPlaceholder')}
-                />
-              </label>
-              <div className="form-row-2">
-                <label>
-                  Kind
-                  <select
-                    value={customerForm.customerKind}
-                    onChange={(e) =>
-                      setCustomerForm((f) => ({ ...f, customerKind: e.target.value }))
-                    }
-                  >
-                    {['ORGANIZATION', 'PERSON'].map((k) => (
-                      <option key={k} value={k}>
-                        {k}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Contact
-                  <input
-                    value={customerForm.contactName}
-                    onChange={(e) =>
-                      setCustomerForm((f) => ({ ...f, contactName: e.target.value }))
-                    }
-                  />
-                </label>
-              </div>
-              <label>
-                Email
-                <input
-                  type="email"
-                  value={customerForm.email}
-                  onChange={(e) => setCustomerForm((f) => ({ ...f, email: e.target.value }))}
-                />
-              </label>
-              <div className="toolbar" style={{ marginBottom: 0 }}>
-                <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                  <Plus size={16} /> {t('aftersales.createCustomer')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => setShowNewCustomer(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </section>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Customers ({customers.length})
-            </h2>
-            <ResponsiveDataList
-              items={customers}
-              empty={t('aftersales.emptyCustomers')}
-              fields={[
-                { id: 'name', primary: true, render: (c) => c.name },
-                {
-                  id: 'email',
-                  secondary: true,
-                  render: (c) => c.email || '—',
-                },
-                {
-                  id: 'kind',
-                  priority: 'low',
-                  render: (c) => c.customerKind || '—',
-                },
-              ]}
-              actions={(c) => (
-                <ViewButton pkg="sales" resource="Customer" record={c} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.name', { ns: 'common' })}</th>
-                      <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
-                      <th>{t('wb.email', { ns: 'common' })}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customers.map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.name}</td>
-                        <td className="col-priority-low">{c.customerKind || '—'}</td>
-                        <td className="muted">{c.email || '—'}</td>
-                        <td style={{ whiteSpace: 'nowrap' }}>
-                          <ViewButton pkg="sales" resource="Customer" record={c} />
-                        </td>
-                      </tr>
-                    ))}
-                    {!customers.length && (
-                      <tr>
-                        <td colSpan={4} className="muted">
-                          {t('aftersales.emptyCustomers')}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-          </section>
-        </div>
-      )}
+  const collapsedContentRail = (pkg, resource, id, onChanged) => (
+    <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+      <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+        {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+      </summary>
+      <ContentRail package={pkg} resource={resource} id={id} onChanged={onChanged} />
+    </details>
+  )
 
-      {tab === 'levels' && (
-        <div className="two-col finance-tx-grid list-first-narrow">
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('aftersales.newLevel')}
-            </h2>
-            <form className="form-grid" onSubmit={onCreateLevel}>
+
+  const levelCreatePanel = (
+<form className="form-grid" onSubmit={onCreateLevel}>
               <label>
                 Name *
                 <input
@@ -868,91 +999,10 @@ export default function AfterSalesDesk() {
                 <Plus size={16} /> {t('aftersales.createLevel')}
               </button>
             </form>
-          </section>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Service levels ({levelPage.total})
-            </h2>
-            <ResponsiveDataList
-              items={levels}
-              empty="—"
-              fields={[
-                { id: 'name', primary: true, render: (sl) => sl.name },
-                {
-                  id: 'code',
-                  secondary: true,
-                  render: (sl) => (
-                    <span className="mono">{sl.code || '—'}</span>
-                  ),
-                },
-                {
-                  id: 'hours',
-                  meta: true,
-                  render: (sl) =>
-                    [
-                      sl.responseHours != null ? `${sl.responseHours}h resp` : null,
-                      sl.resolveHours != null ? `${sl.resolveHours}h resolve` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ') || '—',
-                },
-              ]}
-              actions={(sl) => (
-                <ViewButton pkg="service" resource="ServiceLevel" record={sl} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.name', { ns: 'common' })}</th>
-                      <th>{t('wb.code', { ns: 'common' })}</th>
-                      <th className="col-priority-low">
-                        {t('wb.period', { ns: 'common' }) /* Response hours */}
-                      </th>
-                      <th className="col-priority-low">{t('aftersales.resolve')}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {levels.map((sl) => (
-                      <tr key={sl.id}>
-                        <td>{sl.name}</td>
-                        <td className="mono">{sl.code || '—'}</td>
-                        <td className="col-priority-low">
-                          {sl.responseHours != null ? `${sl.responseHours}h` : '—'}
-                        </td>
-                        <td className="col-priority-low">
-                          {sl.resolveHours != null ? `${sl.resolveHours}h` : '—'}
-                        </td>
-                        <td style={{ whiteSpace: 'nowrap' }}>
-                          <ViewButton pkg="service" resource="ServiceLevel" record={sl} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={levelPage.total}
-              max={levelPage.max}
-              offset={levelPage.offset}
-              disabled={loading}
-              onOffset={(o) => setLevelPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setLevelPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-        </div>
-      )}
+  )
 
-      {tab === 'inquiries' && (
-        <div className="two-col finance-tx-grid">
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Open inquiry
-            </h2>
-            <form className="form-grid" onSubmit={onCreateInq}>
+  const inqCreatePanel = (
+<form className="form-grid" onSubmit={onCreateInq}>
               <label>
                 Subject *
                 <input
@@ -1045,203 +1095,10 @@ export default function AfterSalesDesk() {
                 <Plus size={16} /> {t('aftersales.openCase')}
               </button>
             </form>
+  )
 
-            <h2 className="section-label">
-              {t('aftersales.inquiriesCount', { count: inqPage.total })}
-            </h2>
-            <ResponsiveDataList
-              items={inquiries}
-              empty="—"
-              selectedKey={selectedInq?.id}
-              onSelect={(i) => selectInquiry(i.id)}
-              fields={[
-                {
-                  id: 'number',
-                  primary: true,
-                  render: (i) => (
-                    <>
-                      <span className="mono">{i.inquiryNumber}</span>{' '}
-                      <span className={statusClass(i.caseStatus)}>{i.caseStatus}</span>
-                      {i.overdue ? ' ⚠' : ''}
-                    </>
-                  ),
-                },
-                {
-                  id: 'subject',
-                  secondary: true,
-                  render: (i) => i.name || '—',
-                },
-                {
-                  id: 'customer',
-                  meta: true,
-                  render: (i) =>
-                    i.customerName || customerNameById(i.customerId) || '—',
-                },
-                {
-                  id: 'kind',
-                  priority: 'low',
-                  render: (i) => i.kind,
-                },
-              ]}
-              actions={(i) => (
-                <ViewButton pkg="service" resource="Inquiry" record={i} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.number', { ns: 'common' })}</th>
-                      <th>{t('wb.subject', { ns: 'common' })}</th>
-                      <th>{t('wb.customer', { ns: 'common' })}</th>
-                      <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
-                      <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                      <th>{t('wb.status', { ns: 'common' })}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inquiries.map((i) => (
-                      <tr
-                        key={i.id}
-                        className={selectedInq?.id === i.id ? 'row-selected' : 'row-click'}
-                        onClick={() => selectInquiry(i.id)}
-                      >
-                        <td className="mono">{i.inquiryNumber}</td>
-                        <td>
-                          {i.name}
-                          {i.overdue ? ' ⚠' : ''}
-                        </td>
-                        <td>{i.customerName || customerNameById(i.customerId) || '—'}</td>
-                        <td className="col-priority-low">{i.kind}</td>
-                        <td
-                          className="col-priority-low"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ContentChannelIcons summary={inqContentMap[i.id]} />
-                        </td>
-                        <td>
-                          <span className={statusClass(i.caseStatus)}>{i.caseStatus}</span>
-                        </td>
-                        <td
-                          style={{ whiteSpace: 'nowrap' }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ViewButton pkg="service" resource="Inquiry" record={i} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={inqPage.total}
-              max={inqPage.max}
-              offset={inqPage.offset}
-              disabled={loading}
-              onOffset={(o) => setInqPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setInqPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('aftersales.inquiryDetail')}
-            </h2>
-            {!selectedInq && <p className="muted">{t('aftersales.selectInquiry')}</p>}
-            {selectedInq && (
-              <>
-                <div className="inv-detail-hero">
-                  <div>
-                    <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                      {selectedInq.inquiryNumber}
-                    </div>
-                    <div className="muted">
-                      {selectedInq.customerName ||
-                        customerNameById(selectedInq.customerId) ||
-                        t('wb.noCustomer', { ns: 'common' })}{' '}
-                      ·{' '}
-                      <span className={statusClass(selectedInq.caseStatus)}>
-                        {selectedInq.caseStatus}
-                      </span>
-                    </div>
-                    <div className="muted" style={{ fontSize: '0.85rem' }}>
-                      {selectedInq.kind} · {selectedInq.priority} · {selectedInq.channel}
-                      {selectedInq.overdue
-                        ? ` · ${t('pages.dashboard.overdue', { ns: 'common' })}`
-                        : ''}
-                    </div>
-                  </div>
-                </div>
-                {selectedInq.description && (
-                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedInq.description}</p>
-                )}
-                <div className="toolbar">
-                  {['OPEN'].includes(selectedInq.caseStatus) && (
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => runInquiry('start')}
-                      disabled={!!busy}
-                    >
-                      <Play size={16} /> {t('aftersales.start')}
-                    </button>
-                  )}
-                  {['OPEN', 'IN_PROGRESS'].includes(selectedInq.caseStatus) && (
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => runInquiry('resolve')}
-                      disabled={!!busy}
-                    >
-                      <Check size={16} /> {t('aftersales.resolve')}
-                    </button>
-                  )}
-                  {selectedInq.caseStatus !== 'CLOSED' &&
-                    selectedInq.caseStatus !== 'CANCELLED' && (
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => runInquiry('close')}
-                        disabled={!!busy}
-                      >
-                        {t('actions.close', { ns: 'common' })}
-                      </button>
-                    )}
-                  {selectedInq.caseStatus !== 'CLOSED' &&
-                    selectedInq.caseStatus !== 'CANCELLED' && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() => runInquiry('cancel')}
-                        disabled={!!busy}
-                      >
-                        <X size={16} /> {t('actions.cancel', { ns: 'common' })}
-                      </button>
-                    )}
-                </div>
-                <ContentRail
-                  package="service"
-                  resource="Inquiry"
-                  id={selectedInq.id}
-                  onChanged={async () =>
-                    setInqContentMap(await fetchContentMap('service', 'Inquiry', inquiries))
-                  }
-                />
-              </>
-            )}
-          </section>
-        </div>
-      )}
-
-      {tab === 'warranties' && (
-        <div className="two-col finance-tx-grid list-first-narrow">
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Register warranty
-            </h2>
-            <form className="form-grid" onSubmit={onCreateWar}>
+  const warCreatePanel = (
+<form className="form-grid" onSubmit={onCreateWar}>
               <label>
                 Name
                 <input
@@ -1281,97 +1138,10 @@ export default function AfterSalesDesk() {
                 <Plus size={16} /> Register (ACTIVE)
               </button>
             </form>
-          </section>
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Warranties ({warPage.total})
-            </h2>
-            <ResponsiveDataList
-              items={warranties}
-              empty="—"
-              fields={[
-                {
-                  id: 'number',
-                  primary: true,
-                  render: (w) => (
-                    <>
-                      <span className="mono">{w.warrantyNumber}</span>{' '}
-                      <span className={statusClass(w.coverStatus)}>
-                        {w.coverStatus}
-                        {w.inForce ? ' · in force' : ''}
-                      </span>
-                    </>
-                  ),
-                },
-                {
-                  id: 'customer',
-                  secondary: true,
-                  render: (w) =>
-                    w.customerName || customerNameById(w.customerId) || '—',
-                },
-                {
-                  id: 'product',
-                  meta: true,
-                  render: (w) => w.productName || w.productId || '—',
-                },
-              ]}
-              actions={(w) => (
-                <ViewButton pkg="service" resource="Warranty" record={w} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.number', { ns: 'common' })}</th>
-                      <th>{t('wb.customer', { ns: 'common' })}</th>
-                      <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
-                      <th>{t('wb.status', { ns: 'common' })}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {warranties.map((w) => (
-                      <tr key={w.id}>
-                        <td className="mono">{w.warrantyNumber}</td>
-                        <td>{w.customerName || customerNameById(w.customerId) || '—'}</td>
-                        <td className="col-priority-low">
-                          {w.productName || w.productId || '—'}
-                        </td>
-                        <td>
-                          <span className={statusClass(w.coverStatus)}>
-                            {w.coverStatus}
-                            {w.inForce ? ' · in force' : ''}
-                          </span>
-                        </td>
-                        <td style={{ whiteSpace: 'nowrap' }}>
-                          <ViewButton pkg="service" resource="Warranty" record={w} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={warPage.total}
-              max={warPage.max}
-              offset={warPage.offset}
-              disabled={loading}
-              onOffset={(o) => setWarPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setWarPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-        </div>
-      )}
+  )
 
-      {tab === 'claims' && (
-        <div className="two-col finance-tx-grid">
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Receive claim
-            </h2>
-            <form className="form-grid" onSubmit={onCreateClaim}>
+  const claimCreatePanel = (
+<form className="form-grid" onSubmit={onCreateClaim}>
               <label>
                 {t('aftersales.warrantyField')} *
                 <select
@@ -1429,200 +1199,10 @@ export default function AfterSalesDesk() {
                 <Plus size={16} /> Receive claim
               </button>
             </form>
+  )
 
-            <h2 className="section-label">Claims ({claimPage.total})</h2>
-            <ResponsiveDataList
-              items={claims}
-              empty="—"
-              selectedKey={selectedClaim?.id}
-              onSelect={(c) => selectClaim(c.id)}
-              fields={[
-                {
-                  id: 'number',
-                  primary: true,
-                  render: (c) => (
-                    <>
-                      <span className="mono">{c.claimNumber}</span>{' '}
-                      <span className={statusClass(c.claimStatus)}>{c.claimStatus}</span>
-                    </>
-                  ),
-                },
-                {
-                  id: 'warranty',
-                  secondary: true,
-                  render: (c) => c.warrantyNumber || c.warrantyId || '—',
-                },
-                {
-                  id: 'eur',
-                  meta: true,
-                  render: (c) =>
-                    c.claimAmountEur != null
-                      ? `${Number(c.claimAmountEur).toFixed(2)} EUR`
-                      : '—',
-                },
-              ]}
-              actions={(c) => (
-                <ViewButton pkg="service" resource="Claims" record={c} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.number', { ns: 'common' })}</th>
-                      <th>{t('aftersales.warrantiesList')}</th>
-                      <th>EUR</th>
-                      <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                      <th>{t('wb.status', { ns: 'common' })}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {claims.map((c) => (
-                      <tr
-                        key={c.id}
-                        className={selectedClaim?.id === c.id ? 'row-selected' : 'row-click'}
-                        onClick={() => selectClaim(c.id)}
-                      >
-                        <td className="mono">{c.claimNumber}</td>
-                        <td>{c.warrantyNumber || c.warrantyId}</td>
-                        <td>
-                          {c.claimAmountEur != null
-                            ? Number(c.claimAmountEur).toFixed(2)
-                            : '—'}
-                        </td>
-                        <td
-                          className="col-priority-low"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ContentChannelIcons summary={claimContentMap[c.id]} />
-                        </td>
-                        <td>
-                          <span className={statusClass(c.claimStatus)}>{c.claimStatus}</span>
-                        </td>
-                        <td
-                          style={{ whiteSpace: 'nowrap' }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ViewButton pkg="service" resource="Claims" record={c} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={claimPage.total}
-              max={claimPage.max}
-              offset={claimPage.offset}
-              disabled={loading}
-              onOffset={(o) => setClaimPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setClaimPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
-
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('aftersales.claimDetail')}
-            </h2>
-            {!selectedClaim && <p className="muted">{t('aftersales.selectClaim')}</p>}
-            {selectedClaim && (
-              <>
-                <div className="inv-detail-hero">
-                  <div>
-                    <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                      {selectedClaim.claimNumber}
-                    </div>
-                    <div className="muted">
-                      {t('aftersales.warrantyRef', {
-                        ref: selectedClaim.warrantyNumber || `#${selectedClaim.warrantyId}`,
-                      })}{' '}
-                      ·{' '}
-                      <span className={statusClass(selectedClaim.claimStatus)}>
-                        {selectedClaim.claimStatus}
-                      </span>
-                    </div>
-                    {selectedClaim.financeCreditInvoiceId && (
-                      <div className="muted" style={{ fontSize: '0.85rem' }}>
-                        {t('aftersales.financeCreditInvoice', {
-                          id: selectedClaim.financeCreditInvoiceId,
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  <div className="inv-amount">
-                    {Number(selectedClaim.claimAmountEur || 0).toFixed(2)} EUR
-                    {selectedClaim.claimAmountSats != null && (
-                      <div className="muted mono" style={{ fontSize: '0.8rem' }}>
-                        {selectedClaim.claimAmountSats} sats
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="toolbar">
-                  {['RECEIVED'].includes(selectedClaim.claimStatus) && (
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => runClaim('validate')}
-                      disabled={!!busy}
-                    >
-                      {t('aftersales.validate')}
-                    </button>
-                  )}
-                  {['RECEIVED', 'VALIDATED'].includes(selectedClaim.claimStatus) && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => runClaim('approve')}
-                      disabled={!!busy}
-                    >
-                      <Check size={16} /> {t('aftersales.approveFinance')}
-                    </button>
-                  )}
-                  {['RECEIVED', 'VALIDATED'].includes(selectedClaim.claimStatus) && (
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => runClaim('reject')}
-                      disabled={!!busy}
-                    >
-                      <X size={16} /> {t('aftersales.reject')}
-                    </button>
-                  )}
-                  {['APPROVED', 'REJECTED'].includes(selectedClaim.claimStatus) && (
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => runClaim('close')}
-                      disabled={!!busy}
-                    >
-                      {t('actions.close', { ns: 'common' })}
-                    </button>
-                  )}
-                </div>
-                <ContentRail
-                  package="service"
-                  resource="Claims"
-                  id={selectedClaim.id}
-                  onChanged={async () =>
-                    setClaimContentMap(await fetchContentMap('service', 'Claims', claims))
-                  }
-                />
-              </>
-            )}
-          </section>
-        </div>
-      )}
-
-      {tab === 'rmas' && (
-        <div className="two-col finance-tx-grid">
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              Open return (RMA)
-            </h2>
-            <form className="form-grid" onSubmit={onCreateRma}>
+  const rmaCreatePanel = (
+<form className="form-grid" onSubmit={onCreateRma}>
               <CustomerField
                 value={rmaForm.customerId}
                 onChange={(id) => applyCustomerTo(setRmaForm, id)}
@@ -1686,188 +1266,876 @@ export default function AfterSalesDesk() {
                 <Plus size={16} /> {t('aftersales.openRma')}
               </button>
             </form>
+  )
 
-            <h2 className="section-label">
-              {t('aftersales.returnsCount', { count: rmaPage.total })}
-            </h2>
-            <ResponsiveDataList
-              items={rmas}
-              empty="—"
-              selectedKey={selectedRma?.id}
-              onSelect={(r) => selectRma(r.id)}
-              fields={[
-                {
-                  id: 'number',
-                  primary: true,
-                  render: (r) => (
-                    <>
-                      <span className="mono">{r.rmaNumber}</span>{' '}
-                      <span className={statusClass(r.rmaStatus)}>{r.rmaStatus}</span>
-                    </>
-                  ),
-                },
-                {
-                  id: 'customer',
-                  secondary: true,
-                  render: (r) =>
-                    r.customerName || customerNameById(r.customerId) || '—',
-                },
-                {
-                  id: 'product',
-                  meta: true,
-                  render: (r) => r.productName || r.productId || '—',
-                },
-              ]}
-              actions={(r) => (
-                <ViewButton pkg="service" resource="Rma" record={r} />
-              )}
-            >
-              <div className="table-wrap">
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('wb.number', { ns: 'common' })}</th>
-                      <th>{t('wb.customer', { ns: 'common' })}</th>
-                      <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
-                      <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                      <th>{t('wb.status', { ns: 'common' })}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rmas.map((r) => (
-                      <tr
-                        key={r.id}
-                        className={selectedRma?.id === r.id ? 'row-selected' : 'row-click'}
-                        onClick={() => selectRma(r.id)}
-                      >
-                        <td className="mono">{r.rmaNumber}</td>
-                        <td>{r.customerName || customerNameById(r.customerId) || '—'}</td>
-                        <td className="col-priority-low">
-                          {r.productName || r.productId || '—'}
-                        </td>
-                        <td
-                          className="col-priority-low"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ContentChannelIcons summary={rmaContentMap[r.id]} />
-                        </td>
-                        <td>
-                          <span className={statusClass(r.rmaStatus)}>{r.rmaStatus}</span>
-                        </td>
-                        <td
-                          style={{ whiteSpace: 'nowrap' }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ViewButton pkg="service" resource="Rma" record={r} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ResponsiveDataList>
-            <ListPager
-              total={rmaPage.total}
-              max={rmaPage.max}
-              offset={rmaPage.offset}
-              disabled={loading}
-              onOffset={(o) => setRmaPage((pg) => ({ ...pg, offset: o }))}
-              onMax={(m) => setRmaPage((pg) => ({ ...pg, max: m, offset: 0 }))}
-            />
-          </section>
+  const newPanel =
+    tab === 'levels'
+      ? levelCreatePanel
+      : tab === 'inquiries'
+        ? inqCreatePanel
+        : tab === 'warranties'
+          ? warCreatePanel
+          : tab === 'claims'
+            ? claimCreatePanel
+            : tab === 'rmas'
+              ? rmaCreatePanel
+              : null
 
-          <section className="card">
-            <h2 className="section-label" style={{ marginTop: 0 }}>
-              {t('aftersales.rmaDetail')}
-            </h2>
-            {!selectedRma && <p className="muted">{t('aftersales.selectRma')}</p>}
-            {selectedRma && (
-              <>
-                <div className="inv-detail-hero">
-                  <div>
-                    <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                      {selectedRma.rmaNumber}
-                    </div>
-                    <div className="muted">
-                      {selectedRma.customerName ||
-                        customerNameById(selectedRma.customerId) ||
-                        t('wb.noCustomer', { ns: 'common' })}{' '}
-                      ·{' '}
-                      <span className={statusClass(selectedRma.rmaStatus)}>
-                        {selectedRma.rmaStatus}
-                      </span>
-                    </div>
-                    <div className="muted" style={{ fontSize: '0.85rem' }}>
-                      {t('aftersales.qtyLabel', { qty: selectedRma.quantity })}
-                      {selectedRma.stockMoveId
-                        ? ` · ${t('aftersales.stockRef', { id: selectedRma.stockMoveId })}`
-                        : ''}
-                    </div>
-                  </div>
-                  {selectedRma.expectedRefundEur != null && (
-                    <div className="inv-amount">
-                      {Number(selectedRma.expectedRefundEur).toFixed(2)} EUR
-                      <div className="muted" style={{ fontSize: '0.75rem' }}>
-                        {t('aftersales.expectedRefund')}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="toolbar">
-                  {selectedRma.rmaStatus === 'REQUESTED' && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => runRma('confirm')}
-                      disabled={!!busy}
-                    >
-                      <Check size={16} /> {t('aftersales.confirmScmStock')}
-                    </button>
-                  )}
-                  {selectedRma.rmaStatus !== 'CLOSED' &&
-                    selectedRma.rmaStatus !== 'CANCELLED' && (
-                      <button
-                        type="button"
-                        className="btn"
-                        onClick={() => runRma('close')}
-                        disabled={!!busy}
-                      >
-                        {t('actions.close', { ns: 'common' })}
-                      </button>
+  const levelsList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+                    Service levels ({levelPage.total})
+                  </h2>
+                  <ResponsiveDataList
+                    items={levels}
+                    empty="—"
+                    fields={[
+                      { id: 'name', primary: true, render: (sl) => sl.name },
+                      {
+                        id: 'code',
+                        secondary: true,
+                        render: (sl) => (
+                          <span className="mono">{sl.code || '—'}</span>
+                        ),
+                      },
+                      {
+                        id: 'hours',
+                        meta: true,
+                        render: (sl) =>
+                          [
+                            sl.responseHours != null ? `${sl.responseHours}h resp` : null,
+                            sl.resolveHours != null ? `${sl.resolveHours}h resolve` : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ') || '—',
+                      },
+                    ]}
+                    actions={(sl) => (
+                      <ViewButton pkg="service" resource="ServiceLevel" record={sl} />
                     )}
-                  {selectedRma.rmaStatus === 'REQUESTED' && (
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => runRma('cancel')}
-                      disabled={!!busy}
-                    >
-                      <X size={16} /> {t('actions.cancel', { ns: 'common' })}
-                    </button>
-                  )}
-                  <a
-                    className="btn"
-                    href={aftersalesApi.rmas.pdfUrl(selectedRma.id)}
-                    target="_blank"
-                    rel="noreferrer"
                   >
-                    <FileText size={16} /> Download RMA PDF
-                  </a>
-                </div>
-                <ContentRail
-                  package="service"
-                  resource="Rma"
-                  id={selectedRma.id}
-                  onChanged={async () =>
-                    setRmaContentMap(await fetchContentMap('service', 'Rma', rmas))
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>{t('wb.name', { ns: 'common' })}</th>
+                            <th>{t('wb.code', { ns: 'common' })}</th>
+                            <th className="col-priority-low">
+                              {t('wb.period', { ns: 'common' }) /* Response hours */}
+                            </th>
+                            <th className="col-priority-low">{t('aftersales.resolve')}</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {levels.map((sl) => (
+                            <tr key={sl.id}>
+                              <td>{sl.name}</td>
+                              <td className="mono">{sl.code || '—'}</td>
+                              <td className="col-priority-low">
+                                {sl.responseHours != null ? `${sl.responseHours}h` : '—'}
+                              </td>
+                              <td className="col-priority-low">
+                                {sl.resolveHours != null ? `${sl.resolveHours}h` : '—'}
+                              </td>
+                              <td style={{ whiteSpace: 'nowrap' }}>
+                                <ViewButton pkg="service" resource="ServiceLevel" record={sl} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ResponsiveDataList>
+                  <ListPager
+                    total={levelPage.total}
+                    max={levelPage.max}
+                    offset={levelPage.offset}
+                    disabled={loading}
+                    onOffset={(o) => setLevelPage((pg) => ({ ...pg, offset: o }))}
+                    onMax={(m) => setLevelPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+                  />
+    </>
+  )
+
+  const warrantiesList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+                    Warranties ({warPage.total})
+                  </h2>
+                  <ResponsiveDataList
+                    items={warranties}
+                    empty="—"
+                    fields={[
+                      {
+                        id: 'number',
+                        primary: true,
+                        render: (w) => (
+                          <>
+                            <span className="mono">{w.warrantyNumber}</span>{' '}
+                            <span className={statusClass(w.coverStatus)}>
+                              {w.coverStatus}
+                              {w.inForce ? ' · in force' : ''}
+                            </span>
+                          </>
+                        ),
+                      },
+                      {
+                        id: 'customer',
+                        secondary: true,
+                        render: (w) =>
+                          w.customerName || customerNameById(w.customerId) || '—',
+                      },
+                      {
+                        id: 'product',
+                        meta: true,
+                        render: (w) => w.productName || w.productId || '—',
+                      },
+                    ]}
+                    actions={(w) => (
+                      <ViewButton pkg="service" resource="Warranty" record={w} />
+                    )}
+                  >
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>{t('wb.number', { ns: 'common' })}</th>
+                            <th>{t('wb.customer', { ns: 'common' })}</th>
+                            <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
+                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {warranties.map((w) => (
+                            <tr key={w.id}>
+                              <td className="mono">{w.warrantyNumber}</td>
+                              <td>{w.customerName || customerNameById(w.customerId) || '—'}</td>
+                              <td className="col-priority-low">
+                                {w.productName || w.productId || '—'}
+                              </td>
+                              <td>
+                                <span className={statusClass(w.coverStatus)}>
+                                  {w.coverStatus}
+                                  {w.inForce ? ' · in force' : ''}
+                                </span>
+                              </td>
+                              <td style={{ whiteSpace: 'nowrap' }}>
+                                <ViewButton pkg="service" resource="Warranty" record={w} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ResponsiveDataList>
+                  <ListPager
+                    total={warPage.total}
+                    max={warPage.max}
+                    offset={warPage.offset}
+                    disabled={loading}
+                    onOffset={(o) => setWarPage((pg) => ({ ...pg, offset: o }))}
+                    onMax={(m) => setWarPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+                  />
+    </>
+  )
+
+  const inquiriesList = (
+    <>
+      <h2 className="section-label">
+                    {t('aftersales.inquiriesCount', { count: inqPage.total })}
+                  </h2>
+                  <ResponsiveDataList
+                    items={inquiries}
+                    empty="—"
+                    selectedKey={selectedInq?.id}
+                    onSelect={(i) => setSelectedId(String(i.id))}
+                    fields={[
+                      {
+                        id: 'number',
+                        primary: true,
+                        render: (i) => (
+                          <>
+                            <span className="mono">{i.inquiryNumber}</span>{' '}
+                            <span className={statusClass(i.caseStatus)}>{i.caseStatus}</span>
+                            {i.overdue ? ' ⚠' : ''}
+                          </>
+                        ),
+                      },
+                      {
+                        id: 'subject',
+                        secondary: true,
+                        render: (i) => i.name || '—',
+                      },
+                      {
+                        id: 'customer',
+                        meta: true,
+                        render: (i) =>
+                          i.customerName || customerNameById(i.customerId) || '—',
+                      },
+                      {
+                        id: 'kind',
+                        priority: 'low',
+                        render: (i) => i.kind,
+                      },
+                    ]}
+                    actions={(i) => (
+                      <ViewButton pkg="service" resource="Inquiry" record={i} />
+                    )}
+                  >
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>{t('wb.number', { ns: 'common' })}</th>
+                            <th>{t('wb.subject', { ns: 'common' })}</th>
+                            <th>{t('wb.customer', { ns: 'common' })}</th>
+                            <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
+                            <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
+                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {inquiries.map((i) => (
+                            <tr
+                              key={i.id}
+                              data-selected={selectedInq?.id === i.id ? 'true' : undefined}
+                            className={selectedInq?.id === i.id ? 'row-selected' : 'row-click'}
+                              onClick={() => setSelectedId(String(i.id))}
+                            >
+                              <td className="mono">{i.inquiryNumber}</td>
+                              <td>
+                                {i.name}
+                                {i.overdue ? ' ⚠' : ''}
+                              </td>
+                              <td>{i.customerName || customerNameById(i.customerId) || '—'}</td>
+                              <td className="col-priority-low">{i.kind}</td>
+                              <td
+                                className="col-priority-low"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ContentChannelIcons summary={inqContentMap[i.id]} />
+                              </td>
+                              <td>
+                                <span className={statusClass(i.caseStatus)}>{i.caseStatus}</span>
+                              </td>
+                              <td
+                                style={{ whiteSpace: 'nowrap' }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ViewButton pkg="service" resource="Inquiry" record={i} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ResponsiveDataList>
+                  <ListPager
+                    total={inqPage.total}
+                    max={inqPage.max}
+                    offset={inqPage.offset}
+                    disabled={loading}
+                    onOffset={(o) => setInqPage((pg) => ({ ...pg, offset: o }))}
+                    onMax={(m) => setInqPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+                  />
+    </>
+  )
+
+  const claimsList = (
+    <>
+      <h2 className="section-label">Claims ({claimPage.total})</h2>
+                  <ResponsiveDataList
+                    items={claims}
+                    empty="—"
+                    selectedKey={selectedClaim?.id}
+                    onSelect={(c) => setSelectedId(String(c.id))}
+                    fields={[
+                      {
+                        id: 'number',
+                        primary: true,
+                        render: (c) => (
+                          <>
+                            <span className="mono">{c.claimNumber}</span>{' '}
+                            <span className={statusClass(c.claimStatus)}>{c.claimStatus}</span>
+                          </>
+                        ),
+                      },
+                      {
+                        id: 'warranty',
+                        secondary: true,
+                        render: (c) => c.warrantyNumber || c.warrantyId || '—',
+                      },
+                      {
+                        id: 'eur',
+                        meta: true,
+                        render: (c) =>
+                          c.claimAmountEur != null
+                            ? `${Number(c.claimAmountEur).toFixed(2)} EUR`
+                            : '—',
+                      },
+                    ]}
+                    actions={(c) => (
+                      <ViewButton pkg="service" resource="Claims" record={c} />
+                    )}
+                  >
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>{t('wb.number', { ns: 'common' })}</th>
+                            <th>{t('aftersales.warrantiesList')}</th>
+                            <th>EUR</th>
+                            <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
+                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {claims.map((c) => (
+                            <tr
+                              key={c.id}
+                              data-selected={selectedClaim?.id === c.id ? 'true' : undefined}
+                            className={selectedClaim?.id === c.id ? 'row-selected' : 'row-click'}
+                              onClick={() => setSelectedId(String(c.id))}
+                            >
+                              <td className="mono">{c.claimNumber}</td>
+                              <td>{c.warrantyNumber || c.warrantyId}</td>
+                              <td>
+                                {c.claimAmountEur != null
+                                  ? Number(c.claimAmountEur).toFixed(2)
+                                  : '—'}
+                              </td>
+                              <td
+                                className="col-priority-low"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ContentChannelIcons summary={claimContentMap[c.id]} />
+                              </td>
+                              <td>
+                                <span className={statusClass(c.claimStatus)}>{c.claimStatus}</span>
+                              </td>
+                              <td
+                                style={{ whiteSpace: 'nowrap' }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ViewButton pkg="service" resource="Claims" record={c} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ResponsiveDataList>
+                  <ListPager
+                    total={claimPage.total}
+                    max={claimPage.max}
+                    offset={claimPage.offset}
+                    disabled={loading}
+                    onOffset={(o) => setClaimPage((pg) => ({ ...pg, offset: o }))}
+                    onMax={(m) => setClaimPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+                  />
+    </>
+  )
+
+  const rmasList = (
+    <>
+      <h2 className="section-label">
+                    {t('aftersales.returnsCount', { count: rmaPage.total })}
+                  </h2>
+                  <ResponsiveDataList
+                    items={rmas}
+                    empty="—"
+                    selectedKey={selectedRma?.id}
+                    onSelect={(r) => setSelectedId(String(r.id))}
+                    fields={[
+                      {
+                        id: 'number',
+                        primary: true,
+                        render: (r) => (
+                          <>
+                            <span className="mono">{r.rmaNumber}</span>{' '}
+                            <span className={statusClass(r.rmaStatus)}>{r.rmaStatus}</span>
+                          </>
+                        ),
+                      },
+                      {
+                        id: 'customer',
+                        secondary: true,
+                        render: (r) =>
+                          r.customerName || customerNameById(r.customerId) || '—',
+                      },
+                      {
+                        id: 'product',
+                        meta: true,
+                        render: (r) => r.productName || r.productId || '—',
+                      },
+                    ]}
+                    actions={(r) => (
+                      <ViewButton pkg="service" resource="Rma" record={r} />
+                    )}
+                  >
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>{t('wb.number', { ns: 'common' })}</th>
+                            <th>{t('wb.customer', { ns: 'common' })}</th>
+                            <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
+                            <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
+                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rmas.map((r) => (
+                            <tr
+                              key={r.id}
+                              data-selected={selectedRma?.id === r.id ? 'true' : undefined}
+                            className={selectedRma?.id === r.id ? 'row-selected' : 'row-click'}
+                              onClick={() => setSelectedId(String(r.id))}
+                            >
+                              <td className="mono">{r.rmaNumber}</td>
+                              <td>{r.customerName || customerNameById(r.customerId) || '—'}</td>
+                              <td className="col-priority-low">
+                                {r.productName || r.productId || '—'}
+                              </td>
+                              <td
+                                className="col-priority-low"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ContentChannelIcons summary={rmaContentMap[r.id]} />
+                              </td>
+                              <td>
+                                <span className={statusClass(r.rmaStatus)}>{r.rmaStatus}</span>
+                              </td>
+                              <td
+                                style={{ whiteSpace: 'nowrap' }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ViewButton pkg="service" resource="Rma" record={r} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ResponsiveDataList>
+                  <ListPager
+                    total={rmaPage.total}
+                    max={rmaPage.max}
+                    offset={rmaPage.offset}
+                    disabled={loading}
+                    onOffset={(o) => setRmaPage((pg) => ({ ...pg, offset: o }))}
+                    onMax={(m) => setRmaPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+                  />
+    </>
+  )
+
+  const list =
+    tab === 'levels'
+      ? levelsList
+      : tab === 'warranties'
+        ? warrantiesList
+        : tab === 'inquiries'
+          ? inquiriesList
+          : tab === 'claims'
+            ? claimsList
+            : tab === 'rmas'
+              ? rmasList
+              : null
+
+  let detail = null
+  let detailFooter = null
+
+  if (tab === 'inquiries' && selectedInq) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+      <div className="inv-detail-hero">
+                        <div>
+                          <div className="about-display" style={{ fontSize: '1.35rem' }}>
+                            {selectedInq.inquiryNumber}
+                          </div>
+                          <div className="muted">
+                            {selectedInq.customerName ||
+                              customerNameById(selectedInq.customerId) ||
+                              t('wb.noCustomer', { ns: 'common' })}{' '}
+                            ·{' '}
+                            <span className={statusClass(selectedInq.caseStatus)}>
+                              {selectedInq.caseStatus}
+                            </span>
+                          </div>
+                          <div className="muted" style={{ fontSize: '0.85rem' }}>
+                            {selectedInq.kind} · {selectedInq.priority} · {selectedInq.channel}
+                            {selectedInq.overdue
+                              ? ` · ${t('pages.dashboard.overdue', { ns: 'common' })}`
+                              : ''}
+                          </div>
+                        </div>
+                      </div>
+                      {selectedInq.description && (
+                        <p style={{ whiteSpace: 'pre-wrap' }}>{selectedInq.description}</p>
+                      )}
+                      <div className="toolbar">
+                        {['OPEN'].includes(selectedInq.caseStatus) && (
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => runInquiry('start')}
+                            disabled={!!busy}
+                          >
+                            <Play size={16} /> {t('aftersales.start')}
+                          </button>
+                        )}
+                        {['OPEN', 'IN_PROGRESS'].includes(selectedInq.caseStatus) && (
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => runInquiry('resolve')}
+                            disabled={!!busy}
+                          >
+                            <Check size={16} /> {t('aftersales.resolve')}
+                          </button>
+                        )}
+                        {selectedInq.caseStatus !== 'CLOSED' &&
+                          selectedInq.caseStatus !== 'CANCELLED' && (
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              onClick={() => runInquiry('close')}
+                              disabled={!!busy}
+                            >
+                              {t('actions.close', { ns: 'common' })}
+                            </button>
+                          )}
+                        {selectedInq.caseStatus !== 'CLOSED' &&
+                          selectedInq.caseStatus !== 'CANCELLED' && (
+                            <button
+                              type="button"
+                              className="btn btn-ghost"
+                              onClick={() => runInquiry('cancel')}
+                              disabled={!!busy}
+                            >
+                              <X size={16} /> {t('actions.cancel', { ns: 'common' })}
+                            </button>
+                          )}
+                      </div>
+                      {collapsedContentRail('service', 'Inquiry', selectedInq.id, async () =>
+                          setInqContentMap(await fetchContentMap('service', 'Inquiry', inquiries)))}
+      </div>
+    )
+  }
+
+  if (tab === 'claims' && selectedClaim) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+      <div className="inv-detail-hero">
+                        <div>
+                          <div className="about-display" style={{ fontSize: '1.35rem' }}>
+                            {selectedClaim.claimNumber}
+                          </div>
+                          <div className="muted">
+                            {t('aftersales.warrantyRef', {
+                              ref: selectedClaim.warrantyNumber || `#${selectedClaim.warrantyId}`,
+                            })}{' '}
+                            ·{' '}
+                            <span className={statusClass(selectedClaim.claimStatus)}>
+                              {selectedClaim.claimStatus}
+                            </span>
+                          </div>
+                          {selectedClaim.financeCreditInvoiceId && (
+                            <div className="muted" style={{ fontSize: '0.85rem' }}>
+                              {t('aftersales.financeCreditInvoice', {
+                                id: selectedClaim.financeCreditInvoiceId,
+                              })}
+                            </div>
+                          )}
+                        </div>
+                        <div className="inv-amount">
+                          {Number(selectedClaim.claimAmountEur || 0).toFixed(2)} EUR
+                          {selectedClaim.claimAmountSats != null && (
+                            <div className="muted mono" style={{ fontSize: '0.8rem' }}>
+                              {selectedClaim.claimAmountSats} sats
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="toolbar">
+                        {['RECEIVED'].includes(selectedClaim.claimStatus) && (
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => runClaim('validate')}
+                            disabled={!!busy}
+                          >
+                            {t('aftersales.validate')}
+                          </button>
+                        )}
+                        {['RECEIVED', 'VALIDATED'].includes(selectedClaim.claimStatus) && (
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => runClaim('approve')}
+                            disabled={!!busy}
+                          >
+                            <Check size={16} /> {t('aftersales.approveFinance')}
+                          </button>
+                        )}
+                        {['RECEIVED', 'VALIDATED'].includes(selectedClaim.claimStatus) && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            onClick={() => runClaim('reject')}
+                            disabled={!!busy}
+                          >
+                            <X size={16} /> {t('aftersales.reject')}
+                          </button>
+                        )}
+                        {['APPROVED', 'REJECTED'].includes(selectedClaim.claimStatus) && (
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => runClaim('close')}
+                            disabled={!!busy}
+                          >
+                            {t('actions.close', { ns: 'common' })}
+                          </button>
+                        )}
+                      </div>
+                      {collapsedContentRail('service', 'Claims', selectedClaim.id, async () =>
+                          setClaimContentMap(await fetchContentMap('service', 'Claims', claims)))}
+      </div>
+    )
+  }
+
+  if (tab === 'rmas' && selectedRma) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+      <div className="inv-detail-hero">
+                        <div>
+                          <div className="about-display" style={{ fontSize: '1.35rem' }}>
+                            {selectedRma.rmaNumber}
+                          </div>
+                          <div className="muted">
+                            {selectedRma.customerName ||
+                              customerNameById(selectedRma.customerId) ||
+                              t('wb.noCustomer', { ns: 'common' })}{' '}
+                            ·{' '}
+                            <span className={statusClass(selectedRma.rmaStatus)}>
+                              {selectedRma.rmaStatus}
+                            </span>
+                          </div>
+                          <div className="muted" style={{ fontSize: '0.85rem' }}>
+                            {t('aftersales.qtyLabel', { qty: selectedRma.quantity })}
+                            {selectedRma.stockMoveId
+                              ? ` · ${t('aftersales.stockRef', { id: selectedRma.stockMoveId })}`
+                              : ''}
+                          </div>
+                        </div>
+                        {selectedRma.expectedRefundEur != null && (
+                          <div className="inv-amount">
+                            {Number(selectedRma.expectedRefundEur).toFixed(2)} EUR
+                            <div className="muted" style={{ fontSize: '0.75rem' }}>
+                              {t('aftersales.expectedRefund')}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="toolbar">
+                        {selectedRma.rmaStatus === 'REQUESTED' && (
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => runRma('confirm')}
+                            disabled={!!busy}
+                          >
+                            <Check size={16} /> {t('aftersales.confirmScmStock')}
+                          </button>
+                        )}
+                        {selectedRma.rmaStatus !== 'CLOSED' &&
+                          selectedRma.rmaStatus !== 'CANCELLED' && (
+                            <button
+                              type="button"
+                              className="btn"
+                              onClick={() => runRma('close')}
+                              disabled={!!busy}
+                            >
+                              {t('actions.close', { ns: 'common' })}
+                            </button>
+                          )}
+                        {selectedRma.rmaStatus === 'REQUESTED' && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            onClick={() => runRma('cancel')}
+                            disabled={!!busy}
+                          >
+                            <X size={16} /> {t('actions.cancel', { ns: 'common' })}
+                          </button>
+                        )}
+                        <a
+                          className="btn"
+                          href={aftersalesApi.rmas.pdfUrl(selectedRma.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <FileText size={16} /> Download RMA PDF
+                        </a>
+                      </div>
+                      {collapsedContentRail('service', 'Rma', selectedRma.id, async () =>
+                          setRmaContentMap(await fetchContentMap('service', 'Rma', rmas)))}
+      </div>
+    )
+  }
+
+  const emptyTitle =
+    tab === 'inquiries'
+      ? t('aftersales.selectInquiry')
+      : tab === 'claims'
+        ? t('aftersales.selectClaim', { defaultValue: 'Select a claim' })
+        : tab === 'rmas'
+          ? t('aftersales.selectRma', { defaultValue: 'Select an RMA' })
+          : t('desk.emptyTitle', { ns: 'common' })
+  const emptyBody =
+    tab === 'inquiries' || tab === 'claims' || tab === 'rmas'
+
+      ? t('desk.emptyBody', { ns: 'common' })
+      : t('desk.emptyBodyMasters', {
+          ns: 'common',
+          defaultValue: 'Use + New to create, or View on a row for the full record.',
+        })
+
+  return (
+    <div className="page aftersales-desk-page">
+      {error && <div className="banner-error">{error}</div>}
+      {info && <div className="banner-info">{info}</div>}
+      {viewModal}
+
+      {showNewCustomer && (
+        <section className="card" style={{ marginBottom: '1rem' }}>
+          <h2 className="section-label" style={{ marginTop: 0 }}>
+            {t('aftersales.newCustomer')}
+          </h2>
+          <p className="muted" style={{ marginTop: 0, fontSize: '0.9rem' }}>
+            For end customers reached via a distributor (or any case not already on the sales
+            books). Uses the Sales Customer domain.
+          </p>
+          <form className="form-grid" onSubmit={onCreateCustomer}>
+            <label>
+              Name *
+              <input
+                required
+                value={customerForm.name}
+                onChange={(e) => setCustomerForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder={t('aftersales.customerPlaceholder')}
+              />
+            </label>
+            <div className="form-row-2">
+              <label>
+                Kind
+                <select
+                  value={customerForm.customerKind}
+                  onChange={(e) =>
+                    setCustomerForm((f) => ({ ...f, customerKind: e.target.value }))
+                  }
+                >
+                  {['ORGANIZATION', 'PERSON'].map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Contact
+                <input
+                  value={customerForm.contactName}
+                  onChange={(e) =>
+                    setCustomerForm((f) => ({ ...f, contactName: e.target.value }))
                   }
                 />
-              </>
-            )}
-          </section>
-        </div>
+              </label>
+            </div>
+            <label>
+              Email
+              <input
+                type="email"
+                value={customerForm.email}
+                onChange={(e) => setCustomerForm((f) => ({ ...f, email: e.target.value }))}
+              />
+            </label>
+            <button type="submit" className="btn btn-primary" disabled={!!busy}>
+              <Plus size={16} /> {busy === 'cust' ? '…' : t('aftersales.createCustomer')}
+            </button>
+          </form>
+        </section>
       )}
+
+      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
+        <button type="button" className="btn" onClick={refresh} disabled={loading || !!busy}>
+          <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
+        </button>
+        <button
+          type="button"
+          className={`btn ${showNewCustomer ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => setShowNewCustomer((v) => !v)}
+        >
+          <Users size={14} /> {t('aftersales.newCustomer')}
+        </button>
+        <Link className="btn btn-secondary" to="/sales">
+          {t('aftersales.salesDesk')}
+        </Link>
+        <Link className="btn btn-secondary" to="/delivery">
+          {t('aftersales.deliveryDesk')}
+        </Link>
+      </div>
+
+      <DeskShell
+        title={
+          <>
+            <Headphones size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
+            {t('aftersales.title')}
+          </>
+        }
+        subtitle={t('aftersales.subtitle')}
+        tabs={tabs}
+        activeTab={tab}
+        onTabChange={requestTabChange}
+        newLabel={newLabel}
+        newExpanded={newExpanded}
+        onToggleNew={requestToggleNew}
+        newPanel={newPanel}
+        list={list}
+        hasSelection={hasSelection}
+        emptyTitle={emptyTitle}
+        emptyBody={emptyBody}
+        detail={detail}
+        detailFooter={detailFooter}
+        processSlot={processSlot}
+        helpContext={helpContext}
+        narrowSheetOpen={narrow && hasSelection}
+        onCloseSheet={() => setSelectedId(null)}
+      />
+
+      <DeskNewFab label={newLabel} onClick={() => !newExpanded && requestToggleNew()} />
+
+      <ConfirmDialog
+        open={discardOpen}
+        title={t('desk.discardCreateTitle', {
+          ns: 'common',
+          defaultValue: 'Discard create form?',
+        })}
+        body={t('desk.discardCreateBody', {
+          ns: 'common',
+          defaultValue: 'You have unsaved changes in the create form. Discard them?',
+        })}
+        confirmLabel={t('desk.discard', { ns: 'common', defaultValue: 'Discard' })}
+        tone="danger"
+        onConfirm={confirmDiscard}
+        onCancel={cancelDiscard}
+      />
     </div>
   )
 }

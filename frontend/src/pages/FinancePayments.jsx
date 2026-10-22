@@ -118,10 +118,10 @@ export default function FinancePayments() {
   }
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1>
-          <Bitcoin size={22} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+    <div className="page finance-payments-page">
+      <header className="page-header" style={{ marginBottom: '1.25rem' }}>
+        <h1 className="page-title">
+          <Bitcoin size={28} style={{ marginRight: 8, verticalAlign: 'middle' }} />
           {t('finance.paymentsTitle', { defaultValue: 'Payments' })}
         </h1>
         <p className="page-sub">
@@ -130,7 +130,7 @@ export default function FinancePayments() {
               'Connect BTCPay Server for live Bitcoin receive on your LIVE company. Demo companies stay on mock settle.',
           })}
         </p>
-      </div>
+      </header>
 
       {error && (
         <p className="banner-error" role="alert">

@@ -248,7 +248,7 @@ export default function FinanceTransactions() {
         </Link>
       </div>
 
-      <div className="two-col finance-tx-grid">
+      <div className="two-col finance-ledger-layout">
         <section className="card">
           <h2 className="section-label" style={{ marginTop: 0 }}>
             {t('finance.postJournal')}
@@ -259,7 +259,7 @@ export default function FinanceTransactions() {
               <input value={entryName} onChange={(e) => setEntryName(e.target.value)} />
             </label>
 
-            <div className="tx-lines">
+            <div className="tx-lines finance-tx-grid">
               <div className="tx-line-head">
                 <span>{t('finance.account')}</span>
                 <span>{t('finance.debitEur')}</span>
