@@ -46,6 +46,22 @@ export default function HelpDrawer({
     if (initialTopic) setFocusKey(initialTopic)
   }, [open, initialTopic])
 
+  // Lock page scroll while help is open so the wheel only moves the drawer body
+  useEffect(() => {
+    if (!open) return undefined
+    const prevOverflow = document.body.style.overflow
+    const prevPaddingRight = document.body.style.paddingRight
+    const scrollbarGap = window.innerWidth - document.documentElement.clientWidth
+    document.body.style.overflow = 'hidden'
+    if (scrollbarGap > 0) {
+      document.body.style.paddingRight = `${scrollbarGap}px`
+    }
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.body.style.paddingRight = prevPaddingRight
+    }
+  }, [open])
+
   useEffect(() => {
     if (!open) {
       setFocusKey(null)
@@ -189,10 +205,16 @@ export default function HelpDrawer({
   }
 
   return (
-    <div className="help-drawer-backdrop" onClick={onClose} role="presentation">
+    <div
+      className="help-drawer-backdrop"
+      onClick={onClose}
+      role="presentation"
+      onWheel={(e) => e.stopPropagation()}
+    >
       <aside
         className="help-drawer"
         onClick={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={t('title', { defaultValue: 'Help' })}
