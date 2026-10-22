@@ -1159,6 +1159,41 @@ export default function AppShell() {
           </div>
         </header>
         <main className="content">
+          <nav className="app-breadcrumb" aria-label="Breadcrumb">
+            {(() => {
+              const parts = location.pathname.split('/').filter(Boolean)
+              if (parts.length === 0) return null
+              const crumbs = []
+              let acc = ''
+              for (let i = 0; i < parts.length; i++) {
+                acc += `/${parts[i]}`
+                const label = parts[i]
+                  .replace(/-/g, ' ')
+                  .replace(/\b\w/g, (c) => c.toUpperCase())
+                const isLast = i === parts.length - 1
+                crumbs.push(
+                  <span key={acc} className="app-breadcrumb-item">
+                    {i > 0 ? <span className="app-breadcrumb-sep"> / </span> : null}
+                    {isLast ? (
+                      <span aria-current="page">{label}</span>
+                    ) : (
+                      <Link to={acc}>{label}</Link>
+                    )}
+                  </span>,
+                )
+              }
+              const tab = new URLSearchParams(location.search).get('tab')
+              if (tab) {
+                crumbs.push(
+                  <span key="tab" className="app-breadcrumb-item">
+                    <span className="app-breadcrumb-sep"> / </span>
+                    <span aria-current="page">{tab}</span>
+                  </span>,
+                )
+              }
+              return crumbs
+            })()}
+          </nav>
           {activeCompany?.demo || activeCompany?.kind === 'DEMO' ? (
             <div
               className="banner-info"

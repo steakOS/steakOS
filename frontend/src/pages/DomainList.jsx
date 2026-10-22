@@ -18,7 +18,12 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw, Pencil, Trash2, Eye, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react'
 import { domainsApi } from '../api/client'
-import { findResource, getCreateMeta, getLineChildForParent } from '../config/domainRegistry'
+import {
+  findResource,
+  getCreateMeta,
+  getInteraction,
+  getLineChildForParent,
+} from '../config/domainRegistry'
 import { catalogLifecycle, lifecycleBadgeClass } from '../config/catalogLifecycle'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import ErrorDialog from '../components/ErrorDialog'
@@ -73,11 +78,14 @@ export default function DomainList() {
       : 4 + (lineChild ? 1 : 0)
 
   const createMode = createMeta.createMode || 'domain'
+  const interaction =
+    createMeta.interaction || getInteraction(pkg, resource) || 'domainFullPage'
   const deskPath = createMeta.deskPath
   const deskLabel =
     createMeta.deskLabel ||
     t('masterData.deskDefault', { ns: 'common', defaultValue: 'process desk' })
   const lifecycle = catalogLifecycle(pkg, resource)
+  const preferDesk = interaction === 'deskShell' && deskPath
   const lifecycleLabel =
     lifecycle === 'in_use'
       ? t('pages.catalogs.inUse', { ns: 'common' })
@@ -274,14 +282,23 @@ export default function DomainList() {
         )}
       </p>
 
-      {createMode === 'deskRedirect' && deskPath && (
+      {(preferDesk || createMode === 'deskRedirect') && deskPath && (
         <div className="banner-info" style={{ marginBottom: '0.75rem' }}>
           {t('masterData.createViaDesk', {
             ns: 'common',
             desk: deskLabel,
             defaultValue:
               'Create new records on the {{desk}} — master data is for list, view, and edit support.',
-          })}
+          })}{' '}
+          {preferDesk && (
+            <Link to={deskPath} className="btn btn-secondary" style={{ marginLeft: 8 }}>
+              {t('masterData.openDesk', {
+                ns: 'common',
+                desk: deskLabel,
+                defaultValue: 'Open {{desk}}',
+              })}
+            </Link>
+          )}
         </div>
       )}
       {createMode === 'parentOnly' && (

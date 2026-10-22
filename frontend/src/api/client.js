@@ -1546,12 +1546,27 @@ export const importApi = {
     }),
 }
 
-/** Contextual help (Wave B) */
+/** Contextual help (Wave B + ADR-044 HelpContext) */
 export const helpApi = {
   topics: () => api('/api/help/topics'),
-  resolve: (route, lang) => {
+  /**
+   * @param {string|object} routeOrContext pathname string OR HelpContext
+   *   { path, desk, tab, resource, objectId, status, processCode }
+   */
+  resolve: (routeOrContext, lang) => {
     const q = new URLSearchParams()
-    q.set('route', route || '/')
+    if (routeOrContext && typeof routeOrContext === 'object') {
+      const c = routeOrContext
+      q.set('route', c.path || c.route || '/')
+      if (c.desk) q.set('desk', c.desk)
+      if (c.tab) q.set('tab', c.tab)
+      if (c.resource) q.set('resource', c.resource)
+      if (c.objectId != null && c.objectId !== '') q.set('objectId', String(c.objectId))
+      if (c.status) q.set('status', c.status)
+      if (c.processCode) q.set('processCode', c.processCode)
+    } else {
+      q.set('route', routeOrContext || '/')
+    }
     if (lang) q.set('lang', lang)
     return api(`/api/help/resolve?${q.toString()}`)
   },

@@ -137,10 +137,13 @@
 		</form>
 
 		<div class="nostr-login" style="padding: 0 26px 18px 26px; border-top: 1px solid #ccd; margin-top: 8px;">
-			<p style="font-size: 13px; color: #445; margin: 14px 0 8px 0;">
+			<p style="font-size: 12px; color: #667; margin: 14px 0 6px 0; text-transform: uppercase; letter-spacing: 0.04em;">
+				<g:message code='steakos.login.nostr.secondary' default="Or"/>
+			</p>
+			<p style="font-size: 13px; color: #445; margin: 0 0 8px 0;">
 				<g:message code='steakos.login.nostr.intro'/>
 			</p>
-			<button type="button" id="nostrSignInBtn" style="width: 100%; padding: 8px;">
+			<button type="button" id="nostrSignInBtn" class="btn-secondary-login" style="width: 100%; padding: 8px; background: #f5f5f4; border: 1px solid #ccc; border-radius: 4px;">
 				<g:message code='steakos.login.nostr.button'/>
 			</button>
 			<p id="nostrLoginMsg" style="font-size: 12px; color: #c33; min-height: 1.2em; margin: 8px 0 0 0;"></p>

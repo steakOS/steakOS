@@ -954,27 +954,67 @@ Master-data pages use the same rail as desks.'''],
     }
 
     Map resolveForRoute(String route, String langHint) {
+        resolveForContext(route, langHint, [:])
+    }
+
+    /**
+     * ADR-044 — resolve with optional HelpContext fields.
+     * Fallback order: desk+tab(+resource) topic key → desk topic → path exact/prefix → default.
+     */
+    Map resolveForContext(String route, String langHint, Map extra) {
         ensureSeeded()
         String lang = normalizeLang(langHint)
         Map ctx = parseContext(route)
+        if (extra) {
+            if (extra.desk) ctx.desk = extra.desk
+            if (extra.tab) ctx.tab = extra.tab
+            if (extra.resource) ctx.resource = extra.resource
+            if (extra.objectId) ctx.objectId = extra.objectId
+            if (extra.status) ctx.status = extra.status
+            if (extra.processCode) ctx.processCode = extra.processCode
+        }
         String path = ctx.path as String
+        String desk = (ctx.desk ?: '') as String
+        String tab = (ctx.tab ?: '') as String
+        String resource = (ctx.resource ?: '') as String
+
+        List<HelpTopic> all = HelpTopic.list(sort: 'sortOrder', order: 'asc')
+                .findAll { it.routePattern || it.helpKey }
+
+        HelpTopic best = null
+
+        // 0) Structured keys: desk.tab.resource → desk.tab → desk
+        if (desk) {
+            List<String> candidates = []
+            if (tab && resource) candidates << "desk.${desk}.${tab}.${resource}".toString()
+            if (tab) candidates << "desk.${desk}.${tab}".toString()
+            candidates << "desk.${desk}".toString()
+            for (String key : candidates) {
+                best = all.find { it.helpKey == key }
+                if (best) break
+            }
+            // Also match routePattern like /sales?tab=quotes
+            if (!best && tab) {
+                String patterned = "${path}?tab=${tab}"
+                best = all.find { it.routePattern == patterned }
+            }
+        }
 
         // 1) Exact seeded topic (prefer canonical page topic when several share a route)
-        List<HelpTopic> all = HelpTopic.list(sort: 'sortOrder', order: 'asc')
-                .findAll { it.routePattern }
-
-        List<HelpTopic> exact = all.findAll { t -> path == t.routePattern }
-        HelpTopic best = null
-        if (exact) {
-            // /settings seeds currency + tax + settings — surface Settings language-first
-            if (path == '/settings' || path?.startsWith('/settings/')) {
-                best = exact.find { it.helpKey == 'system.settings' } ?: exact[0]
-            } else if (path == '/work' || path?.startsWith('/work/')) {
-                best = exact.find { it.helpKey == 'help.work.actionNow' } ?: exact[0]
-            } else if (path == '/dashboard' || path?.startsWith('/dashboard/')) {
-                best = exact.find { it.helpKey == 'app.dashboard' } ?: exact[0]
-            } else {
-                best = exact[0]
+        if (!best) {
+            List<HelpTopic> exact = all.findAll { t -> t.routePattern && path == t.routePattern }
+            if (exact) {
+                if (path == '/settings' || path?.startsWith('/settings/')) {
+                    best = exact.find { it.helpKey == 'system.settings' } ?: exact[0]
+                } else if (path == '/work' || path?.startsWith('/work/')) {
+                    best = exact.find { it.helpKey == 'help.work.actionNow' } ?: exact[0]
+                } else if (path == '/dashboard' || path?.startsWith('/dashboard/')) {
+                    best = exact.find { it.helpKey == 'app.dashboard' } ?: exact[0]
+                } else if (path == '/sales' || path?.startsWith('/sales')) {
+                    best = exact.find { it.helpKey == 'desk.sales' || it.helpKey?.startsWith('desk.sales') } ?: exact[0]
+                } else {
+                    best = exact[0]
+                }
             }
         }
 
@@ -987,7 +1027,7 @@ Master-data pages use the same rail as desks.'''],
         }
 
         // 3) Domain master data → synthetic or domain-specific body
-        if (ctx.kind == 'domain') {
+        if (ctx.kind == 'domain' && !best) {
             return resolveDomain(ctx, all, lang)
         }
 

@@ -33,7 +33,19 @@ class HelpApiController {
     def resolve() {
         String route = params.route ?: params.path ?: '/'
         String lang = params.lang ?: request.getHeader('Accept-Language')
-        render(helpService.resolveForRoute(route as String, lang as String) as JSON)
+        // ADR-044: richer HelpContext query params with ordered fallback
+        Map extra = [:]
+        if (params.desk) extra.desk = params.desk as String
+        if (params.tab) extra.tab = params.tab as String
+        if (params.resource) extra.resource = params.resource as String
+        if (params.objectId) extra.objectId = params.objectId as String
+        if (params.status) extra.status = params.status as String
+        if (params.processCode) extra.processCode = params.processCode as String
+        if (extra) {
+            render(helpService.resolveForContext(route as String, lang as String, extra) as JSON)
+        } else {
+            render(helpService.resolveForRoute(route as String, lang as String) as JSON)
+        }
     }
 
     def show(String helpKey) {

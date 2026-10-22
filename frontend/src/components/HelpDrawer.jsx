@@ -12,7 +12,16 @@ import { markdownToHtml } from '../utils/markdown'
  * Context-sensitive help drawer — domain master data, desks, and feature routes.
  * Every open panel offers creating an IT support ticket.
  */
-export default function HelpDrawer({ open, onClose, initialTopic = null }) {
+/**
+ * @param {object} [helpContext] ADR-044 HelpContext from DeskShell detail
+ *   { path, desk, tab, resource, objectId, status, processCode }
+ */
+export default function HelpDrawer({
+  open,
+  onClose,
+  initialTopic = null,
+  helpContext = null,
+}) {
   const location = useLocation()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation('help')
@@ -71,13 +80,28 @@ export default function HelpDrawer({ open, onClose, initialTopic = null }) {
           relatedTopics: shellRef.current.relatedTopics,
           suggestedActions: shellRef.current.suggestedActions,
         }))
-      : helpApi.resolve(location.pathname, i18n.language).then((d) => {
-          shellRef.current = {
-            relatedTopics: d.relatedTopics || [],
-            suggestedActions: d.suggestedActions || [],
-          }
-          return d
-        })
+      : helpApi
+          .resolve(
+            helpContext
+              ? {
+                  path: helpContext.path || location.pathname,
+                  desk: helpContext.desk,
+                  tab: helpContext.tab,
+                  resource: helpContext.resource,
+                  objectId: helpContext.objectId,
+                  status: helpContext.status,
+                  processCode: helpContext.processCode,
+                }
+              : location.pathname,
+            i18n.language,
+          )
+          .then((d) => {
+            shellRef.current = {
+              relatedTopics: d.relatedTopics || [],
+              suggestedActions: d.suggestedActions || [],
+            }
+            return d
+          })
 
     load
       .then((d) => {
@@ -92,7 +116,7 @@ export default function HelpDrawer({ open, onClose, initialTopic = null }) {
     return () => {
       cancelled = true
     }
-  }, [open, location.pathname, i18n.language, focusKey])
+  }, [open, location.pathname, i18n.language, focusKey, helpContext])
 
   if (!open) return null
 
@@ -103,9 +127,20 @@ export default function HelpDrawer({ open, onClose, initialTopic = null }) {
   const related = data?.relatedTopics || []
 
   const contextBits = []
-  if (ctx.kind === 'domain') {
+  if (helpContext?.desk || helpContext?.tab || helpContext?.resource) {
+    if (helpContext.desk) contextBits.push(helpContext.desk)
+    if (helpContext.tab) contextBits.push(helpContext.tab)
+    if (helpContext.resource) contextBits.push(helpContext.resource)
+    if (helpContext.objectId != null) contextBits.push(`#${helpContext.objectId}`)
+    if (helpContext.status) contextBits.push(helpContext.status)
+  } else if (ctx.kind === 'domain') {
     contextBits.push(ctx.package, ctx.resource, ctx.mode)
     if (ctx.recordId) contextBits.push(`#${ctx.recordId}`)
+  } else if (ctx.desk || ctx.tab) {
+    if (ctx.desk) contextBits.push(ctx.desk)
+    if (ctx.tab) contextBits.push(ctx.tab)
+    if (ctx.resource) contextBits.push(ctx.resource)
+    if (ctx.status) contextBits.push(ctx.status)
   } else {
     contextBits.push(location.pathname)
   }
