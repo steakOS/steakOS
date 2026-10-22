@@ -204,9 +204,77 @@
       "es_ES": "Spanisch (Spanien)"
     }
   },
+  "desk": {
+    "new": "Neu",
+    "emptyTitle": "Eintrag wählen",
+    "emptyBody": "Wählen Sie eine Zeile in der Liste, um Details zu sehen.",
+    "closeSheet": "Detail schließen"
+  },
+  "confirm": {
+    "title": "Bestätigen"
+  },
   "errors": {
     "generic": "Etwas ist schiefgelaufen",
-    "loginAgain": "Erneut anmelden"
+    "loginAgain": "Erneut anmelden",
+    "matrixDesk": {
+      "title": "Keine Berechtigung für diesen Desk",
+      "body": "Ihre Rolle darf diese Aktion auf diesem Desk nicht ausführen. Bitten Sie einen Admin um Anpassung der Rollenmatrix, oder öffnen Sie eine erlaubte Oberfläche.",
+      "action": "Forderungen öffnen"
+    },
+    "matrixSystem": {
+      "title": "Systemaktion nicht erlaubt",
+      "body": "Ihre Rolle darf diese Systemaktion nicht ausführen. Ein Admin kann sie unter Rollen freigeben.",
+      "action": "Rollen öffnen"
+    },
+    "matrixUnmapped": {
+      "title": "API nicht in der Berechtigungsmatrix",
+      "body": "Dieser Endpunkt ist noch nicht gemappt. Fragen Sie den Betreiber oder öffnen Sie die Hilfe.",
+      "action": "Hilfe öffnen"
+    },
+    "sessionExpired": {
+      "title": "Sitzung abgelaufen",
+      "body": "Melden Sie sich erneut an. Ihre Arbeit auf dem Desk kann nach dem Login noch da sein.",
+      "action": "Anmelden"
+    },
+    "validation": {
+      "title": "Formular prüfen",
+      "body": "Einige Felder fehlen oder sind ungültig. Korrigieren Sie die markierten Eingaben und versuchen Sie es erneut."
+    },
+    "notFound": {
+      "title": "Nicht gefunden",
+      "body": "Der Datensatz fehlt oder Sie haben keinen Zugriff. Zurück zur Liste und aktualisieren.",
+      "action": "Zur Startseite"
+    },
+    "conflict": {
+      "title": "Konflikt",
+      "body": "Jemand anderes hat diesen Datensatz geändert. Aktualisieren und Änderungen erneut anwenden.",
+      "action": "Aktualisieren"
+    },
+    "readOnly": {
+      "title": "Nur-Lese-Konto",
+      "body": "Dieses Konto darf keine Daten ändern. Wechseln Sie zu einer bearbeitbaren Mitgliedschaft oder fragen Sie einen Admin.",
+      "action": "Zur Startseite"
+    },
+    "postingUnbalanced": {
+      "title": "Buchung unausgeglichen",
+      "body": "Soll und Haben müssen übereinstimmen. Korrigieren Sie die Zeilen und senden Sie erneut.",
+      "action": "Buchungsregeln"
+    },
+    "postingInvalid": {
+      "title": "Buchungsregeln ungültig",
+      "body": "Die Buchungsregeln haben diesen Schreibvorgang blockiert. Regeln prüfen und erneut versuchen.",
+      "action": "Buchungsregeln"
+    },
+    "totpRequired": {
+      "title": "Authenticator erforderlich",
+      "body": "Geben Sie Ihren Authenticator-Code ein, um fortzufahren.",
+      "action": "Code eingeben"
+    },
+    "companyForbidden": {
+      "title": "Kein Firmenzugriff",
+      "body": "Sie dürfen diese Firma nicht nutzen. Wählen Sie in den Einstellungen eine andere aktive Firma.",
+      "action": "Einstellungen öffnen"
+    }
   },
   "pages": {
     "dashboard": {

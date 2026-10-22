@@ -204,9 +204,77 @@
       "es_ES": "Español (España)"
     }
   },
+  "desk": {
+    "new": "Nuevo",
+    "emptyTitle": "Seleccione un elemento",
+    "emptyBody": "Elija una fila de la lista para ver los detalles.",
+    "closeSheet": "Cerrar detalle"
+  },
+  "confirm": {
+    "title": "Confirmar"
+  },
   "errors": {
     "generic": "algo salió mal",
-    "loginAgain": "Inicia sesión nuevamente"
+    "loginAgain": "Inicia sesión nuevamente",
+    "matrixDesk": {
+      "title": "Permiso denegado para este escritorio",
+      "body": "Su rol no puede realizar esta acción en este escritorio. Pida a un admin ajustar la matriz de roles, o abra una superficie permitida.",
+      "action": "Abrir cobros"
+    },
+    "matrixSystem": {
+      "title": "Acción de sistema no permitida",
+      "body": "Su rol no puede realizar esta acción de sistema. Un admin puede concederla en Roles.",
+      "action": "Abrir roles"
+    },
+    "matrixUnmapped": {
+      "title": "API sin mapear en permisos",
+      "body": "Este endpoint aún no está en la matriz. Contacte al operador o abra Ayuda.",
+      "action": "Abrir ayuda"
+    },
+    "sessionExpired": {
+      "title": "Sesión caducada",
+      "body": "Inicie sesión de nuevo para continuar. Su trabajo en el escritorio puede seguir ahí.",
+      "action": "Iniciar sesión"
+    },
+    "validation": {
+      "title": "Revise el formulario",
+      "body": "Faltan campos o hay valores no válidos. Corrija las entradas marcadas e inténtelo de nuevo."
+    },
+    "notFound": {
+      "title": "No encontrado",
+      "body": "Ese registro ya no existe o no tiene acceso. Vuelva a la lista y actualice.",
+      "action": "Ir al inicio"
+    },
+    "conflict": {
+      "title": "Conflicto",
+      "body": "Otra persona cambió este registro. Actualice y vuelva a aplicar sus cambios.",
+      "action": "Actualizar"
+    },
+    "readOnly": {
+      "title": "Cuenta de solo lectura",
+      "body": "Esta cuenta no puede modificar datos. Cambie a una membresía editable o pida a un admin.",
+      "action": "Ir al inicio"
+    },
+    "postingUnbalanced": {
+      "title": "Asiento desequilibrado",
+      "body": "Los débitos y créditos deben coincidir antes de contabilizar. Corrija las líneas e intente de nuevo.",
+      "action": "Reglas de contabilización"
+    },
+    "postingInvalid": {
+      "title": "Reglas de contabilización no válidas",
+      "body": "La configuración de reglas bloqueó esta escritura. Revise las reglas e intente de nuevo.",
+      "action": "Reglas de contabilización"
+    },
+    "totpRequired": {
+      "title": "Se requiere autenticador",
+      "body": "Introduzca el código del autenticador para continuar.",
+      "action": "Introducir código"
+    },
+    "companyForbidden": {
+      "title": "Acceso a empresa denegado",
+      "body": "No puede usar esta empresa. Elija otra empresa activa en Ajustes.",
+      "action": "Abrir ajustes"
+    }
   },
   "pages": {
     "dashboard": {

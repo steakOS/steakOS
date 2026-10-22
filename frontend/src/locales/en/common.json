@@ -204,9 +204,77 @@
       "es_ES": "Spanish (Spain)"
     }
   },
+  "desk": {
+    "new": "New",
+    "emptyTitle": "Select an item",
+    "emptyBody": "Choose a row from the list to see details.",
+    "closeSheet": "Close detail"
+  },
+  "confirm": {
+    "title": "Confirm"
+  },
   "errors": {
     "generic": "Something went wrong",
-    "loginAgain": "Log in again"
+    "loginAgain": "Log in again",
+    "matrixDesk": {
+      "title": "Permission denied for this desk",
+      "body": "Your role cannot perform this action on this desk. Ask an admin to adjust the role matrix, or open a surface your role can use.",
+      "action": "Open receivables"
+    },
+    "matrixSystem": {
+      "title": "System action not allowed",
+      "body": "Your role cannot perform this system action. An Admin can grant it on the Roles page.",
+      "action": "Open roles"
+    },
+    "matrixUnmapped": {
+      "title": "API not mapped to permissions",
+      "body": "This endpoint is not in the role matrix yet. Contact your operator or check Help.",
+      "action": "Open help"
+    },
+    "sessionExpired": {
+      "title": "Session expired",
+      "body": "Sign in again to continue. Your previous work may still be on the desk after login.",
+      "action": "Sign in"
+    },
+    "validation": {
+      "title": "Check the form",
+      "body": "Some fields are missing or invalid. Fix the highlighted inputs and try again."
+    },
+    "notFound": {
+      "title": "Not found",
+      "body": "That record is gone or you do not have access. Return to the list and refresh.",
+      "action": "Go home"
+    },
+    "conflict": {
+      "title": "Conflict",
+      "body": "Someone else changed this record. Refresh and apply your changes again.",
+      "action": "Refresh"
+    },
+    "readOnly": {
+      "title": "Read-only account",
+      "body": "This account cannot modify data. Switch to an editable membership or ask an admin.",
+      "action": "Go home"
+    },
+    "postingUnbalanced": {
+      "title": "Journal unbalanced",
+      "body": "Debits and credits must match before posting. Fix the lines, then submit again.",
+      "action": "Posting rules"
+    },
+    "postingInvalid": {
+      "title": "Posting rules invalid",
+      "body": "The posting rules configuration blocked this write. Review rules and try again.",
+      "action": "Posting rules"
+    },
+    "totpRequired": {
+      "title": "Authenticator required",
+      "body": "Enter your authenticator code to continue.",
+      "action": "Enter code"
+    },
+    "companyForbidden": {
+      "title": "Company access denied",
+      "body": "You cannot use this company. Pick another active company in Settings.",
+      "action": "Open settings"
+    }
   },
   "pages": {
     "dashboard": {
