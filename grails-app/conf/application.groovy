@@ -53,6 +53,10 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	[pattern: '/app/**',         access: ['IS_AUTHENTICATED_REMEMBERED']],
 	[pattern: '/api/locales',    access: ['permitAll']],
 	[pattern: '/api/locales/**', access: ['permitAll']],
+	// OBS-01/03 — public liveness/ready/metrics for Uptime Kuma + Prometheus scrape
+	[pattern: '/api/health',      access: ['permitAll']],
+	[pattern: '/api/health/**',   access: ['permitAll']],
+	[pattern: '/api/ops/metrics', access: ['permitAll']],
 	// AUTH NIP-07 login (public challenge/verify)
 	[pattern: '/api/auth/nostr/**', access: ['permitAll']],
 	[pattern: '/api/**',         access: ['IS_AUTHENTICATED_REMEMBERED']],
@@ -75,6 +79,10 @@ grails.plugin.springsecurity.filterChain.chainMap = [
 	// Public locale catalog (pre-login picker)
 	[pattern: '/api/locales',    filters: 'none'],
 	[pattern: '/api/locales/**', filters: 'none'],
+	// Public health/metrics (synthetics) — no session filters
+	[pattern: '/api/health',     filters: 'none'],
+	[pattern: '/api/health/**',  filters: 'none'],
+	[pattern: '/api/ops/metrics', filters: 'none'],
 	// JSON SPA API: session auth via Vite proxy; CSRF off for API mutations (dev skeleton)
 	[pattern: '/api/**',         filters: 'JOINED_FILTERS,-csrfFilter'],
 	[pattern: '/**',             filters: 'JOINED_FILTERS']

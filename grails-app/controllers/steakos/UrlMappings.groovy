@@ -73,6 +73,12 @@ class UrlMappings {
         "/api/version"(controller: 'versionApi', action: 'index', method: 'GET')
         "/api/version/stats"(controller: 'versionApi', action: 'stats', method: 'GET')
 
+        // Observability (OBS-01/03) — public health + Prometheus text
+        "/api/health"(controller: 'opsHealthApi', action: 'health', method: 'GET')
+        "/api/health/ready"(controller: 'opsHealthApi', action: 'ready', method: 'GET')
+        "/api/ops/metrics"(controller: 'opsHealthApi', action: 'metrics', method: 'GET')
+        "/api/ops/dependencies"(controller: 'opsHealthApi', action: 'dependencies', method: 'GET')
+
         // Locales (public) + current user prefs (i18n proof)
         "/api/locales"(controller: 'localesApi', action: 'index', method: 'GET')
         "/api/me"(controller: 'meApi', action: 'index', method: 'GET')

@@ -74,6 +74,22 @@ steakos:
         releaseMinor: ${STEAKOS_RELEASE_MINOR:0}
         # Optional fixed build id; empty → generated at process start (UTC yyyyMMdd'T'HHmm)
         buildId: ${STEAKOS_BUILD_ID:}
+    # Observability (OBS Phase 0–2) — see steakOS-dev/observability/
+    observability:
+        enabled: true
+        health:
+            # Optional absolute URL; Phase 1 does not probe (avoids hanging ready)
+            btcpay: ${STEAKOS_OBS_BTCPAY_URL:}
+            nostrRelay: ${STEAKOS_OBS_NOSTR_RELAY_URL:}
+            # Optional marker file written by backup success hook (OBS-09)
+            backupMarker: ${STEAKOS_OBS_BACKUP_MARKER:}
+        ui:
+            grafanaUrl: ${STEAKOS_OBS_GRAFANA_URL:http://umbrel.local:3030}
+            uptimeKumaUrl: ${STEAKOS_OBS_KUMA_URL:http://umbrel.local:8385}
+        metrics:
+            prometheus:
+                enabled: true
+                path: /api/ops/metrics
     # Bitcoin payment rails (OI-F27 / BTCPAY-INTEGRATION-CONCEPT) — non-secret defaults only
     payments:
         http-timeout-ms: ${STEAKOS_PAYMENTS_HTTP_TIMEOUT_MS:15000}

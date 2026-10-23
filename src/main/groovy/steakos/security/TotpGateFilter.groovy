@@ -111,6 +111,10 @@ class TotpGateFilter extends OncePerRequestFilter {
                 path.startsWith('/api/auth/users') ||
                 path.startsWith('/api/locales') ||
                 path.startsWith('/api/version') ||
+                path == '/api/health' || path.startsWith('/api/health/') ||
+                path == '/api/ops/metrics' ||
+                path.startsWith('/api/ops/dependencies') ||
+
                 path.endsWith('.js') || path.endsWith('.css') || path.endsWith('.map') ||
                 path.endsWith('.ico') || path.endsWith('.png') || path.endsWith('.svg') ||
                 path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.webp') ||
