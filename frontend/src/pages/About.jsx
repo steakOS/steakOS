@@ -46,6 +46,8 @@ export default function About() {
   const [profile, setProfile] = useState(null)
   const [stats, setStats] = useState(null)
   const [statsError, setStatsError] = useState(null)
+  const [health, setHealth] = useState(null)
+  const [ready, setReady] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -53,7 +55,7 @@ export default function About() {
     let cancelled = false
     ;(async () => {
       try {
-        const [v, s, stResult, prof] = await Promise.all([
+        const [v, s, stResult, prof, healthRes, readyRes] = await Promise.all([
           versionApi.get(),
           setupApi.status().catch(() => null),
           versionApi.stats().then(
@@ -61,11 +63,19 @@ export default function About() {
             (err) => ({ ok: false, err })
           ),
           setupApi.profile().catch(() => null),
+          fetch('/api/health', { credentials: 'same-origin' })
+            .then((r) => r.json())
+            .catch(() => null),
+          fetch('/api/health/ready', { credentials: 'same-origin' })
+            .then((r) => r.json())
+            .catch(() => null),
         ])
         if (!cancelled) {
           setData(v)
           setSetup(s)
           setProfile(prof)
+          setHealth(healthRes)
+          setReady(readyRes)
           if (stResult.ok) {
             setStats(stResult.st)
             setStatsError(null)
@@ -89,41 +99,6 @@ export default function About() {
   }, [])
 
   const semver = data?.softwareVersion || ''
-  // Milestone note must match the API stamp only (never hard-code a newer cut in i18n alone).
-  const isClosedBetaWave =
-    semver === '0.1.7' || data?.V === 'V0.1.7' || (semver && String(semver).startsWith('0.1.7'))
-  const isGoldenCode =
-    !isClosedBetaWave &&
-    (semver === '0.1.6' || data?.V === 'V0.1.6' || (semver && String(semver).startsWith('0.1.6')))
-  const isWaveC =
-    !isClosedBetaWave &&
-    !isGoldenCode &&
-    (semver === '0.1.4' || data?.V === 'V0.1.4' || (semver && String(semver).startsWith('0.1.4')))
-  const isPlatformPolish =
-    !isClosedBetaWave &&
-    !isGoldenCode &&
-    !isWaveC &&
-    (semver === '0.1.3' ||
-      data?.V === 'V0.1.3' ||
-      (semver && String(semver).startsWith('0.1.3')))
-  const isWholeProjectGolden =
-    !isClosedBetaWave &&
-    !isGoldenCode &&
-    !isWaveC &&
-    !isPlatformPolish &&
-    (semver === '0.1.2' ||
-      data?.V === 'V0.1.2' ||
-      (semver && String(semver).startsWith('0.1.2')))
-  const isFinanceGolden =
-    !isClosedBetaWave &&
-    !isGoldenCode &&
-    !isWaveC &&
-    !isPlatformPolish &&
-    !isWholeProjectGolden &&
-    (semver === '0.1.1' ||
-      data?.V === 'V0.1.1' ||
-      (semver && String(semver).startsWith('0.1.1')))
-
   const tier = setup?.templateTier
   const tierLabel = tier
     ? tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase()
@@ -132,38 +107,24 @@ export default function About() {
     profile?.legalEntity?.name ||
     t('pages.company.unnamed', { defaultValue: 'Company not named yet' })
 
-  const milestoneBadge = isClosedBetaWave
-    ? t('pages.about.closedBeta', { defaultValue: 'Closed beta' })
-    : isGoldenCode
-      ? t('pages.about.goldenCode', { defaultValue: 'Golden code' })
-      : isWaveC
-        ? t('pages.about.waveC')
-        : isPlatformPolish
-          ? t('pages.about.polish')
-          : isWholeProjectGolden || isFinanceGolden
-            ? t('pages.about.golden')
-            : null
-  const milestoneNote = isClosedBetaWave
-    ? t('pages.about.closedBetaNote', {
-        version: data?.V || `V${semver}`,
-        defaultValue:
-          'Closed-beta wave ({{version}}) — builds on 0.1.6 GOLDEN; Integrations hub, Buyers/Shop Floor, Help/Ctrl+K; NDA invite-only',
-      })
-    : isGoldenCode
-      ? t('pages.about.goldenCodeNote', {
-          version: data?.V || `V${semver}`,
-          defaultValue:
-            'GOLDEN CODE ({{version}}) — Bronze open + entry-level Strategy/Development/Assets; trust polish; FOSS Apache-2.0',
-        })
-      : isWaveC
-        ? t('pages.about.waveCNote', { version: data?.V || `V${semver}` })
-        : isPlatformPolish
-          ? t('pages.about.polishNote', { version: data?.V || `V${semver}` })
-          : isWholeProjectGolden
-            ? t('pages.about.goldenWhole')
-            : isFinanceGolden
-              ? t('pages.about.goldenFinance')
-              : null
+  // Trunk policy: all cuts are golden — no historical GOLDEN-0.1.x footnotes.
+  const milestoneBadge = t('pages.about.golden', { defaultValue: 'Golden' })
+  const milestoneNote = t('pages.about.goldenTrunkNote', {
+    version: data?.V || (semver ? `V${semver}` : ''),
+    defaultValue:
+      '{{version}} — golden trunk. Observability L1–L2: public /api/health + ready, Prometheus /api/ops/metrics, Uptime Kuma + Grafana on Umbrel.',
+  })
+
+  const obs = data?.observability || {}
+  const grafanaUrl = obs.grafanaUrl || 'http://umbrel.local:3030'
+  const kumaUrl = obs.uptimeKumaUrl || 'http://umbrel.local:8385'
+  const overviewUrl = `${String(grafanaUrl).replace(/\/$/, '')}${obs.overviewPath || '/d/steakos-overview/steakos-overview'}`
+  const statusBadge = (status) => {
+    if (!status) return 'badge'
+    if (status === 'UP') return 'badge badge-ok'
+    if (status === 'DEGRADED') return 'badge badge-draft'
+    return 'badge badge-error'
+  }
 
   return (
     <div className="page about-page">
@@ -408,6 +369,63 @@ export default function About() {
             </div>
           )}
 
+          <div className="card about-card" style={{ marginTop: '1rem' }}>
+            <h2 className="section-label" style={{ marginTop: 0 }}>
+              {t('pages.about.observabilityTitle', { defaultValue: 'Observability' })}
+            </h2>
+            <p className="muted" style={{ marginTop: 0 }}>
+              {t('pages.about.observabilityIntro', {
+                defaultValue:
+                  'Local-first ops: health probes for synthetics, Prometheus metrics on this API, dashboards and uptime on Umbrel.',
+              })}
+            </p>
+            <dl className="about-grid">
+              <div>
+                <dt>{t('pages.about.healthLive', { defaultValue: 'Liveness' })}</dt>
+                <dd>
+                  <span className={statusBadge(health?.status)}>{health?.status || '—'}</span>
+                  <span className="muted mono" style={{ marginLeft: 8 }}>
+                    /api/health
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('pages.about.healthReady', { defaultValue: 'Readiness' })}</dt>
+                <dd>
+                  <span className={statusBadge(ready?.status)}>{ready?.status || '—'}</span>
+                  <span className="muted mono" style={{ marginLeft: 8 }}>
+                    /api/health/ready
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('pages.about.metricsPath', { defaultValue: 'Metrics' })}</dt>
+                <dd className="mono">{obs.metricsPath || '/api/ops/metrics'}</dd>
+              </div>
+            </dl>
+            <ul className="inv-list">
+              <li>
+                <a href={overviewUrl} target="_blank" rel="noopener noreferrer">
+                  {t('pages.about.openGrafana', { defaultValue: 'Open Grafana · steakOS Overview' })}
+                </a>
+              </li>
+              <li>
+                <a href={kumaUrl} target="_blank" rel="noopener noreferrer">
+                  {t('pages.about.openKuma', { defaultValue: 'Open Uptime Kuma' })}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={obs.metricsPath || '/api/ops/metrics'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('pages.about.openMetrics', { defaultValue: 'Prometheus text (/api/ops/metrics)' })}
+                </a>
+              </li>
+            </ul>
+          </div>
+
           <div className="card about-card about-links" style={{ marginTop: '1rem' }}>
             <h2 className="section-label" style={{ marginTop: 0 }}>
               {t('pages.about.thisBuild')}
@@ -444,7 +462,6 @@ export default function About() {
                 </span>
               </li>
             </ul>
-            <p className="muted about-note" style={{ marginBottom: 0 }}>{t('pages.about.goldenDocs')}</p>
           </div>
         </>
       )}

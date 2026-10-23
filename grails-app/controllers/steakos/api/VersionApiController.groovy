@@ -32,9 +32,12 @@ class VersionApiController {
 
     ProductVersionService productVersionService
     SystemStatsService systemStatsService
+    def grailsApplication
 
     def index() {
-        render(productVersionService.current().toMap() as JSON)
+        Map body = new LinkedHashMap(productVersionService.current().toMap())
+        body.observability = observabilityLinks()
+        render(body as JSON)
     }
 
     /** Live + inventory system stats for About. */
@@ -44,5 +47,28 @@ class VersionApiController {
         } catch (Exception e) {
             render(status: 500, text: ([error: e.message] as JSON))
         }
+    }
+
+    /** Operator deep-links for Umbrel Grafana / Uptime Kuma (OBS Phase 2). */
+    private Map observabilityLinks() {
+        [
+            grafanaUrl   : configString('steakos.observability.ui.grafanaUrl', 'http://umbrel.local:3030'),
+            uptimeKumaUrl: configString('steakos.observability.ui.uptimeKumaUrl', 'http://umbrel.local:8385'),
+            healthPath   : '/api/health',
+            readyPath    : '/api/health/ready',
+            metricsPath  : '/api/ops/metrics',
+            overviewPath : '/d/steakos-overview/steakos-overview',
+        ]
+    }
+
+    private String configString(String key, String defVal) {
+        try {
+            def cfg = grailsApplication?.config
+            if (cfg?.respondsTo('getProperty')) {
+                String v = cfg.getProperty(key, String, null)
+                if (v?.trim()) return v.trim()
+            }
+        } catch (ignored) {}
+        return defVal
     }
 }
