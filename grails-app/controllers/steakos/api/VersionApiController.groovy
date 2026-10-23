@@ -17,6 +17,7 @@ package steakos.api
 
 import grails.converters.JSON
 import grails.plugin.springsecurity.annotation.Secured
+import grails.util.Holders
 import steakos.version.ProductVersionService
 import steakos.version.SystemStatsService
 
@@ -32,7 +33,6 @@ class VersionApiController {
 
     ProductVersionService productVersionService
     SystemStatsService systemStatsService
-    def grailsApplication
 
     def index() {
         Map body = new LinkedHashMap(productVersionService.current().toMap())
@@ -63,11 +63,8 @@ class VersionApiController {
 
     private String configString(String key, String defVal) {
         try {
-            def cfg = grailsApplication?.config
-            if (cfg?.respondsTo('getProperty')) {
-                String v = cfg.getProperty(key, String, null)
-                if (v?.trim()) return v.trim()
-            }
+            String v = Holders.config.getProperty(key, String, null)
+            if (v?.trim()) return v.trim()
         } catch (ignored) {}
         return defVal
     }
