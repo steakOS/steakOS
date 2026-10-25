@@ -18,103 +18,103 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { domainGroups } from '../config/domainRegistry'
 import { humanizeLabel } from '../utils/humanize'
+import {
+  systemLinks,
+  helpNavLinks,
+  featureLinksForPackage,
+  paletteGroupForPackage,
+} from '../nav/featureLinks'
+
+const RESULT_LIMIT = 32
+
+/** Desk / hub packages whose feature links appear in the jump menu (same as sidebar). */
+const FEATURE_PACKAGES = [
+  'sales',
+  'procurement',
+  'production',
+  'delivery',
+  'service',
+  'human',
+  'digital',
+  'strategy',
+  'development',
+  'asset',
+  'finance',
+  'capability',
+  'agents',
+  'grrc',
+  'stakeholder',
+]
 
 /**
  * Ctrl+K / ⌘K jump palette (Wave B).
+ * Feature entries share builders with AppShell so desks (CRM, Governance, …) stay in sync.
  * Help entries navigate to the page and open Help with ?help=<key>.
  */
-export default function CommandPalette({ open, onClose }) {
+export default function CommandPalette({ open, onClose, showAdvanced = false, elevated = false }) {
   const navigate = useNavigate()
   const { t } = useTranslation(['common', 'domain', 'desks', 'sales'])
   const [q, setQ] = useState('')
 
   const items = useMemo(() => {
-    const helpGroup = t('pages.commandPalette.groupHelp', {
-      defaultValue: 'Help',
+    const appGroup = t('pages.commandPalette.groupApp')
+    const sysGroup = t('pages.commandPalette.groupSystem')
+    const helpGroup = t('pages.commandPalette.groupHelp', { defaultValue: 'Help' })
+    const intelGroup = t('pages.commandPalette.groupIntelligence')
+
+    const toItem = (link, group) => ({
+      label: link.name,
+      path: link.path,
+      group,
+      keywords: link.keywords || '',
+      external: !!link.external,
     })
+
     const staticItems = [
-      { label: t('nav.dashboard'), path: '/dashboard', group: t('pages.commandPalette.groupApp') },
-      { label: t('nav.about'), path: '/about', group: t('pages.commandPalette.groupApp') },
-      { label: t('nav.settings'), path: '/settings', group: t('pages.commandPalette.groupSystem') },
-      { label: t('nav.company'), path: '/company', group: t('pages.commandPalette.groupSystem') },
+      { label: t('nav.dashboard'), path: '/dashboard', group: appGroup },
       {
-        label: t('nav.integrations', { defaultValue: 'Integrations' }),
-        path: '/system/integrations',
-        keywords: 'integrations hub nostr bitcoin btcpay hermes',
-        group: t('pages.commandPalette.groupSystem'),
+        label: t('pages.work.nav', { defaultValue: 'My work' }),
+        path: '/work',
+        group: appGroup,
+        keywords: 'my work tasks activity',
       },
-      { label: t('nav.import'), path: '/system/import', group: t('pages.commandPalette.groupSystem') },
-      { label: t('nav.help'), path: '/help', group: t('pages.commandPalette.groupSystem') },
-      {
-        label: t('nav.tour'),
-        path: '/tour/index.html',
-        group: t('pages.commandPalette.groupSystem'),
-        external: true,
-      },
-      { label: t('nav.catalogs'), path: '/system/catalogs', group: t('pages.commandPalette.groupSystem') },
-      {
-        label: t('desk.title', { ns: 'sales' }),
-        path: '/sales',
-        group: t('pages.commandPalette.groupWork'),
-      },
-      {
-        label: t('features.buyersDesk', { defaultValue: 'Buyers Desk' }),
-        path: '/scm/buyers',
-        keywords: 'buyers procurement vendor purchase po',
-        group: t('pages.commandPalette.groupWork'),
-      },
-      {
-        label: t('features.shopFloor', { defaultValue: 'Shop Floor Control' }),
-        path: '/scm/shopfloor',
-        keywords: 'shop floor production inventory quality lot',
-        group: t('pages.commandPalette.groupWork'),
-      },
-      {
-        label: t('delivery.title', { ns: 'desks' }),
-        path: '/delivery',
-        group: t('pages.commandPalette.groupWork'),
-      },
-      {
-        label: t('aftersales.title', { ns: 'desks' }),
-        path: '/aftersales',
-        group: t('pages.commandPalette.groupWork'),
-      },
-      {
-        label: t('hr.title', { ns: 'desks' }),
-        path: '/hr',
-        group: t('pages.commandPalette.groupWork'),
-      },
-      {
-        label: t('digital.title', { ns: 'desks' }),
-        path: '/digital',
-        group: t('pages.commandPalette.groupWork'),
-      },
-      {
-        label: t('features.generalLedger'),
-        path: '/finance/transactions',
-        group: t('pages.commandPalette.groupFinance'),
-      },
-      {
-        label: t('features.invoices'),
-        path: '/finance/invoices',
-        group: t('pages.commandPalette.groupFinance'),
-      },
-      {
-        label: t('features.projects'),
-        path: '/capability/projects',
-        group: t('pages.commandPalette.groupIntelligence'),
-      },
-      {
-        label: t('features.agents'),
-        path: '/agents/agents',
-        group: t('pages.commandPalette.groupIntelligence'),
-      },
-      {
-        label: t('pages.help.wizard'),
-        path: '/setup',
-        group: t('pages.commandPalette.groupSystem'),
-      },
-      // —— Help topics (searchable by Bitcoin, BTCPay, Nostr, AI, Hermes) ——
+      { label: t('nav.about'), path: '/about', group: appGroup },
+    ]
+
+    if (showAdvanced) {
+      staticItems.push({
+        label: t('nav.analytics', { defaultValue: 'Analytics' }),
+        path: '/analytics',
+        group: intelGroup,
+        keywords: 'analytics kpi dashboard metrics',
+      })
+    }
+
+    // System + Help — same builders as AppShell
+    systemLinks(t, { isAdmin: elevated, isCeo: elevated }).forEach((link) => {
+      staticItems.push(toItem(link, sysGroup))
+    })
+    helpNavLinks(t).forEach((link) => {
+      staticItems.push(toItem(link, helpGroup))
+    })
+    staticItems.push({
+      label: t('pages.help.wizard'),
+      path: '/setup',
+      group: sysGroup,
+      keywords: 'setup wizard onboarding',
+    })
+
+    // Desks / hubs — include Silver surfaces when showAdvanced (CRM, GRRC, …)
+    FEATURE_PACKAGES.forEach((pkg) => {
+      if ((pkg === 'grrc' || pkg === 'stakeholder') && !showAdvanced) return
+      const group = paletteGroupForPackage(pkg, t)
+      featureLinksForPackage(pkg, t, { showAdvanced }).forEach((link) => {
+        staticItems.push(toItem(link, group))
+      })
+    })
+
+    // —— Help topics (searchable by Bitcoin, BTCPay, Nostr, AI, Hermes) ——
+    staticItems.push(
       {
         label: 'Integrations hub',
         path: '/system/integrations',
@@ -171,7 +171,17 @@ export default function CommandPalette({ open, onClose }) {
         keywords: 'ai artificial intelligence agentic hive hitl memory',
         group: helpGroup,
       },
-    ]
+    )
+
+    // Deduplicate by path+helpKey+label (system/help may overlap wizard etc.)
+    const seen = new Set()
+    const deduped = []
+    for (const item of staticItems) {
+      const key = `${item.path}|${item.helpKey || ''}|${item.label}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      deduped.push(item)
+    }
 
     const domainItems = []
     domainGroups.forEach((g) => {
@@ -190,18 +200,18 @@ export default function CommandPalette({ open, onClose }) {
         })
       })
     })
-    return [...staticItems, ...domainItems]
-  }, [t])
+    return [...deduped, ...domainItems]
+  }, [t, showAdvanced, elevated])
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase()
-    if (!s) return items.slice(0, 24)
+    if (!s) return items.slice(0, RESULT_LIMIT)
     return items
       .filter((i) => {
         const hay = `${i.label} ${i.path} ${i.keywords || ''} ${i.helpKey || ''}`.toLowerCase()
         return hay.includes(s)
       })
-      .slice(0, 24)
+      .slice(0, RESULT_LIMIT)
   }, [items, q])
 
   useEffect(() => {
@@ -230,7 +240,7 @@ export default function CommandPalette({ open, onClose }) {
     if (q.trim()) return filtered
     const paths = new Set(filtered.map((i) => i.path))
     const extras = recentItems.filter((r) => r.path && !paths.has(r.path))
-    return [...extras, ...filtered].slice(0, 24)
+    return [...extras, ...filtered].slice(0, RESULT_LIMIT)
   }, [filtered, recentItems, q])
 
   // WP-9: quick actions always available
@@ -258,9 +268,9 @@ export default function CommandPalette({ open, onClose }) {
       const qa = quickActions.filter((i) =>
         `${i.label} ${i.path} ${i.keywords || ''}`.toLowerCase().includes(s),
       )
-      return [...qa, ...filteredWithRecent].slice(0, 24)
+      return [...qa, ...filteredWithRecent].slice(0, RESULT_LIMIT)
     }
-    return [...quickActions, ...filteredWithRecent].slice(0, 24)
+    return [...quickActions, ...filteredWithRecent].slice(0, RESULT_LIMIT)
   }, [q, quickActions, filteredWithRecent])
 
   const go = (item) => {

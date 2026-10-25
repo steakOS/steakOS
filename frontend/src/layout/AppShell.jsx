@@ -24,48 +24,16 @@ import {
   ChevronRight,
   ChevronDown,
   Info,
-  BookOpen,
-  FileText,
-  Wallet,
-  Receipt,
-  PieChart,
-  Landmark,
-  Users,
-  Shield,
   Database,
-  ShoppingCart,
-  Package,
-  Factory,
-  Briefcase,
-  Headphones,
-  Server,
-  FolderKanban,
-  GitBranch,
-  BadgeCheck,
-  RefreshCw,
-  Bot,
-  Network,
-  ShieldCheck,
-  Brain,
   Settings,
   HelpCircle,
-  Bitcoin,
   Upload,
-  Target,
-  FlaskConical,
-  Warehouse,
   Wrench,
   Building2,
-  Ticket,
-  LifeBuoy,
+  Users,
+  ShieldCheck,
   KeyRound,
   Plug,
-  ShieldAlert,
-  Handshake,
-  Tags,
-  ContactRound,
-  Scale,
-  GitCompareArrows,
 } from 'lucide-react'
 import { domainGroups } from '../config/domainRegistry'
 import { setupApi, versionApi, meApi } from '../api/client'
@@ -76,6 +44,11 @@ import useNarrowViewport from '../hooks/useNarrowViewport'
 import { logoutHref } from '../i18n'
 import { domainResourceLabel } from '../utils/domainLabels'
 import { allowsSilverSurfaces } from '../utils/silverSurfaces'
+import {
+  systemLinks,
+  helpNavLinks,
+  featureLinksForPackage,
+} from '../nav/featureLinks'
 
 /**
  * ADR-044 — read HelpContext that DeskShell stamps on `.desk-shell-root`
@@ -102,209 +75,11 @@ function readDeskShellHelpContext(pathname) {
   return ctx
 }
 
-/**
- * AUTH03 — System nav by role.
- * Admin + CEO: full System menu for now (roles matrix later may narrow).
- * Help / tour / IT Support live under the Help group (not System).
- */
-function systemLinks(t, { isAdmin, isCeo } = {}) {
-  const links = [
-    { name: t('nav.settings'), path: '/settings', icon: Settings },
-    {
-      name: t('nav.integrations', { defaultValue: 'Integrations' }),
-      path: '/system/integrations',
-      icon: Plug,
-    },
-    {
-      name: t('nav.security', { defaultValue: 'Security' }),
-      path: '/security',
-      icon: ShieldCheck,
-    },
-    { name: t('nav.company'), path: '/company', icon: Building2 },
-  ]
-  if (isAdmin || isCeo) {
-    links.push(
-      {
-        name: t('nav.users', { defaultValue: 'Users' }),
-        path: '/users',
-        icon: Users,
-      },
-      {
-        name: t('nav.roles', { defaultValue: 'Roles' }),
-        path: '/roles',
-        icon: KeyRound,
-      },
-      { name: t('nav.import'), path: '/system/import', icon: Upload },
-      { name: t('nav.catalogs'), path: '/system/catalogs', icon: Wrench },
-    )
-  }
-  return links
-}
-
-/**
- * Help hub — tour, help center, IT support (below System).
- * Visible to **all** authenticated roles (Admin, CEO, desk users, read-only).
- */
-function helpNavLinks(t) {
-  return [
-    {
-      name: t('nav.helpCenter', { defaultValue: t('nav.help') }),
-      path: '/help',
-      icon: LifeBuoy,
-    },
-    {
-      name: t('nav.itSupport', { defaultValue: 'IT Support' }),
-      path: '/help/it-support',
-      icon: Ticket,
-    },
-    {
-      name: t('nav.tour'),
-      path: '/tour/index.html',
-      icon: BookOpen,
-      external: true,
-    },
-  ]
-}
-
 /** IRON → Iron for chrome labels */
 function formatTierLabel(tier) {
   if (!tier) return ''
   const t = String(tier)
   return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
-}
-
-function financeFeatureLinks(t, { showAdvanced = false } = {}) {
-  const links = [
-    { name: t('features.generalLedger'), path: '/finance/transactions', icon: BookOpen },
-    { name: t('features.invoices'), path: '/finance/invoices', icon: FileText },
-    { name: t('features.payments', { defaultValue: 'Payments' }), path: '/finance/payments', icon: Bitcoin },
-    { name: t('features.treasury'), path: '/finance/treasury', icon: Wallet },
-    { name: t('features.payables'), path: '/finance/payables', icon: Receipt },
-    { name: t('features.budgets'), path: '/finance/budgets', icon: PieChart },
-    { name: t('features.tax'), path: '/finance/tax', icon: Landmark },
-    { name: t('features.payroll'), path: '/finance/payroll', icon: Users },
-    { name: t('features.control'), path: '/finance/control', icon: Shield },
-    {
-      name: t('features.postingRules', { defaultValue: 'Posting rules' }),
-      path: '/finance/posting-rules',
-      icon: BookOpen,
-    },
-  ]
-  if (showAdvanced) {
-    links.push(
-      {
-        name: t('features.collections', { defaultValue: 'Collections' }),
-        path: '/finance/collections',
-        icon: Scale,
-      },
-      {
-        name: t('features.threeWayMatch', { defaultValue: 'Three-way match' }),
-        path: '/finance/match',
-        icon: GitCompareArrows,
-      },
-    )
-  }
-  return links
-}
-
-function salesFeatureLinks(t, { showAdvanced = false } = {}) {
-  const links = [{ name: t('desk.title', { ns: 'sales' }), path: '/sales', icon: ShoppingCart }]
-  if (showAdvanced) {
-    links.push(
-      {
-        name: t('features.pricing', { defaultValue: 'Price lists' }),
-        path: '/sales/pricing',
-        icon: Tags,
-      },
-      {
-        name: t('features.crm', { defaultValue: 'CRM' }),
-        path: '/sales/crm',
-        icon: ContactRound,
-      },
-    )
-  }
-  return links
-}
-
-function grrcFeatureLinks(t) {
-  return [
-    {
-      name: t('features.grrcDesk', { defaultValue: 'Governance desk' }),
-      path: '/grrc',
-      icon: ShieldAlert,
-    },
-  ]
-}
-
-function stakeholderFeatureLinks(t) {
-  return [
-    {
-      name: t('features.stakeholderDesk', { defaultValue: 'Stakeholder desk' }),
-      path: '/stakeholder',
-      icon: Handshake,
-    },
-  ]
-}
-
-function procurementFeatureLinks(t) {
-  return [{ name: t('features.buyersDesk'), path: '/scm/buyers', icon: Package }]
-}
-
-function productionFeatureLinks(t) {
-  return [{ name: t('features.shopFloor'), path: '/scm/shopfloor', icon: Factory }]
-}
-
-function deliveryFeatureLinks(t) {
-  return [{ name: t('features.deliveryDesk'), path: '/delivery', icon: Briefcase }]
-}
-
-function afterSalesFeatureLinks(t) {
-  return [{ name: t('features.afterSalesDesk'), path: '/aftersales', icon: Headphones }]
-}
-
-function hrFeatureLinks(t) {
-  return [{ name: t('features.hrDesk'), path: '/hr', icon: Users }]
-}
-
-function digitalFeatureLinks(t) {
-  return [{ name: t('features.digitalDesk'), path: '/digital', icon: Server }]
-}
-
-function strategyFeatureLinks(t) {
-  return [{ name: t('features.strategyDesk', { defaultValue: 'Strategy desk' }), path: '/strategy', icon: Target }]
-}
-
-function developmentFeatureLinks(t) {
-  return [
-    {
-      name: t('features.developmentDesk', { defaultValue: 'Development desk' }),
-      path: '/development',
-      icon: FlaskConical,
-    },
-  ]
-}
-
-function assetFeatureLinks(t) {
-  return [{ name: t('features.assetDesk', { defaultValue: 'Assets desk' }), path: '/assets', icon: Warehouse }]
-}
-
-function capabilityFeatureLinks(t) {
-  return [
-    { name: t('features.projects'), path: '/capability/projects', icon: FolderKanban },
-    { name: t('features.processes'), path: '/capability/processes', icon: GitBranch },
-    { name: t('features.quality'), path: '/capability/quality', icon: BadgeCheck },
-    { name: t('features.changes'), path: '/capability/changes', icon: RefreshCw },
-    { name: t('features.knowledge'), path: '/capability/knowledge', icon: BookOpen },
-  ]
-}
-
-function agentsFeatureLinks(t) {
-  return [
-    { name: t('features.agents'), path: '/agents/agents', icon: Bot },
-    { name: t('features.hives'), path: '/agents/hives', icon: Network },
-    { name: t('features.hitl'), path: '/agents/hitl', icon: ShieldCheck },
-    { name: t('features.memory'), path: '/agents/memory', icon: Brain },
-  ]
 }
 
 function groupContainsPath(group, pathname) {
@@ -456,38 +231,7 @@ function NavGroup({ group, open, onToggle, showAdvanced = false }) {
     ),
   }))
 
-  const featureLinks =
-    group.package === 'finance'
-      ? financeFeatureLinks(t, { showAdvanced })
-      : group.package === 'sales'
-        ? salesFeatureLinks(t, { showAdvanced })
-        : group.package === 'procurement'
-          ? procurementFeatureLinks(t)
-          : group.package === 'production'
-            ? productionFeatureLinks(t)
-            : group.package === 'delivery'
-              ? deliveryFeatureLinks(t)
-              : group.package === 'service'
-                ? afterSalesFeatureLinks(t)
-                : group.package === 'human'
-                  ? hrFeatureLinks(t)
-                  : group.package === 'digital'
-                    ? digitalFeatureLinks(t)
-                    : group.package === 'capability'
-                      ? capabilityFeatureLinks(t)
-                      : group.package === 'agents'
-                        ? agentsFeatureLinks(t)
-                        : group.package === 'strategy'
-                          ? strategyFeatureLinks(t)
-                          : group.package === 'development'
-                            ? developmentFeatureLinks(t)
-                            : group.package === 'asset'
-                              ? assetFeatureLinks(t)
-                              : group.package === 'grrc'
-                                ? grrcFeatureLinks(t)
-                                : group.package === 'stakeholder'
-                                  ? stakeholderFeatureLinks(t)
-                                  : []
+  const featureLinks = featureLinksForPackage(group.package, t, { showAdvanced })
   const nestMasterData =
     group.package === 'finance' ||
     group.package === 'sales' ||
@@ -1272,7 +1016,12 @@ export default function AppShell() {
           }
         }}
       />
-      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
+      <CommandPalette
+        open={cmdOpen}
+        onClose={() => setCmdOpen(false)}
+        showAdvanced={showAdvanced}
+        elevated={elevated}
+      />
     </div>
   )
 }
