@@ -442,12 +442,15 @@ export default function SalesDesk() {
             setSelectedQuote(null)
             setSelectedOrder(null)
           }
-          // Global search deep-link: open RecordView for customer details (Task 7656)
+          // Global search deep-link: open RecordView for customer details (Task 7656).
+          // Mark opened only after a successful open so React Strict Mode remounts still work.
           if (selectedId && openedCustomerViewId.current !== String(selectedId)) {
-            openedCustomerViewId.current = String(selectedId)
             try {
               const full = await salesApi.customers.get(selectedId)
-              if (!cancelled && full) openView('sales', 'Customer', full)
+              if (!cancelled && full) {
+                openView('sales', 'Customer', full)
+                openedCustomerViewId.current = String(selectedId)
+              }
             } catch (e) {
               if (!cancelled) setError(e.message || String(e))
             }
