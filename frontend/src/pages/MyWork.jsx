@@ -28,6 +28,7 @@ import {
   humanNpubForUsername,
   splitPersonName,
 } from '../utils/taskAssignee'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 const LEVELS = [1, 2, 3]
 const LEVEL_LABEL = { 1: 'Low', 2: 'Medium', 3: 'High' }
@@ -269,7 +270,9 @@ export default function MyWork() {
               id: 'name',
               primary: true,
               render: (row) => (
-                <Link to={`/domains/core/Task/${row.id}`}>{row.name || `#${row.id}`}</Link>
+                <Link to={`/domains/core/Task/${row.id}`}>
+                  {entityDisplayLabel(row, { fallback: 'Untitled task' })}
+                </Link>
               ),
             },
             {
@@ -337,7 +340,7 @@ export default function MyWork() {
                     <tr key={row.id}>
                       <td>
                         <Link to={`/domains/core/Task/${row.id}`}>
-                          {row.name || `#${row.id}`}
+                          {entityDisplayLabel(row, { fallback: 'Untitled task' })}
                         </Link>
                       </td>
                       <td>{row.status || 'OPEN'}</td>
@@ -413,7 +416,9 @@ export default function MyWork() {
                   <ul className="eisenhower-list">
                     {cell.map((task) => (
                       <li key={task.id}>
-                        <Link to={`/domains/core/Task/${task.id}`}>{task.name || `#${task.id}`}</Link>
+                        <Link to={`/domains/core/Task/${task.id}`}>
+                          {entityDisplayLabel(task, { fallback: 'Untitled task' })}
+                        </Link>
                         {isOverdue(task) && <span className="badge badge-warn">!</span>}
                       </li>
                     ))}

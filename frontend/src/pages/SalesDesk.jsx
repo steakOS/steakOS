@@ -47,6 +47,7 @@ import ProcessHowItWorks from '../components/ProcessHowItWorks'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import useRecordView from '../hooks/useRecordView'
+import { labelFromList } from '../utils/entityDisplayLabel'
 import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
@@ -835,10 +836,13 @@ export default function SalesDesk() {
     setInfo(null)
     try {
       const result = await salesApi.orders.confirm(selectedOrder.id)
-      const invId = result.financeInvoiceId
+      const invLabel =
+        result.financeInvoiceNumber ||
+        result.invoice?.invoiceNumber ||
+        (result.financeInvoiceId ? 'Finance DRAFT invoice' : null)
       setInfo(
         `Confirmed ${result.order?.orderNumber}` +
-          (invId ? ` → Finance DRAFT invoice #${invId}` : '') +
+          (invLabel ? ` → ${invLabel}` : '') +
           (result.alreadyConfirmed ? ' (already)' : ''),
       )
       await loadAll()
@@ -1672,7 +1676,10 @@ export default function SalesDesk() {
                 setSelectedId(String(selectedQuote.resultingOrderId))
               }}
             >
-              {t('quote.openOrder', { id: selectedQuote.resultingOrderId })}
+              Open{' '}
+              {labelFromList(orders, selectedQuote.resultingOrderId, {
+                fallback: 'order',
+              })}
             </button>
           )}
           <a
@@ -1785,7 +1792,10 @@ export default function SalesDesk() {
             </div>
             {selectedOrder.sourceQuoteId && (
               <div className="muted" style={{ fontSize: '0.85rem' }}>
-                From quote #{selectedOrder.sourceQuoteId}
+                From quote{' '}
+                {labelFromList(quotes, selectedOrder.sourceQuoteId, {
+                  fallback: selectedOrder.sourceQuoteNumber || '—',
+                })}
               </div>
             )}
           </div>
@@ -1836,12 +1846,8 @@ export default function SalesDesk() {
             </button>
           )}
           {selectedOrder.financeInvoiceId && (
-            <Link
-              className="btn btn-secondary"
-              to="/finance/invoices"
-              title={`Invoice id ${selectedOrder.financeInvoiceId}`}
-            >
-              Finance invoice #{selectedOrder.financeInvoiceId} →
+            <Link className="btn btn-secondary" to="/finance/invoices">
+              Finance invoice →
             </Link>
           )}
           <a

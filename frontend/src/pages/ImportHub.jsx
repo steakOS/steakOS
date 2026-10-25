@@ -390,7 +390,8 @@ export default function ImportHub() {
       {preview && step === 'map' && (
         <div className="card" style={{ marginTop: 16 }}>
           <h2>
-            {t('pages.import.mapTitle', { defaultValue: 'Map CSV columns' })} · job #{preview.id}
+            {t('pages.import.mapTitle', { defaultValue: 'Map CSV columns' })}
+            {preview.fileName ? ` · ${preview.fileName}` : ''}
           </h2>
           <p className="page-sub">
             Pack <strong className="mono">{preview.packType || packType}</strong> ·{' '}
@@ -547,8 +548,8 @@ export default function ImportHub() {
       {preview && step === 'review' && (
         <div className="card" style={{ marginTop: 16 }}>
           <h2>
-            {t('pages.import.reviewTitle', { defaultValue: 'Review before import' })} · job #
-            {preview.id}
+            {t('pages.import.reviewTitle', { defaultValue: 'Review before import' })}
+            {preview.fileName ? ` · ${preview.fileName}` : ''}
           </h2>
           <p className="page-sub">
             Pack <strong className="mono">{preview.packType || packType}</strong> ·{' '}
@@ -734,8 +735,8 @@ export default function ImportHub() {
           <ul className="setup-family-list">
             {jobs.map((j) => (
               <li key={j.id}>
-                #{j.id} {j.packType} · {j.status} · +{j.createdCount}/~{j.updatedCount} ·{' '}
-                {j.fileName}
+                {j.fileName || j.packType} · {j.packType} · {j.status} · +{j.createdCount}/~
+                {j.updatedCount}
               </li>
             ))}
           </ul>

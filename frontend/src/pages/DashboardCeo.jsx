@@ -22,6 +22,7 @@ import { dashboardApi } from '../api/client'
 import KpiRing from '../components/KpiRing'
 import EisenhowerMini from '../components/EisenhowerMini'
 import { primaryRoleLabel } from '../utils/humanize'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 function formatDeadline(iso) {
   if (!iso) return null
@@ -137,7 +138,9 @@ export default function DashboardCeo() {
                   const late = isOverdue(row.deadlineAt, row.status)
                   return (
                     <li key={row.id}>
-                      <Link to={`/domains/core/Task/${row.id}`}>{row.name || `Task #${row.id}`}</Link>
+                      <Link to={`/domains/core/Task/${row.id}`}>
+                        {entityDisplayLabel(row, { fallback: 'Untitled task' })}
+                      </Link>
                       {due && (
                         <span
                           className={late ? 'badge badge-warn' : 'badge badge-muted'}

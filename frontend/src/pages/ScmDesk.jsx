@@ -60,6 +60,7 @@ import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { activeStepIndex } from '../config/processStatusMaps'
+import { labelFromList } from '../utils/entityDisplayLabel'
 
 const BUYERS_TABS = [
   { id: 'vendors', labelKey: 'scm.tabs.vendors', icon: Package },
@@ -497,7 +498,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
       if (action === 'confirm') {
         setInfo(
           `Confirmed ${result.purchaseOrder?.poNumber}` +
-            (result.financePayableId ? ` → payable #${result.financePayableId}` : '') +
+            (result.financePayableId || result.payable?.payableNumber
+              ? ` → payable${result.payable?.payableNumber ? ` ${result.payable.payableNumber}` : ''}`
+              : '') +
             (result.alreadyConfirmed ? ' (already)' : ''),
         )
         setSelectedPo(result.purchaseOrder)
@@ -549,7 +552,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
     setError(null)
     try {
       const r = await scmApi.production.fromSales(salesOrderId)
-      setInfo(t('toast.prodFromSo', { ns: 'common', count: (r.items || []).length, id: salesOrderId }))
+      setInfo(t('toast.prodFromSo', { ns: 'common', count: (r.items || []).length }))
       await loadAll()
       setTab('production')
     } catch (err) {
@@ -683,9 +686,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
   }
 
   const productName = (id) =>
-    productOptions.find((p) => p.id === id)?.name ||
-    products.find((p) => p.id === id)?.name ||
-    `#${id}`
+    labelFromList(productOptions, id, {
+      fallback: labelFromList(products, id, { fallback: '—' }),
+    })
 
   const onCreateService = async (e) => {
     e.preventDefault()
@@ -1517,7 +1520,10 @@ export default function ScmDesk({ desk = 'buyers' }) {
                     <span className={statusClass(l.lotStatus)}>{l.lotStatus}</span>
                     {l.sourceProductionOrderId ? (
                       <span className="muted" style={{ marginLeft: 6, fontSize: '0.75rem' }}>
-                        MO#{l.sourceProductionOrderId}
+                        MO{' '}
+                        {labelFromList(prods, l.sourceProductionOrderId, {
+                          fallback: '—',
+                        })}
                       </span>
                     ) : null}
                   </td>
@@ -1656,7 +1662,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
           )}
           {selectedPo.financePayableId && (
             <Link className="btn btn-secondary" to="/finance/payables">
-              Payable #{selectedPo.financePayableId} →
+              Payable →
             </Link>
           )}
           <a
@@ -1728,7 +1734,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
             </div>
             {selectedProd.sourceSalesOrderId && (
               <div className="muted" style={{ fontSize: '0.85rem' }}>
-                From sales order #{selectedProd.sourceSalesOrderId}
+                From sales order
               </div>
             )}
           </div>

@@ -28,6 +28,7 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 const STAGES = ['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST']
 const OPEN = new Set(['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'])
@@ -314,7 +315,7 @@ export default function SalesCrmPage() {
     setInfo(null)
     try {
       const result = await salesApi.crm.convert(selected.id, {})
-      const qLabel = result?.quote?.quoteNumber || result?.quote?.id || '—'
+      const qLabel = result?.quote?.quoteNumber || '—'
       setInfo(
         result?.alreadyConverted
           ? t('crm.alreadyConverted', {
@@ -551,7 +552,7 @@ export default function SalesCrmPage() {
           {
             id: 'name',
             primary: true,
-            render: (row) => row.name || `#${row.id}`,
+            render: (row) => entityDisplayLabel(row, { fallback: '—' }),
           },
           {
             id: 'stage',
@@ -563,7 +564,7 @@ export default function SalesCrmPage() {
           {
             id: 'customer',
             secondary: true,
-            render: (row) => row.customerName || row.contactName || row.customerId || '—',
+            render: (row) => row.customerName || row.contactName || '—',
           },
           {
             id: 'amount',
@@ -606,11 +607,11 @@ export default function SalesCrmPage() {
                   className={selected?.id === row.id ? 'row-selected' : 'row-click'}
                   onClick={() => setSelectedId(String(row.id))}
                 >
-                  <td>{row.name || `#${row.id}`}</td>
+                  <td>{entityDisplayLabel(row, { fallback: '—' })}</td>
                   <td>
                     <span className={stageBadge(row.stage)}>{row.stage || '—'}</span>
                   </td>
-                  <td>{row.customerName || row.contactName || row.customerId || '—'}</td>
+                  <td>{row.customerName || row.contactName || '—'}</td>
                   <td>
                     {row.expectedAmountEur != null
                       ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
@@ -643,7 +644,7 @@ export default function SalesCrmPage() {
                 ? ` · ${t('crm.closes', { defaultValue: 'closes' })} ${toDateInput(selected.expectedCloseDate)}`
                 : ''}
               {selected.resultingQuoteId
-                ? ` · ${t('crm.quoteId', { defaultValue: 'quote' })} #${selected.resultingQuoteId}`
+                ? ` · ${t('crm.quoteId', { defaultValue: 'quote' })}`
                 : ''}
             </div>
           </div>

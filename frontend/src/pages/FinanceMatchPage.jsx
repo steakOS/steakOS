@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { GitCompareArrows } from 'lucide-react'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import { financeOpsApi } from '../api/client'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 function fmtMoney(v) {
   if (v == null || v === '') return '—'
@@ -169,7 +170,10 @@ export default function FinanceMatchPage() {
       setInfo(
         t('match.proposed', {
           defaultValue: 'Match proposed for PO {{po}}.',
-          po: cand.poNumber || cand.purchaseOrderId,
+          po: entityDisplayLabel(cand, {
+            keys: ['poNumber', 'purchaseOrderNumber'],
+            fallback: '—',
+          }),
         }),
       )
       setTab('matches')
@@ -280,19 +284,18 @@ export default function FinanceMatchPage() {
                   onSelect={(row) => selectMatch(row)}
                   fields={[
                     {
-                      id: 'id',
-                      primary: true,
-                      render: (row) => `#${row.id}`,
-                    },
-                    {
                       id: 'status',
-                      secondary: true,
+                      primary: true,
                       render: (row) => statusOf(row),
                     },
                     {
                       id: 'po',
                       secondary: true,
-                      render: (row) => row.purchaseOrderId || '—',
+                      render: (row) =>
+                        entityDisplayLabel(row, {
+                          keys: ['poNumber', 'purchaseOrderNumber'],
+                          fallback: '—',
+                        }),
                     },
                     {
                       id: 'variance',
@@ -305,7 +308,6 @@ export default function FinanceMatchPage() {
                     <table className="data">
                       <thead>
                         <tr>
-                          <th>{t('match.colId', { defaultValue: 'ID' })}</th>
                           <th>{t('match.colStatus', { defaultValue: 'Status' })}</th>
                           <th>{t('match.colPo', { defaultValue: 'PO' })}</th>
                           <th>{t('match.colPayable', { defaultValue: 'Payable' })}</th>
@@ -320,10 +322,19 @@ export default function FinanceMatchPage() {
                             className={selected?.id === row.id ? 'row-selected' : 'row-click'}
                             onClick={() => selectMatch(row)}
                           >
-                            <td>{row.id}</td>
                             <td>{statusOf(row)}</td>
-                            <td>{row.purchaseOrderId || '—'}</td>
-                            <td>{row.payableId || '—'}</td>
+                            <td>
+                              {entityDisplayLabel(row, {
+                                keys: ['poNumber', 'purchaseOrderNumber'],
+                                fallback: '—',
+                              })}
+                            </td>
+                            <td>
+                              {entityDisplayLabel(row, {
+                                keys: ['payableNumber'],
+                                fallback: '—',
+                              })}
+                            </td>
                             <td>{fmtMoney(row.varianceEur)}</td>
                           </tr>
                         ))}
@@ -351,14 +362,23 @@ export default function FinanceMatchPage() {
                 <div className="inv-detail-hero" style={{ marginBottom: '0.75rem' }}>
                   <div>
                     <div className="about-display" style={{ fontSize: '1.2rem' }}>
-                      #{selected.id} · {statusOf(selected)}
+                      {statusOf(selected)}
                     </div>
                     <div className="muted">
-                      {t('match.colPo', { defaultValue: 'PO' })} {selected.purchaseOrderId || '—'}
+                      {t('match.colPo', { defaultValue: 'PO' })}{' '}
+                      {entityDisplayLabel(selected, {
+                        keys: ['poNumber', 'purchaseOrderNumber'],
+                        fallback: '—',
+                      })}
                       {' · '}
                       {t('match.colPayable', { defaultValue: 'Payable' })}{' '}
-                      {selected.payableId || '—'}
-                      {selected.receiptId != null ? ` · R#${selected.receiptId}` : ''}
+                      {entityDisplayLabel(selected, {
+                        keys: ['payableNumber'],
+                        fallback: '—',
+                      })}
+                      {selected.receiptId != null
+                        ? ` · ${t('match.receipt', { defaultValue: 'Receipt' })}`
+                        : ''}
                     </div>
                     {selected.description && (
                       <div style={{ fontSize: '0.9rem', marginTop: 4 }}>{selected.description}</div>
@@ -471,9 +491,19 @@ export default function FinanceMatchPage() {
                   <tbody>
                     {candidates.map((cand) => (
                       <tr key={`${cand.purchaseOrderId}-${cand.payableId}`}>
-                        <td>{cand.poNumber || cand.purchaseOrderId}</td>
+                        <td>
+                          {entityDisplayLabel(cand, {
+                            keys: ['poNumber', 'purchaseOrderNumber'],
+                            fallback: '—',
+                          })}
+                        </td>
                         <td>{cand.vendorName || '—'}</td>
-                        <td>{cand.payableId || '—'}</td>
+                        <td>
+                          {entityDisplayLabel(cand, {
+                            keys: ['payableNumber'],
+                            fallback: '—',
+                          })}
+                        </td>
                         <td>{fmtMoney(cand.amountPoEur)}</td>
                         <td>{fmtMoney(cand.amountPayableEur)}</td>
                         <td>{fmtMoney(cand.varianceEur)}</td>

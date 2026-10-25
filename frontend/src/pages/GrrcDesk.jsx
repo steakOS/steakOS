@@ -24,6 +24,7 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 const SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 const LIKELIHOODS = ['LOW', 'MEDIUM', 'HIGH']
@@ -558,7 +559,7 @@ export default function GrrcDesk() {
               {
                 key: 'name',
                 label: t('grrc.colName', { defaultValue: 'Name' }),
-                render: (r) => r.name || `#${r.id}`,
+                render: (r) => entityDisplayLabel(r),
               },
               {
                 key: 'status',
@@ -589,7 +590,7 @@ export default function GrrcDesk() {
               {
                 key: 'name',
                 label: t('grrc.colName', { defaultValue: 'Name' }),
-                render: (r) => r.name || `#${r.id}`,
+                render: (r) => entityDisplayLabel(r),
               },
               {
                 key: 'status',

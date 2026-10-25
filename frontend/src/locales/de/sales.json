@@ -76,7 +76,7 @@
     "selectHint": "Angebot aus der Liste wählen",
     "noCustomer": "Kein Kunde",
     "acceptToOrder": "Annehmen → Auftrag",
-    "openOrder": "Auftrag #{{id}} öffnen",
+    "openOrder": "Auftrag öffnen",
     "lines": "Positionen",
     "noLines": "Keine Positionen",
     "lineNo": "#",

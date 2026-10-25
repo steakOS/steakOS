@@ -108,7 +108,7 @@ export default function TaskAssigneeSelect({
     if (!value || options.some((o) => o.value === value)) return options
     const decoded = decodeAssigneeValue(value)
     let label = value
-    if (decoded.assigneeAgentId) label = `[agent] #${decoded.assigneeAgentId}`
+    if (decoded.assigneeAgentId) label = '[agent]'
     else if (decoded.assigneeHumanNpub?.startsWith('user:')) {
       label = decoded.assigneeHumanNpub.slice('user:'.length)
     } else if (decoded.assigneeHumanNpub) label = decoded.assigneeHumanNpub

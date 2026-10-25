@@ -76,7 +76,7 @@
     "selectHint": "Select a quote from the list",
     "noCustomer": "No customer",
     "acceptToOrder": "Accept → order",
-    "openOrder": "Open order #{{id}}",
+    "openOrder": "Open order",
     "lines": "Lines",
     "noLines": "No lines",
     "lineNo": "#",

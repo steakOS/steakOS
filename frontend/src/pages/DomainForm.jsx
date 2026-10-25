@@ -1201,7 +1201,7 @@ export default function DomainForm() {
                 <option value="">— select BOM —</option>
                 {boms.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.name || `BOM #${b.id}`}
+                    {b.name || b.code || 'BOM'}
                     {b.productName ? ` · ${b.productName}` : ''}
                     {b.bomStatus ? ` (${b.bomStatus})` : ''}
                   </option>

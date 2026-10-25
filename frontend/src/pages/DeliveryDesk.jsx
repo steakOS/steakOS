@@ -449,7 +449,7 @@ export default function DeliveryDesk() {
       const r = await deliveryApi.orders.fromSales(salesOrderId)
       const items = r.items || []
       setInfo(
-        `Created ${items.length} delivery order(s) from sales #${salesOrderId} (service lines only)`,
+        `Created ${items.length} delivery order(s) from sales order (service lines only)`,
       )
       setOrderPage((pg) => ({ ...pg, offset: 0 }))
       await loadAll()
@@ -870,11 +870,13 @@ export default function DeliveryDesk() {
       <h2 className="section-label">{t('delivery.fromSalesOrder')}</h2>
       <form className="form-grid" onSubmit={onFromSales}>
         <label>
-          Sales order id
+          {t('delivery.fromSalesOrder', { defaultValue: 'Sales order' })}
           <input
             value={salesOrderId}
             onChange={(e) => setSalesOrderId(e.target.value)}
             placeholder={t('ph.serviceLines', { ns: 'common' })}
+            inputMode="numeric"
+            aria-label={t('delivery.fromSalesOrder', { defaultValue: 'Sales order' })}
           />
         </label>
         <button type="submit" className="btn" disabled={!!busy || !salesOrderId}>
@@ -1190,7 +1192,7 @@ export default function DeliveryDesk() {
             </div>
             {selected.sourceSalesOrderId && (
               <div className="muted" style={{ fontSize: '0.85rem' }}>
-                From sales order #{selected.sourceSalesOrderId}
+                From sales order
               </div>
             )}
             {selected.resourceName && (

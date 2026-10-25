@@ -38,6 +38,7 @@ import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
 import { fetchContentMap } from '../utils/contentSummary'
+import { labelFromList } from '../utils/entityDisplayLabel'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import DeskShell from '../components/desk/DeskShell'
@@ -1134,7 +1135,8 @@ export default function AgentHub() {
       <ul className="muted">
         {links.map((l) => (
           <li key={l.id}>
-            Agent #{l.agentId} · {l.linkKind} · {l.active ? 'active' : 'inactive'}
+            {labelFromList(agents, l.agentId)} · {l.linkKind} ·{' '}
+            {l.active ? 'active' : 'inactive'}
           </li>
         ))}
       </ul>
@@ -1324,7 +1326,7 @@ export default function AgentHub() {
           {
             id: 'agent',
             priority: 'low',
-            render: (m) => m.agentId || '—',
+            render: (m) => labelFromList(agents, m.agentId),
           },
         ]}
         actions={(m) => <ViewButton pkg="agents" resource="Memory" record={m} />}
@@ -1351,7 +1353,7 @@ export default function AgentHub() {
                   <td>{m.name}</td>
                   <td>{m.memoryKind}</td>
                   <td>{m.score != null ? m.score : '—'}</td>
-                  <td className="col-priority-low">{m.agentId || '—'}</td>
+                  <td className="col-priority-low">{labelFromList(agents, m.agentId)}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <ViewButton pkg="agents" resource="Memory" record={m} />
                   </td>
@@ -1489,7 +1491,7 @@ export default function AgentHub() {
                 {selectedHive.hiveStatus}
               </span>
               {selectedHive.hiveMasterAgentId
-                ? ` · master #${selectedHive.hiveMasterAgentId}`
+                ? ` · master ${labelFromList(agents, selectedHive.hiveMasterAgentId)}`
                 : ''}
             </div>
           </div>
@@ -1640,7 +1642,9 @@ export default function AgentHub() {
             <div className="muted">
               {selectedMemory.memoryKind}
               {selectedMemory.score != null ? ` · score ${selectedMemory.score}` : ''}
-              {selectedMemory.agentId ? ` · agent #${selectedMemory.agentId}` : ''}
+              {selectedMemory.agentId
+                ? ` · agent ${labelFromList(agents, selectedMemory.agentId)}`
+                : ''}
             </div>
           </div>
         </div>

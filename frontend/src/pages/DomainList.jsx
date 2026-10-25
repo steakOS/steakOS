@@ -37,6 +37,7 @@ import ListPager from '../components/ListPager'
 import usePagedList from '../hooks/usePagedList'
 import { statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 export default function DomainList() {
   const { package: pkg, resource } = useParams()
@@ -241,8 +242,10 @@ export default function DomainList() {
     reload().catch((e) => showError(e, t('actions.loadFailed', { ns: 'common' })))
   }
 
-  const onDelete = async (id, name) => {
-    const label = name ? `"${name}" (#${id})` : `#${id}`
+  const onDelete = async (id, row) => {
+    const label = entityDisplayLabel(row, {
+      fallback: t('view.untitled', { ns: 'common', defaultValue: 'this record' }),
+    })
     if (!window.confirm(t('actions.confirmDelete', { ns: 'common', label }))) return
     try {
       await domainsApi.remove(pkg, resource, id)
@@ -347,7 +350,7 @@ export default function DomainList() {
         type="button"
         className="btn btn-ghost btn-danger"
         title={t('actions.delete', { ns: 'common' })}
-        onClick={() => onDelete(row.id, row.name)}
+        onClick={() => onDelete(row.id, row)}
       >
         <Trash2 size={14} />
       </button>
@@ -558,7 +561,10 @@ export default function DomainList() {
             {
               id: 'name',
               primary: true,
-              render: (row) => row.name || `#${row.id}`,
+              render: (row) =>
+                entityDisplayLabel(row, {
+                  fallback: t('view.untitled', { ns: 'common', defaultValue: 'Untitled' }),
+                }),
             },
             {
               id: 'secondary',
@@ -666,7 +672,9 @@ export default function DomainList() {
                         onClick={() => setViewing(row)}
                         title={t('view.open', { ns: 'common' })}
                       >
-                        {row.name || `#${row.id}`}
+                        {entityDisplayLabel(row, {
+                          fallback: t('view.untitled', { ns: 'common', defaultValue: 'Untitled' }),
+                        })}
                       </button>
                     </td>
                     {listColumns ? (

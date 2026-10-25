@@ -76,7 +76,7 @@
     "selectHint": "Seleccione una oferta de la lista",
     "noCustomer": "Sin cliente",
     "acceptToOrder": "Aceptar → pedido",
-    "openOrder": "Abrir pedido #{{id}}",
+    "openOrder": "Abrir pedido",
     "lines": "Líneas",
     "noLines": "Sin líneas",
     "lineNo": "#",

@@ -47,6 +47,7 @@ import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import useDeskMemory from '../hooks/useDeskMemory'
+import { labelFromList } from '../utils/entityDisplayLabel'
 
 const SECTION_DEFS = [
   { id: 'portfolios', labelKey: 'capability.tabs.portfolios', icon: Layers },
@@ -1483,10 +1484,7 @@ export default function CapabilityHub() {
           {
             id: 'portfolio',
             secondary: true,
-            render: (p) => {
-              const port = portfolioOptions.find((x) => String(x.id) === String(p.portfolioId))
-              return port?.name || (p.portfolioId ? `#${p.portfolioId}` : '—')
-            },
+            render: (p) => labelFromList(portfolioOptions, p.portfolioId),
           },
           {
             id: 'status',
@@ -1511,9 +1509,7 @@ export default function CapabilityHub() {
               </tr>
             </thead>
             <tbody>
-              {programs.map((p) => {
-                const port = portfolioOptions.find((x) => String(x.id) === String(p.portfolioId))
-                return (
+              {programs.map((p) => (
                   <tr
                     key={p.id}
                     style={{
@@ -1527,7 +1523,7 @@ export default function CapabilityHub() {
                   >
                     <td>{p.name}</td>
                     <td className="col-priority-low">
-                      {port?.name || (p.portfolioId ? `#${p.portfolioId}` : '—')}
+                      {labelFromList(portfolioOptions, p.portfolioId)}
                     </td>
                     <td>
                       <span className={statusClass(p.programStatus)}>{p.programStatus}</span>
@@ -1536,8 +1532,7 @@ export default function CapabilityHub() {
                       <ViewButton pkg="capability" resource="Program" record={p} />
                     </td>
                   </tr>
-                )
-              })}
+              ))}
               {!programs.length && (
                 <tr>
                   <td colSpan={4} className="muted">
@@ -2441,8 +2436,6 @@ export default function CapabilityHub() {
           {t('labels.portfolio', { ns: 'common' })}:{' '}
           {port ? (
             <Link to="/capability/portfolios">{port.name}</Link>
-          ) : selectedProgram.portfolioId ? (
-            `#${selectedProgram.portfolioId}`
           ) : (
             '—'
           )}

@@ -110,11 +110,11 @@ export function buildAssigneeOptions({ humans = [], agents = [], meUsername, meL
     })
     .map((a) => ({
       value: `agent:${a.id}`,
-      label: `[agent] ${a.name || `#${a.id}`}`,
+      label: `[agent] ${a.name || a.agentKey || a.displayName || 'Agent'}`,
       kind: 'agent',
       agentKey: a.agentKey || '',
       developmentOnly: !!a.developmentOnly || a.agentKey === 'coder',
-      sortKey: String(a.name || a.id).toLowerCase(),
+      sortKey: String(a.name || a.agentKey || a.id).toLowerCase(),
     }))
     .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
 
@@ -134,7 +134,7 @@ export function formatAssigneeDisplay(assigneeHumanNpub, assigneeAgentId, { opti
   if (!value) return '—'
   const hit = options.find((o) => o.value === value)
   if (hit) return hit.label
-  if (value.startsWith('agent:')) return `[agent] #${value.slice('agent:'.length)}`
+  if (value.startsWith('agent:')) return '[agent]'
   const npub = value.startsWith('human:') ? value.slice('human:'.length) : value
   if (meUsername && npub === humanNpubForUsername(meUsername)) return 'Me'
   if (npub.startsWith('user:')) return npub.slice('user:'.length)

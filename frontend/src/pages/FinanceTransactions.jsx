@@ -361,7 +361,7 @@ export default function FinanceTransactions() {
       setInfo(
         r.alreadyClosed
           ? `Period ${period} was already closed`
-          : `Period ${period} closed (marker #${r.markerEntryId})`,
+          : `Period ${period} closed`,
       )
       await loadTb()
     } catch (err) {

@@ -29,6 +29,7 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 const LIST_KINDS = ['STANDARD', 'CUSTOMER', 'VOLUME']
 const emptyForm = () => ({
@@ -517,7 +518,7 @@ export default function SalesPricingPage() {
           {
             id: 'name',
             primary: true,
-            render: (row) => row.name || row.code || `#${row.id}`,
+            render: (row) => entityDisplayLabel(row, { fallback: '—' }),
           },
           {
             id: 'kind',
@@ -566,7 +567,7 @@ export default function SalesPricingPage() {
                   className={selected?.id === row.id ? 'row-selected' : 'row-click'}
                   onClick={() => setSelectedId(String(row.id))}
                 >
-                  <td>{row.name || row.code || `#${row.id}`}</td>
+                  <td>{entityDisplayLabel(row, { fallback: '—' })}</td>
                   <td>{row.listKind || '—'}</td>
                   <td>
                     {row.active === false
@@ -621,10 +622,7 @@ export default function SalesPricingPage() {
                 {lines.map((ln, i) => (
                   <tr key={`${ln.name}-${i}`}>
                     <td>
-                      {ln.name}
-                      {ln.catalogueItemId ? (
-                        <span className="muted mono"> · #{ln.catalogueItemId}</span>
-                      ) : null}
+                      {ln.name || ln.sku || '—'}
                     </td>
                     <td>{ln.unitPrice}</td>
                     <td>{ln.minQty}</td>

@@ -464,7 +464,8 @@ export default function HrDesk() {
         const r = await hrApi.candidates.hire(selectedCandidate.id)
         setSelectedCandidate(r.candidate)
         setInfo(
-          `Hired → HRFile #${r.hrFile?.id} · user ${r.hrFile?.username} (enabled: ${r.hrFile?.userEnabled ? 'yes' : 'no'})`,
+          `Hired → ${r.hrFile?.username || r.hrFile?.displayName || 'employee'}` +
+            ` (enabled: ${r.hrFile?.userEnabled ? 'yes' : 'no'})`,
         )
       } else if (action === 'reject') {
         const c = await hrApi.candidates.reject(selectedCandidate.id)
@@ -490,7 +491,7 @@ export default function HrDesk() {
         t('toast.timeLogged', {
           ns: 'common',
           hours: entry.hours,
-          person: entry.hrFileName || entry.hrFileId,
+          person: entry.hrFileName || '—',
         }),
       )
       setTimeForm({ hrFileId: '', hours: '8', timeKind: 'WORK', name: '' })
@@ -1394,7 +1395,7 @@ export default function HrDesk() {
           {
             id: 'name',
             primary: true,
-            render: (row) => row.hrFileName || row.hrFileId,
+            render: (row) => row.hrFileName || '—',
           },
           {
             id: 'hours',
@@ -1422,7 +1423,7 @@ export default function HrDesk() {
             <tbody>
               {timeEntries.map((row) => (
                 <tr key={row.id}>
-                  <td>{row.hrFileName || row.hrFileId}</td>
+                  <td>{row.hrFileName || '—'}</td>
                   <td>{row.hours}</td>
                   <td className="col-priority-low">{row.timeKind}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
@@ -1817,7 +1818,7 @@ export default function HrDesk() {
             </div>
             <div className="muted">
               <span className={statusClass(selectedCandidate.stage)}>{selectedCandidate.stage}</span>
-              {selectedCandidate.hrFileId ? ` · HRFile #${selectedCandidate.hrFileId}` : ''}
+              {selectedCandidate.hrFileId ? ' · hired' : ''}
             </div>
           </div>
         </div>

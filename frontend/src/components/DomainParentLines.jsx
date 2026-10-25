@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { domainsApi } from '../api/client'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 /**
  * Nested line-item table for a parent document on DomainList (L3 residual).
@@ -87,7 +88,10 @@ export default function DomainParentLines({ lineChild, parentId, colSpan }) {
                 <tr key={line.id}>
                   <td className="mono">{line.lineNo ?? '—'}</td>
                   <td>
-                    {line.name || line.productName || `#${line.id}`}
+                    {entityDisplayLabel(line, {
+                      keys: ['name', 'productName', 'productSku', 'sku', 'code'],
+                      fallback: t('view.untitled', { defaultValue: 'Untitled' }),
+                    })}
                     {line.productSku ? (
                       <span className="muted" style={{ marginLeft: 6 }}>
                         {line.productSku}

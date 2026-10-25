@@ -368,7 +368,7 @@ export default function FinanceInvoices() {
       }
       const result = await financeRevenueApi.settle(selected.id, body)
       setInfo(
-        `Settled via ${result.payment?.rail} · JE #${result.journalEntryId}` +
+        `Settled via ${result.payment?.rail} · journal entry` +
           (result.idempotent ? ' (idempotent)' : '') +
           ` · invoice ${result.invoice?.invoiceStatus}`,
       )
@@ -778,7 +778,7 @@ export default function FinanceInvoices() {
           {(selected.payments || []).map((p) => (
             <li key={p.id}>
               {p.rail} · {Number(p.amountEur).toFixed(2)} EUR · {p.paymentStatus}
-              {p.journalEntryId ? ` · JE #${p.journalEntryId}` : ''}
+              {p.journalEntryId ? ' · journal entry' : ''}
             </li>
           ))}
         </ul>

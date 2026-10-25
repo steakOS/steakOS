@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { Scale } from 'lucide-react'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import { financeOpsApi } from '../api/client'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 function fmtDate(v) {
   if (!v) return '—'
@@ -308,7 +309,8 @@ export default function FinanceCollectionsPage() {
                   {
                     id: 'invoice',
                     primary: true,
-                    render: (row) => row.invoiceNumber || `#${row.invoiceId || row.id}`,
+                    render: (row) =>
+                      entityDisplayLabel(row, { fallback: 'Invoice' }),
                   },
                   {
                     id: 'customer',
@@ -349,7 +351,7 @@ export default function FinanceCollectionsPage() {
                             className={selectedId === id ? 'row-selected' : 'row-click'}
                             onClick={() => selectInvoice(row)}
                           >
-                            <td>{row.invoiceNumber || `#${id}`}</td>
+                            <td>{entityDisplayLabel(row, { fallback: 'Invoice' })}</td>
                             <td>{row.customerName || row.customerId || '—'}</td>
                             <td>{fmtDate(row.dueDate)}</td>
                             <td>{row.daysOverdue ?? '—'}</td>
@@ -385,7 +387,7 @@ export default function FinanceCollectionsPage() {
               <div className="inv-detail-hero" style={{ marginBottom: '0.75rem' }}>
                 <div>
                   <div className="about-display" style={{ fontSize: '1.2rem' }}>
-                    {detail.invoiceNumber || `#${detail.invoiceId || selectedId}`}
+                    {entityDisplayLabel(detail, { fallback: 'Invoice' })}
                   </div>
                   <div className="muted">
                     {detail.customerName || detail.customerId || '—'} ·{' '}

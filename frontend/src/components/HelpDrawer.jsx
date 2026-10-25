@@ -147,11 +147,9 @@ export default function HelpDrawer({
     if (helpContext.desk) contextBits.push(helpContext.desk)
     if (helpContext.tab) contextBits.push(helpContext.tab)
     if (helpContext.resource) contextBits.push(helpContext.resource)
-    if (helpContext.objectId != null) contextBits.push(`#${helpContext.objectId}`)
     if (helpContext.status) contextBits.push(helpContext.status)
   } else if (ctx.kind === 'domain') {
     contextBits.push(ctx.package, ctx.resource, ctx.mode)
-    if (ctx.recordId) contextBits.push(`#${ctx.recordId}`)
   } else if (ctx.desk || ctx.tab) {
     if (ctx.desk) contextBits.push(ctx.desk)
     if (ctx.tab) contextBits.push(ctx.tab)

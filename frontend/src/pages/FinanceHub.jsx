@@ -38,6 +38,7 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 function periodNow() {
   const d = new Date()
@@ -989,7 +990,7 @@ export default function FinanceHub() {
             {
               id: 'name',
               primary: true,
-              render: (a) => a.name || `#${a.id}`,
+              render: (a) => entityDisplayLabel(a),
             },
             {
               id: 'period',
@@ -1000,7 +1001,7 @@ export default function FinanceHub() {
               id: 'source',
               meta: true,
               label: t('finance.source'),
-              render: (a) => `${a.sourceType}/${a.sourceId}`,
+              render: (a) => a.sourceType || '—',
             },
           ]}
           actions={(a) => (
@@ -1015,7 +1016,6 @@ export default function FinanceHub() {
             <table className="data">
               <thead>
                 <tr>
-                  <th className="col-priority-low">ID</th>
                   <th>{t('wb.name', { ns: 'common' })}</th>
                   <th>{t('wb.period', { ns: 'common' })}</th>
                   <th className="col-priority-low">{t('finance.source')}</th>
@@ -1030,11 +1030,10 @@ export default function FinanceHub() {
                     className={selected?.id === a.id ? 'row-selected' : 'row-click'}
                     onClick={() => setSelectedId(String(a.id))}
                   >
-                    <td className="mono col-priority-low">{a.id}</td>
-                    <td>{a.name}</td>
+                    <td>{entityDisplayLabel(a)}</td>
                     <td className="mono">{a.period}</td>
                     <td className="col-priority-low">
-                      {a.sourceType}/{a.sourceId}
+                      {a.sourceType || '—'}
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                       <ViewButton
@@ -1125,7 +1124,7 @@ export default function FinanceHub() {
             run(async () => {
               await financeOpsApi.payablePay(selected.id)
               await loadTab()
-            }, t('finance.paidId', { id: selected.id }))
+            }, t('finance.paidId'))
           }
         >
           {t('finance.pay')}
@@ -1255,13 +1254,9 @@ export default function FinanceHub() {
     detail = (
       <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
         <h2 className="section-label" style={{ marginTop: 0 }}>
-          {selected.name || `#${selected.id}`}
+          {entityDisplayLabel(selected)}
         </h2>
         <dl className="about-grid">
-          <div>
-            <dt>ID</dt>
-            <dd className="mono">{selected.id}</dd>
-          </div>
           <div>
             <dt>{t('wb.period', { ns: 'common' })}</dt>
             <dd className="mono">{selected.period}</dd>
@@ -1269,7 +1264,7 @@ export default function FinanceHub() {
           <div>
             <dt>{t('finance.source')}</dt>
             <dd className="mono">
-              {selected.sourceType}/{selected.sourceId}
+              {selected.sourceType || '—'}
             </dd>
           </div>
         </dl>

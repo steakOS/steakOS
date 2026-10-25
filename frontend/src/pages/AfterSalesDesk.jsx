@@ -432,7 +432,7 @@ export default function AfterSalesDesk() {
         contactName: customerForm.contactName || null,
         customerKind: customerForm.customerKind,
       })
-      setInfo(t('toast.namedCreatedId', { ns: 'common', what: t('labels.customer', { ns: 'common' }), name: c.name, id: c.id }))
+      setInfo(t('toast.namedCreated', { ns: 'common', what: t('labels.customer', { ns: 'common' }), name: c.name }))
       setCustomerForm({ name: '', email: '', contactName: '', customerKind: 'ORGANIZATION' })
       await loadAll()
       setInqForm((f) => ({ ...f, customerId: String(c.id) }))
@@ -608,9 +608,7 @@ export default function AfterSalesDesk() {
         const result = await aftersalesApi.claims.approve(selectedClaim.id)
         setSelectedClaim(result.claim || result)
         if (result.financeCreditInvoiceId) {
-          setInfo(
-            `Claim approved → Finance credit #${result.financeCreditInvoiceId}`,
-          )
+          setInfo('Claim approved → Finance credit')
         } else {
           setInfo(
             `Claim approved${result.finance?.error ? ` (credit: ${result.finance.error})` : ''}`,
@@ -689,7 +687,7 @@ export default function AfterSalesDesk() {
         setSelectedRma(result.rma || result)
         setInfo(
           result.stockMoveId
-            ? `RMA confirmed → stock move #${result.stockMoveId}`
+            ? 'RMA confirmed → stock move'
             : 'RMA confirmed (no stock — set product id)',
         )
       } else if (action === 'close') {
@@ -1407,7 +1405,7 @@ export default function AfterSalesDesk() {
                       {
                         id: 'product',
                         meta: true,
-                        render: (w) => w.productName || w.productId || '—',
+                        render: (w) => w.productName || '—',
                       },
                     ]}
                     actions={(w) => (
@@ -1431,7 +1429,7 @@ export default function AfterSalesDesk() {
                               <td className="mono">{w.warrantyNumber}</td>
                               <td>{w.customerName || customerNameById(w.customerId) || '—'}</td>
                               <td className="col-priority-low">
-                                {w.productName || w.productId || '—'}
+                                {w.productName || '—'}
                               </td>
                               <td>
                                 <span className={statusClass(w.coverStatus)}>
@@ -1584,7 +1582,7 @@ export default function AfterSalesDesk() {
                       {
                         id: 'warranty',
                         secondary: true,
-                        render: (c) => c.warrantyNumber || c.warrantyId || '—',
+                        render: (c) => c.warrantyNumber || '—',
                       },
                       {
                         id: 'eur',
@@ -1620,7 +1618,7 @@ export default function AfterSalesDesk() {
                               onClick={() => setSelectedId(String(c.id))}
                             >
                               <td className="mono">{c.claimNumber}</td>
-                              <td>{c.warrantyNumber || c.warrantyId}</td>
+                              <td>{c.warrantyNumber || '—'}</td>
                               <td>
                                 {c.claimAmountEur != null
                                   ? Number(c.claimAmountEur).toFixed(2)
@@ -1688,7 +1686,7 @@ export default function AfterSalesDesk() {
                       {
                         id: 'product',
                         meta: true,
-                        render: (r) => r.productName || r.productId || '—',
+                        render: (r) => r.productName || '—',
                       },
                     ]}
                     actions={(r) => (
@@ -1718,7 +1716,7 @@ export default function AfterSalesDesk() {
                               <td className="mono">{r.rmaNumber}</td>
                               <td>{r.customerName || customerNameById(r.customerId) || '—'}</td>
                               <td className="col-priority-low">
-                                {r.productName || r.productId || '—'}
+                                {r.productName || '—'}
                               </td>
                               <td
                                 className="col-priority-low"
@@ -1856,7 +1854,7 @@ export default function AfterSalesDesk() {
                           </div>
                           <div className="muted">
                             {t('aftersales.warrantyRef', {
-                              ref: selectedClaim.warrantyNumber || `#${selectedClaim.warrantyId}`,
+                              ref: selectedClaim.warrantyNumber || '—',
                             })}{' '}
                             ·{' '}
                             <span className={statusClass(selectedClaim.claimStatus)}>
@@ -1865,9 +1863,7 @@ export default function AfterSalesDesk() {
                           </div>
                           {selectedClaim.financeCreditInvoiceId && (
                             <div className="muted" style={{ fontSize: '0.85rem' }}>
-                              {t('aftersales.financeCreditInvoice', {
-                                id: selectedClaim.financeCreditInvoiceId,
-                              })}
+                              {t('aftersales.financeCreditInvoice')}
                             </div>
                           )}
                         </div>
@@ -1948,7 +1944,7 @@ export default function AfterSalesDesk() {
                           <div className="muted" style={{ fontSize: '0.85rem' }}>
                             {t('aftersales.qtyLabel', { qty: selectedRma.quantity })}
                             {selectedRma.stockMoveId
-                              ? ` · ${t('aftersales.stockRef', { id: selectedRma.stockMoveId })}`
+                              ? ` · ${t('aftersales.stockRef')}`
                               : ''}
                           </div>
                         </div>

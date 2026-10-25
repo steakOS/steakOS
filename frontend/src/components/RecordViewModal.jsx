@@ -20,8 +20,17 @@ import { X, Pencil } from 'lucide-react'
 import { domainsApi } from '../api/client'
 import { humanizeLabel, statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
+import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
-const HIDDEN_KEYS = new Set(['class', 'metaClass', 'constraints', 'errors', 'attached', 'dirty'])
+const HIDDEN_KEYS = new Set([
+  'id',
+  'class',
+  'metaClass',
+  'constraints',
+  'errors',
+  'attached',
+  'dirty',
+])
 
 function formatFieldLabel(key) {
   return humanizeLabel(key)
@@ -43,7 +52,7 @@ function formatValue(value) {
 function sortedEntries(record) {
   if (!record || typeof record !== 'object') return []
   const keys = Object.keys(record).filter((k) => !HIDDEN_KEYS.has(k) && !k.startsWith('_'))
-  const preferred = ['id', 'name', 'code', 'status', 'npubOwner']
+  const preferred = ['name', 'code', 'status', 'npubOwner']
   keys.sort((a, b) => {
     const ia = preferred.indexOf(a)
     const ib = preferred.indexOf(b)
@@ -114,12 +123,9 @@ export default function RecordViewModal({
 
   if (!open) return null
 
-  const title =
-    record?.name ||
-    record?.title ||
-    record?.code ||
-    record?.invoiceNumber ||
-    (recordId != null ? `#${recordId}` : t('view.untitled'))
+  const title = entityDisplayLabel(record, {
+    fallback: t('view.untitled', { defaultValue: 'Untitled' }),
+  })
   const entries = sortedEntries(record)
 
   return (

@@ -24,6 +24,7 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
+import { entityDisplayLabel, labelFromList } from '../utils/entityDisplayLabel'
 
 const PARTY_KINDS = [
   'REGULATOR',
@@ -219,10 +220,7 @@ export default function StakeholderDesk() {
     }
   }
 
-  const partyName = (id) => {
-    if (id == null || id === '') return '—'
-    return parties.find((x) => String(x.id) === String(id))?.name || `#${id}`
-  }
+  const partyName = (id) => labelFromList(parties, id)
 
   const confirmDelete = (label) =>
     window.confirm(
@@ -622,7 +620,7 @@ export default function StakeholderDesk() {
               {
                 key: 'name',
                 label: t('stakeholder.colName', { defaultValue: 'Name / subject' }),
-                render: (r) => r.name || `#${r.id}`,
+                render: (r) => entityDisplayLabel(r),
               },
               {
                 key: 'status',
@@ -653,7 +651,7 @@ export default function StakeholderDesk() {
               {
                 key: 'subject',
                 label: t('stakeholder.colName', { defaultValue: 'Name / subject' }),
-                render: (r) => r.subject || `#${r.id}`,
+                render: (r) => entityDisplayLabel(r),
               },
               {
                 key: 'status',
