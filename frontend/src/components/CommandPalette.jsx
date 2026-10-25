@@ -208,10 +208,10 @@ export default function CommandPalette({ open, onClose }) {
     if (open) setQ('')
   }, [open])
 
-  if (!open) return null
-
+  // Hooks must run unconditionally (Rules of Hooks). Early-return only after all hooks.
   const recentGroup = t('pages.commandPalette.groupRecent', { defaultValue: 'Recent' })
   const recentItems = useMemo(() => {
+    if (!open) return []
     try {
       const raw = JSON.parse(localStorage.getItem('steakos.cmd.recent') || '[]')
       if (!Array.isArray(raw)) return []
@@ -232,28 +232,6 @@ export default function CommandPalette({ open, onClose }) {
     const extras = recentItems.filter((r) => r.path && !paths.has(r.path))
     return [...extras, ...filtered].slice(0, 24)
   }, [filtered, recentItems, q])
-
-  const go = (item) => {
-    onClose()
-    if (item.external || (item.path.startsWith('/tour') && !item.helpKey)) {
-      window.open(item.path, '_blank', 'noopener,noreferrer')
-      return
-    }
-    const path = item.helpKey
-      ? `${item.path}${item.path.includes('?') ? '&' : '?'}help=${encodeURIComponent(item.helpKey)}`
-      : item.path
-    try {
-      const prev = JSON.parse(localStorage.getItem('steakos.cmd.recent') || '[]')
-      const next = [
-        { label: item.label, path },
-        ...(Array.isArray(prev) ? prev : []).filter((r) => r.path !== path),
-      ].slice(0, 12)
-      localStorage.setItem('steakos.cmd.recent', JSON.stringify(next))
-    } catch {
-      /* ignore */
-    }
-    navigate(path)
-  }
 
   // WP-9: quick actions always available
   const quickActions = useMemo(
@@ -284,6 +262,30 @@ export default function CommandPalette({ open, onClose }) {
     }
     return [...quickActions, ...filteredWithRecent].slice(0, 24)
   }, [q, quickActions, filteredWithRecent])
+
+  const go = (item) => {
+    onClose()
+    if (item.external || (item.path.startsWith('/tour') && !item.helpKey)) {
+      window.open(item.path, '_blank', 'noopener,noreferrer')
+      return
+    }
+    const path = item.helpKey
+      ? `${item.path}${item.path.includes('?') ? '&' : '?'}help=${encodeURIComponent(item.helpKey)}`
+      : item.path
+    try {
+      const prev = JSON.parse(localStorage.getItem('steakos.cmd.recent') || '[]')
+      const next = [
+        { label: item.label, path },
+        ...(Array.isArray(prev) ? prev : []).filter((r) => r.path !== path),
+      ].slice(0, 12)
+      localStorage.setItem('steakos.cmd.recent', JSON.stringify(next))
+    } catch {
+      /* ignore */
+    }
+    navigate(path)
+  }
+
+  if (!open) return null
 
   return (
     <div className="cmd-backdrop" onClick={onClose} role="presentation">
