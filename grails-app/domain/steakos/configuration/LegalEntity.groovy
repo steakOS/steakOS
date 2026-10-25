@@ -59,6 +59,10 @@ class LegalEntity implements NpubOwned, AccessControl, Auditable, Versioned, Ser
 	/** Prefer dual EUR+sats display where product supports it */
 	Boolean dualSats = Boolean.TRUE
 	String registeredAddressText
+	/** Public company website / URL (Task 7623). Optional. */
+	String website
+	/** Primary public contact email (Task 7623). Optional — not the login account. */
+	String mainEmail
 
 	boolean isDemo() {
 		KIND_DEMO == kind
@@ -80,11 +84,15 @@ class LegalEntity implements NpubOwned, AccessControl, Auditable, Versioned, Ser
 		functionalCurrency nullable: false, blank: false, maxSize: 8
 		dualSats nullable: false
 		registeredAddressText nullable: true, maxSize: 2000
+		website nullable: true, maxSize: 2000
+		// Soft format only in wizard — do not fail setup on odd values (Task 7623)
+		mainEmail nullable: true, maxSize: 255
 	}
 
 	static mapping = {
 		description type: 'text'
 		registeredAddressText type: 'text'
+		website type: 'text'
 		table 'legal_entity'
 		code index: 'legal_entity_code_idx'
 		kind index: 'legal_entity_kind_idx'

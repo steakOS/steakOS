@@ -81,7 +81,9 @@ class DomainRegistryService {
             'processKind', 'processCode', 'processStatus', 'versionLabel', 'ownerRef',
             'stepCode', 'deskHint', 'outcomeStatus', 'actorHint',
             // strategy / development / asset G4 thin
-            'itemKind', 'projectKind', 'projectStatus', 'assetTag', 'location', 'ownerName'
+            'itemKind', 'projectKind', 'projectStatus', 'assetTag', 'location', 'ownerName',
+            // configuration LegalEntity (Task 7623)
+            'legalForm', 'registeredAddressText', 'website', 'mainEmail'
     ].asImmutable()
 
     private static final List DECIMAL_FIELDS = [

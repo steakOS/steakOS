@@ -209,6 +209,8 @@ class SetupService {
         }
         le.registeredAddressText = d.address as String
         le.description = d.companyDescription as String
+        le.website = normalizeWebsite(d.website as String)
+        le.mainEmail = normalizeMainEmail(d.mainEmail as String)
         le.markCreatedBy(actor ?: npub)
         le.markUpdatedBy(actor ?: npub)
         le.save(failOnError: true)
@@ -663,8 +665,30 @@ class SetupService {
                 functionalCurrency    : le.functionalCurrency,
                 dualSats              : le.dualSats,
                 registeredAddressText : le.registeredAddressText,
+                website               : le.website,
+                mainEmail             : le.mainEmail,
                 incorporationDate     : le.incorporationDate?.time
         ]
+    }
+
+    /** Task 7623 D3 — trim; blank → null; bare host → https:// */
+    private static String normalizeWebsite(String raw) {
+        String s = raw?.trim()
+        if (!s) return null
+        String lower = s.toLowerCase()
+        if (!(lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('mailto:'))) {
+            // bare host / path — prepend https
+            if (s.contains('.') || s.contains('/')) {
+                s = 'https://' + s
+            }
+        }
+        s.length() > 2000 ? s.substring(0, 2000) : s
+    }
+
+    private static String normalizeMainEmail(String raw) {
+        String s = raw?.trim()
+        if (!s) return null
+        s.length() > 255 ? s.substring(0, 255) : s
     }
 
     private static Map mapSite(Site site) {

@@ -537,7 +537,9 @@
       "defaultTaxCode": "Standard-Steuercode",
       "routingNumber": "Bankleitzahl / Routing",
       "taxRegime": "Steuerregime",
-      "nav": "Firma"
+      "nav": "Firma",
+      "website": "Webseite",
+      "mainEmail": "Haupt-E-Mail"
     },
     "about": {
       "title": "Über steakOS",

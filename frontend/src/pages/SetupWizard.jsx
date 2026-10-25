@@ -20,6 +20,7 @@ import AuthAppGuide from '../components/AuthAppGuide'
 import { RULES_HINT, validatePassword } from '../util/passwordPolicy'
 import { validateBtcReceiveAddress } from '../util/btcAddress'
 import { companyNameSpecialCharWarn } from '../util/companyNameWarn'
+import { mainEmailFormatWarn } from '../util/mainEmailFormatWarn'
 
 const STEP_IDS = [
   'tour',
@@ -107,6 +108,10 @@ const EMPTY = {
   displayFiat: 'EUR',
   dualSats: false,
   address: '',
+  /** Public company website (Task 7623). Optional. */
+  website: '',
+  /** Primary public contact email (Task 7623). Optional. */
+  mainEmail: '',
   siteName: 'Main',
   siteType: 'HQ',
   siteAddress: '',
@@ -184,6 +189,8 @@ export default function SetupWizard() {
   const [btcAddressError, setBtcAddressError] = useState(null)
   /** Soft (non-blocking) company-name special-char tip (Task 7622). */
   const [companyNameWarn, setCompanyNameWarn] = useState(null)
+  /** Soft (non-blocking) mainEmail format tip (Task 7623). */
+  const [mainEmailWarn, setMainEmailWarn] = useState(null)
   const [check, setCheck] = useState(null)
   /** 'wizard' | 'celebration' — celebration is post-complete, no further apply */
   const [phase, setPhase] = useState(() => (hasCelebrationFlag() ? 'celebration' : 'wizard'))
@@ -1103,6 +1110,52 @@ export default function SetupWizard() {
                 rows={3}
               />
             </label>
+            <label>
+              {t('company.website', { defaultValue: 'Website' })}
+              <input
+                type="text"
+                inputMode="url"
+                autoComplete="url"
+                placeholder={t('company.websitePh', {
+                  defaultValue: 'https://example.com',
+                })}
+                value={draft.website || ''}
+                onChange={(e) => patch({ website: e.target.value })}
+              />
+            </label>
+            <label>
+              {t('company.mainEmail', { defaultValue: 'Main email' })}
+              <input
+                type="text"
+                inputMode="email"
+                autoComplete="email"
+                placeholder={t('company.mainEmailPh', {
+                  defaultValue: 'hello@example.com',
+                })}
+                value={draft.mainEmail || ''}
+                onChange={(e) => {
+                  const value = e.target.value
+                  patch({ mainEmail: value })
+                  const w = mainEmailFormatWarn(value)
+                  setMainEmailWarn(
+                    w.warn
+                      ? t('company.mainEmailWarn', { defaultValue: w.message })
+                      : null,
+                  )
+                }}
+              />
+            </label>
+            {mainEmailWarn && (
+              <p className="setup-tip" style={{ color: 'var(--warning, #9a6700)', marginTop: 6 }}>
+                {mainEmailWarn}
+              </p>
+            )}
+            <p className="setup-tip">
+              {t('company.websiteEmailHelp', {
+                defaultValue:
+                  'Public company site and primary contact email (invoices, letterhead). Optional — not your login email.',
+              })}
+            </p>
           </section>
         )}
 
@@ -2100,6 +2153,14 @@ export default function SetupWizard() {
             <dl className="setup-summary">
               <dt>{t('company.title')}</dt>
               <dd>{draft.companyName || '—'}</dd>
+              {(draft.website || draft.mainEmail) && (
+                <>
+                  <dt>{t('company.website', { defaultValue: 'Website' })}</dt>
+                  <dd>{draft.website || '—'}</dd>
+                  <dt>{t('company.mainEmail', { defaultValue: 'Main email' })}</dt>
+                  <dd>{draft.mainEmail || '—'}</dd>
+                </>
+              )}
               <dt>{t('template.title')}</dt>
               <dd>{draft.templateTier}</dd>
               <dt>{t('site.title')}</dt>

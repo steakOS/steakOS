@@ -537,7 +537,9 @@
       "defaultTaxCode": "Código fiscal predeterminado",
       "routingNumber": "Número de ruta",
       "taxRegime": "Régimen fiscal",
-      "nav": "Compañía"
+      "nav": "Compañía",
+      "website": "Sitio web",
+      "mainEmail": "Correo principal"
     },
     "about": {
       "title": "Acerca de steakOS",

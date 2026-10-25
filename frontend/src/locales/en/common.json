@@ -537,7 +537,9 @@
       "defaultTaxCode": "Default tax code",
       "routingNumber": "Routing number",
       "taxRegime": "Tax regime",
-      "nav": "Company"
+      "nav": "Company",
+      "website": "Website",
+      "mainEmail": "Main email"
     },
     "about": {
       "title": "About steakOS",

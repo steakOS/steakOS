@@ -73,7 +73,13 @@
     "taxRegimeUs": "US sales tax (stub)",
     "nameWarnHtml": "This name looks like it includes HTML or script markup. Prefer a plain legal name — you can continue, but it may display oddly.",
     "nameWarnControl": "This name includes control characters. Prefer printable letters and normal punctuation.",
-    "nameWarnUnusual": "This name includes unusual special characters. Letters, digits, and common legal punctuation (e.g. & . , - / ( )) are safest."
+    "nameWarnUnusual": "This name includes unusual special characters. Letters, digits, and common legal punctuation (e.g. & . , - / ( )) are safest.",
+    "website": "Website",
+    "websitePh": "https://example.com",
+    "mainEmail": "Main email",
+    "mainEmailPh": "hello@example.com",
+    "mainEmailWarn": "This does not look like a typical email address. You can continue — fix it later on the company profile if needed.",
+    "websiteEmailHelp": "Public company site and primary contact email (invoices, letterhead). Optional — not your login email."
   },
   "site": {
     "title": "Primary site",

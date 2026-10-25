@@ -41,6 +41,10 @@ function familyLabel(t, code) {
 }
 
 function Field({ label, value, mono, copyable, onCopy, copied }) {
+  // Omit empty rows (align with Task 7646 view chrome; Task 7623 profile)
+  if (value == null || (typeof value === 'string' && !value.trim())) {
+    return null
+  }
   const show = dash(value)
   const canCopy = copyable && value != null && value !== ''
   return (
@@ -195,6 +199,15 @@ export default function CompanyProfile() {
                 <Field label={t('pages.company.country')} value={le.countryCode} />
                 <Field label={t('pages.company.currency')} value={le.functionalCurrency} />
                 <Field label={t('pages.company.address')} value={le.registeredAddressText} />
+                <Field label={t('pages.company.website', { defaultValue: 'Website' })} value={le.website} />
+                <Field
+                  label={t('pages.company.mainEmail', { defaultValue: 'Main email' })}
+                  value={le.mainEmail}
+                  mono
+                  copyable={!!le.mainEmail}
+                  copied={copiedKey === 'mainEmail'}
+                  onCopy={(v) => copyValue('mainEmail', v)}
+                />
                 <Field label={t('pages.company.description')} value={le.description} />
               </dl>
             )}

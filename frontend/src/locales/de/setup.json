@@ -73,7 +73,13 @@
     "taxRegimeUs": "US Sales Tax (Stub)",
     "nameWarnHtml": "Dieser Name wirkt wie HTML- oder Script-Markup. Bevorzugen Sie einen klaren Firmennamen — Sie können fortfahren, die Anzeige kann aber seltsam wirken.",
     "nameWarnControl": "Dieser Name enthält Steuerzeichen. Bevorzugen Sie druckbare Buchstaben und normale Satzzeichen.",
-    "nameWarnUnusual": "Dieser Name enthält ungewöhnliche Sonderzeichen. Buchstaben, Ziffern und übliche Rechtszeichensetzung (z. B. & . , - / ( )) sind am sichersten."
+    "nameWarnUnusual": "Dieser Name enthält ungewöhnliche Sonderzeichen. Buchstaben, Ziffern und übliche Rechtszeichensetzung (z. B. & . , - / ( )) sind am sichersten.",
+    "website": "Webseite",
+    "websitePh": "https://beispiel.de",
+    "mainEmail": "Haupt-E-Mail",
+    "mainEmailPh": "hallo@beispiel.de",
+    "mainEmailWarn": "Das sieht nicht nach einer typischen E-Mail-Adresse aus. Sie können fortfahren — später im Firmenprofil korrigieren.",
+    "websiteEmailHelp": "Öffentliche Firmen-Webseite und primäre Kontakt-E-Mail (Rechnungen, Briefkopf). Optional — nicht Ihre Login-E-Mail."
   },
   "site": {
     "title": "Primärer Standort",
