@@ -378,7 +378,8 @@ export default function AppShell() {
   const { locale } = useLocaleBootstrap()
   const narrow = useNarrowViewport()
   const [navOpen, setNavOpen] = useState(false)
-  const [openPackages, setOpenPackages] = useState(() => new Set())
+  /** Accordion: at most one primary nav group open (Task 7626). */
+  const [openPackage, setOpenPackage] = useState(null)
   const [versionLabel, setVersionLabel] = useState(null)
   const [templateTier, setTemplateTier] = useState(null)
   const [enabledFamilies, setEnabledFamilies] = useState(null)
@@ -555,25 +556,21 @@ export default function AppShell() {
   }, [t, elevated, isCeo, permissions])
   const helpLinks = useMemo(() => helpNavLinks(t), [t])
 
-  // Auto-expand the group that owns the current route
+  // Auto-expand the group that owns the current route (accordion: only that group)
   useEffect(() => {
     const match = visibleGroups.find((g) => groupContainsPath(g, location.pathname))
-    if (match) {
-      setOpenPackages((prev) => {
-        if (prev.has(match.package)) return prev
-        const next = new Set(prev)
-        next.add(match.package)
-        return next
-      })
-    }
-    if (
+    const onSystem =
       location.pathname.startsWith('/settings') ||
       location.pathname.startsWith('/security') ||
       location.pathname.startsWith('/users') ||
       location.pathname.startsWith('/roles') ||
       location.pathname.startsWith('/company') ||
       location.pathname.startsWith('/system')
-    ) {
+    if (match) {
+      setOpenPackage(match.package)
+      setSystemOpen(false)
+    } else if (onSystem) {
+      setOpenPackage(null)
       setSystemOpen(true)
     }
     if (location.pathname === '/help' || location.pathname.startsWith('/help/')) {
@@ -646,10 +643,17 @@ export default function AppShell() {
   }, [location.pathname])
 
   const toggle = (pkg) => {
-    setOpenPackages((prev) => {
-      const next = new Set(prev)
-      if (next.has(pkg)) next.delete(pkg)
-      else next.add(pkg)
+    setOpenPackage((prev) => {
+      const next = prev === pkg ? null : pkg
+      if (next != null) setSystemOpen(false)
+      return next
+    })
+  }
+
+  const toggleSystem = () => {
+    setSystemOpen((wasOpen) => {
+      const next = !wasOpen
+      if (next) setOpenPackage(null)
       return next
     })
   }
@@ -715,7 +719,7 @@ export default function AppShell() {
             <NavGroup
               key={group.package}
               group={group}
-              open={openPackages.has(group.package)}
+              open={openPackage === group.package}
               onToggle={() => toggle(group.package)}
               showAdvanced={showAdvanced}
             />
@@ -725,7 +729,7 @@ export default function AppShell() {
             <button
               type="button"
               className="nav-group-toggle"
-              onClick={() => setSystemOpen((v) => !v)}
+              onClick={toggleSystem}
               aria-expanded={systemOpen}
             >
               <span className="nav-group-label">{t('nav.system')}</span>
