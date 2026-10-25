@@ -122,7 +122,9 @@
     "level3Hint": "Geheimnisse werden verschlüsselt gespeichert. Live erst nach Probe unter Finanzen → Zahlungen aktivieren.",
     "railVsReceive": "Ihre Bücher nutzen Bitcoin als Primärschiene; Empfang bleibt zurückgestellt (Mock), bis Sie die Integrationsstufe erhöhen.",
     "addressRequired": "Stufe 2 erfordert eine Bitcoin-Empfangsadresse (bc1… / 1… / 3…).",
-    "btcpayRequired": "Stufe 3 erfordert BTCPay-Basis-URL, Store-ID und API-Schlüssel."
+    "btcpayRequired": "Stufe 3 erfordert BTCPay-Basis-URL, Store-ID und API-Schlüssel.",
+    "addressInvalid": "Erwartet eine Bitcoin-Adresse (bc1… / 1… / 3…), keinen Seed.",
+    "addressSeedRejected": "Keine Seeds, xprv oder Mnemonics eingeben — nur eine Empfangsadresse."
   },
   "template": {
     "title": "Startgröße wählen",

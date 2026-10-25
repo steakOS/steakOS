@@ -122,7 +122,9 @@
     "level3Hint": "Secrets are stored encrypted. Enable live after Probe under Finance → Payments.",
     "railVsReceive": "Your books use Bitcoin as primary rail; receive stays deferred (mock settle) until you upgrade the integration level.",
     "addressRequired": "Level 2 requires a Bitcoin receive address (bc1… / 1… / 3…).",
-    "btcpayRequired": "Level 3 requires BTCPay base URL, store ID, and API key."
+    "btcpayRequired": "Level 3 requires BTCPay base URL, store ID, and API key.",
+    "addressInvalid": "Expected a Bitcoin address (bc1… / 1… / 3…), not a seed.",
+    "addressSeedRejected": "Do not enter seeds, xprv, or mnemonics — paste a receive address only."
   },
   "nostr": {
     "title": "Nostr",

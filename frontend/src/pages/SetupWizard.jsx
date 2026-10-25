@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { authApi, meApi, nostrApi, setupApi } from '../api/client'
 import AuthAppGuide from '../components/AuthAppGuide'
 import { RULES_HINT, validatePassword } from '../util/passwordPolicy'
+import { validateBtcReceiveAddress } from '../util/btcAddress'
 
 const STEP_IDS = [
   'tour',
@@ -178,6 +179,8 @@ export default function SetupWizard() {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  /** Inline BTC address feedback on wizard bitcoin step (Task 7620). */
+  const [btcAddressError, setBtcAddressError] = useState(null)
   const [check, setCheck] = useState(null)
   /** 'wizard' | 'celebration' — celebration is post-complete, no further apply */
   const [phase, setPhase] = useState(() => (hasCelebrationFlag() ? 'celebration' : 'wizard'))
@@ -589,13 +592,26 @@ export default function SetupWizard() {
     }
     if (STEP_IDS[step] === 'bitcoin') {
       const lvl = draft.btcIntegrationLevel || 'DEFERRED'
-      if (lvl === 'SINGLE_ADDRESS' && !draft.btcReceiveAddress?.trim()) {
-        setError(
-          t('bitcoin.addressRequired', {
-            defaultValue: 'Level 2 requires a Bitcoin receive address (bc1… / 1… / 3…).',
-          }),
-        )
-        return
+      if (lvl === 'SINGLE_ADDRESS') {
+        const v = validateBtcReceiveAddress(draft.btcReceiveAddress)
+        if (!v.ok) {
+          const msg =
+            v.code === 'empty'
+              ? t('bitcoin.addressRequired', {
+                  defaultValue: v.message,
+                })
+              : v.code === 'seed'
+                ? t('bitcoin.addressSeedRejected', {
+                    defaultValue: v.message,
+                  })
+                : t('bitcoin.addressInvalid', {
+                    defaultValue: v.message,
+                  })
+          setBtcAddressError(msg)
+          setError(msg)
+          return
+        }
+        setBtcAddressError(null)
       }
       if (
         lvl === 'BTCPAY' &&
@@ -1268,7 +1284,10 @@ export default function SetupWizard() {
                   key={opt.code}
                   type="button"
                   className={`setup-tier-card${draft.btcIntegrationLevel === opt.code ? ' selected' : ''}`}
-                  onClick={() => patch({ btcIntegrationLevel: opt.code })}
+                  onClick={() => {
+                    patch({ btcIntegrationLevel: opt.code })
+                    if (opt.code !== 'SINGLE_ADDRESS') setBtcAddressError(null)
+                  }}
                 >
                   <strong>{opt.title}</strong>
                   <span>{opt.body}</span>
@@ -1288,12 +1307,53 @@ export default function SetupWizard() {
                   {t('bitcoin.receiveAddress', { defaultValue: 'Bitcoin receive address *' })}
                   <input
                     value={draft.btcReceiveAddress}
-                    onChange={(e) => patch({ btcReceiveAddress: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      patch({ btcReceiveAddress: value })
+                      // Validate as soon as the operator enters an address (step 5 / bitcoin).
+                      const trimmed = value.trim()
+                      if (!trimmed) {
+                        setBtcAddressError(null)
+                        return
+                      }
+                      const v = validateBtcReceiveAddress(value)
+                      if (v.ok) {
+                        setBtcAddressError(null)
+                        setError(null)
+                      } else {
+                        const msg =
+                          v.code === 'seed'
+                            ? t('bitcoin.addressSeedRejected', { defaultValue: v.message })
+                            : t('bitcoin.addressInvalid', { defaultValue: v.message })
+                        setBtcAddressError(msg)
+                      }
+                    }}
+                    onBlur={() => {
+                      if ((draft.btcIntegrationLevel || 'DEFERRED') !== 'SINGLE_ADDRESS') return
+                      const v = validateBtcReceiveAddress(draft.btcReceiveAddress)
+                      if (!v.ok) {
+                        const msg =
+                          v.code === 'empty'
+                            ? t('bitcoin.addressRequired', { defaultValue: v.message })
+                            : v.code === 'seed'
+                              ? t('bitcoin.addressSeedRejected', { defaultValue: v.message })
+                              : t('bitcoin.addressInvalid', { defaultValue: v.message })
+                        setBtcAddressError(msg)
+                      } else {
+                        setBtcAddressError(null)
+                      }
+                    }}
                     placeholder="bc1…"
                     autoComplete="off"
                     spellCheck={false}
+                    aria-invalid={btcAddressError ? 'true' : undefined}
                   />
                 </label>
+                {btcAddressError && (
+                  <p className="setup-tip" style={{ color: 'var(--danger, #b42318)', marginTop: 6 }}>
+                    {btcAddressError}
+                  </p>
+                )}
                 <label>
                   {t('bitcoin.receiveLabel', { defaultValue: 'Address label (optional)' })}
                   <input

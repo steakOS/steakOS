@@ -122,7 +122,9 @@
     "level3Hint": "Los secretos se almacenan cifrados. Active en vivo tras la prueba en Finanzas → Pagos.",
     "railVsReceive": "Sus libros usan Bitcoin como unidad primaria; la recepción permanece aplazada (liquidación simulada) hasta que suba el nivel de integración.",
     "addressRequired": "El nivel 2 requiere una dirección de recepción de Bitcoin (bc1… / 1… / 3…).",
-    "btcpayRequired": "El nivel 3 requiere URL base de BTCPay, store ID y clave API."
+    "btcpayRequired": "El nivel 3 requiere URL base de BTCPay, store ID y clave API.",
+    "addressInvalid": "Se espera una dirección Bitcoin (bc1… / 1… / 3…), no una semilla.",
+    "addressSeedRejected": "No introduzca semillas, xprv ni mnemónicos — solo una dirección de recepción."
   },
   "nostr": {
     "title": "Nostr",
