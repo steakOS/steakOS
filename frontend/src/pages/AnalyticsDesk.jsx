@@ -632,7 +632,7 @@ export default function AnalyticsDesk() {
                   {area}
                 </h3>
                 <div className="table-wrap">
-                  <table className="data-table analytics-cat-table">
+                  <table className="data analytics-cat-table">
                     <thead>
                       <tr>
                         <th>{t('analytics.colId', { defaultValue: 'Id' })}</th>

@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ContactRound, Plus, RefreshCw, Ban, Check } from 'lucide-react'
+import ResponsiveDataList from '../components/ResponsiveDataList'
 import { salesApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrencySelect from '../components/CurrencySelect'
@@ -531,21 +532,51 @@ export default function SalesCrmPage() {
           </span>
         )}
       </h2>
-      {loading ? (
-        <p className="muted">{t('crm.loading', { defaultValue: 'Loading…' })}</p>
-      ) : items.length === 0 ? (
-        <p className="muted">
-          {openOnly
+      {loading && <p className="muted">{t('crm.loading', { defaultValue: 'Loading…' })}</p>}
+      <ResponsiveDataList
+        items={items}
+        empty={
+          openOnly
             ? t('crm.empty', {
                 defaultValue: 'No open opportunities. Create one with New.',
               })
             : t('crm.emptyAll', {
                 defaultValue: 'No opportunities yet. Create one with New.',
-              })}
-        </p>
-      ) : (
+              })
+        }
+        loading={loading}
+        selectedKey={selected?.id}
+        onSelect={(row) => setSelectedId(String(row.id))}
+        fields={[
+          {
+            id: 'name',
+            primary: true,
+            render: (row) => row.name || `#${row.id}`,
+          },
+          {
+            id: 'stage',
+            secondary: true,
+            render: (row) => (
+              <span className={stageBadge(row.stage)}>{row.stage || '—'}</span>
+            ),
+          },
+          {
+            id: 'customer',
+            secondary: true,
+            render: (row) => row.customerName || row.contactName || row.customerId || '—',
+          },
+          {
+            id: 'amount',
+            meta: true,
+            render: (row) =>
+              row.expectedAmountEur != null
+                ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
+                : '—',
+          },
+        ]}
+      >
         <div className="table-wrap">
-          <table className="data-table">
+          <table className="data">
             <thead>
               <tr>
                 <th>{t('crm.colName', { defaultValue: 'Name' })}</th>
@@ -555,6 +586,19 @@ export default function SalesCrmPage() {
               </tr>
             </thead>
             <tbody>
+              {items.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="muted">
+                    {openOnly
+                      ? t('crm.empty', {
+                          defaultValue: 'No open opportunities. Create one with New.',
+                        })
+                      : t('crm.emptyAll', {
+                          defaultValue: 'No opportunities yet. Create one with New.',
+                        })}
+                  </td>
+                </tr>
+              )}
               {items.map((row) => (
                 <tr
                   key={row.id}
@@ -577,7 +621,7 @@ export default function SalesCrmPage() {
             </tbody>
           </table>
         </div>
-      )}
+      </ResponsiveDataList>
     </>
   )
 
@@ -677,7 +721,7 @@ export default function SalesCrmPage() {
           </p>
         ) : (
           <div className="table-wrap">
-            <table className="data-table">
+            <table className="data">
               <thead>
                 <tr>
                   <th>{t('crm.colKind', { defaultValue: 'Kind' })}</th>

@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { GitCompareArrows } from 'lucide-react'
+import ResponsiveDataList from '../components/ResponsiveDataList'
 import { financeOpsApi } from '../api/client'
 
 function fmtMoney(v) {
@@ -269,34 +270,67 @@ export default function FinanceMatchPage() {
                 <p className="muted" style={{ marginTop: 0 }}>
                   {t('match.count', { defaultValue: '{{total}} match(es)', total })}
                 </p>
-                <div className="table-wrap">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>{t('match.colId', { defaultValue: 'ID' })}</th>
-                        <th>{t('match.colStatus', { defaultValue: 'Status' })}</th>
-                        <th>{t('match.colPo', { defaultValue: 'PO' })}</th>
-                        <th>{t('match.colPayable', { defaultValue: 'Payable' })}</th>
-                        <th>{t('match.colVariance', { defaultValue: 'Variance' })}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map((row) => (
-                        <tr
-                          key={row.id}
-                          className={selected?.id === row.id ? 'row-selected' : 'row-click'}
-                          onClick={() => selectMatch(row)}
-                        >
-                          <td>{row.id}</td>
-                          <td>{statusOf(row)}</td>
-                          <td>{row.purchaseOrderId || '—'}</td>
-                          <td>{row.payableId || '—'}</td>
-                          <td>{fmtMoney(row.varianceEur)}</td>
+                <ResponsiveDataList
+                  items={items}
+                  empty={t('match.empty', {
+                    defaultValue:
+                      'No three-way matches yet. Use Propose from candidates when PO, receipt, and payable are ready.',
+                  })}
+                  selectedKey={selected?.id}
+                  onSelect={(row) => selectMatch(row)}
+                  fields={[
+                    {
+                      id: 'id',
+                      primary: true,
+                      render: (row) => `#${row.id}`,
+                    },
+                    {
+                      id: 'status',
+                      secondary: true,
+                      render: (row) => statusOf(row),
+                    },
+                    {
+                      id: 'po',
+                      secondary: true,
+                      render: (row) => row.purchaseOrderId || '—',
+                    },
+                    {
+                      id: 'variance',
+                      meta: true,
+                      render: (row) => fmtMoney(row.varianceEur),
+                    },
+                  ]}
+                >
+                  <div className="table-wrap">
+                    <table className="data">
+                      <thead>
+                        <tr>
+                          <th>{t('match.colId', { defaultValue: 'ID' })}</th>
+                          <th>{t('match.colStatus', { defaultValue: 'Status' })}</th>
+                          <th>{t('match.colPo', { defaultValue: 'PO' })}</th>
+                          <th>{t('match.colPayable', { defaultValue: 'Payable' })}</th>
+                          <th>{t('match.colVariance', { defaultValue: 'Variance' })}</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {items.map((row) => (
+                          <tr
+                            key={row.id}
+                            data-selected={selected?.id === row.id ? 'true' : undefined}
+                            className={selected?.id === row.id ? 'row-selected' : 'row-click'}
+                            onClick={() => selectMatch(row)}
+                          >
+                            <td>{row.id}</td>
+                            <td>{statusOf(row)}</td>
+                            <td>{row.purchaseOrderId || '—'}</td>
+                            <td>{row.payableId || '—'}</td>
+                            <td>{fmtMoney(row.varianceEur)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </ResponsiveDataList>
               </>
             )}
           </section>
@@ -421,7 +455,7 @@ export default function FinanceMatchPage() {
                 })}
               </p>
               <div className="table-wrap">
-                <table className="data-table">
+                <table className="data">
                   <thead>
                     <tr>
                       <th>{t('match.colPo', { defaultValue: 'PO' })}</th>

@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Scale } from 'lucide-react'
+import ResponsiveDataList from '../components/ResponsiveDataList'
 import { financeOpsApi } from '../api/client'
 
 function fmtDate(v) {
@@ -289,39 +290,78 @@ export default function FinanceCollectionsPage() {
               <p className="muted" style={{ marginTop: 0 }}>
                 {t('collections.count', { defaultValue: '{{total}} item(s)', total })}
               </p>
-              <div className="table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>{t('collections.colInvoice', { defaultValue: 'Invoice' })}</th>
-                      <th>{t('collections.colCustomer', { defaultValue: 'Customer' })}</th>
-                      <th>{t('collections.colDue', { defaultValue: 'Due' })}</th>
-                      <th>{t('collections.colDays', { defaultValue: 'Days overdue' })}</th>
-                      <th>{t('collections.colOpen', { defaultValue: 'Open' })}</th>
-                      <th>{t('collections.colBucket', { defaultValue: 'Aging' })}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((row) => {
-                      const id = row.invoiceId || row.id
-                      return (
-                        <tr
-                          key={id}
-                          className={selectedId === id ? 'row-selected' : 'row-click'}
-                          onClick={() => selectInvoice(row)}
-                        >
-                          <td>{row.invoiceNumber || `#${id}`}</td>
-                          <td>{row.customerName || row.customerId || '—'}</td>
-                          <td>{fmtDate(row.dueDate)}</td>
-                          <td>{row.daysOverdue ?? '—'}</td>
-                          <td>{fmtMoney(row.amountOpenEur ?? row.amountOpen)}</td>
-                          <td>{row.agingBucket || '—'}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <ResponsiveDataList
+                items={items}
+                getKey={(row) => row.invoiceId || row.id}
+                empty={
+                  tab === 'open'
+                    ? t('collections.emptyOpen', {
+                        defaultValue: 'No open receivables right now.',
+                      })
+                    : t('collections.empty', {
+                        defaultValue: 'No overdue invoices. Queue is empty.',
+                      })
+                }
+                selectedKey={selectedId}
+                onSelect={(row) => selectInvoice(row)}
+                fields={[
+                  {
+                    id: 'invoice',
+                    primary: true,
+                    render: (row) => row.invoiceNumber || `#${row.invoiceId || row.id}`,
+                  },
+                  {
+                    id: 'customer',
+                    secondary: true,
+                    render: (row) => row.customerName || row.customerId || '—',
+                  },
+                  {
+                    id: 'due',
+                    secondary: true,
+                    render: (row) => fmtDate(row.dueDate),
+                  },
+                  {
+                    id: 'open',
+                    meta: true,
+                    render: (row) => fmtMoney(row.amountOpenEur ?? row.amountOpen),
+                  },
+                ]}
+              >
+                <div className="table-wrap">
+                  <table className="data">
+                    <thead>
+                      <tr>
+                        <th>{t('collections.colInvoice', { defaultValue: 'Invoice' })}</th>
+                        <th>{t('collections.colCustomer', { defaultValue: 'Customer' })}</th>
+                        <th>{t('collections.colDue', { defaultValue: 'Due' })}</th>
+                        <th>{t('collections.colDays', { defaultValue: 'Days overdue' })}</th>
+                        <th>{t('collections.colOpen', { defaultValue: 'Open' })}</th>
+                        <th>{t('collections.colBucket', { defaultValue: 'Aging' })}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((row) => {
+                        const id = row.invoiceId || row.id
+                        return (
+                          <tr
+                            key={id}
+                            data-selected={selectedId === id ? 'true' : undefined}
+                            className={selectedId === id ? 'row-selected' : 'row-click'}
+                            onClick={() => selectInvoice(row)}
+                          >
+                            <td>{row.invoiceNumber || `#${id}`}</td>
+                            <td>{row.customerName || row.customerId || '—'}</td>
+                            <td>{fmtDate(row.dueDate)}</td>
+                            <td>{row.daysOverdue ?? '—'}</td>
+                            <td>{fmtMoney(row.amountOpenEur ?? row.amountOpen)}</td>
+                            <td>{row.agingBucket || '—'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </ResponsiveDataList>
             </>
           )}
         </section>

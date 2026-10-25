@@ -312,7 +312,7 @@ export default function PostingRulesPage() {
                 )}
               </h3>
               <div className="table-wrap">
-                <table className="data-table">
+                <table className="data">
                   <thead>
                     <tr>
                       <th>{t('finance.postingRules.side', { defaultValue: 'Side' })}</th>
@@ -371,7 +371,7 @@ export default function PostingRulesPage() {
           {t('finance.postingRules.railWallet', { defaultValue: 'Rail → wallet account' })}
         </h2>
         <div className="table-wrap">
-          <table className="data-table">
+          <table className="data">
             <thead>
               <tr>
                 <th>{t('finance.postingRules.rail', { defaultValue: 'Rail' })}</th>

@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Tags, Plus, RefreshCw, Save } from 'lucide-react'
+import ResponsiveDataList from '../components/ResponsiveDataList'
 import { salesApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
@@ -501,17 +502,45 @@ export default function SalesPricingPage() {
           </span>
         )}
       </h2>
-      {loading ? (
+      {loading && (
         <p className="muted">{t('pricing.loading', { defaultValue: 'Loading…' })}</p>
-      ) : items.length === 0 ? (
-        <p className="muted">
-          {t('pricing.empty', {
-            defaultValue: 'No price lists yet. Create one with New.',
-          })}
-        </p>
-      ) : (
+      )}
+      <ResponsiveDataList
+        items={items}
+        empty={t('pricing.empty', {
+          defaultValue: 'No price lists yet. Create one with New.',
+        })}
+        loading={loading}
+        selectedKey={selected?.id}
+        onSelect={(row) => setSelectedId(String(row.id))}
+        fields={[
+          {
+            id: 'name',
+            primary: true,
+            render: (row) => row.name || row.code || `#${row.id}`,
+          },
+          {
+            id: 'kind',
+            secondary: true,
+            render: (row) => row.listKind || '—',
+          },
+          {
+            id: 'active',
+            secondary: true,
+            render: (row) =>
+              row.active === false
+                ? t('pricing.no', { defaultValue: 'no' })
+                : t('pricing.yes', { defaultValue: 'yes' }),
+          },
+          {
+            id: 'lines',
+            meta: true,
+            render: (row) => row.lineCount ?? '—',
+          },
+        ]}
+      >
         <div className="table-wrap">
-          <table className="data-table">
+          <table className="data">
             <thead>
               <tr>
                 <th>{t('pricing.colName', { defaultValue: 'Name' })}</th>
@@ -521,6 +550,15 @@ export default function SalesPricingPage() {
               </tr>
             </thead>
             <tbody>
+              {items.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="muted">
+                    {t('pricing.empty', {
+                      defaultValue: 'No price lists yet. Create one with New.',
+                    })}
+                  </td>
+                </tr>
+              )}
               {items.map((row) => (
                 <tr
                   key={row.id}
@@ -541,7 +579,7 @@ export default function SalesPricingPage() {
             </tbody>
           </table>
         </div>
-      )}
+      </ResponsiveDataList>
     </>
   )
 
@@ -570,7 +608,7 @@ export default function SalesPricingPage() {
           </p>
         ) : (
           <div className="table-wrap">
-            <table className="data-table">
+            <table className="data">
               <thead>
                 <tr>
                   <th>{t('pricing.colLineName', { defaultValue: 'Name' })}</th>
