@@ -441,6 +441,8 @@
     "title": "Verbesserungswesen",
     "subtitle": "APQC 13.x · Org-Change ≠ Digital-IT-Change · keine Projektbudgets in Basics",
     "tabs": {
+      "portfolios": "Portfolios",
+      "programs": "Programme",
       "projects": "Projekte",
       "processes": "Prozesse",
       "quality": "Qualität",
@@ -487,7 +489,12 @@
     "stepName": "Schrittname",
     "predecessorStep": "Vorgängerschritt",
     "noneOption": "— keiner —",
-    "proceduresCount": "Verfahren ({{count}})"
+    "proceduresCount": "Verfahren ({{count}})",
+    "newPortfolio": "Neues Portfolio",
+    "portfoliosCount": "Portfolios ({{count}})",
+    "programsCount": "Programme ({{count}})",
+    "emptyPortfolios": "Noch keine Portfolios",
+    "emptyPrograms": "Noch keine Programme"
   },
   "agents": {
     "title": "Agentische Ressourcen",

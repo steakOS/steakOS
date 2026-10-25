@@ -22,6 +22,8 @@ import {
   BadgeCheck,
   RefreshCw,
   BookOpen,
+  Layers,
+  Briefcase,
   Plus,
   Play,
   Check,
@@ -47,6 +49,8 @@ import useNarrowViewport from '../hooks/useNarrowViewport'
 import useDeskMemory from '../hooks/useDeskMemory'
 
 const SECTION_DEFS = [
+  { id: 'portfolios', labelKey: 'capability.tabs.portfolios', icon: Layers },
+  { id: 'programs', labelKey: 'capability.tabs.programs', icon: Briefcase },
   { id: 'projects', labelKey: 'capability.tabs.projects', icon: FolderKanban },
   { id: 'processes', labelKey: 'capability.tabs.processes', icon: GitBranch },
   { id: 'quality', labelKey: 'capability.tabs.quality', icon: BadgeCheck },
@@ -56,7 +60,7 @@ const SECTION_DEFS = [
 
 /**
  * Capability ops — DeskShell master–detail (ADR-047 / Nielsen WP-3).
- * Route sections: /capability/:section — projects · processes · quality · changes · knowledge.
+ * Route sections: /capability/:section — portfolios · programs · projects · processes · quality · changes · knowledge.
  */
 export default function CapabilityHub() {
   const { t, i18n } = useTranslation(['desks', 'common', 'content', 'processes'])
@@ -102,6 +106,8 @@ export default function CapabilityHub() {
   const [portfolioOptions, setPortfolioOptions] = useState([])
   const [programOptions, setProgramOptions] = useState([])
   const [processOptions, setProcessOptions] = useState([])
+  const [selectedPortfolio, setSelectedPortfolio] = useState(null)
+  const [selectedProgram, setSelectedProgram] = useState(null)
   const [selectedProject, setSelectedProject] = useState(null)
   const [projectContentMap, setProjectContentMap] = useState({})
   const [, setProcessContentMap] = useState({})
@@ -114,6 +120,8 @@ export default function CapabilityHub() {
   const [changeItems, setChangeItems] = useState([])
   const [selectedQuality, setSelectedQuality] = useState(null)
 
+  const [portPage, setPortPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [progPage, setProgPage] = useState({ max: 25, offset: 0, total: 0 })
   const [projPage, setProjPage] = useState({ max: 25, offset: 0, total: 0 })
   const [procPage, setProcPage] = useState({ max: 25, offset: 0, total: 0 })
   const [procedurePage, setProcedurePage] = useState({ max: 25, offset: 0, total: 0 })
@@ -174,7 +182,35 @@ export default function CapabilityHub() {
   const loadSection = useCallback(async () => {
     setError(null)
     try {
-      if (tab === 'projects') {
+      if (tab === 'portfolios') {
+        const port = await capabilityApi.portfolios.list({
+          max: portPage.max,
+          offset: portPage.offset,
+        })
+        const items = port.items || []
+        setPortfolios(items)
+        setPortfolioOptions(items)
+        setPortPage((pg) => ({
+          ...pg,
+          max: port.max ?? pg.max,
+          offset: port.offset ?? pg.offset,
+          total: port.total ?? items.length,
+        }))
+      } else if (tab === 'programs') {
+        const [prog, portPick] = await Promise.all([
+          capabilityApi.programs.list({ max: progPage.max, offset: progPage.offset }),
+          capabilityApi.portfolios.list({ max: 100, offset: 0 }),
+        ])
+        const items = prog.items || []
+        setPrograms(items)
+        setPortfolioOptions(portPick.items || [])
+        setProgPage((pg) => ({
+          ...pg,
+          max: prog.max ?? pg.max,
+          offset: prog.offset ?? pg.offset,
+          total: prog.total ?? items.length,
+        }))
+      } else if (tab === 'projects') {
         const [portPick, progPick, proj] = await Promise.all([
           capabilityApi.portfolios.list({ max: 100, offset: 0 }),
           capabilityApi.programs.list({ max: 100, offset: 0 }),
@@ -277,6 +313,10 @@ export default function CapabilityHub() {
   }, [
     tab,
     kindFilter,
+    portPage.max,
+    portPage.offset,
+    progPage.max,
+    progPage.offset,
     projPage.max,
     projPage.offset,
     procPage.max,
@@ -334,8 +374,28 @@ export default function CapabilityHub() {
     }
   }
 
+  const selectPortfolio = (p) => {
+    setSelectedPortfolio(p)
+    setSelectedProgram(null)
+    setSelectedProject(null)
+    setSelectedProcess(null)
+    setSelectedQuality(null)
+    setSelectedChange(null)
+  }
+
+  const selectProgram = (p) => {
+    setSelectedProgram(p)
+    setSelectedPortfolio(null)
+    setSelectedProject(null)
+    setSelectedProcess(null)
+    setSelectedQuality(null)
+    setSelectedChange(null)
+  }
+
   const selectProject = async (p) => {
     setSelectedProject(p)
+    setSelectedPortfolio(null)
+    setSelectedProgram(null)
     setSelectedProcess(null)
     setSelectedQuality(null)
     setSelectedChange(null)
@@ -349,6 +409,8 @@ export default function CapabilityHub() {
 
   const selectProcess = async (p) => {
     setSelectedProcess(p)
+    setSelectedPortfolio(null)
+    setSelectedProgram(null)
     setSelectedProject(null)
     setSelectedQuality(null)
     setSelectedChange(null)
@@ -398,6 +460,8 @@ export default function CapabilityHub() {
 
   const selectChange = async (c) => {
     setSelectedChange(c)
+    setSelectedPortfolio(null)
+    setSelectedProgram(null)
     setSelectedProject(null)
     setSelectedProcess(null)
     setSelectedQuality(null)
@@ -411,6 +475,8 @@ export default function CapabilityHub() {
 
   const selectQuality = async (q) => {
     setSelectedQuality(q)
+    setSelectedPortfolio(null)
+    setSelectedProgram(null)
     setSelectedProject(null)
     setSelectedProcess(null)
     setSelectedChange(null)
@@ -423,6 +489,8 @@ export default function CapabilityHub() {
   }
 
   const clearSelection = useCallback(() => {
+    setSelectedPortfolio(null)
+    setSelectedProgram(null)
     setSelectedProject(null)
     setSelectedProcess(null)
     setSelectedQuality(null)
@@ -448,13 +516,15 @@ export default function CapabilityHub() {
   }, [])
 
   const createDirty = useMemo(() => {
+    if (tab === 'portfolios') {
+      return Boolean((portForm.name || '').trim() || (portForm.ownerRef || '').trim())
+    }
+    if (tab === 'programs') {
+      return Boolean((progForm.name || '').trim() || progForm.portfolioId)
+    }
     if (tab === 'projects') {
       return Boolean(
-        (portForm.name || '').trim() ||
-          (portForm.ownerRef || '').trim() ||
-          (progForm.name || '').trim() ||
-          progForm.portfolioId ||
-          (projForm.name || '').trim() ||
+        (projForm.name || '').trim() ||
           projForm.portfolioId ||
           projForm.programId ||
           pendingProjectContent.length,
@@ -505,20 +575,32 @@ export default function CapabilityHub() {
   }, [newExpanded, createDirty, applyCollapseCreate])
 
   const keyboardIds = useMemo(() => {
+    if (tab === 'portfolios') return portfolios.map((p) => p.id)
+    if (tab === 'programs') return programs.map((p) => p.id)
     if (tab === 'projects') return projects.map((p) => p.id)
     if (tab === 'processes') return processes.map((p) => p.id)
     if (tab === 'quality') return qualities.map((q) => q.id)
     if (tab === 'changes') return changes.map((c) => c.id)
     return []
-  }, [tab, projects, processes, qualities, changes])
+  }, [tab, portfolios, programs, projects, processes, qualities, changes])
 
   const keyboardSelectedId = useMemo(() => {
+    if (tab === 'portfolios') return selectedPortfolio?.id ?? null
+    if (tab === 'programs') return selectedProgram?.id ?? null
     if (tab === 'projects') return selectedProject?.id ?? null
     if (tab === 'processes') return selectedProcess?.id ?? null
     if (tab === 'quality') return selectedQuality?.id ?? null
     if (tab === 'changes') return selectedChange?.id ?? null
     return null
-  }, [tab, selectedProject?.id, selectedProcess?.id, selectedQuality?.id, selectedChange?.id])
+  }, [
+    tab,
+    selectedPortfolio?.id,
+    selectedProgram?.id,
+    selectedProject?.id,
+    selectedProcess?.id,
+    selectedQuality?.id,
+    selectedChange?.id,
+  ])
 
   const setKeyboardSelectedId = useCallback(
     (id) => {
@@ -527,7 +609,13 @@ export default function CapabilityHub() {
         return
       }
       const sid = String(id)
-      if (tab === 'projects') {
+      if (tab === 'portfolios') {
+        const p = portfolios.find((x) => String(x.id) === sid)
+        if (p) selectPortfolio(p)
+      } else if (tab === 'programs') {
+        const p = programs.find((x) => String(x.id) === sid)
+        if (p) selectProgram(p)
+      } else if (tab === 'projects') {
         const p = projects.find((x) => String(x.id) === sid)
         if (p) selectProject(p)
       } else if (tab === 'processes') {
@@ -541,7 +629,22 @@ export default function CapabilityHub() {
         if (c) selectChange(c)
       }
     },
-    [tab, projects, processes, qualities, changes, clearSelection, selectProject, selectProcess, selectQuality, selectChange],
+    [
+      tab,
+      portfolios,
+      programs,
+      projects,
+      processes,
+      qualities,
+      changes,
+      clearSelection,
+      selectPortfolio,
+      selectProgram,
+      selectProject,
+      selectProcess,
+      selectQuality,
+      selectChange,
+    ],
   )
 
   useDeskKeyboard({
@@ -588,6 +691,10 @@ export default function CapabilityHub() {
   const SectionIcon = sectionMeta?.icon || FolderKanban
 
   const newLabel = useMemo(() => {
+    if (tab === 'portfolios') {
+      return t('capability.newPortfolio', { defaultValue: 'New portfolio' })
+    }
+    if (tab === 'programs') return t('capability.newProgram')
     if (tab === 'projects') return t('capability.newProject')
     if (tab === 'processes') return t('capability.newProcess')
     if (tab === 'quality') {
@@ -603,15 +710,41 @@ export default function CapabilityHub() {
   }, [tab, t])
 
   const hasSelection = useMemo(() => {
+    if (tab === 'portfolios') return Boolean(selectedPortfolio?.id)
+    if (tab === 'programs') return Boolean(selectedProgram?.id)
     if (tab === 'projects') return Boolean(selectedProject?.id)
     if (tab === 'processes') return Boolean(selectedProcess?.id)
     if (tab === 'quality') return Boolean(selectedQuality?.id)
     if (tab === 'changes') return Boolean(selectedChange?.id)
     return false
-  }, [tab, selectedProject?.id, selectedProcess?.id, selectedQuality?.id, selectedChange?.id])
+  }, [
+    tab,
+    selectedPortfolio?.id,
+    selectedProgram?.id,
+    selectedProject?.id,
+    selectedProcess?.id,
+    selectedQuality?.id,
+    selectedChange?.id,
+  ])
 
   const helpContext = useMemo(() => {
     const base = { path: location.pathname, desk: 'capability', tab }
+    if (tab === 'portfolios' && selectedPortfolio) {
+      return {
+        ...base,
+        resource: 'Portfolio',
+        objectId: selectedPortfolio.id,
+        status: selectedPortfolio.portfolioStatus,
+      }
+    }
+    if (tab === 'programs' && selectedProgram) {
+      return {
+        ...base,
+        resource: 'Program',
+        objectId: selectedProgram.id,
+        status: selectedProgram.programStatus,
+      }
+    }
     if (tab === 'projects' && selectedProject) {
       return {
         ...base,
@@ -646,7 +779,16 @@ export default function CapabilityHub() {
       }
     }
     return base
-  }, [location.pathname, tab, selectedProject, selectedProcess, selectedQuality, selectedChange])
+  }, [
+    location.pathname,
+    tab,
+    selectedPortfolio,
+    selectedProgram,
+    selectedProject,
+    selectedProcess,
+    selectedQuality,
+    selectedChange,
+  ])
 
   const emptyTitle = useMemo(() => {
     if (tab === 'knowledge') {
@@ -670,10 +812,10 @@ export default function CapabilityHub() {
   }, [tab, t])
 
   // —— create panels ——
-  const projectsCreatePanel = (
+  const portfoliosCreatePanel = (
     <>
       <h2 className="section-label" style={{ marginTop: 0 }}>
-        New portfolio
+        {t('capability.newPortfolio', { defaultValue: 'New portfolio' })}
       </h2>
       <form
         className="form-grid"
@@ -712,8 +854,14 @@ export default function CapabilityHub() {
           <Plus size={16} /> {t('capability.createPortfolio')}
         </button>
       </form>
+    </>
+  )
 
-      <h2 className="section-label">{t('capability.newProgram')}</h2>
+  const programsCreatePanel = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('capability.newProgram')}
+      </h2>
       <form
         className="form-grid"
         onSubmit={(e) => {
@@ -762,8 +910,14 @@ export default function CapabilityHub() {
           <Plus size={16} /> {t('capability.createProgram')}
         </button>
       </form>
+    </>
+  )
 
-      <h2 className="section-label">{t('capability.newProject')}</h2>
+  const projectsCreatePanel = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('capability.newProject')}
+      </h2>
       <form
         className="form-grid"
         onSubmit={(e) => {
@@ -1161,19 +1315,251 @@ export default function CapabilityHub() {
   )
 
   const newPanel =
-    tab === 'projects'
-      ? projectsCreatePanel
-      : tab === 'processes'
-        ? processesCreatePanel
-        : tab === 'quality'
-          ? qualityCreatePanel
-          : tab === 'changes'
-            ? changesCreatePanel
-            : tab === 'knowledge'
-              ? knowledgeCreatePanel
-              : null
+    tab === 'portfolios'
+      ? portfoliosCreatePanel
+      : tab === 'programs'
+        ? programsCreatePanel
+        : tab === 'projects'
+          ? projectsCreatePanel
+          : tab === 'processes'
+            ? processesCreatePanel
+            : tab === 'quality'
+              ? qualityCreatePanel
+              : tab === 'changes'
+                ? changesCreatePanel
+                : tab === 'knowledge'
+                  ? knowledgeCreatePanel
+                  : null
 
   // —— lists (col1) ——
+  const portfoliosList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('capability.portfoliosCount', {
+          defaultValue: 'Portfolios ({{count}})',
+          count: portPage.total || portfolios.length,
+        })}
+      </h2>
+      <ResponsiveDataList
+        items={portfolios}
+        empty={t('capability.emptyPortfolios', { defaultValue: 'No portfolios yet' })}
+        selectedKey={selectedPortfolio?.id}
+        onSelect={(p) => selectPortfolio(p)}
+        fields={[
+          { id: 'name', primary: true, render: (p) => p.name },
+          {
+            id: 'owner',
+            secondary: true,
+            render: (p) => p.ownerRef || '—',
+          },
+          {
+            id: 'status',
+            meta: true,
+            render: (p) => (
+              <span className={statusClass(p.portfolioStatus)}>{p.portfolioStatus}</span>
+            ),
+          },
+        ]}
+        actions={(p) => (
+          <>
+            {p.portfolioStatus === 'ACTIVE' && (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={!!busy}
+                onClick={() =>
+                  run('portClose', async () => {
+                    await capabilityApi.portfolios.close(p.id)
+                    setInfo(
+                      t('toast.closed', {
+                        ns: 'common',
+                        defaultValue: 'Closed {{name}}',
+                        name: p.name,
+                      }),
+                    )
+                    if (selectedPortfolio?.id === p.id) setSelectedPortfolio(null)
+                  })
+                }
+              >
+                Close
+              </button>
+            )}
+            <ViewButton pkg="capability" resource="Portfolio" record={p} />
+          </>
+        )}
+      >
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('wb.name', { ns: 'common' })}</th>
+                <th className="col-priority-low">Owner</th>
+                <th>{t('wb.status', { ns: 'common' })}</th>
+                <th>{t('wb.actions', { ns: 'common' })}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {portfolios.map((p) => (
+                <tr
+                  key={p.id}
+                  style={{
+                    cursor: 'pointer',
+                    background:
+                      selectedPortfolio?.id === p.id
+                        ? 'var(--surface-2, #f0f0f0)'
+                        : undefined,
+                  }}
+                  onClick={() => selectPortfolio(p)}
+                >
+                  <td>{p.name}</td>
+                  <td className="col-priority-low">{p.ownerRef || '—'}</td>
+                  <td>
+                    <span className={statusClass(p.portfolioStatus)}>{p.portfolioStatus}</span>
+                  </td>
+                  <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                    {p.portfolioStatus === 'ACTIVE' && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={!!busy}
+                        onClick={() =>
+                          run('portClose', async () => {
+                            await capabilityApi.portfolios.close(p.id)
+                            setInfo(
+                              t('toast.closed', {
+                                ns: 'common',
+                                defaultValue: 'Closed {{name}}',
+                                name: p.name,
+                              }),
+                            )
+                            if (selectedPortfolio?.id === p.id) setSelectedPortfolio(null)
+                          })
+                        }
+                      >
+                        Close
+                      </button>
+                    )}
+                    <ViewButton pkg="capability" resource="Portfolio" record={p} />
+                  </td>
+                </tr>
+              ))}
+              {!portfolios.length && (
+                <tr>
+                  <td colSpan={4} className="muted">
+                    {t('capability.emptyPortfolios', { defaultValue: 'No portfolios yet' })}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveDataList>
+      <ListPager
+        total={portPage.total}
+        max={portPage.max}
+        offset={portPage.offset}
+        disabled={loading}
+        onOffset={(o) => setPortPage((pg) => ({ ...pg, offset: o }))}
+        onMax={(m) => setPortPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+      />
+    </>
+  )
+
+  const programsList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('capability.programsCount', {
+          defaultValue: 'Programs ({{count}})',
+          count: progPage.total || programs.length,
+        })}
+      </h2>
+      <ResponsiveDataList
+        items={programs}
+        empty={t('capability.emptyPrograms', { defaultValue: 'No programs yet' })}
+        selectedKey={selectedProgram?.id}
+        onSelect={(p) => selectProgram(p)}
+        fields={[
+          { id: 'name', primary: true, render: (p) => p.name },
+          {
+            id: 'portfolio',
+            secondary: true,
+            render: (p) => {
+              const port = portfolioOptions.find((x) => String(x.id) === String(p.portfolioId))
+              return port?.name || (p.portfolioId ? `#${p.portfolioId}` : '—')
+            },
+          },
+          {
+            id: 'status',
+            meta: true,
+            render: (p) => (
+              <span className={statusClass(p.programStatus)}>{p.programStatus}</span>
+            ),
+          },
+        ]}
+        actions={(p) => <ViewButton pkg="capability" resource="Program" record={p} />}
+      >
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('wb.name', { ns: 'common' })}</th>
+                <th className="col-priority-low">
+                  {t('labels.portfolio', { ns: 'common' })}
+                </th>
+                <th>{t('wb.status', { ns: 'common' })}</th>
+                <th>{t('wb.actions', { ns: 'common' })}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {programs.map((p) => {
+                const port = portfolioOptions.find((x) => String(x.id) === String(p.portfolioId))
+                return (
+                  <tr
+                    key={p.id}
+                    style={{
+                      cursor: 'pointer',
+                      background:
+                        selectedProgram?.id === p.id
+                          ? 'var(--surface-2, #f0f0f0)'
+                          : undefined,
+                    }}
+                    onClick={() => selectProgram(p)}
+                  >
+                    <td>{p.name}</td>
+                    <td className="col-priority-low">
+                      {port?.name || (p.portfolioId ? `#${p.portfolioId}` : '—')}
+                    </td>
+                    <td>
+                      <span className={statusClass(p.programStatus)}>{p.programStatus}</span>
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                      <ViewButton pkg="capability" resource="Program" record={p} />
+                    </td>
+                  </tr>
+                )
+              })}
+              {!programs.length && (
+                <tr>
+                  <td colSpan={4} className="muted">
+                    {t('capability.emptyPrograms', { defaultValue: 'No programs yet' })}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveDataList>
+      <ListPager
+        total={progPage.total}
+        max={progPage.max}
+        offset={progPage.offset}
+        disabled={loading}
+        onOffset={(o) => setProgPage((pg) => ({ ...pg, offset: o }))}
+        onMax={(m) => setProgPage((pg) => ({ ...pg, max: m, offset: 0 }))}
+      />
+    </>
+  )
+
   const projectsList = (
     <>
       <h2 className="section-label" style={{ marginTop: 0 }}>
@@ -1343,12 +1729,10 @@ export default function CapabilityHub() {
         onOffset={(o) => setProjPage((pg) => ({ ...pg, offset: o }))}
         onMax={(m) => setProjPage((pg) => ({ ...pg, max: m, offset: 0 }))}
       />
-      <h2 className="section-label">{t('capability.portfolios')}</h2>
-      <p className="muted" style={{ margin: 0 }}>
-        Portfolios: {portfolios.map((p) => p.name).join(', ') || '—'}
-      </p>
-      <p className="muted" style={{ margin: '4px 0 0' }}>
-        Programs: {programs.map((p) => p.name).join(', ') || '—'}
+      <p className="muted" style={{ marginTop: 12 }}>
+        <Link to="/capability/portfolios">{t('capability.tabs.portfolios', { defaultValue: 'Portfolios' })}</Link>
+        {' · '}
+        <Link to="/capability/programs">{t('capability.tabs.programs', { defaultValue: 'Programs' })}</Link>
       </p>
     </>
   )
@@ -1957,17 +2341,21 @@ export default function CapabilityHub() {
   )
 
   const list =
-    tab === 'projects'
-      ? projectsList
-      : tab === 'processes'
-        ? processesList
-        : tab === 'quality'
-          ? qualityList
-          : tab === 'changes'
-            ? changesList
-            : tab === 'knowledge'
-              ? knowledgeList
-              : null
+    tab === 'portfolios'
+      ? portfoliosList
+      : tab === 'programs'
+        ? programsList
+        : tab === 'projects'
+          ? projectsList
+          : tab === 'processes'
+            ? processesList
+            : tab === 'quality'
+              ? qualityList
+              : tab === 'changes'
+                ? changesList
+                : tab === 'knowledge'
+                  ? knowledgeList
+                  : null
 
   const processesToolbar = (
     <div className="toolbar" style={{ flexWrap: 'wrap', gap: 6 }}>
@@ -1989,7 +2377,85 @@ export default function CapabilityHub() {
 
   // —— detail (col2) ——
   let detail = null
-  if (tab === 'projects' && selectedProject) {
+  if (tab === 'portfolios' && selectedPortfolio) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        <h2 className="section-label" style={{ marginTop: 0 }}>
+          {selectedPortfolio.name}
+        </h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {t('labels.portfolio', { ns: 'common' })} ·{' '}
+          <span className={statusClass(selectedPortfolio.portfolioStatus)}>
+            {selectedPortfolio.portfolioStatus}
+          </span>
+          {selectedPortfolio.ownerRef ? ` · ${selectedPortfolio.ownerRef}` : ''}
+        </p>
+        {selectedPortfolio.description ? (
+          <p style={{ fontSize: '0.9rem' }}>{selectedPortfolio.description}</p>
+        ) : null}
+        {selectedPortfolio.portfolioStatus === 'ACTIVE' && (
+          <button
+            type="button"
+            className="btn"
+            disabled={!!busy}
+            onClick={() =>
+              run('portClose', async () => {
+                await capabilityApi.portfolios.close(selectedPortfolio.id)
+                setInfo(
+                  t('toast.closed', {
+                    ns: 'common',
+                    defaultValue: 'Closed {{name}}',
+                    name: selectedPortfolio.name,
+                  }),
+                )
+                setSelectedPortfolio(null)
+              })
+            }
+          >
+            Close portfolio
+          </button>
+        )}
+        <p className="muted" style={{ marginTop: 12 }}>
+          <Link to="/capability/programs">{t('capability.tabs.programs', { defaultValue: 'Programs' })}</Link>
+          {' · '}
+          <Link to="/capability/projects">{t('capability.tabs.projects')}</Link>
+        </p>
+      </div>
+    )
+  } else if (tab === 'programs' && selectedProgram) {
+    const port = portfolioOptions.find(
+      (x) => String(x.id) === String(selectedProgram.portfolioId),
+    )
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        <h2 className="section-label" style={{ marginTop: 0 }}>
+          {selectedProgram.name}
+        </h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {t('labels.program', { ns: 'common' })} ·{' '}
+          <span className={statusClass(selectedProgram.programStatus)}>
+            {selectedProgram.programStatus}
+          </span>
+        </p>
+        <p style={{ fontSize: '0.9rem' }}>
+          {t('labels.portfolio', { ns: 'common' })}:{' '}
+          {port ? (
+            <Link to="/capability/portfolios">{port.name}</Link>
+          ) : selectedProgram.portfolioId ? (
+            `#${selectedProgram.portfolioId}`
+          ) : (
+            '—'
+          )}
+        </p>
+        {selectedProgram.description ? (
+          <p style={{ fontSize: '0.9rem' }}>{selectedProgram.description}</p>
+        ) : null}
+        <p className="muted" style={{ marginTop: 12 }}>
+          <Link to="/capability/projects">{t('capability.tabs.projects')}</Link>
+        </p>
+      </div>
+    )
+  } else if (tab === 'projects' && selectedProject) {
     detail = (
       <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
         <h2 className="section-label" style={{ marginTop: 0 }}>

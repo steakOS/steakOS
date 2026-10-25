@@ -441,6 +441,8 @@
     "title": "Capacidad",
     "subtitle": "APQC 13.x · cambio de organización ≠ cambio de TI digital · sin presupuestos de proyecto en Conceptos básicos",
     "tabs": {
+      "portfolios": "Portafolios",
+      "programs": "Programas",
       "projects": "Proyectos",
       "processes": "Procesos",
       "quality": "Calidad",
@@ -487,7 +489,12 @@
     "stepName": "Nombre del paso",
     "predecessorStep": "paso predecesor",
     "noneOption": "- ninguno -",
-    "proceduresCount": "Trámites ({{count}})"
+    "proceduresCount": "Trámites ({{count}})",
+    "newPortfolio": "Nuevo portafolio",
+    "portfoliosCount": "Portafolios ({{count}})",
+    "programsCount": "Programas ({{count}})",
+    "emptyPortfolios": "Aún no hay portafolios",
+    "emptyPrograms": "Aún no hay programas"
   },
   "agents": {
     "title": "Recursos agentes",

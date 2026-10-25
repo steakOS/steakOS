@@ -443,7 +443,7 @@ export const CREATE_META = {
   'capability/Portfolio': {
     entityClass: 'B',
     createMode: 'deskRedirect',
-    interaction: 'capability',
+    interaction: 'deskShell',
     deskPath: '/capability/portfolios',
     deskLabel: 'Capability hub',
   },
@@ -465,7 +465,7 @@ export const CREATE_META = {
   'capability/Program': {
     entityClass: 'B',
     createMode: 'deskRedirect',
-    interaction: 'capability',
+    interaction: 'deskShell',
     deskPath: '/capability/programs',
     deskLabel: 'Capability hub',
   },

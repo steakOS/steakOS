@@ -441,6 +441,8 @@
     "title": "Capability",
     "subtitle": "APQC 13.x · org change ≠ Digital IT change · no project budgets in Basics",
     "tabs": {
+      "portfolios": "Portfolios",
+      "programs": "Programs",
       "projects": "Projects",
       "processes": "Processes",
       "quality": "Quality",
@@ -487,7 +489,12 @@
     "stepName": "Step name",
     "predecessorStep": "Predecessor step",
     "noneOption": "— none —",
-    "proceduresCount": "Procedures ({{count}})"
+    "proceduresCount": "Procedures ({{count}})",
+    "newPortfolio": "New portfolio",
+    "portfoliosCount": "Portfolios ({{count}})",
+    "programsCount": "Programs ({{count}})",
+    "emptyPortfolios": "No portfolios yet",
+    "emptyPrograms": "No programs yet"
   },
   "agents": {
     "title": "Agentic Resources",

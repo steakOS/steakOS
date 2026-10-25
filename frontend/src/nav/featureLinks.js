@@ -36,6 +36,7 @@ import {
   GitBranch,
   BadgeCheck,
   RefreshCw,
+  Layers,
   Bot,
   Network,
   ShieldCheck,
@@ -285,6 +286,8 @@ export function assetFeatureLinks(t) {
 
 export function capabilityFeatureLinks(t) {
   return [
+    { name: t('features.portfolios'), path: '/capability/portfolios', icon: Layers },
+    { name: t('features.programs'), path: '/capability/programs', icon: Briefcase },
     { name: t('features.projects'), path: '/capability/projects', icon: FolderKanban },
     { name: t('features.processes'), path: '/capability/processes', icon: GitBranch },
     { name: t('features.quality'), path: '/capability/quality', icon: BadgeCheck },
