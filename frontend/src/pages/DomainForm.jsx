@@ -776,26 +776,19 @@ export default function DomainForm() {
           }
         }
         setPendingContent([])
-        if (warn) {
-          setCompanionWarn(warn)
-          navigate(
-            useCatalogue
-              ? `/scm`
-              : `/domains/${pkg}/${resource}/${created.id}`,
-            { state: { companionWarn: warn } },
-          )
-        } else if (originReturnTo) {
-          navigate(originReturnTo)
-        } else if (useCatalogue) {
-          navigate(
-            resource === 'Service'
+        // After create, return to origin/list (same as update) — never open edit/:id
+        const afterCreateDest = useCatalogue
+          ? originReturnTo ||
+            (resource === 'Service'
               ? '/delivery'
               : pkg === 'production'
                 ? '/scm/shopfloor'
-                : '/scm/buyers',
-          )
+                : '/scm/buyers')
+          : listReturnHrefResolved
+        if (warn) {
+          navigate(afterCreateDest, { state: { companionWarn: warn } })
         } else {
-          navigate(`/domains/${pkg}/${resource}/${created.id}`)
+          navigate(afterCreateDest)
         }
       } else if (useCatalogue) {
         const { catalogueApi } = await import('../api/client')

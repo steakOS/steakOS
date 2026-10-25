@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw, Pencil, Trash2, Eye, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react'
 import { domainsApi } from '../api/client'
@@ -65,8 +65,17 @@ function sortableField(pkg, resource, field) {
 
 export default function DomainList() {
   const { package: pkg, resource } = useParams()
+  const location = useLocation()
   const { t } = useTranslation(['domain', 'common'])
   const meta = findResource(pkg, resource)
+  const [companionWarn, setCompanionWarn] = useState(
+    () => location.state?.companionWarn || null,
+  )
+  useEffect(() => {
+    if (location.state?.companionWarn) {
+      setCompanionWarn(location.state.companionWarn)
+    }
+  }, [location.state])
   const createMeta = useMemo(() => getCreateMeta(pkg, resource), [pkg, resource])
   const lineChild = useMemo(() => getLineChildForParent(pkg, resource), [pkg, resource])
   const masterSpec = useMemo(() => getMasterFormSpec(pkg, resource), [pkg, resource])
@@ -530,6 +539,20 @@ export default function DomainList() {
               ns: 'common',
               defaultValue: 'Standalone create is not available for this resource yet.',
             })}
+        </div>
+      )}
+
+      {companionWarn && (
+        <div className="banner-info" style={{ marginBottom: '0.75rem' }} role="status">
+          {companionWarn}
+          <button
+            type="button"
+            className="btn"
+            style={{ marginLeft: 8 }}
+            onClick={() => setCompanionWarn(null)}
+          >
+            {t('actions.dismiss', { ns: 'common', defaultValue: 'Dismiss' })}
+          </button>
         </div>
       )}
 
