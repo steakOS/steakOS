@@ -39,6 +39,7 @@ import { domainGroups } from '../config/domainRegistry'
 import { setupApi, versionApi, meApi } from '../api/client'
 import HelpDrawer from '../components/HelpDrawer'
 import CommandPalette from '../components/CommandPalette'
+import GlobalSearch from '../components/GlobalSearch'
 import { useLocaleBootstrap } from '../hooks/useLocaleBootstrap'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { logoutHref } from '../i18n'
@@ -884,6 +885,7 @@ export default function AppShell() {
               </span>
             </div>
           </div>
+          <GlobalSearch narrow={narrow} />
           <div className="topbar-actions">
             <button
               type="button"

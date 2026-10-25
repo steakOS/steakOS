@@ -1201,7 +1201,26 @@
     "signOut": "Cerrar sesión",
     "help": "Ayuda",
     "demoSuffix": "(Demo)",
-    "versionTitle": "Versión del producto + nivel de plantilla (VERSIONS.md/setup)"
+    "versionTitle": "Versión del producto + nivel de plantilla (VERSIONS.md/setup)",
+    "search": {
+      "placeholder": "Buscar clientes, facturas, tareas…",
+      "aria": "Búsqueda global",
+      "empty": "Sin coincidencias",
+      "error": "Error de búsqueda",
+      "truncated": "Resultados parciales",
+      "hint": "/ enfoca · Esc cierra · ⌘K salta a páginas",
+      "types": {
+        "customer": "Cliente",
+        "vendor": "Proveedor",
+        "catalogueItem": "Catálogo",
+        "customerQuote": "Cotización",
+        "salesOrder": "Pedido",
+        "invoice": "Factura",
+        "purchaseOrder": "Orden de compra",
+        "task": "Tarea",
+        "legalEntity": "Empresa"
+      }
+    }
   },
   "currencies": {
     "names": {

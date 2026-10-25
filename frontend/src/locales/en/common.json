@@ -1201,7 +1201,26 @@
     "signOut": "Sign out",
     "help": "Help",
     "demoSuffix": " (Demo)",
-    "versionTitle": "Product version + template tier (VERSIONS.md / setup)"
+    "versionTitle": "Product version + template tier (VERSIONS.md / setup)",
+    "search": {
+      "placeholder": "Search customers, invoices, tasks…",
+      "aria": "Global search",
+      "empty": "No matches",
+      "error": "Search failed",
+      "truncated": "Showing partial results",
+      "hint": "Press / to focus · Esc to close · ⌘K jumps to pages",
+      "types": {
+        "customer": "Customer",
+        "vendor": "Vendor",
+        "catalogueItem": "Catalogue",
+        "customerQuote": "Quote",
+        "salesOrder": "Sales order",
+        "invoice": "Invoice",
+        "purchaseOrder": "Purchase order",
+        "task": "Task",
+        "legalEntity": "Company"
+      }
+    }
   },
   "currencies": {
     "names": {

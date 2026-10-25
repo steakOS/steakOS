@@ -176,9 +176,27 @@ Your cockpit for open work and process health.
 - **APQC groups** — jump into Sales, Finance, and other desks
 - **System health** — API / content signals
 
-**Shortcuts:** **Ctrl+K** jump · **?** or **Ctrl+/** this help drawer.
+**Shortcuts:** **/** top-bar search (records) · **Ctrl+K** jump to pages · **?** or **Ctrl+/** this help drawer.
 
-**See also:** Action - NOW · Settings (language & region)'''],
+**See also:** Action - NOW · Settings (language & region) · Global search'''],
+            [key: 'app.search', title: 'Global search', route: '/dashboard', family: 'core',
+             body: '''# Global search (top bar)
+
+Find **customers, vendors, quotes, orders, invoices, catalogue, POs, and tasks** from the top bar.
+
+| Tool | Purpose |
+|------|---------|
+| **Top-bar search** | Business **records** (type · title · status · deep link) |
+| **Ctrl+K / ⌘K** | Jump to **pages / desks** (navigation only) |
+| **List filter `q`** | Narrow **one** desk or domain list |
+
+**Tips**
+- Type at least **2** characters (results debounce ~300ms)
+- Press **/** when focus is not in a field to focus search
+- Titles prefer business keys (invoice / quote / PO numbers), not raw ids
+- Results stay inside the **active company**; types you cannot See are omitted
+
+**See also:** CEO dashboard · My work'''],
             [key: 'setup.wizard', title: 'Configuration wizard', route: '/setup', family: 'core',
              body: '''# Configuration wizard
 

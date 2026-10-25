@@ -33,6 +33,9 @@ class UrlMappings {
         }
         "/api/dashboard/ceo"(controller: 'dashboardApi', action: 'ceo', method: 'GET')
 
+        // Top-bar global search S0 fan-out (Task 7642)
+        "/api/search"(controller: 'searchApi', action: 'index', method: 'GET')
+
         // KPI registry (Silver WP-K0–K1 + PR-13 feeds) — /api/kpi/*
         // Static paths before /api/kpi/$id so catalogue/hero are not captured as ids.
         "/api/kpi/catalogue"(controller: 'kpiApi', action: 'catalogue', method: 'GET')

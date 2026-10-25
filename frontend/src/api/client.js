@@ -193,6 +193,19 @@ export const domainsApi = {
     api(`/api/domains/${pkg}/${resource}/${id}`, { method: 'DELETE' }),
 }
 
+/** Top-bar global search S0 (Task 7642) — GET /api/search */
+export const searchApi = {
+  search: ({ q, types, maxPerType } = {}) => {
+    const qs = new URLSearchParams()
+    if (q != null && q !== '') qs.set('q', String(q))
+    if (types != null && types !== '') {
+      qs.set('types', Array.isArray(types) ? types.join(',') : String(types))
+    }
+    if (maxPerType != null) qs.set('maxPerType', String(maxPerType))
+    const s = qs.toString()
+    return api(`/api/search${s ? `?${s}` : ''}`)
+  },
+}
 
 /** Object Companion / Content Rail (CT-S0–S2) — /api/content/* */
 export const contentApi = {

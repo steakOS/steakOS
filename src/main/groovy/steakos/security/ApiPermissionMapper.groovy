@@ -42,7 +42,7 @@ final class ApiPermissionMapper {
         }
         if (p.startsWith('/api/locales') || p.startsWith('/api/version') || p.startsWith('/api/help') ||
                 p.startsWith('/api/fx/') || p.startsWith('/api/dashboard') || p.startsWith('/api/currencies') ||
-                p.startsWith('/api/tax-codes') ||
+                p.startsWith('/api/tax-codes') || p.startsWith('/api/search') ||
                 p == '/api/health' || p.startsWith('/api/health/') ||
                 p == '/api/ops/metrics' || p.startsWith('/api/ops/dependencies')) {
             return [kind: KIND_ALLOW]
