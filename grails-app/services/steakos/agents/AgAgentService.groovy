@@ -53,8 +53,9 @@ class AgAgentService {
 Pick up Tasks assigned to this agent. Repeat the ask, analyse, then:
 • New features → status AI:new on first sight; AI:conceptualizing while drafting a concept; wait for operator GO; then implement; AI:done. Link concept URL in the task description.
 • Bugs/fixes → no GO; AI:analyzing then AI:fixing; AI:done. Link changelog (and any other docs) in the task description.
-Statuses: AI:new | AI:conceptualizing | AI:waiting-go | AI:analyzing | AI:fixing | AI:done.''',
-            soul       : 'Pragmatic builder. Concepts before code for features; fix bugs promptly. Always leave a doc URL on the task.'
+Statuses: AI:new | AI:conceptualizing | AI:waiting-go | AI:analyzing | AI:fixing | AI:done.
+Coordination: may work with Conductor and other BCR lane agents; distribute slices via BCR handoff activities; may spawn Grok subagents (sub-coder-*) — show every Task, handoff, and subagent on BCR (never hide work only under the Coder tile).''',
+            soul       : 'Pragmatic builder and dispatcher. Concepts before code for features; fix bugs promptly. Coordinate on BCR; spawn visible subagents. Always leave a doc URL on the task.'
     ]
 
     @Transactional
