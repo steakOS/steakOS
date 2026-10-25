@@ -13,14 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw } from 'lucide-react'
-import { domainsApi } from '../api/client'
+import { deliveryApi, domainsApi, meApi } from '../api/client'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import usePagedList from '../hooks/usePagedList'
+import {
+  buildAssigneeOptions,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const LEVELS = [1, 2, 3]
 const LEVEL_LABEL = { 1: 'Low', 2: 'Medium', 3: 'High' }
@@ -64,6 +70,41 @@ export default function MyWork() {
   const [filter, setFilter] = useState('open')
   const [q, setQ] = useState('')
   const [qDraft, setQDraft] = useState('')
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      domainsApi.list('agents', 'Agent', { max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
 
   const filters = useMemo(() => {
     const f = {}
@@ -242,10 +283,7 @@ export default function MyWork() {
             {
               id: 'assignee',
               priority: 'low',
-              render: (row) =>
-                [row.assigneeHumanNpub, row.assigneeAgentId != null ? `agent:${row.assigneeAgentId}` : null]
-                  .filter(Boolean)
-                  .join(' · ') || '—',
+              render: (row) => assigneeLabel(row),
             },
           ]}
         >
@@ -298,12 +336,7 @@ export default function MyWork() {
                         {LEVEL_LABEL[levelKey(row.importance)]}
                       </td>
                       <td className="muted col-priority-low" style={{ fontSize: '0.85rem' }}>
-                        {[
-                          row.assigneeHumanNpub,
-                          row.assigneeAgentId != null ? `agent:${row.assigneeAgentId}` : null,
-                        ]
-                          .filter(Boolean)
-                          .join(' · ') || '—'}
+                        {assigneeLabel(row)}
                       </td>
                     </tr>
                   )

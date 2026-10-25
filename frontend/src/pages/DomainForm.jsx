@@ -38,6 +38,7 @@ import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
 import MoneyHint from '../components/MoneyHint'
+import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
 import { humanizeLabel } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 
@@ -289,7 +290,6 @@ export default function DomainForm() {
   const [countries, setCountries] = useState([])
   const [products, setProducts] = useState([])
   const [boms, setBoms] = useState([])
-  const [agents, setAgents] = useState([])
   const [error, setError] = useState(null)
   const [errorDetail, setErrorDetail] = useState(null)
   const [loading, setLoading] = useState(!isNew)
@@ -332,15 +332,6 @@ export default function DomainForm() {
         .catch(() => setBoms([]))
     }
   }, [isBomItem])
-
-  useEffect(() => {
-    if (isTask) {
-      domainsApi
-        .list('agents', 'Agent')
-        .then((data) => setAgents(data.items || []))
-        .catch(() => setAgents([]))
-    }
-  }, [isTask])
 
   // P2: load schema for non-pack, non-legacy resources
   useEffect(() => {
@@ -1093,26 +1084,18 @@ export default function DomainForm() {
                 </select>
               </label>
             </div>
-            <label>
-              {t('pages.work.assigneeHuman', { ns: 'common', defaultValue: 'Human assignee (npub / user:…)' })}
-              <input
-                name="assigneeHumanNpub"
-                value={form.assigneeHumanNpub}
-                onChange={onChange}
-                placeholder="user:alice or npub1…"
-              />
-            </label>
-            <label>
-              {t('pages.work.assigneeAgent', { ns: 'common', defaultValue: 'Agent assignee' })}
-              <select name="assigneeAgentId" value={form.assigneeAgentId} onChange={onChange}>
-                <option value="">{t('pages.work.noAgent', { ns: 'common', defaultValue: '— none —' })}</option>
-                {agents.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name || `Agent #${a.id}`}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <TaskAssigneeSelect
+              assigneeHumanNpub={form.assigneeHumanNpub}
+              assigneeAgentId={form.assigneeAgentId}
+              defaultToMe={isNew}
+              onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+                setForm((f) => ({
+                  ...f,
+                  assigneeHumanNpub: assigneeHumanNpub || '',
+                  assigneeAgentId: assigneeAgentId || '',
+                }))
+              }
+            />
           </>
         )}
 
