@@ -49,15 +49,56 @@ class ListPaging {
     }
 
     /**
-     * Allowlisted sort; unknown keys fall back to defaults.
+     * Allowlisted sort; unknown keys fall back to defaults (legacy soft path).
      */
     static Map sortParams(def params, String defaultSort, String defaultOrder, Collection allowedSorts) {
         Set allowed = (allowedSorts ?: []) as Set
-        String sortIn = params?.sort?.toString()
+        String sortIn = params?.sort?.toString()?.trim()
         String sort = (sortIn && sortIn in allowed) ? sortIn : defaultSort
         String orderRaw = params?.order?.toString()?.toLowerCase()
         String order = orderRaw in ['asc', 'desc'] ? orderRaw : defaultOrder
         [sort: sort, order: order]
+    }
+
+    /**
+     * Allowlisted sort (Task 7640 D1): blank → defaults; unknown → IllegalArgumentException.
+     */
+    static Map requireSortParams(def params, String defaultSort, String defaultOrder, Collection allowedSorts) {
+        Set allowed = (allowedSorts ?: []) as Set
+        String sortIn = params?.sort?.toString()?.trim()
+        String sort
+        if (!sortIn) {
+            sort = defaultSort
+        } else if (sortIn in allowed) {
+            sort = sortIn
+        } else {
+            throw new IllegalArgumentException("Unknown sort field: ${sortIn}")
+        }
+        String orderRaw = params?.order?.toString()?.trim()?.toLowerCase()
+        String order
+        if (!orderRaw) {
+            order = defaultOrder
+        } else if (orderRaw in ['asc', 'desc']) {
+            order = orderRaw
+        } else {
+            throw new IllegalArgumentException("Invalid order: ${orderRaw} (use asc or desc)")
+        }
+        [sort: sort, order: order]
+    }
+
+    /**
+     * Neutralize LIKE wildcards in free-text {@code q} and wrap as contains pattern.
+     * Returns null when empty after sanitize.
+     */
+    static String likeContains(String q) {
+        if (q == null) return null
+        String safe = q.toString().trim()
+                .replace('\\', '')
+                .replace('%', '')
+                .replace('_', '')
+                .trim()
+        if (!safe) return null
+        "%${safe}%"
     }
 
     static Map envelope(List items, int total, int max, int offset, Map extra = [:]) {

@@ -46,6 +46,30 @@ class DomainRegistryServiceSpec extends Specification implements DataTest {
         then:
         result.total == 1
         (result.items as List)*.name == ['Mine']
+        result.sort == 'id'
+        result.order == 'desc'
+    }
+
+    def "listPage rejects unknown sort"() {
+        when:
+        service.listPage(Customer, 25, 0, [npubOwner: 'company:a', sort: 'notAField'])
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+    def "listPage honors name asc sort"() {
+        given:
+        service.create(Customer, [name: 'Zed', customerKind: 'ORGANIZATION'], 'company:s')
+        service.create(Customer, [name: 'Ann', customerKind: 'ORGANIZATION'], 'company:s')
+
+        when:
+        Map result = service.listPage(Customer, 25, 0, [npubOwner: 'company:s', sort: 'name', order: 'asc'])
+
+        then:
+        (result.items as List)*.name == ['Ann', 'Zed']
+        result.sort == 'name'
+        result.order == 'asc'
     }
 
     def "get returns null for cross-tenant id (no leak)"() {

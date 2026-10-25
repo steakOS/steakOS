@@ -14,6 +14,7 @@
 // limitations under the License.
 
 import useNarrowViewport from '../hooks/useNarrowViewport'
+import ListSortMenu from './ListSortMenu'
 
 /**
  * RESPONSIVE-UI R3: wide = existing table (children); narrow = card list.
@@ -26,6 +27,9 @@ import useNarrowViewport from '../hooks/useNarrowViewport'
  *   priority?: 'low',    // skip on cards (same as col-priority-low)
  *   render: (item) => ReactNode
  * }
+ *
+ * Optional sortFields / sort / order / onSortChange → ListSortMenu above cards
+ * (server-driven; never sorts items locally).
  */
 export default function ResponsiveDataList({
   items = [],
@@ -37,6 +41,12 @@ export default function ResponsiveDataList({
   empty = 'No rows',
   loading = false,
   children,
+  sortFields,
+  sort,
+  order,
+  onSortChange,
+  defaultSort = 'id',
+  defaultOrder = 'desc',
 }) {
   const narrow = useNarrowViewport()
 
@@ -48,9 +58,21 @@ export default function ResponsiveDataList({
   const primary = visible.find((f) => f.primary) || visible[0]
   const secondary = visible.filter((f) => f !== primary && f.secondary)
   const rest = visible.filter((f) => f !== primary && !f.secondary)
+  const showSort =
+    Array.isArray(sortFields) && sortFields.length > 0 && typeof onSortChange === 'function'
 
   return (
     <div className="data-card-list" role="list">
+      {showSort && (
+        <ListSortMenu
+          fields={sortFields}
+          sort={sort}
+          order={order}
+          defaultSort={defaultSort}
+          defaultOrder={defaultOrder}
+          onSortChange={onSortChange}
+        />
+      )}
       {loading && <p className="muted data-card-list-msg">Loading…</p>}
       {!loading && items.length === 0 && (
         <p className="muted data-card-list-msg">{empty}</p>

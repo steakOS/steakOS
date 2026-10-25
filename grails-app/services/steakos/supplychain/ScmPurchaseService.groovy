@@ -270,20 +270,45 @@ class ScmPurchaseService {
         listPurchaseOrdersPage(npubOwner, status, 200, 0).items as List<PurchaseOrder>
     }
 
+    static final List PO_SORT_FIELDS = [
+            'id', 'name', 'code', 'status', 'poStatus', 'poNumber',
+            'amountEur', 'vendorName', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPurchaseOrdersPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listPurchaseOrdersPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                               Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status) {
-            return [
-                    items: PurchaseOrder.findAllByNpubOwnerAndPoStatus(npub, status, opts),
-                    total: PurchaseOrder.countByNpubOwnerAndPoStatus(npub, status) as int
-            ]
-        }
-        return [
-                items: PurchaseOrder.findAllByNpubOwner(npub, opts),
-                total: PurchaseOrder.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PO_SORT_FIELDS)
+        String term = steakos.api.ListPaging.likeContains(listOpts?.q as String)
+        List items = PurchaseOrder.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('poStatus', status)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('poNumber', term)
+                    ilike('vendorName', term)
+                    ilike('description', term)
+                }
+            }
+            order(so.sort as String, so.order as String)
+            if (so.sort != 'id') order('id', 'asc')
+        } as List
+        Number total = PurchaseOrder.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('poStatus', status)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('poNumber', term)
+                    ilike('vendorName', term)
+                    ilike('description', term)
+                }
+            }
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

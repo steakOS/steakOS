@@ -139,20 +139,45 @@ class SalesQuoteService {
         listQuotesPage(npubOwner, status, 200, 0).items as List<CustomerQuote>
     }
 
+    static final List QUOTE_SORT_FIELDS = [
+            'id', 'name', 'code', 'status', 'quoteStatus', 'quoteNumber',
+            'amountEur', 'customerName', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listQuotesPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listQuotesPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                       Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status) {
-            return [
-                    items: CustomerQuote.findAllByNpubOwnerAndQuoteStatus(npub, status, opts),
-                    total: CustomerQuote.countByNpubOwnerAndQuoteStatus(npub, status) as int
-            ]
-        }
-        return [
-                items: CustomerQuote.findAllByNpubOwner(npub, opts),
-                total: CustomerQuote.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', QUOTE_SORT_FIELDS)
+        String term = steakos.api.ListPaging.likeContains(listOpts?.q as String)
+        List items = CustomerQuote.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('quoteStatus', status)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('quoteNumber', term)
+                    ilike('customerName', term)
+                    ilike('description', term)
+                }
+            }
+            order(so.sort as String, so.order as String)
+            if (so.sort != 'id') order('id', 'asc')
+        } as List
+        Number total = CustomerQuote.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('quoteStatus', status)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('quoteNumber', term)
+                    ilike('customerName', term)
+                    ilike('description', term)
+                }
+            }
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

@@ -74,13 +74,15 @@ class SalesApiController {
     def quoteList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = salesQuoteService.listQuotesPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = salesQuoteService.listQuotesPage(
+                    npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { salesQuoteService.toMap(it, false) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc', q: params.q]
             )
         }
     }
@@ -145,13 +147,15 @@ class SalesApiController {
     def orderList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = salesOrderService.listOrdersPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = salesOrderService.listOrdersPage(
+                    npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { salesOrderService.toMap(it, false) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc', q: params.q]
             )
         }
     }

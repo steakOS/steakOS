@@ -20,6 +20,8 @@ import { Plus, RefreshCw } from 'lucide-react'
 import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
+import ListFilterBar from '../components/ListFilterBar'
 import usePagedList from '../hooks/usePagedList'
 import {
   buildAssigneeOptions,
@@ -82,9 +84,28 @@ export default function MyWork() {
   // Server-side view filter (LIST-PAGINATION F1): open | overdue | mine | all
   const [filter, setFilter] = useState('open')
   const [q, setQ] = useState('')
-  const [qDraft, setQDraft] = useState('')
+  const [sort, setSort] = useState('deadlineAt')
+  const [order, setOrder] = useState('asc')
   const [assigneeOptions, setAssigneeOptions] = useState([])
   const [meUsername, setMeUsername] = useState(null)
+
+  const TASK_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'status', label: 'Status' },
+      { value: 'deadlineAt', label: 'Deadline' },
+      { value: 'urgency', label: 'Urgency' },
+      { value: 'importance', label: 'Importance' },
+      { value: 'assigneeHumanNpub', label: 'Assignee' },
+    ],
+    [],
+  )
+
+  const onSortChange = useCallback(({ sort: nextSort, order: nextOrder }) => {
+    setSort(nextSort || 'id')
+    setOrder(nextOrder === 'asc' ? 'asc' : 'desc')
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -125,11 +146,14 @@ export default function MyWork() {
   )
 
   const filters = useMemo(() => {
-    const f = {}
+    const f = {
+      sort: sort || 'deadlineAt',
+      order: order === 'asc' ? 'asc' : 'desc',
+    }
     if (filter && filter !== 'all') f.view = filter
     if (q.trim()) f.q = q.trim()
     return f
-  }, [filter, q])
+  }, [filter, q, sort, order])
 
   const fetcher = useCallback(
     ({ max, offset, ...rest }) =>
@@ -152,21 +176,8 @@ export default function MyWork() {
     reload().catch((e) => setError(e.message || String(e)))
   }, [reload])
 
-  // Server returns filtered set; only client-sort for deadline/urgency display order.
-  const filtered = useMemo(() => {
-    return [...items].sort((a, b) => {
-      const da = a.deadlineAt ? new Date(a.deadlineAt).getTime() : Number.MAX_SAFE_INTEGER
-      const db = b.deadlineAt ? new Date(b.deadlineAt).getTime() : Number.MAX_SAFE_INTEGER
-      if (da !== db) return da - db
-      return levelKey(b.urgency) - levelKey(a.urgency)
-    })
-  }, [items])
-
-  // Board uses open tasks from a parallel fetch when not already on open view
-  const openForBoard = useMemo(() => {
-    if (filter === 'open' && !q.trim()) return items.filter(isOpen)
-    return items.filter(isOpen)
-  }, [items, filter, q])
+  // Board uses open tasks from current page (Eisenhower is a summary, not the paged list)
+  const openForBoard = useMemo(() => items.filter(isOpen), [items])
 
   const cellMap = useMemo(() => {
     const map = {}
@@ -221,36 +232,12 @@ export default function MyWork() {
             {label}
           </button>
         ))}
-        <form
-          style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}
-          onSubmit={(e) => {
-            e.preventDefault()
-            setQ(qDraft)
-          }}
-        >
-          <input
-            type="search"
-            value={qDraft}
-            onChange={(e) => setQDraft(e.target.value)}
-            placeholder={t('pages.work.search', { defaultValue: 'Search tasks…' })}
-            style={{ minWidth: 160 }}
-          />
-          <button type="submit" className="btn" disabled={loading}>
-            {t('actions.search', { defaultValue: 'Search' })}
-          </button>
-          {(q || qDraft) && (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => {
-                setQDraft('')
-                setQ('')
-              }}
-            >
-              {t('actions.clear', { defaultValue: 'Clear' })}
-            </button>
-          )}
-        </form>
+        <ListFilterBar
+          q={q}
+          onQChange={setQ}
+          placeholder={t('pages.work.search', { defaultValue: 'Search tasks…' })}
+          ariaLabel={t('actions.search', { defaultValue: 'Search' })}
+        />
       </div>
 
       <div className="section-label">
@@ -262,9 +249,15 @@ export default function MyWork() {
       ) : (
         <>
         <ResponsiveDataList
-          items={filtered}
+          items={items}
           empty={t('pages.work.empty', { defaultValue: 'No tasks match this filter.' })}
           loading={loading}
+          sortFields={TASK_SORT_MENU}
+          sort={sort}
+          order={order}
+          onSortChange={onSortChange}
+          defaultSort="deadlineAt"
+          defaultOrder="asc"
           fields={[
             {
               id: 'name',
@@ -311,29 +304,74 @@ export default function MyWork() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>{t('wb.name', { defaultValue: 'Name' })}</th>
-                  <th>{t('wb.status', { defaultValue: 'Status' })}</th>
-                  <th>{t('pages.work.deadline', { defaultValue: 'Deadline' })}</th>
-                  <th className="col-priority-low">
-                    {t('pages.work.urgency', { defaultValue: 'Urgency' })}
-                  </th>
-                  <th className="col-priority-low">
-                    {t('pages.work.importance', { defaultValue: 'Importance' })}
-                  </th>
-                  <th className="col-priority-low">
-                    {t('pages.work.assignee', { defaultValue: 'Assignee' })}
-                  </th>
+                  <ListSortHeader
+                    field="name"
+                    label={t('wb.name', { defaultValue: 'Name' })}
+                    sort={sort}
+                    order={order}
+                    defaultSort="deadlineAt"
+                    defaultOrder="asc"
+                    onSortChange={onSortChange}
+                  />
+                  <ListSortHeader
+                    field="status"
+                    label={t('wb.status', { defaultValue: 'Status' })}
+                    sort={sort}
+                    order={order}
+                    defaultSort="deadlineAt"
+                    defaultOrder="asc"
+                    onSortChange={onSortChange}
+                  />
+                  <ListSortHeader
+                    field="deadlineAt"
+                    label={t('pages.work.deadline', { defaultValue: 'Deadline' })}
+                    sort={sort}
+                    order={order}
+                    defaultSort="deadlineAt"
+                    defaultOrder="asc"
+                    onSortChange={onSortChange}
+                  />
+                  <ListSortHeader
+                    field="urgency"
+                    label={t('pages.work.urgency', { defaultValue: 'Urgency' })}
+                    sort={sort}
+                    order={order}
+                    defaultSort="deadlineAt"
+                    defaultOrder="asc"
+                    onSortChange={onSortChange}
+                    className="col-priority-low"
+                  />
+                  <ListSortHeader
+                    field="importance"
+                    label={t('pages.work.importance', { defaultValue: 'Importance' })}
+                    sort={sort}
+                    order={order}
+                    defaultSort="deadlineAt"
+                    defaultOrder="asc"
+                    onSortChange={onSortChange}
+                    className="col-priority-low"
+                  />
+                  <ListSortHeader
+                    field="assigneeHumanNpub"
+                    label={t('pages.work.assignee', { defaultValue: 'Assignee' })}
+                    sort={sort}
+                    order={order}
+                    defaultSort="deadlineAt"
+                    defaultOrder="asc"
+                    onSortChange={onSortChange}
+                    className="col-priority-low"
+                  />
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 && (
+                {items.length === 0 && (
                   <tr>
                     <td colSpan={6} className="muted">
                       {t('pages.work.empty', { defaultValue: 'No tasks match this filter.' })}
                     </td>
                   </tr>
                 )}
-                {filtered.map((row) => {
+                {items.map((row) => {
                   const due = formatDeadline(row.deadlineAt)
                   const late = isOverdue(row)
                   return (

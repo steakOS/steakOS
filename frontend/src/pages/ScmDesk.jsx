@@ -51,6 +51,8 @@ import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
+import ListFilterBar from '../components/ListFilterBar'
 import VendorSelect from '../components/VendorSelect'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
 import DeskShell from '../components/desk/DeskShell'
@@ -219,6 +221,26 @@ export default function ScmDesk({ desk = 'buyers' }) {
   const [vendorOptions, setVendorOptions] = useState([])
   /** Picker options for PO/lot/production forms (not paged main list). */
   const [productOptions, setProductOptions] = useState([])
+  const [poQ, setPoQ] = useState('')
+  const [poSort, setPoSort] = useState('id')
+  const [poOrder, setPoOrder] = useState('desc')
+
+  const PO_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'poNumber', label: 'Number' },
+      { value: 'vendorName', label: 'Vendor' },
+      { value: 'amountEur', label: 'EUR' },
+      { value: 'poStatus', label: 'Status' },
+    ],
+    [],
+  )
+
+  const onPoSortChange = useCallback(({ sort: s, order: o }) => {
+    setPoSort(s || 'id')
+    setPoOrder(o === 'asc' ? 'asc' : 'desc')
+    setPoPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
 
   const loadAll = useCallback(async () => {
     const [v, vPick, p, pPick, svc, po, pr, l, oh] = await Promise.all([
@@ -237,7 +259,13 @@ export default function ScmDesk({ desk = 'buyers' }) {
         max: servicesPage.max,
         offset: servicesPage.offset,
       }),
-      scmApi.purchaseOrders.list({ max: poPage.max, offset: poPage.offset }),
+      scmApi.purchaseOrders.list({
+        max: poPage.max,
+        offset: poPage.offset,
+        sort: poSort,
+        order: poOrder,
+        q: poQ.trim() || undefined,
+      }),
       scmApi.production.list({ max: prodPage.max, offset: prodPage.offset }),
       scmApi.lots.list({ max: lotPage.max, offset: lotPage.offset }),
       scmApi.inventory.onHand(),
@@ -304,6 +332,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
     servicesPage.offset,
     poPage.max,
     poPage.offset,
+    poQ,
+    poSort,
+    poOrder,
     prodPage.max,
     prodPage.offset,
     lotPage.max,
@@ -1293,11 +1324,24 @@ export default function ScmDesk({ desk = 'buyers' }) {
       <h2 className="section-label" style={{ marginTop: 0 }}>
         POs ({pos.length})
       </h2>
+      <ListFilterBar
+        q={poQ}
+        onQChange={(next) => {
+          setPoQ(next)
+          setPoPage((pg) => ({ ...pg, offset: 0 }))
+        }}
+        placeholder={t('masterData.search', { ns: 'common', defaultValue: 'Search…' })}
+        className="list-filter-bar--block"
+      />
       <ResponsiveDataList
         items={pos}
         empty="—"
         selectedKey={selectedPo?.id}
         onSelect={(po) => setSelectedId(String(po.id))}
+        sortFields={PO_SORT_MENU}
+        sort={poSort}
+        order={poOrder}
+        onSortChange={onPoSortChange}
         fields={[
           {
             id: 'number',
@@ -1325,11 +1369,35 @@ export default function ScmDesk({ desk = 'buyers' }) {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.number', { ns: 'common' })}</th>
-                <th>{t('wb.vendor', { ns: 'common' })}</th>
-                <th>EUR</th>
+                <ListSortHeader
+                  field="poNumber"
+                  label={t('wb.number', { ns: 'common' })}
+                  sort={poSort}
+                  order={poOrder}
+                  onSortChange={onPoSortChange}
+                />
+                <ListSortHeader
+                  field="vendorName"
+                  label={t('wb.vendor', { ns: 'common' })}
+                  sort={poSort}
+                  order={poOrder}
+                  onSortChange={onPoSortChange}
+                />
+                <ListSortHeader
+                  field="amountEur"
+                  label="EUR"
+                  sort={poSort}
+                  order={poOrder}
+                  onSortChange={onPoSortChange}
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="poStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={poSort}
+                  order={poOrder}
+                  onSortChange={onPoSortChange}
+                />
                 <th />
               </tr>
             </thead>

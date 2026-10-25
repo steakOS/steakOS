@@ -218,11 +218,23 @@ class DomainRegistryService {
         listPage(domainClass, max, offset, filters ?: [:]).items as List
     }
 
+    /** Curated sort allowlist (Task 7640 D4); Task adds deadline/urgency fields. */
+    static final List DOMAIN_SORT_FIELDS = [
+            'id', 'name', 'code', 'status', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
+    static final List TASK_SORT_FIELDS = (
+            DOMAIN_SORT_FIELDS + [
+                    'deadlineAt', 'urgency', 'importance', 'assigneeHumanNpub'
+            ]
+    ).asImmutable()
+
     /**
-     * Paged domain list with optional filters (LIST-PAGINATION F1).
-     * Task supports view=open|overdue|mine|all, status=, q=.
+     * Paged domain list with optional filters (LIST-PAGINATION F1 + Task 7640 sort/q).
+     * Task supports view=open|overdue|mine|all, status=, q=, sort=, order=.
      * Other resources: optional q matches name (and description when present).
      * Tenant domains: pass filters.npubOwner (active company) to scope rows (B4).
+     * Unknown sort → IllegalArgumentException (API 400). Tie-break always id asc.
      */
     @Transactional(readOnly = true)
     Map listPage(Class domainClass, Integer max = 25, Integer offset = 0, Map filters = [:]) {
@@ -232,14 +244,15 @@ class DomainRegistryService {
         if (domainClass == steakos.core.Task) {
             return listTasksPage(limit, off, filters ?: [:])
         }
-        String q = filters?.q?.toString()?.trim()
+        Map so = resolveListSort(domainClass, filters, DOMAIN_SORT_FIELDS)
+        String term = ListPaging.likeContains(filters?.q?.toString())
         Map assocFilters = associationIdFilters(domainClass, filters)
         boolean hasAssoc = !assocFilters.isEmpty()
-        if (q || hasAssoc) {
-            String term = q ? "%${q}%" : null
-            boolean scoped = isTenantScoped(domainClass) && activeNpub
+        boolean scoped = isTenantScoped(domainClass) && activeNpub
+
+        if (term || hasAssoc) {
             try {
-                List items = domainClass.createCriteria().list(max: limit, offset: off, sort: 'id', order: 'desc') {
+                List items = domainClass.createCriteria().list(max: limit, offset: off) {
                     if (scoped) {
                         eq('npubOwner', activeNpub)
                     }
@@ -252,6 +265,7 @@ class DomainRegistryService {
                             ilike('description', term)
                         }
                     }
+                    applyListOrders(delegate, so)
                 } as List
                 Number total = domainClass.createCriteria().count {
                     if (scoped) {
@@ -267,7 +281,9 @@ class DomainRegistryService {
                         }
                     }
                 } as Number
-                return [items: items, total: total?.intValue() ?: 0]
+                return listEnvelope(items, total?.intValue() ?: 0, so)
+            } catch (IllegalArgumentException ex) {
+                throw ex
             } catch (Exception ex) {
                 if (hasAssoc && !term) {
                     throw ex instanceof RuntimeException ? (RuntimeException) ex : new RuntimeException(ex)
@@ -275,14 +291,45 @@ class DomainRegistryService {
                 // resource without name/description — fall through when only q failed
             }
         }
-        if (isTenantScoped(domainClass) && activeNpub) {
-            List items = domainClass.findAllByNpubOwner(activeNpub, [max: limit, offset: off, sort: 'id', order: 'desc']) as List
+        if (scoped) {
+            List items = domainClass.createCriteria().list(max: limit, offset: off) {
+                eq('npubOwner', activeNpub)
+                applyListOrders(delegate, so)
+            } as List
             Number total = domainClass.countByNpubOwner(activeNpub) as Number
-            return [items: items ?: [], total: total?.intValue() ?: 0]
+            return listEnvelope(items ?: [], total?.intValue() ?: 0, so)
         }
+        List items = domainClass.createCriteria().list(max: limit, offset: off) {
+            applyListOrders(delegate, so)
+        } as List
+        listEnvelope(items ?: [], (domainClass.count() ?: 0) as int, so)
+    }
+
+    private static Map resolveListSort(Class domainClass, Map filters, Collection baseAllowed) {
+        List allowed = (baseAllowed ?: []).findAll { String f ->
+            f == 'id' || domainHasProperty(domainClass, f)
+        } as List
+        if (!allowed.contains('id')) {
+            allowed = ['id'] + allowed
+        }
+        ListPaging.requireSortParams(filters ?: [:], 'id', 'desc', allowed)
+    }
+
+    private static void applyListOrders(Object criteria, Map so) {
+        String sort = (so?.sort ?: 'id') as String
+        String orderDir = (so?.order ?: 'desc') as String
+        criteria.order(sort, orderDir)
+        if (sort != 'id') {
+            criteria.order('id', 'asc')
+        }
+    }
+
+    private static Map listEnvelope(List items, int total, Map so) {
         [
-                items: domainClass.list(max: limit, offset: off, sort: 'id', order: 'desc'),
-                total: (domainClass.count() ?: 0) as int
+                items: items ?: [],
+                total: total,
+                sort : so?.sort ?: 'id',
+                order: so?.order ?: 'desc'
         ]
     }
 
@@ -324,85 +371,57 @@ class DomainRegistryService {
     Map listTasksPage(int max, int offset, Map filters) {
         String view = filters?.view?.toString()?.trim()?.toLowerCase()
         String status = filters?.status?.toString()?.trim()
-        String q = filters?.q?.toString()?.trim()
-        String term = q ? "%${q}%" : null
+        String term = ListPaging.likeContains(filters?.q?.toString())
         String activeNpub = tenantNpubFromFilters(filters)
+        Map so = resolveListSort(steakos.core.Task, filters, TASK_SORT_FIELDS)
         Date now = new Date()
 
-        List items = steakos.core.Task.createCriteria().list(max: max, offset: offset, sort: 'id', order: 'desc') {
-            if (activeNpub) {
-                eq('npubOwner', activeNpub)
-            }
-            if (status) {
-                eq('status', status)
-            } else if (view == 'open') {
-                or {
-                    eq('status', 'OPEN')
-                    eq('status', 'IN_PROGRESS')
-                    isNull('status')
-                    eq('status', '')
-                    // Coder / Grok Build lab statuses (developmentMode workflow)
-                    'in'('status', steakos.configuration.DevelopmentModeService.AI_OPEN_STATUSES)
-                }
-            } else if (view == 'overdue') {
-                isNotNull('deadlineAt')
-                lt('deadlineAt', now)
-                not {
-                    'in'('status', ['DONE', 'CANCELLED', 'AI:done'])
-                }
-            } else if (view == 'mine') {
-                or {
-                    and {
-                        isNotNull('assigneeHumanNpub')
-                        ne('assigneeHumanNpub', '')
-                    }
-                    isNotNull('assigneeAgentId')
-                }
-            }
-            if (term) {
-                or {
-                    ilike('name', term)
-                    ilike('description', term)
-                }
-            }
+        List items = steakos.core.Task.createCriteria().list(max: max, offset: offset) {
+            applyTaskViewFilters(delegate, activeNpub, status, view, term, now)
+            applyListOrders(delegate, so)
         } as List
         Number total = steakos.core.Task.createCriteria().count {
-            if (activeNpub) {
-                eq('npubOwner', activeNpub)
-            }
-            if (status) {
-                eq('status', status)
-            } else if (view == 'open') {
-                or {
-                    eq('status', 'OPEN')
-                    eq('status', 'IN_PROGRESS')
-                    isNull('status')
-                    eq('status', '')
-                    'in'('status', steakos.configuration.DevelopmentModeService.AI_OPEN_STATUSES)
-                }
-            } else if (view == 'overdue') {
-                isNotNull('deadlineAt')
-                lt('deadlineAt', now)
-                not {
-                    'in'('status', ['DONE', 'CANCELLED', 'AI:done'])
-                }
-            } else if (view == 'mine') {
-                or {
-                    and {
-                        isNotNull('assigneeHumanNpub')
-                        ne('assigneeHumanNpub', '')
-                    }
-                    isNotNull('assigneeAgentId')
-                }
-            }
-            if (term) {
-                or {
-                    ilike('name', term)
-                    ilike('description', term)
-                }
-            }
+            applyTaskViewFilters(delegate, activeNpub, status, view, term, now)
         } as Number
-        [items: items, total: total?.intValue() ?: 0]
+        listEnvelope(items, total?.intValue() ?: 0, so)
+    }
+
+    private static void applyTaskViewFilters(Object c, String activeNpub, String status,
+                                             String view, String term, Date now) {
+        if (activeNpub) {
+            c.eq('npubOwner', activeNpub)
+        }
+        if (status) {
+            c.eq('status', status)
+        } else if (view == 'open') {
+            c.or {
+                eq('status', 'OPEN')
+                eq('status', 'IN_PROGRESS')
+                isNull('status')
+                eq('status', '')
+                'in'('status', steakos.configuration.DevelopmentModeService.AI_OPEN_STATUSES)
+            }
+        } else if (view == 'overdue') {
+            c.isNotNull('deadlineAt')
+            c.lt('deadlineAt', now)
+            c.not {
+                'in'('status', ['DONE', 'CANCELLED', 'AI:done'])
+            }
+        } else if (view == 'mine') {
+            c.or {
+                and {
+                    isNotNull('assigneeHumanNpub')
+                    ne('assigneeHumanNpub', '')
+                }
+                isNotNull('assigneeAgentId')
+            }
+        }
+        if (term) {
+            c.or {
+                ilike('name', term)
+                ilike('description', term)
+            }
+        }
     }
 
     @Transactional(readOnly = true)

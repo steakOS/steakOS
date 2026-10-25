@@ -68,6 +68,8 @@ class DomainApiController {
                     q        : params.q,
                     status   : params.status,
                     view     : params.view,
+                    sort     : params.sort,
+                    order    : params.order,
                     npubOwner: npub,
             ]
             // L3 — parent FK for nested line lists (quoteId, salesOrderId, …)
@@ -87,14 +89,19 @@ class DomainApiController {
                 rows = result.items as List
                 total = result.total as int
             }
+            String appliedSort = (result.sort ?: 'id') as String
+            String appliedOrder = (result.order ?: 'desc') as String
             render(ListPaging.envelope(
                     rows.collect { domainRegistryService.toMap(it) },
                     total,
                     max,
                     offset,
-                    [package: params.package, resource: params.resource, sort: 'id', order: 'desc',
+                    [package: params.package, resource: params.resource,
+                     sort: appliedSort, order: appliedOrder,
                      q: params.q, status: params.status, view: params.view]
             ) as JSON)
+        } catch (IllegalArgumentException e) {
+            renderApiError(400, 'INVALID_SORT', e)
         } catch (Exception e) {
             renderApiError(500, 'DOMAIN_LIST_FAILED', e)
         }

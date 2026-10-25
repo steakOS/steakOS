@@ -730,6 +730,65 @@ table.data tbody tr.row-selected td:last-child {
   padding: 0.5rem 0.25rem;
 }
 
+/* Task 7640 — server-driven list sort / filter chrome */
+.list-sort-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.list-sort-header:hover,
+.list-sort-header.is-active {
+  color: var(--steak-fg, #1c1917);
+}
+
+.list-sort-marker {
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+
+.list-sort-menu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.list-sort-menu-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.list-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.list-filter-q {
+  min-width: 160px;
+}
+
+.list-filter-bar--block {
+  margin: 0 0 0.65rem;
+  margin-left: 0;
+}
+
 .data-card {
   display: flex;
   align-items: flex-start;

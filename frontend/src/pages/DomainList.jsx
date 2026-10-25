@@ -34,10 +34,34 @@ import RecordViewModal from '../components/RecordViewModal'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DomainParentLines from '../components/DomainParentLines'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
+import ListFilterBar from '../components/ListFilterBar'
 import usePagedList from '../hooks/usePagedList'
 import { statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+
+const DOMAIN_SORT_FIELDS = new Set([
+  'id',
+  'name',
+  'code',
+  'status',
+  'dateCreated',
+  'lastUpdated',
+])
+const TASK_SORT_FIELDS = new Set([
+  ...DOMAIN_SORT_FIELDS,
+  'deadlineAt',
+  'urgency',
+  'importance',
+  'assigneeHumanNpub',
+])
+
+function sortableField(pkg, resource, field) {
+  if (!field) return false
+  if (pkg === 'core' && resource === 'Task') return TASK_SORT_FIELDS.has(field)
+  return DOMAIN_SORT_FIELDS.has(field)
+}
 
 export default function DomainList() {
   const { package: pkg, resource } = useParams()
@@ -110,11 +134,45 @@ export default function DomainList() {
     setErrorDetail({ ...payload, title })
   }
 
-  const [qDraft, setQDraft] = useState('')
   const [q, setQ] = useState('')
+  const [sort, setSort] = useState('id')
+  const [order, setOrder] = useState('desc')
   const returnOffsetApplied = useRef(false)
 
-  const filters = useMemo(() => (q.trim() ? { q: q.trim() } : {}), [q])
+  const filters = useMemo(() => {
+    const f = { sort: sort || 'id', order: order === 'asc' ? 'asc' : 'desc' }
+    if (q.trim()) f.q = q.trim()
+    return f
+  }, [q, sort, order])
+
+  const onSortChange = useCallback(({ sort: nextSort, order: nextOrder }) => {
+    setSort(nextSort || 'id')
+    setOrder(nextOrder === 'asc' ? 'asc' : 'desc')
+  }, [])
+
+  const sortFieldsForMenu = useMemo(() => {
+    const rows = [{ value: 'id', label: 'Id' }, { value: 'name', label: 'Name' }]
+    if (listColumns?.length) {
+      listColumns.forEach((c) => {
+        if (sortableField(pkg, resource, c.key) && !rows.some((r) => r.value === c.key)) {
+          rows.push({ value: c.key, label: c.label || c.key })
+        }
+      })
+    } else if (resource === 'Task' && pkg === 'core') {
+      rows.push(
+        { value: 'status', label: 'Status' },
+        { value: 'deadlineAt', label: 'Deadline' },
+        { value: 'urgency', label: 'Urgency' },
+        { value: 'importance', label: 'Importance' },
+      )
+    } else if (sortableField(pkg, resource, 'status')) {
+      rows.push({ value: 'status', label: 'Status' })
+    }
+    if (sortableField(pkg, resource, 'code')) {
+      rows.push({ value: 'code', label: 'Code' })
+    }
+    return rows
+  }, [listColumns, pkg, resource])
 
   const fetcher = useCallback(
     ({ max, offset, ...rest }) => domainsApi.list(pkg, resource, { max, offset, ...rest }),
@@ -145,10 +203,33 @@ export default function DomainList() {
     const params = new URLSearchParams(
       typeof window !== 'undefined' ? window.location.search : '',
     )
-    const urlQ = params.get('q') || ''
-    setQ(urlQ)
-    setQDraft(urlQ)
+    setQ(params.get('q') || '')
+    const urlSort = params.get('sort')
+    const urlOrder = params.get('order')
+    setSort(urlSort || 'id')
+    setOrder(urlOrder === 'asc' ? 'asc' : 'desc')
   }, [pkg, resource])
+
+  // Optional URL sync for shareable filtered lists (F4-lite)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (q.trim()) params.set('q', q.trim())
+    else params.delete('q')
+    if (sort && sort !== 'id') params.set('sort', sort)
+    else params.delete('sort')
+    if (order && order !== 'desc') params.set('order', order)
+    else params.delete('order')
+    if (offset > 0) params.set('offset', String(offset))
+    else params.delete('offset')
+    if (max && max !== 25) params.set('max', String(max))
+    else params.delete('max')
+    const qs = params.toString()
+    const next = `${window.location.pathname}${qs ? `?${qs}` : ''}`
+    if (next !== `${window.location.pathname}${window.location.search}`) {
+      window.history.replaceState(null, '', next)
+    }
+  }, [pkg, resource, q, sort, order, offset, max])
 
   // Restore pager from ?offset=&max= once after list mounts / resource change
   useEffect(() => {
@@ -185,6 +266,8 @@ export default function DomainList() {
         domainListReturnKey(pkg, resource),
         JSON.stringify({
           q: q.trim(),
+          sort,
+          order,
           offset,
           max,
         }),
@@ -192,13 +275,34 @@ export default function DomainList() {
     } catch {
       /* ignore */
     }
-  }, [pkg, resource, q, offset, max])
+  }, [pkg, resource, q, sort, order, offset, max])
 
   const listQuerySuffix = useMemo(() => {
-    const href = listReturnHref(pkg, resource, { q, offset, max })
+    const href = listReturnHref(pkg, resource, { q, offset, max, sort, order })
     const i = href.indexOf('?')
     return i >= 0 ? href.slice(i) : ''
-  }, [pkg, resource, q, offset, max])
+  }, [pkg, resource, q, offset, max, sort, order])
+
+  const thSort = useCallback(
+    (field, label, className) => {
+      if (!sortableField(pkg, resource, field)) {
+        return (
+          <th className={className}>{label}</th>
+        )
+      }
+      return (
+        <ListSortHeader
+          field={field}
+          label={label}
+          sort={sort}
+          order={order}
+          onSortChange={onSortChange}
+          className={className}
+        />
+      )
+    },
+    [pkg, resource, sort, order, onSortChange],
+  )
 
   const deskOpenHref = useCallback(
     (rowId) =>
@@ -497,40 +601,15 @@ export default function DomainList() {
             })}
           </Link>
         )}
-        <form
-          style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}
-          onSubmit={(e) => {
-            e.preventDefault()
-            setQ(qDraft)
-          }}
-        >
-          <input
-            type="search"
-            value={qDraft}
-            onChange={(e) => setQDraft(e.target.value)}
-            placeholder={t('masterData.search', {
-              ns: 'common',
-              defaultValue: 'Search…',
-            })}
-            style={{ minWidth: 160 }}
-            aria-label={t('actions.search', { ns: 'common', defaultValue: 'Search' })}
-          />
-          <button type="submit" className="btn" disabled={loading}>
-            {t('actions.search', { ns: 'common', defaultValue: 'Search' })}
-          </button>
-          {(q || qDraft) && (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => {
-                setQDraft('')
-                setQ('')
-              }}
-            >
-              {t('actions.clear', { ns: 'common', defaultValue: 'Clear' })}
-            </button>
-          )}
-        </form>
+        <ListFilterBar
+          q={q}
+          onQChange={setQ}
+          placeholder={t('masterData.search', {
+            ns: 'common',
+            defaultValue: 'Search…',
+          })}
+          ariaLabel={t('actions.search', { ns: 'common', defaultValue: 'Search' })}
+        />
         {createMode === 'parentOnly' && createMeta.parentResource && (
           <Link
             className="btn btn-secondary"
@@ -557,6 +636,10 @@ export default function DomainList() {
           empty={emptyMsg}
           loading={loading}
           onSelect={(row) => setViewing(row)}
+          sortFields={sortFieldsForMenu}
+          sort={sort}
+          order={order}
+          onSortChange={onSortChange}
           fields={[
             {
               id: 'name',
@@ -584,9 +667,13 @@ export default function DomainList() {
               <thead>
                 <tr>
                   {lineChild && <th style={{ width: 36 }} aria-label={t('masterData.linesHeading', { ns: 'common', defaultValue: 'Lines' })} />}
-                  <th>{t('wb.name', { ns: 'common' })}</th>
+                  {thSort('name', t('wb.name', { ns: 'common' }))}
                   {listColumns ? (
-                    listColumns.map((c) => <th key={c.key}>{c.label}</th>)
+                    listColumns.map((c) => (
+                      <Fragment key={c.key}>
+                        {thSort(c.key, c.label)}
+                      </Fragment>
+                    ))
                   ) : resource === 'Address' ? (
                     <>
                       <th>City</th>
@@ -597,11 +684,11 @@ export default function DomainList() {
                     <>
                       <th>{t('wb.number', { ns: 'common' })}</th>
                       <th>EUR</th>
-                      <th>{t('wb.status', { ns: 'common' })}</th>
+                      {thSort('status', t('wb.status', { ns: 'common' }))}
                     </>
                   ) : resource === 'Account' ? (
                     <>
-                      <th>{t('wb.code', { ns: 'common' })}</th>
+                      {thSort('code', t('wb.code', { ns: 'common' }))}
                       <th>{t('wb.type', { ns: 'common' })}</th>
                       <th className="col-priority-low">{t('wb.ccy', { ns: 'common' })}</th>
                     </>
@@ -613,21 +700,22 @@ export default function DomainList() {
                     </>
                   ) : resource === 'Task' && pkg === 'core' ? (
                     <>
-                      <th>{t('wb.status', { ns: 'common' })}</th>
-                      <th>
-                        {t('pages.work.deadline', {
+                      {thSort('status', t('wb.status', { ns: 'common' }))}
+                      {thSort(
+                        'deadlineAt',
+                        t('pages.work.deadline', {
                           ns: 'common',
                           defaultValue: 'Deadline',
-                        })}
-                      </th>
-                      <th className="col-priority-low">U/I</th>
+                        }),
+                      )}
+                      {thSort('urgency', 'U/I', 'col-priority-low')}
                     </>
                   ) : (
                     <>
                       <th className="col-priority-low">
                         {t('wb.description', { ns: 'common' })}
                       </th>
-                      <th>{t('wb.status', { ns: 'common' })}</th>
+                      {thSort('status', t('wb.status', { ns: 'common' }))}
                     </>
                   )}
                   <th />

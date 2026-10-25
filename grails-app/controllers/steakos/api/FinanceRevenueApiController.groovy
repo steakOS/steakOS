@@ -53,13 +53,15 @@ class FinanceRevenueApiController {
             String npub = resolveNpub(params)
             String status = params.status
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financeRevenueService.listInvoicesPage(npub, status, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = financeRevenueService.listInvoicesPage(
+                    npub, status, page.max as int, page.offset as int, listOpts)
             render(steakos.api.ListPaging.envelope(
                     (result.items as List).collect { financeRevenueService.invoiceToMap(it, false) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc', q: params.q]
             ) as JSON)
         } catch (IllegalArgumentException e) {
             render(status: 400, text: ([error: e.message] as JSON))

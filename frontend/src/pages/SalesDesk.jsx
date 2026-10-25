@@ -54,6 +54,8 @@ import PendingContentComposer, {
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
+import ListFilterBar from '../components/ListFilterBar'
 import CustomerSelect from '../components/CustomerSelect'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -202,7 +204,34 @@ export default function SalesDesk() {
   const [busy, setBusy] = useState(null)
   const [quoteFilter, setQuoteFilter] = useState('')
   const [orderFilter, setOrderFilter] = useState('')
+  const [quoteQ, setQuoteQ] = useState('')
+  const [orderQ, setOrderQ] = useState('')
+  const [quoteSort, setQuoteSort] = useState('id')
+  const [quoteOrder, setQuoteOrder] = useState('desc')
+  const [orderSort, setOrderSort] = useState('id')
+  const [orderOrder, setOrderOrder] = useState('desc')
   const [showAdvanced, setShowAdvanced] = useState(false)
+
+  const QUOTE_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'quoteNumber', label: 'Number' },
+      { value: 'customerName', label: 'Customer' },
+      { value: 'amountEur', label: 'EUR' },
+      { value: 'quoteStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const ORDER_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'orderNumber', label: 'Number' },
+      { value: 'customerName', label: 'Customer' },
+      { value: 'amountEur', label: 'EUR' },
+      { value: 'orderStatus', label: 'Status' },
+    ],
+    [],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -270,11 +299,17 @@ export default function SalesDesk() {
         status: quoteFilter || undefined,
         max: quotePage.max,
         offset: quotePage.offset,
+        sort: quoteSort,
+        order: quoteOrder,
+        q: quoteQ.trim() || undefined,
       }),
       salesApi.orders.list({
         status: orderFilter || undefined,
         max: orderPage.max,
         offset: orderPage.offset,
+        sort: orderSort,
+        order: orderOrder,
+        q: orderQ.trim() || undefined,
       }),
       catalogueApi.list({
         nature: 'GOODS',
@@ -340,6 +375,12 @@ export default function SalesDesk() {
   }, [
     quoteFilter,
     orderFilter,
+    quoteQ,
+    orderQ,
+    quoteSort,
+    quoteOrder,
+    orderSort,
+    orderOrder,
     custPage.max,
     custPage.offset,
     quotePage.max,
@@ -1139,39 +1180,59 @@ export default function SalesDesk() {
 
   // —— toolbars ——
   const quoteToolbar = (
-    <select
-      value={quoteFilter}
-      onChange={(e) => {
-        setQuoteFilter(e.target.value)
-        setQuotePage((pg) => ({ ...pg, offset: 0 }))
-      }}
-      className="filter-select"
-    >
-      <option value="">{t('quote.filterAll')}</option>
-      {['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'].map((s) => (
-        <option key={s} value={s}>
-          {t(`status.${s}`, { defaultValue: s })}
-        </option>
-      ))}
-    </select>
+    <>
+      <select
+        value={quoteFilter}
+        onChange={(e) => {
+          setQuoteFilter(e.target.value)
+          setQuotePage((pg) => ({ ...pg, offset: 0 }))
+        }}
+        className="filter-select"
+      >
+        <option value="">{t('quote.filterAll')}</option>
+        {['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'].map((s) => (
+          <option key={s} value={s}>
+            {t(`status.${s}`, { defaultValue: s })}
+          </option>
+        ))}
+      </select>
+      <ListFilterBar
+        q={quoteQ}
+        onQChange={(next) => {
+          setQuoteQ(next)
+          setQuotePage((pg) => ({ ...pg, offset: 0 }))
+        }}
+        placeholder={t('masterData.search', { ns: 'common', defaultValue: 'Search…' })}
+      />
+    </>
   )
 
   const orderToolbar = (
-    <select
-      value={orderFilter}
-      onChange={(e) => {
-        setOrderFilter(e.target.value)
-        setOrderPage((pg) => ({ ...pg, offset: 0 }))
-      }}
-      className="filter-select"
-    >
-      <option value="">{t('quote.filterAll')}</option>
-      {['DRAFT', 'CONFIRMED', 'CLOSED', 'CANCELLED'].map((s) => (
-        <option key={s} value={s}>
-          {t(`status.${s}`, { defaultValue: s })}
-        </option>
-      ))}
-    </select>
+    <>
+      <select
+        value={orderFilter}
+        onChange={(e) => {
+          setOrderFilter(e.target.value)
+          setOrderPage((pg) => ({ ...pg, offset: 0 }))
+        }}
+        className="filter-select"
+      >
+        <option value="">{t('quote.filterAll')}</option>
+        {['DRAFT', 'CONFIRMED', 'CLOSED', 'CANCELLED'].map((s) => (
+          <option key={s} value={s}>
+            {t(`status.${s}`, { defaultValue: s })}
+          </option>
+        ))}
+      </select>
+      <ListFilterBar
+        q={orderQ}
+        onQChange={(next) => {
+          setOrderQ(next)
+          setOrderPage((pg) => ({ ...pg, offset: 0 }))
+        }}
+        placeholder={t('masterData.search', { ns: 'common', defaultValue: 'Search…' })}
+      />
+    </>
   )
 
   // —— lists ——
@@ -1187,6 +1248,14 @@ export default function SalesDesk() {
         loading={loading}
         selectedKey={selectedQuote?.id}
         onSelect={(q) => setSelectedId(String(q.id))}
+        sortFields={QUOTE_SORT_MENU}
+        sort={quoteSort}
+        order={quoteOrder}
+        onSortChange={({ sort: s, order: o }) => {
+          setQuoteSort(s || 'id')
+          setQuoteOrder(o === 'asc' ? 'asc' : 'desc')
+          setQuotePage((pg) => ({ ...pg, offset: 0 }))
+        }}
         fields={[
           {
             id: 'number',
@@ -1218,11 +1287,51 @@ export default function SalesDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('quote.table.number')}</th>
-                <th>{t('quote.table.customer')}</th>
-                <th>EUR</th>
+                <ListSortHeader
+                  field="quoteNumber"
+                  label={t('quote.table.number')}
+                  sort={quoteSort}
+                  order={quoteOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setQuoteSort(s || 'id')
+                    setQuoteOrder(o === 'asc' ? 'asc' : 'desc')
+                    setQuotePage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
+                <ListSortHeader
+                  field="customerName"
+                  label={t('quote.table.customer')}
+                  sort={quoteSort}
+                  order={quoteOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setQuoteSort(s || 'id')
+                    setQuoteOrder(o === 'asc' ? 'asc' : 'desc')
+                    setQuotePage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
+                <ListSortHeader
+                  field="amountEur"
+                  label="EUR"
+                  sort={quoteSort}
+                  order={quoteOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setQuoteSort(s || 'id')
+                    setQuoteOrder(o === 'asc' ? 'asc' : 'desc')
+                    setQuotePage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
                 <th className="col-priority-low">{t('quote.table.content')}</th>
-                <th>{t('quote.table.status')}</th>
+                <ListSortHeader
+                  field="quoteStatus"
+                  label={t('quote.table.status')}
+                  sort={quoteSort}
+                  order={quoteOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setQuoteSort(s || 'id')
+                    setQuoteOrder(o === 'asc' ? 'asc' : 'desc')
+                    setQuotePage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
                 <th />
               </tr>
             </thead>
@@ -1284,6 +1393,14 @@ export default function SalesDesk() {
         loading={loading}
         selectedKey={selectedOrder?.id}
         onSelect={(o) => setSelectedId(String(o.id))}
+        sortFields={ORDER_SORT_MENU}
+        sort={orderSort}
+        order={orderOrder}
+        onSortChange={({ sort: s, order: o }) => {
+          setOrderSort(s || 'id')
+          setOrderOrder(o === 'asc' ? 'asc' : 'desc')
+          setOrderPage((pg) => ({ ...pg, offset: 0 }))
+        }}
         fields={[
           {
             id: 'number',
@@ -1313,10 +1430,50 @@ export default function SalesDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('order.table.number')}</th>
-                <th>{t('order.table.customer')}</th>
-                <th>EUR</th>
-                <th>{t('order.table.status')}</th>
+                <ListSortHeader
+                  field="orderNumber"
+                  label={t('order.table.number')}
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setOrderSort(s || 'id')
+                    setOrderOrder(o === 'asc' ? 'asc' : 'desc')
+                    setOrderPage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
+                <ListSortHeader
+                  field="customerName"
+                  label={t('order.table.customer')}
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setOrderSort(s || 'id')
+                    setOrderOrder(o === 'asc' ? 'asc' : 'desc')
+                    setOrderPage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
+                <ListSortHeader
+                  field="amountEur"
+                  label="EUR"
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setOrderSort(s || 'id')
+                    setOrderOrder(o === 'asc' ? 'asc' : 'desc')
+                    setOrderPage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
+                <ListSortHeader
+                  field="orderStatus"
+                  label={t('order.table.status')}
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={({ sort: s, order: o }) => {
+                    setOrderSort(s || 'id')
+                    setOrderOrder(o === 'asc' ? 'asc' : 'desc')
+                    setOrderPage((pg) => ({ ...pg, offset: 0 }))
+                  }}
+                />
                 <th />
               </tr>
             </thead>

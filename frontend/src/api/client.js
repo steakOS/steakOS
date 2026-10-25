@@ -1111,6 +1111,8 @@ export const scmApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.q) q.set('q', params.q)
       const qs = q.toString()
       return api(`/api/scm/purchase-orders${qs ? `?${qs}` : ''}`)

@@ -27,6 +27,8 @@ import PendingContentComposer, {
 import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
+import ListFilterBar from '../components/ListFilterBar'
 import MoneyHint from '../components/MoneyHint'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
@@ -120,6 +122,20 @@ export default function FinanceInvoices() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
   const [filter, setFilter] = useState('')
+  const [listQ, setListQ] = useState('')
+  const [listSort, setListSort] = useState('id')
+  const [listOrder, setListOrder] = useState('desc')
+
+  const INVOICE_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'invoiceNumber', label: 'Number' },
+      { value: 'customerName', label: 'Customer' },
+      { value: 'amountEur', label: 'EUR' },
+      { value: 'invoiceStatus', label: 'Status' },
+    ],
+    [],
+  )
 
   const [form, setForm] = useState(DEFAULT_FORM)
 
@@ -130,6 +146,12 @@ export default function FinanceInvoices() {
   })
 
   const [page, setPage] = useState({ max: 25, offset: 0, total: 0 })
+
+  const onListSortChange = useCallback(({ sort: s, order: o }) => {
+    setListSort(s || 'id')
+    setListOrder(o === 'asc' ? 'asc' : 'desc')
+    setPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
   const [demoForcedMock, setDemoForcedMock] = useState(false)
   const [btcIntegration, setBtcIntegration] = useState(null)
 
@@ -151,6 +173,9 @@ export default function FinanceInvoices() {
       status: filter || undefined,
       max: page.max,
       offset: page.offset,
+      sort: listSort,
+      order: listOrder,
+      q: listQ.trim() || undefined,
     })
     const list = data.items || []
     setItems(list)
@@ -162,7 +187,7 @@ export default function FinanceInvoices() {
     }))
     setInvoiceContentMap(await fetchContentMap('finance', 'Invoice', list))
     return list
-  }, [filter, page.max, page.offset])
+  }, [filter, listQ, listSort, listOrder, page.max, page.offset])
 
   const selectInvoice = useCallback(
     async (id) => {
@@ -492,21 +517,31 @@ export default function FinanceInvoices() {
   )
 
   const toolbar = (
-    <select
-      value={filter}
-      onChange={(e) => {
-        setFilter(e.target.value)
-        setPage((pg) => ({ ...pg, offset: 0 }))
-      }}
-      className="filter-select"
-    >
-      <option value="">{t('wb.filterAll', { ns: 'common' })}</option>
-      {['DRAFT', 'ISSUED', 'PART_PAID', 'PAID', 'VOID'].map((s) => (
-        <option key={s} value={s}>
-          {s}
-        </option>
-      ))}
-    </select>
+    <>
+      <select
+        value={filter}
+        onChange={(e) => {
+          setFilter(e.target.value)
+          setPage((pg) => ({ ...pg, offset: 0 }))
+        }}
+        className="filter-select"
+      >
+        <option value="">{t('wb.filterAll', { ns: 'common' })}</option>
+        {['DRAFT', 'ISSUED', 'PART_PAID', 'PAID', 'VOID'].map((s) => (
+          <option key={s} value={s}>
+            {s}
+          </option>
+        ))}
+      </select>
+      <ListFilterBar
+        q={listQ}
+        onQChange={(next) => {
+          setListQ(next)
+          setPage((pg) => ({ ...pg, offset: 0 }))
+        }}
+        placeholder={t('masterData.search', { ns: 'common', defaultValue: 'Search…' })}
+      />
+    </>
   )
 
   const list = (
@@ -521,6 +556,10 @@ export default function FinanceInvoices() {
         loading={loading}
         selectedKey={selected?.id}
         onSelect={(inv) => setSelectedId(String(inv.id))}
+        sortFields={INVOICE_SORT_MENU}
+        sort={listSort}
+        order={listOrder}
+        onSortChange={onListSortChange}
         fields={[
           {
             id: 'number',
@@ -550,10 +589,34 @@ export default function FinanceInvoices() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.number', { ns: 'common' })}</th>
-                <th>{t('wb.customer', { ns: 'common' })}</th>
-                <th>EUR</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="invoiceNumber"
+                  label={t('wb.number', { ns: 'common' })}
+                  sort={listSort}
+                  order={listOrder}
+                  onSortChange={onListSortChange}
+                />
+                <ListSortHeader
+                  field="customerName"
+                  label={t('wb.customer', { ns: 'common' })}
+                  sort={listSort}
+                  order={listOrder}
+                  onSortChange={onListSortChange}
+                />
+                <ListSortHeader
+                  field="amountEur"
+                  label="EUR"
+                  sort={listSort}
+                  order={listOrder}
+                  onSortChange={onListSortChange}
+                />
+                <ListSortHeader
+                  field="invoiceStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={listSort}
+                  order={listOrder}
+                  onSortChange={onListSortChange}
+                />
                 <th />
               </tr>
             </thead>

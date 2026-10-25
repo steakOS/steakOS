@@ -485,20 +485,47 @@ class FinanceRevenueService {
         listInvoicesPage(npubOwner, statusFilter, 200, 0).items as List<Invoice>
     }
 
+    static final List INVOICE_SORT_FIELDS = [
+            'id', 'name', 'code', 'status', 'invoiceStatus', 'invoiceNumber',
+            'amountEur', 'customerName', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listInvoicesPage(String npubOwner, String statusFilter = null, int max = 25, int offset = 0) {
+    Map listInvoicesPage(String npubOwner, String statusFilter = null, int max = 25, int offset = 0,
+                         Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (statusFilter) {
-            return [
-                    items: Invoice.findAllByNpubOwnerAndInvoiceStatus(npub, statusFilter, opts),
-                    total: Invoice.countByNpubOwnerAndInvoiceStatus(npub, statusFilter) as int
-            ]
-        }
-        return [
-                items: Invoice.findAllByNpubOwner(npub, opts),
-                total: Invoice.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', INVOICE_SORT_FIELDS)
+        String term = steakos.api.ListPaging.likeContains(listOpts?.q as String)
+        List items = Invoice.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (statusFilter) eq('invoiceStatus', statusFilter)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('invoiceNumber', term)
+                    ilike('customerName', term)
+                    ilike('description', term)
+                    ilike('referenceText', term)
+                }
+            }
+            order(so.sort as String, so.order as String)
+            if (so.sort != 'id') order('id', 'asc')
+        } as List
+        Number total = Invoice.createCriteria().count {
+            eq('npubOwner', npub)
+            if (statusFilter) eq('invoiceStatus', statusFilter)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('invoiceNumber', term)
+                    ilike('customerName', term)
+                    ilike('description', term)
+                    ilike('referenceText', term)
+                }
+            }
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     /** Open = ISSUED or PART_PAID */
