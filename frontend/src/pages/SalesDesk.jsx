@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
@@ -114,7 +114,9 @@ function linesDirty(lines, defaultsFactory) {
  */
 export default function SalesDesk() {
   const { t } = useTranslation(['sales', 'common', 'content'])
-  const { viewModal, ViewButton } = useRecordView()
+  const { viewModal, ViewButton, openView } = useRecordView()
+  /** Deep-link from global search: open customer RecordView once per id. */
+  const openedCustomerViewId = useRef(null)
   const narrow = useNarrowViewport()
   const tabs = useMemo(
     () => [
@@ -435,6 +437,21 @@ export default function SalesDesk() {
             setOrderWarnings([])
           }
           if (!cancelled) setSelectedQuote(null)
+        } else if (tab === 'customers') {
+          if (!cancelled) {
+            setSelectedQuote(null)
+            setSelectedOrder(null)
+          }
+          // Global search deep-link: open RecordView for customer details (Task 7656)
+          if (selectedId && openedCustomerViewId.current !== String(selectedId)) {
+            openedCustomerViewId.current = String(selectedId)
+            try {
+              const full = await salesApi.customers.get(selectedId)
+              if (!cancelled && full) openView('sales', 'Customer', full)
+            } catch (e) {
+              if (!cancelled) setError(e.message || String(e))
+            }
+          }
         } else if (!cancelled) {
           setSelectedQuote(null)
           setSelectedOrder(null)
@@ -447,7 +464,7 @@ export default function SalesDesk() {
     return () => {
       cancelled = true
     }
-  }, [tab, selectedId, selectQuote, selectOrder])
+  }, [tab, selectedId, selectQuote, selectOrder, openView])
 
   useEffect(() => {
     if (!selectedId) return
