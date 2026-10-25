@@ -220,7 +220,7 @@ export default function GlobalSearch({ narrow = false }) {
         <Search size={16} className="global-search-leading" aria-hidden="true" />
         <input
           ref={inputRef}
-          type="search"
+          type="text"
           className="global-search-input"
           value={q}
           placeholder={t('shell.search.placeholder', {
@@ -239,11 +239,13 @@ export default function GlobalSearch({ narrow = false }) {
           }}
           onKeyDown={onKeyDownInput}
         />
-        {(q || (narrow && expanded)) && (
+        {/* One clear control only when the box has text (Task 7657). type=text
+            avoids the native webkit search cancel that stacked with this button. */}
+        {!!q && (
           <button
             type="button"
             className="btn btn-ghost global-search-clear"
-            aria-label={t('actions.close', { defaultValue: 'Close' })}
+            aria-label={t('shell.search.clear', { defaultValue: 'Clear search' })}
             onClick={() => {
               setQ('')
               setItems([])
