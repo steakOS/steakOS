@@ -57,19 +57,18 @@ const emptyTask = {
   importance: '2',
 }
 
-const TASK_STATUSES = [
-  'OPEN',
-  'IN_PROGRESS',
-  'DONE',
-  'CANCELLED',
-  // Coder / Grok Build lab workflow (developmentMode)
-  'AI:new',
-  'AI:conceptualizing',
-  'AI:waiting-go',
-  'AI:analyzing',
-  'AI:fixing',
-  'AI:done',
-]
+/** Human-selectable Task statuses only. AI:* is set by Coder / Hermes via API. */
+const TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']
+
+function isAiTaskStatus(status) {
+  return typeof status === 'string' && status.startsWith('AI:')
+}
+
+/** Map server status into the edit dropdown (never expose AI:* as a choice). */
+function humanTaskStatusForForm(status) {
+  if (!status || isAiTaskStatus(status)) return 'OPEN'
+  return TASK_STATUSES.includes(status) ? status : 'OPEN'
+}
 const EISENHOWER_LEVELS = [
   { value: '1', label: '1 · Low' },
   { value: '2', label: '2 · Medium' },
@@ -302,6 +301,8 @@ export default function DomainForm() {
   const [countries, setCountries] = useState([])
   const [products, setProducts] = useState([])
   const [boms, setBoms] = useState([])
+  /** When editing, last server AI:* status (display-only; not a dropdown option). */
+  const [agentStatusHint, setAgentStatusHint] = useState(null)
   const [error, setError] = useState(null)
   const [errorDetail, setErrorDetail] = useState(null)
   const [loading, setLoading] = useState(!isNew)
@@ -390,6 +391,7 @@ export default function DomainForm() {
       if (!useSchemaForm) {
         setForm(emptyFor(resource, pkg))
       }
+      setAgentStatusHint(null)
       setLoading(false)
       return
     }
@@ -400,11 +402,13 @@ export default function DomainForm() {
         if (masterSpec) {
           setForm(masterSpec.fromRow(row, masterSpec.empty()))
         } else if (isTask) {
+          const rawStatus = row.status || 'OPEN'
+          setAgentStatusHint(isAiTaskStatus(rawStatus) ? rawStatus : null)
           setForm({
             ...emptyTask,
             name: row.name || '',
             description: row.description || '',
-            status: row.status || 'OPEN',
+            status: humanTaskStatusForForm(rawStatus),
             assigneeHumanNpub: row.assigneeHumanNpub || '',
             assigneeAgentId: row.assigneeAgentId != null ? String(row.assigneeAgentId) : '',
             startAt: dateInputValue(row.startAt),
@@ -598,7 +602,8 @@ export default function DomainForm() {
       body = {
         name: form.name,
         description: form.description || null,
-        status: form.status || 'OPEN',
+        // UI never sends AI:* — agents set those via API only
+        status: humanTaskStatusForForm(form.status),
         assigneeHumanNpub: form.assigneeHumanNpub || null,
         assigneeAgentId: form.assigneeAgentId === '' ? null : form.assigneeAgentId,
         startAt: form.startAt || null,
@@ -1051,13 +1056,23 @@ export default function DomainForm() {
             <div className="form-row-2">
               <label>
                 {t('pages.work.status', { ns: 'common', defaultValue: 'Status' })}
-                <select name="status" value={form.status} onChange={onChange}>
+                <select name="status" value={humanTaskStatusForForm(form.status)} onChange={onChange}>
                   {TASK_STATUSES.map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
                   ))}
                 </select>
+                {agentStatusHint ? (
+                  <span className="muted" style={{ display: 'block', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    {t('pages.work.agentStatusHint', {
+                      ns: 'common',
+                      defaultValue:
+                        'Agent status {{status}} (Coder/Hermes). Not selectable here — saving applies the human status above.',
+                      status: agentStatusHint,
+                    })}
+                  </span>
+                ) : null}
               </label>
               <label>
                 {t('pages.work.deadline', { ns: 'common', defaultValue: 'Deadline' })}
