@@ -70,7 +70,10 @@
     "taxRegimeHelp": "Preseleccionado según el país. El operador es responsable de los tipos — no es asesoramiento jurídico (OI-F23).",
     "taxRegimeKlein": "Kleinunternehmer / pequeña empresa (sin IVA)",
     "taxRegimeNone": "Ninguno / no registrado",
-    "taxRegimeUs": "US sales tax (stub)"
+    "taxRegimeUs": "US sales tax (stub)",
+    "nameWarnHtml": "Este nombre parece incluir marcado HTML o script. Prefiera un nombre legal sencillo — puede continuar, pero puede mostrarse de forma rara.",
+    "nameWarnControl": "Este nombre incluye caracteres de control. Prefiera letras imprimibles y puntuación normal.",
+    "nameWarnUnusual": "Este nombre incluye caracteres especiales poco habituales. Letras, dígitos y puntuación legal común (p. ej. & . , - / ( )) son más seguros."
   },
   "site": {
     "title": "Sede principal",

@@ -19,6 +19,7 @@ import { authApi, meApi, nostrApi, setupApi } from '../api/client'
 import AuthAppGuide from '../components/AuthAppGuide'
 import { RULES_HINT, validatePassword } from '../util/passwordPolicy'
 import { validateBtcReceiveAddress } from '../util/btcAddress'
+import { companyNameSpecialCharWarn } from '../util/companyNameWarn'
 
 const STEP_IDS = [
   'tour',
@@ -181,6 +182,8 @@ export default function SetupWizard() {
   const [error, setError] = useState(null)
   /** Inline BTC address feedback on wizard bitcoin step (Task 7620). */
   const [btcAddressError, setBtcAddressError] = useState(null)
+  /** Soft (non-blocking) company-name special-char tip (Task 7622). */
+  const [companyNameWarn, setCompanyNameWarn] = useState(null)
   const [check, setCheck] = useState(null)
   /** 'wizard' | 'celebration' — celebration is post-complete, no further apply */
   const [phase, setPhase] = useState(() => (hasCelebrationFlag() ? 'celebration' : 'wizard'))
@@ -950,10 +953,30 @@ export default function SetupWizard() {
               {t('company.name')}
               <input
                 value={draft.companyName}
-                onChange={(e) => patch({ companyName: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value
+                  patch({ companyName: value })
+                  const w = companyNameSpecialCharWarn(value)
+                  if (!w.warn) {
+                    setCompanyNameWarn(null)
+                    return
+                  }
+                  const msg =
+                    w.code === 'html'
+                      ? t('company.nameWarnHtml', { defaultValue: w.message })
+                      : w.code === 'control'
+                        ? t('company.nameWarnControl', { defaultValue: w.message })
+                        : t('company.nameWarnUnusual', { defaultValue: w.message })
+                  setCompanyNameWarn(msg)
+                }}
                 placeholder={t('ph.companyExample', { ns: 'common' })}
               />
             </label>
+            {companyNameWarn && (
+              <p className="setup-tip" style={{ color: 'var(--warning, #9a6700)', marginTop: 6 }}>
+                {companyNameWarn}
+              </p>
+            )}
             <label>
               {t('company.legalForm')}
               <select value={draft.legalForm} onChange={(e) => patch({ legalForm: e.target.value })}>

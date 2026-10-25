@@ -70,7 +70,10 @@
     "taxRegimeHelp": "Aus Land vorbelegt. Betreiber verantwortet Sätze — keine Rechtsberatung (OI-F23).",
     "taxRegimeKlein": "Kleinunternehmer (keine USt)",
     "taxRegimeNone": "Keine / nicht registriert",
-    "taxRegimeUs": "US Sales Tax (Stub)"
+    "taxRegimeUs": "US Sales Tax (Stub)",
+    "nameWarnHtml": "Dieser Name wirkt wie HTML- oder Script-Markup. Bevorzugen Sie einen klaren Firmennamen — Sie können fortfahren, die Anzeige kann aber seltsam wirken.",
+    "nameWarnControl": "Dieser Name enthält Steuerzeichen. Bevorzugen Sie druckbare Buchstaben und normale Satzzeichen.",
+    "nameWarnUnusual": "Dieser Name enthält ungewöhnliche Sonderzeichen. Buchstaben, Ziffern und übliche Rechtszeichensetzung (z. B. & . , - / ( )) sind am sichersten."
   },
   "site": {
     "title": "Primärer Standort",
