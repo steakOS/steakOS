@@ -27,7 +27,8 @@ import steakos.traits.DomainTraitConstraints
 /**
  * Single work-item domain (Task unification OI-WK01).
  * Optional human and/or agent assignee, schedule window, Eisenhower urgency × importance.
- * Lifecycle via Classifiable.status: OPEN | IN_PROGRESS | DONE | CANCELLED.
+ * Lifecycle via Classifiable.status: OPEN | IN_PROGRESS | DONE | CANCELLED
+ * (+ lab AI:* when steakos.developmentMode — see DevelopmentModeService).
  * Content companion attaches via Object Companion (core / Task / id).
  * See docs/domain classes/steakos app/TASK-UNIFICATION-PLAN.md
  */

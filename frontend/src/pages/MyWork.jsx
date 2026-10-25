@@ -17,12 +17,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw } from 'lucide-react'
-import { deliveryApi, domainsApi, meApi } from '../api/client'
+import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import usePagedList from '../hooks/usePagedList'
 import {
   buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
   formatAssigneeDisplay,
   humanNpubForUsername,
   splitPersonName,
@@ -30,7 +31,18 @@ import {
 
 const LEVELS = [1, 2, 3]
 const LEVEL_LABEL = { 1: 'Low', 2: 'Medium', 3: 'High' }
-const OPEN_STATUSES = new Set(['OPEN', 'IN_PROGRESS', '', null, undefined])
+const OPEN_STATUSES = new Set([
+  'OPEN',
+  'IN_PROGRESS',
+  '',
+  null,
+  undefined,
+  'AI:new',
+  'AI:conceptualizing',
+  'AI:waiting-go',
+  'AI:analyzing',
+  'AI:fixing',
+])
 
 function levelKey(n) {
   const v = Number(n)
@@ -51,7 +63,7 @@ function formatDeadline(iso) {
 
 function isOverdue(task) {
   if (!task?.deadlineAt) return false
-  if (task.status === 'DONE' || task.status === 'CANCELLED') return false
+  if (task.status === 'DONE' || task.status === 'CANCELLED' || task.status === 'AI:done') return false
   try {
     return new Date(task.deadlineAt) < new Date()
   } catch {
@@ -78,7 +90,7 @@ export default function MyWork() {
     Promise.all([
       meApi.get().catch(() => null),
       deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
-      domainsApi.list('agents', 'Agent', { max: 200 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
     ]).then(([me, res, ag]) => {
       if (cancelled) return
       const username = me?.username || null
@@ -90,7 +102,12 @@ export default function MyWork() {
         (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
       )
       const meLabel = match?.name ? splitPersonName(match.name).label : username
-      setAssigneeOptions(buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }))
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
     })
     return () => {
       cancelled = true

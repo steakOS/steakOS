@@ -22,6 +22,7 @@ import steakos.User
 import steakos.configuration.CompanyContextService
 import steakos.configuration.LocaleService
 import steakos.configuration.CompanyConfigService
+import steakos.configuration.DevelopmentModeService
 import steakos.configuration.LegalEntity
 import steakos.configuration.TemplateTiers
 import steakos.security.RoleProfileService
@@ -36,6 +37,7 @@ class MeApiController {
     RoleProfileService roleProfileService
     CompanyConfigService companyConfigService
     CompanyContextService companyContextService
+    DevelopmentModeService developmentModeService
 
     def index() {
         User u = springSecurityService.currentUser as User
@@ -98,6 +100,12 @@ class MeApiController {
         } catch (ignored) {
         }
 
+        boolean developmentMode = false
+        try {
+            developmentMode = !!developmentModeService?.isEnabled()
+        } catch (ignored) {
+        }
+
         render([
                 username      : u?.username,
                 displayName   : u?.displayName,
@@ -120,7 +128,9 @@ class MeApiController {
                 activeCompanyId : companyCtx.activeCompanyId,
                 activeCompany   : companyCtx.activeCompany,
                 needCompanyPick : !!companyCtx.needCompanyPick,
-                companyCurrency : (companyCtx.activeCompany as Map)?.companyCurrency
+                companyCurrency : (companyCtx.activeCompany as Map)?.companyCurrency,
+                developmentMode : developmentMode,
+                coderAgentKey   : DevelopmentModeService.CODER_AGENT_KEY
         ] as JSON)
     }
 

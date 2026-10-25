@@ -57,6 +57,8 @@ class BootStrap {
     HeardCookArchitectsSeedService heardCookArchitectsSeedService
     steakos.payments.BtcIntegrationLevelService btcIntegrationLevelService
     steakos.configuration.CompanyConfigService companyConfigService
+    steakos.agents.AgAgentService agAgentService
+    steakos.configuration.DevelopmentModeService developmentModeService
 
     def init = {
         // ADR-037: Bearer token filter after security context is established
@@ -103,9 +105,23 @@ class BootStrap {
         seedHelpTopics()
         seedRoleProfiles()
         seedCompanyContext()
+        seedCoderAgentIfDevMode()
         backfillCompanyCurrencies()
         backfillCompanyTax()
         backfillBtcIntegrationLevels()
+    }
+
+    /** Lab Coder agent when STEAKOS_DEVELOPMENT_MODE / steakos.developmentMode is true. */
+    private void seedCoderAgentIfDevMode() {
+        try {
+            if (!developmentModeService?.isEnabled()) return
+            def a = agAgentService?.seedCoderAgent('user:admin')
+            if (a) {
+                println "BootStrap: Coder agent ready id=${a.id} key=${a.agentKey}"
+            }
+        } catch (Exception e) {
+            log.warn("Coder agent seed skipped: ${e.message}")
+        }
     }
 
     /** PDR-026 — LIVE + DEMO shell + memberships; seed Orange Steak House if empty. */

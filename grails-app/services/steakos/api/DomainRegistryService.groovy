@@ -341,12 +341,14 @@ class DomainRegistryService {
                     eq('status', 'IN_PROGRESS')
                     isNull('status')
                     eq('status', '')
+                    // Coder / Grok Build lab statuses (developmentMode workflow)
+                    'in'('status', steakos.configuration.DevelopmentModeService.AI_OPEN_STATUSES)
                 }
             } else if (view == 'overdue') {
                 isNotNull('deadlineAt')
                 lt('deadlineAt', now)
                 not {
-                    'in'('status', ['DONE', 'CANCELLED'])
+                    'in'('status', ['DONE', 'CANCELLED', 'AI:done'])
                 }
             } else if (view == 'mine') {
                 or {
@@ -376,12 +378,13 @@ class DomainRegistryService {
                     eq('status', 'IN_PROGRESS')
                     isNull('status')
                     eq('status', '')
+                    'in'('status', steakos.configuration.DevelopmentModeService.AI_OPEN_STATUSES)
                 }
             } else if (view == 'overdue') {
                 isNotNull('deadlineAt')
                 lt('deadlineAt', now)
                 not {
-                    'in'('status', ['DONE', 'CANCELLED'])
+                    'in'('status', ['DONE', 'CANCELLED', 'AI:done'])
                 }
             } else if (view == 'mine') {
                 or {

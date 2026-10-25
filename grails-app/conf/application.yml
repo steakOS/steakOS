@@ -60,6 +60,9 @@ grails:
 ---
 # Field encryption for sensitive User attributes (nsec, npub, bunker). Override in production.
 steakos:
+    # Operator/dev harness flag — OFF by default on install. Enable only on lab hosts
+    # (STEAKOS_DEVELOPMENT_MODE=true). Gates the Coder agent and AI:* task workflow.
+    developmentMode: ${STEAKOS_DEVELOPMENT_MODE:false}
     encryption:
         password: ${STEAKOS_FIELD_ENCRYPTION_PASSWORD:steakos-dev-only-change-me!!}
         # Hex-encoded salt required by Spring Encryptors (min 8 bytes → 16 hex chars)

@@ -105,19 +105,27 @@ export function buildAssigneeOptions({ humans = [], agents = [], meUsername, meL
 
   const agentOpts = (agents || [])
     .filter((a) => {
-      const st = String(a.status || '').toUpperCase()
+      const st = String(a.agentStatus || a.status || '').toUpperCase()
       return !st || st === 'ACTIVE'
     })
     .map((a) => ({
       value: `agent:${a.id}`,
       label: `[agent] ${a.name || `#${a.id}`}`,
       kind: 'agent',
+      agentKey: a.agentKey || '',
+      developmentOnly: !!a.developmentOnly || a.agentKey === 'coder',
       sortKey: String(a.name || a.id).toLowerCase(),
     }))
     .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
 
   options.push(...agentOpts)
   return options
+}
+
+/** Drop lab-only agents (Coder) unless developmentMode is on. */
+export function filterAssigneeOptionsForDevMode(options, developmentMode) {
+  if (developmentMode) return options
+  return (options || []).filter((o) => !o.developmentOnly && o.agentKey !== 'coder')
 }
 
 /** Friendly one-line label for list/board cells. */

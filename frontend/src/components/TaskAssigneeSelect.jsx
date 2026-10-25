@@ -15,11 +15,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { deliveryApi, domainsApi, meApi } from '../api/client'
+import { agentsApi, deliveryApi, meApi } from '../api/client'
 import {
   buildAssigneeOptions,
   decodeAssigneeValue,
   encodeAssigneeValue,
+  filterAssigneeOptionsForDevMode,
   humanNpubForUsername,
   splitPersonName,
 } from '../utils/taskAssignee'
@@ -39,6 +40,7 @@ export default function TaskAssigneeSelect({
 }) {
   const { t } = useTranslation('common')
   const [meUsername, setMeUsername] = useState(null)
+  const [developmentMode, setDevelopmentMode] = useState(false)
   const [humans, setHumans] = useState([])
   const [agents, setAgents] = useState([])
   const [loadError, setLoadError] = useState(null)
@@ -51,10 +53,11 @@ export default function TaskAssigneeSelect({
     Promise.all([
       meApi.get().catch(() => null),
       deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
-      domainsApi.list('agents', 'Agent', { max: 200 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
     ]).then(([me, res, ag]) => {
       if (cancelled) return
       setMeUsername(me?.username || null)
+      setDevelopmentMode(!!me?.developmentMode)
       setHumans(Array.isArray(res?.items) ? res.items : [])
       setAgents(Array.isArray(ag?.items) ? ag.items : [])
       setLoadError(null)
@@ -77,8 +80,12 @@ export default function TaskAssigneeSelect({
   }, [humans, meUsername])
 
   const options = useMemo(
-    () => buildAssigneeOptions({ humans, agents, meUsername, meLabel }),
-    [humans, agents, meUsername, meLabel],
+    () =>
+      filterAssigneeOptionsForDevMode(
+        buildAssigneeOptions({ humans, agents, meUsername, meLabel }),
+        developmentMode,
+      ),
+    [humans, agents, meUsername, meLabel, developmentMode],
   )
 
   const value = encodeAssigneeValue(assigneeHumanNpub, assigneeAgentId)

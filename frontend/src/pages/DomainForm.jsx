@@ -57,7 +57,19 @@ const emptyTask = {
   importance: '2',
 }
 
-const TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']
+const TASK_STATUSES = [
+  'OPEN',
+  'IN_PROGRESS',
+  'DONE',
+  'CANCELLED',
+  // Coder / Grok Build lab workflow (developmentMode)
+  'AI:new',
+  'AI:conceptualizing',
+  'AI:waiting-go',
+  'AI:analyzing',
+  'AI:fixing',
+  'AI:done',
+]
 const EISENHOWER_LEVELS = [
   { value: '1', label: '1 · Low' },
   { value: '2', label: '2 · Medium' },
