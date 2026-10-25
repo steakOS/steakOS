@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { X, Pencil } from 'lucide-react'
@@ -21,6 +21,11 @@ import { domainsApi } from '../api/client'
 import { humanizeLabel, statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+import {
+  filterViewEntries,
+  readShowEmptyFieldsPref,
+  writeShowEmptyFieldsPref,
+} from '../utils/viewFieldEmpty'
 
 const HIDDEN_KEYS = new Set([
   'id',
@@ -83,6 +88,7 @@ export default function RecordViewModal({
   const [record, setRecord] = useState(seed || null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [showEmpty, setShowEmpty] = useState(() => readShowEmptyFieldsPref())
 
   useEffect(() => {
     if (!open) return undefined
@@ -121,12 +127,24 @@ export default function RecordViewModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  const allEntries = useMemo(() => sortedEntries(record), [record])
+  const entries = useMemo(
+    () => filterViewEntries(allEntries, { showEmpty }),
+    [allEntries, showEmpty],
+  )
+  const hiddenEmptyCount = showEmpty ? 0 : Math.max(0, allEntries.length - entries.length)
+
+  const onToggleShowEmpty = (e) => {
+    const next = e.target.checked
+    setShowEmpty(next)
+    writeShowEmptyFieldsPref(next)
+  }
+
   if (!open) return null
 
   const title = entityDisplayLabel(record, {
     fallback: t('view.untitled', { defaultValue: 'Untitled' }),
   })
-  const entries = sortedEntries(record)
 
   return (
     <div
@@ -165,6 +183,18 @@ export default function RecordViewModal({
             </h2>
           </div>
           <div className="content-view-actions">
+            <label className="record-view-show-empty">
+              <input
+                type="checkbox"
+                checked={showEmpty}
+                onChange={onToggleShowEmpty}
+              />
+              <span>
+                {t('view.showEmptyFields', {
+                  defaultValue: 'Show empty fields',
+                })}
+              </span>
+            </label>
             <button
               type="button"
               className="btn btn-ghost"
@@ -180,29 +210,46 @@ export default function RecordViewModal({
           {loading && <p className="muted">{t('actions.loading')}</p>}
           {error && <div className="banner-error">{error}</div>}
           {!loading && record && (
-            <dl className="record-view-grid">
-              {entries.map(([key, value]) => {
-                const display = formatValue(value)
-                const isMultiline =
-                  typeof value === 'object' ||
-                  (typeof display === 'string' && (display.includes('\n') || display.length > 80))
-                const isStatusKey = /status/i.test(key)
-                return (
-                  <div key={key} className="record-view-row">
-                    <dt>{formatFieldLabel(key)}</dt>
-                    <dd className={isMultiline ? 'mono record-view-pre' : undefined}>
-                      {isStatusKey && typeof value === 'string' ? (
-                        <span className={statusBadgeClass(value)}>{value}</span>
-                      ) : isMultiline ? (
-                        <pre className="record-view-pre-inner">{display}</pre>
-                      ) : (
-                        display
-                      )}
-                    </dd>
-                  </div>
-                )
-              })}
-            </dl>
+            <>
+              {!showEmpty && hiddenEmptyCount > 0 ? (
+                <p className="muted record-view-empty-hint">
+                  {t('view.hiddenEmptyHint', {
+                    defaultValue: '{{count}} empty field(s) hidden',
+                    count: hiddenEmptyCount,
+                  })}
+                </p>
+              ) : null}
+              <dl className="record-view-grid">
+                {entries.map(([key, value]) => {
+                  const display = formatValue(value)
+                  const isMultiline =
+                    typeof value === 'object' ||
+                    (typeof display === 'string' && (display.includes('\n') || display.length > 80))
+                  const isStatusKey = /status/i.test(key)
+                  return (
+                    <div key={key} className="record-view-row">
+                      <dt>{formatFieldLabel(key)}</dt>
+                      <dd className={isMultiline ? 'mono record-view-pre' : undefined}>
+                        {isStatusKey && typeof value === 'string' ? (
+                          <span className={statusBadgeClass(value)}>{value}</span>
+                        ) : isMultiline ? (
+                          <pre className="record-view-pre-inner">{display}</pre>
+                        ) : (
+                          display
+                        )}
+                      </dd>
+                    </div>
+                  )
+                })}
+              </dl>
+              {entries.length === 0 ? (
+                <p className="muted">
+                  {t('view.allFieldsEmpty', {
+                    defaultValue: 'No filled fields — enable “Show empty fields” to see blanks.',
+                  })}
+                </p>
+              ) : null}
+            </>
           )}
           {!loading && !record && !error && (
             <p className="muted">{t('view.empty')}</p>

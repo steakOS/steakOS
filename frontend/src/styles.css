@@ -1440,6 +1440,26 @@ table.data tbody tr.row-selected td:last-child {
   border-top: 1px solid var(--steak-border, #e7e5e4);
 }
 
+/* Task 7646 — show-empty toggle on record view */
+.record-view-show-empty {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted, #8a93a6);
+  margin-right: 4px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.record-view-show-empty input {
+  margin: 0;
+}
+.record-view-empty-hint {
+  font-size: 12px;
+  margin: 0 0 8px;
+}
+
 /* Domain record view modal (master data tables) */
 .record-view-dialog {
   max-width: min(640px, 96vw);
