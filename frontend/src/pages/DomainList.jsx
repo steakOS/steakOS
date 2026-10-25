@@ -17,7 +17,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw, Pencil, Trash2, Eye, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react'
-import { domainsApi } from '../api/client'
+import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import {
   deskHref,
   domainListReturnKey,
@@ -40,6 +40,20 @@ import usePagedList from '../hooks/usePagedList'
 import { statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+import {
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
+
+const TASK_LEVEL_LABEL = { 1: 'Low', 2: 'Medium', 3: 'High' }
+function taskLevelKey(n) {
+  const v = Number(n)
+  if (v === 1 || v === 2 || v === 3) return v
+  return 2
+}
 
 const DOMAIN_SORT_FIELDS = new Set([
   'id',
@@ -76,6 +90,46 @@ export default function DomainList() {
       setCompanionWarn(location.state.companionWarn)
     }
   }, [location.state])
+  const isTaskList = pkg === 'core' && resource === 'Task'
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
+  useEffect(() => {
+    if (!isTaskList) return undefined
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [isTaskList])
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
   const createMeta = useMemo(() => getCreateMeta(pkg, resource), [pkg, resource])
   const lineChild = useMemo(() => getLineChildForParent(pkg, resource), [pkg, resource])
   const masterSpec = useMemo(() => getMasterFormSpec(pkg, resource), [pkg, resource])
@@ -106,13 +160,14 @@ export default function DomainList() {
 
   const tableColSpan = listColumns
     ? 2 + listColumns.length + (lineChild ? 1 : 0)
-    : resource === 'Address' ||
-        resource === 'Invoice' ||
-        resource === 'Account' ||
-        resource === 'Treasury' ||
-        (resource === 'Task' && pkg === 'core')
-      ? 5 + (lineChild ? 1 : 0)
-      : 4 + (lineChild ? 1 : 0)
+    : resource === 'Task' && pkg === 'core'
+      ? 7 + (lineChild ? 1 : 0)
+      : resource === 'Address' ||
+          resource === 'Invoice' ||
+          resource === 'Account' ||
+          resource === 'Treasury'
+        ? 5 + (lineChild ? 1 : 0)
+        : 4 + (lineChild ? 1 : 0)
 
   const createMode = createMeta.createMode || 'domain'
   const interaction =
@@ -173,6 +228,7 @@ export default function DomainList() {
         { value: 'deadlineAt', label: 'Deadline' },
         { value: 'urgency', label: 'Urgency' },
         { value: 'importance', label: 'Importance' },
+        { value: 'assigneeHumanNpub', label: 'Assignee' },
       )
     } else if (sortableField(pkg, resource, 'status')) {
       rows.push({ value: 'status', label: 'Status' })
@@ -426,8 +482,12 @@ export default function DomainList() {
         .join(' · ')
     }
     if (resource === 'Invoice' && row.amountEur != null) return `${row.amountEur} EUR`
-    if (resource === 'Task' && pkg === 'core')
-      return `U${row.urgency ?? 2}/I${row.importance ?? 2}`
+    if (resource === 'Task' && pkg === 'core') {
+      const u = TASK_LEVEL_LABEL[taskLevelKey(row.urgency)]
+      const i = TASK_LEVEL_LABEL[taskLevelKey(row.importance)]
+      const who = assigneeLabel(row)
+      return [`U ${u} · I ${i}`, who].filter(Boolean).join(' · ')
+    }
     if (resource === 'Account') return row.currencyCode || null
     if (resource === 'Treasury' && row.balanceSats != null) return `${row.balanceSats} sats`
     if (resource === 'Address') return row.addressType || null
@@ -682,6 +742,15 @@ export default function DomainList() {
               meta: true,
               render: (row) => rowMeta(row) || '',
             },
+            ...(isTaskList
+              ? [
+                  {
+                    id: 'assignee',
+                    priority: 'low',
+                    render: (row) => assigneeLabel(row),
+                  },
+                ]
+              : []),
           ]}
           actions={rowActions}
         >
@@ -731,7 +800,24 @@ export default function DomainList() {
                           defaultValue: 'Deadline',
                         }),
                       )}
-                      {thSort('urgency', 'U/I', 'col-priority-low')}
+                      {thSort(
+                        'urgency',
+                        t('pages.work.urgency', { ns: 'common', defaultValue: 'Urgency' }),
+                        'col-priority-low',
+                      )}
+                      {thSort(
+                        'importance',
+                        t('pages.work.importance', {
+                          ns: 'common',
+                          defaultValue: 'Importance',
+                        }),
+                        'col-priority-low',
+                      )}
+                      {thSort(
+                        'assigneeHumanNpub',
+                        t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' }),
+                        'col-priority-low',
+                      )}
                     </>
                   ) : (
                     <>
@@ -848,8 +934,14 @@ export default function DomainList() {
                         <td>
                           {row.deadlineAt ? String(row.deadlineAt).slice(0, 10) : '—'}
                         </td>
-                        <td className="mono col-priority-low">
-                          {row.urgency ?? 2}/{row.importance ?? 2}
+                        <td className="col-priority-low">
+                          {TASK_LEVEL_LABEL[taskLevelKey(row.urgency)]}
+                        </td>
+                        <td className="col-priority-low">
+                          {TASK_LEVEL_LABEL[taskLevelKey(row.importance)]}
+                        </td>
+                        <td className="muted col-priority-low" style={{ fontSize: '0.85rem' }}>
+                          {assigneeLabel(row)}
                         </td>
                       </>
                     ) : (
