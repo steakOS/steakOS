@@ -38,12 +38,24 @@
       "name": "Purchase order",
       "description": "Happy path: create PO → send → confirm receipt → payable → payment → vendor paid. Implemented on the SCM desk.",
       "steps": {
-        "scm.po.create": { "name": "Create purchase order (draft)" },
-        "scm.po.send": { "name": "Send purchase order" },
-        "scm.po.receive": { "name": "Confirm receipt" },
-        "scm.po.payable": { "name": "Payable item" },
-        "scm.po.pay": { "name": "Payment run / pay" },
-        "scm.po.paid": { "name": "Confirmed vendor payment" }
+        "scm.po.create": {
+          "name": "Create purchase order (draft)"
+        },
+        "scm.po.send": {
+          "name": "Send purchase order"
+        },
+        "scm.po.receive": {
+          "name": "Confirm receipt"
+        },
+        "scm.po.payable": {
+          "name": "Payable item"
+        },
+        "scm.po.pay": {
+          "name": "Payment run / pay"
+        },
+        "scm.po.paid": {
+          "name": "Confirmed vendor payment"
+        }
       }
     },
     "SCM_MAKE_TO_STOCK": {
@@ -159,50 +171,133 @@
       "name": "Service order fulfillment",
       "description": "Create service order → schedule/assign → start → complete. Delivery desk.",
       "steps": {
-        "del.so.create": { "name": "Create service order" },
-        "del.so.assign": { "name": "Schedule / assign resource" },
-        "del.so.start": { "name": "Start service" },
-        "del.so.complete": { "name": "Complete service order" }
+        "del.so.create": {
+          "name": "Create service order"
+        },
+        "del.so.assign": {
+          "name": "Schedule / assign resource"
+        },
+        "del.so.start": {
+          "name": "Start service"
+        },
+        "del.so.complete": {
+          "name": "Complete service order"
+        }
       }
     },
     "AS_INQUIRY": {
       "name": "Customer inquiry",
       "description": "Create inquiry → start work → resolve → close. After-sales desk.",
       "steps": {
-        "as.inq.create": { "name": "Create inquiry" },
-        "as.inq.start": { "name": "Start work" },
-        "as.inq.resolve": { "name": "Resolve inquiry" },
-        "as.inq.close": { "name": "Close inquiry" }
+        "as.inq.create": {
+          "name": "Create inquiry"
+        },
+        "as.inq.start": {
+          "name": "Start work"
+        },
+        "as.inq.resolve": {
+          "name": "Resolve inquiry"
+        },
+        "as.inq.close": {
+          "name": "Close inquiry"
+        }
       }
     },
     "HR_CANDIDATE_HIRE": {
       "name": "Hire candidate",
       "description": "Create candidate → advance stages → hire → HR file. HR desk.",
       "steps": {
-        "hr.cand.create": { "name": "Create candidate" },
-        "hr.cand.advance": { "name": "Advance hiring stage" },
-        "hr.cand.hire": { "name": "Hire candidate" },
-        "hr.file.open": { "name": "Open HR file" }
+        "hr.cand.create": {
+          "name": "Create candidate"
+        },
+        "hr.cand.advance": {
+          "name": "Advance hiring stage"
+        },
+        "hr.cand.hire": {
+          "name": "Hire candidate"
+        },
+        "hr.file.open": {
+          "name": "Open HR file"
+        }
       }
     },
     "CAP_PROJECT": {
       "name": "Project lifecycle",
       "description": "Create project → start → complete or cancel. Capability hub.",
       "steps": {
-        "cap.proj.create": { "name": "Create project (draft)" },
-        "cap.proj.start": { "name": "Start project" },
-        "cap.proj.complete": { "name": "Complete project" },
-        "cap.proj.cancel": { "name": "Or cancel project" }
+        "cap.proj.create": {
+          "name": "Create project (draft)"
+        },
+        "cap.proj.start": {
+          "name": "Start project"
+        },
+        "cap.proj.complete": {
+          "name": "Complete project"
+        },
+        "cap.proj.cancel": {
+          "name": "Or cancel project"
+        }
       }
     },
     "AR_HITL_APPROVAL": {
       "name": "HITL approval",
       "description": "Submit agent proposal → human approve or reject. Agents hub.",
       "steps": {
-        "ar.hitl.submit": { "name": "Submit proposal" },
-        "ar.hitl.approve": { "name": "Approve proposal" },
-        "ar.hitl.reject": { "name": "Or reject proposal" }
+        "ar.hitl.submit": {
+          "name": "Submit proposal"
+        },
+        "ar.hitl.approve": {
+          "name": "Approve proposal"
+        },
+        "ar.hitl.reject": {
+          "name": "Or reject proposal"
+        }
       }
+    }
+  },
+  "strip": {
+    "SALES_QUOTE_TO_ORDER": {
+      "quote": "Quote",
+      "accept": "Accept",
+      "order": "Order",
+      "invoice": "Invoice"
+    },
+    "SCM_PO_FULFILL": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "received": "Received",
+      "payable": "Payable",
+      "paid": "Paid"
+    },
+    "FIN_INVOICE_SETTLE": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "settled": "Settled"
+    },
+    "DEL_SERVICE_ORDER": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "in_progress": "In progress",
+      "completed": "Completed"
+    },
+    "AS_INQUIRY": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "HR_CANDIDATE_HIRE": {
+      "applied": "Applied",
+      "interview": "Interview",
+      "hired": "Hired",
+      "active": "Active"
+    },
+    "SCM_MAKE_TO_STOCK": {
+      "draft": "Draft",
+      "released": "Released",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "qa": "QA"
     }
   }
 }

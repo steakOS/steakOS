@@ -30,7 +30,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { agentsApi, agentTokenApi } from '../api/client'
-import ProcessHowItWorks from '../components/ProcessHowItWorks'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import useRecordView from '../hooks/useRecordView'
@@ -1681,9 +1681,7 @@ export default function AgentHub() {
 
   const processSlot =
     tab === 'hitl' ? (
-      <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <ProcessHowItWorks processCode="AR_HITL_APPROVAL" />
-      </div>
+      <DeskProcessSlot processCode="AR_HITL_APPROVAL" />
     ) : null
 
   return (

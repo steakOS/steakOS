@@ -18,6 +18,11 @@
 :root {
   --steak-orange: #e85d04;
   --steak-orange-soft: #f48c06;
+  /* Process UI — pleasant green that pairs with Bitcoin/steak orange (not status-pill orange) */
+  --steak-process: #3d8b6e;
+  --steak-process-soft: #d8efe6;
+  --steak-process-ink: #1f4d3a;
+  --steak-process-active: #2f6f56;
   --steak-ink: #1a1a1a;
   --steak-muted: #5c5c5c;
   --steak-bg: #faf8f6;
@@ -2346,7 +2351,57 @@ table.data tbody tr.row-selected td:last-child {
 }
 
 .desk-shell-process {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--steak-process) 28%, var(--steak-border));
+  background: color-mix(in srgb, var(--steak-process-soft) 70%, var(--steak-card));
+}
+
+.desk-process-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.desk-process-slot-toolbar {
+  margin-bottom: 0;
+}
+
+.btn-process {
+  color: var(--steak-process-ink);
+  border-color: color-mix(in srgb, var(--steak-process) 35%, var(--steak-border));
+}
+
+.btn-process:hover,
+.btn-process:focus-visible {
+  background: var(--steak-process-soft);
+  border-color: var(--steak-process);
+  color: var(--steak-process-ink);
+}
+
+.badge-process {
+  background: var(--steak-process-soft);
+  color: var(--steak-process-ink);
+  border: 1px solid color-mix(in srgb, var(--steak-process) 30%, transparent);
+  font-weight: 650;
+}
+
+.process-status-strip-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.process-status-strip-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.process-step-strip-inline {
+  margin-bottom: 0;
 }
 
 .desk-shell-sheet-bar {
@@ -3061,7 +3116,7 @@ table.data tbody tr.row-selected td:last-child {
 .process-step-outcome {
   margin-top: 0.25rem;
   font-size: 0.72rem;
-  color: #c2410c;
+  color: var(--steak-process-ink, #1f4d3a);
 }
 
 .process-step-actor {
@@ -3221,9 +3276,19 @@ label.content-rail-file-btn {
   margin: 0;
 }
 
+.process-step-node.is-done {
+  border-color: color-mix(in srgb, var(--steak-process) 40%, var(--steak-border));
+  background: color-mix(in srgb, var(--steak-process-soft) 55%, #fff);
+}
+
 .process-step-node.is-active {
-  border-color: #ea580c;
-  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2);
+  border-color: var(--steak-process-active);
+  background: var(--steak-process-soft);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--steak-process) 28%, transparent);
+}
+
+.process-step-node.is-status-here .process-step-name {
+  color: var(--steak-process-ink);
 }
 
 .process-mermaid-render {

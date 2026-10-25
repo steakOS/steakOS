@@ -42,7 +42,7 @@ const vendorMasterSpec = getMasterFormSpec('procurement', 'Vendor')
 const productMasterSpec = getMasterFormSpec('production', 'Product')
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
-import ProcessHowItWorks from '../components/ProcessHowItWorks'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import useRecordView from '../hooks/useRecordView'
 import PendingContentComposer, {
   attachPendingContent,
@@ -59,7 +59,6 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
-import { activeStepIndex } from '../config/processStatusMaps'
 import { labelFromList } from '../utils/entityDisplayLabel'
 
 const BUYERS_TABS = [
@@ -907,33 +906,13 @@ export default function ScmDesk({ desk = 'buyers' }) {
       : tab === 'production'
         ? selectedProd?.prodStatus
         : null
-  const processStep =
-    tab === 'purchase' && processStatus != null
-      ? activeStepIndex('SCM_PO_FULFILL', processStatus)
-      : -1
 
   const processSlot =
     tab === 'purchase' || tab === 'production' ? (
-      <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
-        {isBuyers ? (
-          <ProcessHowItWorks processCode="SCM_PO_FULFILL" />
-        ) : (
-          <ProcessHowItWorks
-            processCode="SCM_MAKE_TO_STOCK"
-            label={t('process.howItWorks', { ns: 'common' })}
-          />
-        )}
-        {processStep >= 0 && (
-          <span className="muted" style={{ fontSize: '0.85rem' }}>
-            {t('desk.processStep', {
-              ns: 'common',
-              defaultValue: 'Step {{n}}',
-              n: processStep + 1,
-            })}{' '}
-            · {processStatus}
-          </span>
-        )}
-      </div>
+      <DeskProcessSlot
+        processCode={isBuyers ? 'SCM_PO_FULFILL' : 'SCM_MAKE_TO_STOCK'}
+        status={processStatus}
+      />
     ) : null
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (

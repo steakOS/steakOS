@@ -38,12 +38,24 @@
       "name": "Pedido de compra",
       "description": "Camino feliz: crear pedido → enviar → confirmar recepción → cuenta a pagar → pago → proveedor pagado. Implementado en el escritorio SCM.",
       "steps": {
-        "scm.po.create": { "name": "Crear pedido de compra (borrador)" },
-        "scm.po.send": { "name": "Enviar pedido de compra" },
-        "scm.po.receive": { "name": "Confirmar recepción" },
-        "scm.po.payable": { "name": "Partida a pagar" },
-        "scm.po.pay": { "name": "Ejecución de pagos / pagar" },
-        "scm.po.paid": { "name": "Pago al proveedor confirmado" }
+        "scm.po.create": {
+          "name": "Crear pedido de compra (borrador)"
+        },
+        "scm.po.send": {
+          "name": "Enviar pedido de compra"
+        },
+        "scm.po.receive": {
+          "name": "Confirmar recepción"
+        },
+        "scm.po.payable": {
+          "name": "Partida a pagar"
+        },
+        "scm.po.pay": {
+          "name": "Ejecución de pagos / pagar"
+        },
+        "scm.po.paid": {
+          "name": "Pago al proveedor confirmado"
+        }
       }
     },
     "SCM_MAKE_TO_STOCK": {
@@ -159,50 +171,133 @@
       "name": "Cumplimiento de orden de servicio",
       "description": "Crear orden de servicio → planificar/asignar → iniciar → completar. Escritorio de entrega.",
       "steps": {
-        "del.so.create": { "name": "Crear orden de servicio" },
-        "del.so.assign": { "name": "Planificar / asignar recurso" },
-        "del.so.start": { "name": "Iniciar servicio" },
-        "del.so.complete": { "name": "Completar orden de servicio" }
+        "del.so.create": {
+          "name": "Crear orden de servicio"
+        },
+        "del.so.assign": {
+          "name": "Planificar / asignar recurso"
+        },
+        "del.so.start": {
+          "name": "Iniciar servicio"
+        },
+        "del.so.complete": {
+          "name": "Completar orden de servicio"
+        }
       }
     },
     "AS_INQUIRY": {
       "name": "Consulta de cliente",
       "description": "Crear consulta → iniciar trabajo → resolver → cerrar. Escritorio de posventa.",
       "steps": {
-        "as.inq.create": { "name": "Crear consulta" },
-        "as.inq.start": { "name": "Iniciar trabajo" },
-        "as.inq.resolve": { "name": "Resolver consulta" },
-        "as.inq.close": { "name": "Cerrar consulta" }
+        "as.inq.create": {
+          "name": "Crear consulta"
+        },
+        "as.inq.start": {
+          "name": "Iniciar trabajo"
+        },
+        "as.inq.resolve": {
+          "name": "Resolver consulta"
+        },
+        "as.inq.close": {
+          "name": "Cerrar consulta"
+        }
       }
     },
     "HR_CANDIDATE_HIRE": {
       "name": "Contratar candidato",
       "description": "Crear candidato → avanzar etapas → contratar → expediente RR. HH. Escritorio de RR. HH.",
       "steps": {
-        "hr.cand.create": { "name": "Crear candidato" },
-        "hr.cand.advance": { "name": "Avanzar etapa de contratación" },
-        "hr.cand.hire": { "name": "Contratar candidato" },
-        "hr.file.open": { "name": "Abrir expediente RR. HH." }
+        "hr.cand.create": {
+          "name": "Crear candidato"
+        },
+        "hr.cand.advance": {
+          "name": "Avanzar etapa de contratación"
+        },
+        "hr.cand.hire": {
+          "name": "Contratar candidato"
+        },
+        "hr.file.open": {
+          "name": "Abrir expediente RR. HH."
+        }
       }
     },
     "CAP_PROJECT": {
       "name": "Ciclo de vida del proyecto",
       "description": "Crear proyecto → iniciar → completar o cancelar. Centro de capacidades.",
       "steps": {
-        "cap.proj.create": { "name": "Crear proyecto (borrador)" },
-        "cap.proj.start": { "name": "Iniciar proyecto" },
-        "cap.proj.complete": { "name": "Completar proyecto" },
-        "cap.proj.cancel": { "name": "O cancelar proyecto" }
+        "cap.proj.create": {
+          "name": "Crear proyecto (borrador)"
+        },
+        "cap.proj.start": {
+          "name": "Iniciar proyecto"
+        },
+        "cap.proj.complete": {
+          "name": "Completar proyecto"
+        },
+        "cap.proj.cancel": {
+          "name": "O cancelar proyecto"
+        }
       }
     },
     "AR_HITL_APPROVAL": {
       "name": "Aprobación HITL",
       "description": "Enviar propuesta de agente → aprobación o rechazo humano. Centro de agentes.",
       "steps": {
-        "ar.hitl.submit": { "name": "Enviar propuesta" },
-        "ar.hitl.approve": { "name": "Aprobar propuesta" },
-        "ar.hitl.reject": { "name": "O rechazar propuesta" }
+        "ar.hitl.submit": {
+          "name": "Enviar propuesta"
+        },
+        "ar.hitl.approve": {
+          "name": "Aprobar propuesta"
+        },
+        "ar.hitl.reject": {
+          "name": "O rechazar propuesta"
+        }
       }
+    }
+  },
+  "strip": {
+    "SALES_QUOTE_TO_ORDER": {
+      "quote": "Cotización",
+      "accept": "Aceptar",
+      "order": "Pedido",
+      "invoice": "Factura"
+    },
+    "SCM_PO_FULFILL": {
+      "draft": "Borrador",
+      "sent": "Enviado",
+      "received": "Recibido",
+      "payable": "Por pagar",
+      "paid": "Pagado"
+    },
+    "FIN_INVOICE_SETTLE": {
+      "draft": "Borrador",
+      "issued": "Emitida",
+      "settled": "Liquidada"
+    },
+    "DEL_SERVICE_ORDER": {
+      "draft": "Borrador",
+      "scheduled": "Programado",
+      "in_progress": "En curso",
+      "completed": "Completado"
+    },
+    "AS_INQUIRY": {
+      "open": "Abierta",
+      "in_progress": "En curso",
+      "resolved": "Resuelta",
+      "closed": "Cerrada"
+    },
+    "HR_CANDIDATE_HIRE": {
+      "applied": "Postuló",
+      "interview": "Entrevista",
+      "hired": "Contratado",
+      "active": "Activo"
+    },
+    "SCM_MAKE_TO_STOCK": {
+      "draft": "Borrador",
+      "released": "Liberado",
+      "in_progress": "En curso",
+      "completed": "Completado",
+      "qa": "QA"
     }
   }
 }

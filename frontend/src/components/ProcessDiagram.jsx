@@ -144,6 +144,7 @@ export default function ProcessDiagram({
   mermaid: mermaidSource = '',
   title,
   processCode,
+  highlightStatus,
 }) {
   const { t, i18n } = useTranslation('processes')
   const reactId = useId().replace(/:/g, '')
@@ -290,42 +291,59 @@ export default function ProcessDiagram({
         aria-label={t('ui.diagramAria')}
       />
       {activeStep ? <TipPopover step={activeStep} onClose={clearTip} /> : null}
-      {error && (
+      {ordered.length > 0 && (
         <div className="process-step-strip" role="list">
-          {ordered.map((s, i) => (
-            <button
-              type="button"
-              key={s.id || s.stepNo || i}
-              className={`process-step-node ${Number(activeStepNo) === Number(s.stepNo) ? 'is-active' : ''}`}
-              role="listitem"
-              onMouseEnter={() => {
-                if (!pinned) showStep(s.stepNo)
-              }}
-              onMouseLeave={() => {
-                if (!pinned) setActiveStepNo(null)
-              }}
-              onFocus={() => showStep(s.stepNo)}
-              onClick={() => {
-                if (pinned && Number(activeStepNo) === Number(s.stepNo)) clearTip()
-                else showStep(s.stepNo, { pin: true })
-              }}
-            >
-              <div className="process-step-no">#{s.stepNo ?? i + 1}</div>
-              <div className="process-step-name">{s.name}</div>
-              {s.outcomeStatus && (
-                <div className="process-step-outcome mono">{s.outcomeStatus}</div>
-              )}
-              {i < ordered.length - 1 && (
-                <div className="process-step-arrow" aria-hidden>
-                  →
-                </div>
-              )}
-            </button>
-          ))}
-          <p className="muted" style={{ fontSize: '0.8rem', width: '100%' }}>
-            {error}
-          </p>
+          {ordered.map((s, i) => {
+            const tipActive = Number(activeStepNo) === Number(s.stepNo)
+            const statusActive =
+              highlightStatus != null &&
+              highlightStatus !== '' &&
+              s.outcomeStatus != null &&
+              String(s.outcomeStatus).toUpperCase() === String(highlightStatus).toUpperCase()
+            return (
+              <button
+                type="button"
+                key={s.id || s.stepNo || i}
+                className={[
+                  'process-step-node',
+                  tipActive || statusActive ? 'is-active' : '',
+                  statusActive ? 'is-status-here' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                role="listitem"
+                aria-current={statusActive ? 'step' : undefined}
+                onMouseEnter={() => {
+                  if (!pinned) showStep(s.stepNo)
+                }}
+                onMouseLeave={() => {
+                  if (!pinned) setActiveStepNo(null)
+                }}
+                onFocus={() => showStep(s.stepNo)}
+                onClick={() => {
+                  if (pinned && Number(activeStepNo) === Number(s.stepNo)) clearTip()
+                  else showStep(s.stepNo, { pin: true })
+                }}
+              >
+                <div className="process-step-no">#{s.stepNo ?? i + 1}</div>
+                <div className="process-step-name">{s.name}</div>
+                {s.outcomeStatus && (
+                  <div className="process-step-outcome mono">{s.outcomeStatus}</div>
+                )}
+                {i < ordered.length - 1 && (
+                  <div className="process-step-arrow" aria-hidden>
+                    →
+                  </div>
+                )}
+              </button>
+            )
+          })}
         </div>
+      )}
+      {error && (
+        <p className="muted" style={{ fontSize: '0.8rem', width: '100%' }}>
+          {error}
+        </p>
       )}
     </div>
   )

@@ -24,7 +24,7 @@ import { localizeProcess, processButtonLabel } from '../utils/localizeProcess'
 /**
  * Desk drawer: load SYSTEM process by processCode and show mermaid + steps (D7).
  */
-export default function ProcessHowItWorks({ processCode, label }) {
+export default function ProcessHowItWorks({ processCode, label, status }) {
   const { t, i18n } = useTranslation(['common', 'desks', 'processes'])
   const [open, setOpen] = useState(false)
   const [data, setData] = useState(null)
@@ -98,11 +98,11 @@ export default function ProcessHowItWorks({ processCode, label }) {
       <button
         ref={triggerRef}
         type="button"
-        className="btn btn-ghost"
+        className="btn btn-ghost btn-process"
         onClick={() => setOpen(true)}
         title={t('process.howItWorks', { defaultValue: 'How this works' })}
       >
-        <GitBranch size={16} />
+        <GitBranch size={16} aria-hidden />
         {buttonLabel}
       </button>
 
@@ -140,6 +140,7 @@ export default function ProcessHowItWorks({ processCode, label }) {
                   processCode={processCode}
                   steps={localized.steps || []}
                   mermaid={data?.mermaid || ''}
+                  highlightStatus={status}
                 />
                 <div className="toolbar" style={{ marginTop: 12, marginBottom: 0 }}>
                   {(localized.id || data?.id) && (

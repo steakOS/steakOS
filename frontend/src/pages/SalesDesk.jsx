@@ -43,7 +43,7 @@ import { getMasterFormSpec } from '../forms/masterFormSpecs'
 const customerMasterSpec = getMasterFormSpec('sales', 'Customer')
 const productMasterSpec = getMasterFormSpec('production', 'Product')
 const serviceMasterSpec = getMasterFormSpec('delivery', 'Service')
-import ProcessHowItWorks from '../components/ProcessHowItWorks'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import useRecordView from '../hooks/useRecordView'
@@ -61,7 +61,6 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
-import { activeStepIndex } from '../config/processStatusMaps'
 
 const DEFAULT_QUOTE_LINES = () => [
   emptyDocLine({ name: 'Consulting day', quantity: '1', unitPriceEur: '500' }),
@@ -923,24 +922,10 @@ export default function SalesDesk() {
       : tab === 'orders'
         ? selectedOrder?.orderStatus
         : null
-  const processStep =
-    processStatus != null ? activeStepIndex('SALES_QUOTE_TO_ORDER', processStatus) : -1
 
   const processSlot =
     tab === 'quotes' || tab === 'orders' ? (
-      <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <ProcessHowItWorks processCode="SALES_QUOTE_TO_ORDER" />
-        {processStep >= 0 && (
-          <span className="muted" style={{ fontSize: '0.85rem' }}>
-            {t('desk.processStep', {
-              ns: 'common',
-              defaultValue: 'Step {{n}}',
-              n: processStep + 1,
-            })}{' '}
-            · {processStatus}
-          </span>
-        )}
-      </div>
+      <DeskProcessSlot processCode="SALES_QUOTE_TO_ORDER" status={processStatus} />
     ) : null
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (

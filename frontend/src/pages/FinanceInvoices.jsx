@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { FileText, Plus, RefreshCw, Send, Banknote, Ban } from 'lucide-react'
 import { financeOpsApi, financeRevenueApi, financeLedgerApi, meApi } from '../api/client'
-import ProcessHowItWorks from '../components/ProcessHowItWorks'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import useRecordView from '../hooks/useRecordView'
 import PendingContentComposer, {
@@ -35,7 +35,6 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
-import { activeStepIndex } from '../config/processStatusMaps'
 
 const RAILS = [
   { value: 'SEPA', labelKey: 'finance.rails.SEPA' },
@@ -425,23 +424,9 @@ export default function FinanceInvoices() {
   }, [selected])
 
   const processStatus = selected?.invoiceStatus
-  const processStep =
-    processStatus != null ? activeStepIndex('FIN_INVOICE_SETTLE', processStatus) : -1
 
   const processSlot = (
-    <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
-      <ProcessHowItWorks processCode="FIN_INVOICE_SETTLE" />
-      {processStep >= 0 && (
-        <span className="muted" style={{ fontSize: '0.85rem' }}>
-          {t('desk.processStep', {
-            ns: 'common',
-            defaultValue: 'Step {{n}}',
-            n: processStep + 1,
-          })}{' '}
-          · {processStatus}
-        </span>
-      )}
-    </div>
+    <DeskProcessSlot processCode="FIN_INVOICE_SETTLE" status={processStatus} />
   )
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (

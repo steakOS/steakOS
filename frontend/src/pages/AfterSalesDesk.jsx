@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { aftersalesApi, salesApi, catalogueApi, meApi } from '../api/client'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
-import ProcessHowItWorks from '../components/ProcessHowItWorks'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import useRecordView from '../hooks/useRecordView'
@@ -50,7 +50,6 @@ import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelect
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
-import { activeStepIndex } from '../config/processStatusMaps'
 
 const TAB_DEFS = [
   { id: 'inquiries', labelKey: 'aftersales.tabs.inquiries', icon: MessageSquare },
@@ -928,24 +927,10 @@ export default function AfterSalesDesk() {
   }, [tab, selectedInq, selectedClaim, selectedRma])
 
   const processStatus = tab === 'inquiries' ? selectedInq?.caseStatus : null
-  const processStep =
-    processStatus != null ? activeStepIndex('AS_INQUIRY', processStatus) : -1
 
   const processSlot =
     tab === 'inquiries' ? (
-      <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <ProcessHowItWorks processCode="AS_INQUIRY" />
-        {processStep >= 0 && (
-          <span className="muted" style={{ fontSize: '0.85rem' }}>
-            {t('desk.processStep', {
-              ns: 'common',
-              defaultValue: 'Step {{n}}',
-              n: processStep + 1,
-            })}{' '}
-            · {processStatus}
-          </span>
-        )}
-      </div>
+      <DeskProcessSlot processCode="AS_INQUIRY" status={processStatus} />
     ) : null
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (

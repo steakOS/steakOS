@@ -53,6 +53,17 @@ export const PROCESS_STATUS_MAPS = {
       { id: 'paid', statusValues: ['PAID', 'CLOSED'] },
     ],
   },
+  SCM_MAKE_TO_STOCK: {
+    titleKey: 'labels.SCM_MAKE_TO_STOCK',
+    processCode: 'SCM_MAKE_TO_STOCK',
+    steps: [
+      { id: 'draft', statusValues: ['DRAFT'] },
+      { id: 'released', statusValues: ['RELEASED'] },
+      { id: 'in_progress', statusValues: ['IN_PROGRESS', 'STARTED'] },
+      { id: 'completed', statusValues: ['COMPLETED'] },
+      { id: 'qa', statusValues: ['QA', 'PASS', 'FAIL', 'HOLD'] },
+    ],
+  },
   'procurement.po': {
     titleKey: 'labels.SCM_PO_FULFILL',
     processCode: 'SCM_PO_FULFILL',

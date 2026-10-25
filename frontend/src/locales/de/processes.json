@@ -38,12 +38,24 @@
       "name": "Bestellung",
       "description": "Happy Path: Bestellung anlegen → senden → Wareneingang bestätigen → Verbindlichkeit → Zahlung → Lieferant bezahlt. Im SCM-Dashboard umgesetzt.",
       "steps": {
-        "scm.po.create": { "name": "Bestellung anlegen (Entwurf)" },
-        "scm.po.send": { "name": "Bestellung senden" },
-        "scm.po.receive": { "name": "Wareneingang bestätigen" },
-        "scm.po.payable": { "name": "Verbindlichkeit" },
-        "scm.po.pay": { "name": "Zahlungslauf / zahlen" },
-        "scm.po.paid": { "name": "Lieferantenzahlung bestätigt" }
+        "scm.po.create": {
+          "name": "Bestellung anlegen (Entwurf)"
+        },
+        "scm.po.send": {
+          "name": "Bestellung senden"
+        },
+        "scm.po.receive": {
+          "name": "Wareneingang bestätigen"
+        },
+        "scm.po.payable": {
+          "name": "Verbindlichkeit"
+        },
+        "scm.po.pay": {
+          "name": "Zahlungslauf / zahlen"
+        },
+        "scm.po.paid": {
+          "name": "Lieferantenzahlung bestätigt"
+        }
       }
     },
     "SCM_MAKE_TO_STOCK": {
@@ -159,50 +171,133 @@
       "name": "Serviceauftrag erfüllen",
       "description": "Serviceauftrag anlegen → planen/zuweisen → starten → abschließen. Auslieferungs-Dashboard.",
       "steps": {
-        "del.so.create": { "name": "Serviceauftrag anlegen" },
-        "del.so.assign": { "name": "Ressource planen / zuweisen" },
-        "del.so.start": { "name": "Service starten" },
-        "del.so.complete": { "name": "Serviceauftrag abschließen" }
+        "del.so.create": {
+          "name": "Serviceauftrag anlegen"
+        },
+        "del.so.assign": {
+          "name": "Ressource planen / zuweisen"
+        },
+        "del.so.start": {
+          "name": "Service starten"
+        },
+        "del.so.complete": {
+          "name": "Serviceauftrag abschließen"
+        }
       }
     },
     "AS_INQUIRY": {
       "name": "Kundenanfrage",
       "description": "Anfrage anlegen → Arbeit starten → erledigen → schließen. After-Sales-Dashboard.",
       "steps": {
-        "as.inq.create": { "name": "Anfrage anlegen" },
-        "as.inq.start": { "name": "Arbeit starten" },
-        "as.inq.resolve": { "name": "Anfrage erledigen" },
-        "as.inq.close": { "name": "Anfrage schließen" }
+        "as.inq.create": {
+          "name": "Anfrage anlegen"
+        },
+        "as.inq.start": {
+          "name": "Arbeit starten"
+        },
+        "as.inq.resolve": {
+          "name": "Anfrage erledigen"
+        },
+        "as.inq.close": {
+          "name": "Anfrage schließen"
+        }
       }
     },
     "HR_CANDIDATE_HIRE": {
       "name": "Kandidat einstellen",
       "description": "Kandidat anlegen → Stufen voran → einstellen → HR-Akte. HR-Dashboard.",
       "steps": {
-        "hr.cand.create": { "name": "Kandidat anlegen" },
-        "hr.cand.advance": { "name": "Einstellungsstufe voran" },
-        "hr.cand.hire": { "name": "Kandidat einstellen" },
-        "hr.file.open": { "name": "HR-Akte öffnen" }
+        "hr.cand.create": {
+          "name": "Kandidat anlegen"
+        },
+        "hr.cand.advance": {
+          "name": "Einstellungsstufe voran"
+        },
+        "hr.cand.hire": {
+          "name": "Kandidat einstellen"
+        },
+        "hr.file.open": {
+          "name": "HR-Akte öffnen"
+        }
       }
     },
     "CAP_PROJECT": {
       "name": "Projektlebenszyklus",
       "description": "Projekt anlegen → starten → abschließen oder abbrechen. Capability-Hub.",
       "steps": {
-        "cap.proj.create": { "name": "Projekt anlegen (Entwurf)" },
-        "cap.proj.start": { "name": "Projekt starten" },
-        "cap.proj.complete": { "name": "Projekt abschließen" },
-        "cap.proj.cancel": { "name": "Oder Projekt abbrechen" }
+        "cap.proj.create": {
+          "name": "Projekt anlegen (Entwurf)"
+        },
+        "cap.proj.start": {
+          "name": "Projekt starten"
+        },
+        "cap.proj.complete": {
+          "name": "Projekt abschließen"
+        },
+        "cap.proj.cancel": {
+          "name": "Oder Projekt abbrechen"
+        }
       }
     },
     "AR_HITL_APPROVAL": {
       "name": "HITL-Freigabe",
       "description": "Agentenvorschlag einreichen → Mensch genehmigt oder lehnt ab. Agenten-Hub.",
       "steps": {
-        "ar.hitl.submit": { "name": "Vorschlag einreichen" },
-        "ar.hitl.approve": { "name": "Vorschlag genehmigen" },
-        "ar.hitl.reject": { "name": "Oder Vorschlag ablehnen" }
+        "ar.hitl.submit": {
+          "name": "Vorschlag einreichen"
+        },
+        "ar.hitl.approve": {
+          "name": "Vorschlag genehmigen"
+        },
+        "ar.hitl.reject": {
+          "name": "Oder Vorschlag ablehnen"
+        }
       }
+    }
+  },
+  "strip": {
+    "SALES_QUOTE_TO_ORDER": {
+      "quote": "Angebot",
+      "accept": "Annahme",
+      "order": "Auftrag",
+      "invoice": "Rechnung"
+    },
+    "SCM_PO_FULFILL": {
+      "draft": "Entwurf",
+      "sent": "Gesendet",
+      "received": "Empfangen",
+      "payable": "Verbindlichkeit",
+      "paid": "Bezahlt"
+    },
+    "FIN_INVOICE_SETTLE": {
+      "draft": "Entwurf",
+      "issued": "Ausgestellt",
+      "settled": "Ausgeglichen"
+    },
+    "DEL_SERVICE_ORDER": {
+      "draft": "Entwurf",
+      "scheduled": "Geplant",
+      "in_progress": "In Arbeit",
+      "completed": "Abgeschlossen"
+    },
+    "AS_INQUIRY": {
+      "open": "Offen",
+      "in_progress": "In Arbeit",
+      "resolved": "Gelöst",
+      "closed": "Geschlossen"
+    },
+    "HR_CANDIDATE_HIRE": {
+      "applied": "Beworben",
+      "interview": "Interview",
+      "hired": "Eingestellt",
+      "active": "Aktiv"
+    },
+    "SCM_MAKE_TO_STOCK": {
+      "draft": "Entwurf",
+      "released": "Freigegeben",
+      "in_progress": "In Arbeit",
+      "completed": "Abgeschlossen",
+      "qa": "QS"
     }
   }
 }
