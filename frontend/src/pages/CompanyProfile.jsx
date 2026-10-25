@@ -224,7 +224,7 @@ export default function CompanyProfile() {
                     {site.id && (
                       <div style={{ marginTop: 6 }}>
                         <Link
-                          to={`/domains/configuration/Site/${site.id}`}
+                          to={`/domains/configuration/Site/${site.id}?returnTo=%2Fcompany`}
                           className="btn btn-ghost btn-sm"
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >
@@ -309,7 +309,7 @@ export default function CompanyProfile() {
                     {ba.id && (
                       <div style={{ marginTop: 6 }}>
                         <Link
-                          to={`/domains/configuration/BankAccount/${ba.id}`}
+                          to={`/domains/configuration/BankAccount/${ba.id}?returnTo=%2Fcompany`}
                           className="btn btn-ghost btn-sm"
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >

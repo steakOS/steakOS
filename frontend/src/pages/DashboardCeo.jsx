@@ -138,7 +138,7 @@ export default function DashboardCeo() {
                   const late = isOverdue(row.deadlineAt, row.status)
                   return (
                     <li key={row.id}>
-                      <Link to={`/domains/core/Task/${row.id}`}>
+                      <Link to={`/domains/core/Task/${row.id}?returnTo=%2Fdashboard`}>
                         {entityDisplayLabel(row, { fallback: 'Untitled task' })}
                       </Link>
                       {due && (
@@ -156,7 +156,7 @@ export default function DashboardCeo() {
             )}
           </div>
           <div className="dashboard-work-footer">
-            <Link className="btn btn-primary" to="/domains/core/Task/new">
+            <Link className="btn btn-primary" to="/domains/core/Task/new?returnTo=%2Fdashboard">
               <Plus size={16} /> {t('pages.dashboard.newTask', { defaultValue: 'New task' })}
             </Link>
             <Link className="btn" to="/work">

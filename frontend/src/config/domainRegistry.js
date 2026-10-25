@@ -640,14 +640,48 @@ export function domainListReturnKey(pkg, resource) {
 }
 
 /**
- * Domain master-data list URL with optional search/pager restore.
+ * Safe in-app path for DomainForm ?returnTo= / location.state.returnTo (open-redirect guard).
+ * @param {unknown} raw
+ * @returns {string|null}
+ */
+export function safeReturnTo(raw) {
+  if (raw == null) return null
+  const s = String(raw).trim()
+  if (!s.startsWith('/') || s.startsWith('//')) return null
+  if (s.includes('://') || s.includes('\\') || /[\r\n]/.test(s)) return null
+  return s
+}
+
+/**
+ * Append returnTo query so post-SAVE/cancel lands on the origin surface.
+ * @param {string} href
+ * @param {string} returnTo
+ */
+export function withReturnTo(href, returnTo) {
+  const safe = safeReturnTo(returnTo)
+  if (!safe) return href
+  const i = href.indexOf('?')
+  const base = i >= 0 ? href.slice(0, i) : href
+  const params = new URLSearchParams(i >= 0 ? href.slice(i + 1) : '')
+  params.set('returnTo', safe)
+  return `${base}?${params}`
+}
+
+/**
+ * Domain master-data list URL with optional search/pager/sort restore.
  * @param {string} pkg
  * @param {string} resource
- * @param {{ q?: string, offset?: number|string, max?: number|string }} [opts]
+ * @param {{ q?: string, offset?: number|string, max?: number|string, sort?: string, order?: string }} [opts]
  */
-export function listReturnHref(pkg, resource, { q, offset, max } = {}) {
+export function listReturnHref(pkg, resource, { q, offset, max, sort, order } = {}) {
   const params = new URLSearchParams()
   if (q != null && String(q).trim() !== '') params.set('q', String(q).trim())
+  if (sort != null && String(sort).trim() !== '' && String(sort) !== 'id') {
+    params.set('sort', String(sort).trim())
+  }
+  if (order != null && String(order).trim() !== '' && String(order) !== 'desc') {
+    params.set('order', String(order).trim())
+  }
   if (offset != null && offset !== '' && Number(offset) > 0) {
     params.set('offset', String(offset))
   }

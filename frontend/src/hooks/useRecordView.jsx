@@ -14,9 +14,11 @@
 // limitations under the License.
 
 import { useCallback, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Eye } from 'lucide-react'
 import RecordViewModal from '../components/RecordViewModal'
+import { withReturnTo } from '../config/domainRegistry'
 
 /**
  * Shared Eye + RecordViewModal for desk tables and other list UIs.
@@ -27,7 +29,13 @@ import RecordViewModal from '../components/RecordViewModal'
  */
 export default function useRecordView() {
   const { t } = useTranslation('common')
+  const location = useLocation()
   const [viewing, setViewing] = useState(null)
+  // DomainList already restores via sessionStorage; only stamp returnTo from desks/hubs.
+  const onDomainMasterList = /^\/domains\/[^/]+\/[^/]+\/?$/.test(location.pathname)
+  const originPath = onDomainMasterList
+    ? null
+    : `${location.pathname}${location.search || ''}`
 
   const openView = useCallback((pkg, resource, record) => {
     if (!record?.id && record?.id !== 0) return
@@ -67,7 +75,10 @@ export default function useRecordView() {
       seed={viewing?.record}
       editPath={
         viewing?.record?.id != null
-          ? `/domains/${viewing.pkg}/${viewing.resource}/${viewing.record.id}`
+          ? withReturnTo(
+              `/domains/${viewing.pkg}/${viewing.resource}/${viewing.record.id}`,
+              originPath,
+            )
           : undefined
       }
     />

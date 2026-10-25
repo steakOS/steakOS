@@ -24,6 +24,7 @@ import {
   getCreateMeta,
   getInteraction,
   listReturnHref,
+  safeReturnTo,
 } from '../config/domainRegistry'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import MasterEntityFields from '../forms/MasterEntityFields'
@@ -242,7 +243,14 @@ export default function DomainForm() {
   const interaction =
     createMeta.interaction || getInteraction(pkg, resource) || 'domainFullPage'
   const preferDesk = interaction === 'deskShell' && !!createMeta.deskPath
+  const originReturnTo = useMemo(() => {
+    const params = new URLSearchParams(location.search || '')
+    return safeReturnTo(params.get('returnTo') || location.state?.returnTo)
+  }, [location.search, location.state])
+
   const listReturnHrefResolved = useMemo(() => {
+    // Prefer explicit origin (My work, dashboard, company, …) over domain list.
+    if (originReturnTo) return originReturnTo
     const fromSearch = (() => {
       const params = new URLSearchParams(location.search || '')
       const q = params.get('q') || params.get('returnQ') || ''
@@ -268,7 +276,7 @@ export default function DomainForm() {
       /* ignore */
     }
     return listReturnHref(pkg, resource)
-  }, [pkg, resource, location.search])
+  }, [pkg, resource, location.search, originReturnTo])
 
   const deskOpenHrefResolved = useMemo(() => {
     if (!createMeta.deskPath) return null
@@ -776,6 +784,8 @@ export default function DomainForm() {
               : `/domains/${pkg}/${resource}/${created.id}`,
             { state: { companionWarn: warn } },
           )
+        } else if (originReturnTo) {
+          navigate(originReturnTo)
         } else if (useCatalogue) {
           navigate(
             resource === 'Service'
@@ -791,11 +801,12 @@ export default function DomainForm() {
         const { catalogueApi } = await import('../api/client')
         await catalogueApi.update(id, body)
         navigate(
-          resource === 'Service'
-            ? '/delivery'
-            : pkg === 'production'
-              ? '/scm/shopfloor'
-              : '/scm/buyers',
+          originReturnTo ||
+            (resource === 'Service'
+              ? '/delivery'
+              : pkg === 'production'
+                ? '/scm/shopfloor'
+                : '/scm/buyers'),
         )
       } else {
         await domainsApi.update(pkg, resource, id, body)

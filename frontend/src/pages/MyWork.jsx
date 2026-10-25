@@ -194,7 +194,7 @@ export default function MyWork() {
       {error && <div className="banner-error">{error}</div>}
 
       <div className="toolbar">
-        <Link className="btn btn-primary" to="/domains/core/Task/new">
+        <Link className="btn btn-primary" to="/domains/core/Task/new?returnTo=%2Fwork">
           <Plus size={16} /> {t('pages.dashboard.newTask', { defaultValue: 'New task' })}
         </Link>
         <button type="button" className="btn" onClick={load} disabled={loading}>
@@ -270,7 +270,7 @@ export default function MyWork() {
               id: 'name',
               primary: true,
               render: (row) => (
-                <Link to={`/domains/core/Task/${row.id}`}>
+                <Link to={`/domains/core/Task/${row.id}?returnTo=%2Fwork`}>
                   {entityDisplayLabel(row, { fallback: 'Untitled task' })}
                 </Link>
               ),
@@ -339,7 +339,7 @@ export default function MyWork() {
                   return (
                     <tr key={row.id}>
                       <td>
-                        <Link to={`/domains/core/Task/${row.id}`}>
+                        <Link to={`/domains/core/Task/${row.id}?returnTo=%2Fwork`}>
                           {entityDisplayLabel(row, { fallback: 'Untitled task' })}
                         </Link>
                       </td>
@@ -416,7 +416,7 @@ export default function MyWork() {
                   <ul className="eisenhower-list">
                     {cell.map((task) => (
                       <li key={task.id}>
-                        <Link to={`/domains/core/Task/${task.id}`}>
+                        <Link to={`/domains/core/Task/${task.id}?returnTo=%2Fwork`}>
                           {entityDisplayLabel(task, { fallback: 'Untitled task' })}
                         </Link>
                         {isOverdue(task) && <span className="badge badge-warn">!</span>}
