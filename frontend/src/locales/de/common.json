@@ -1069,9 +1069,10 @@
     "raw": "Rohdaten",
     "fields": "Felder",
     "open": "Datensatz anzeigen",
-    "showEmptyFields": "Leere Felder anzeigen",
+    "showEmptyFields": "Alle Felder anzeigen",
     "hiddenEmptyHint": "{{count}} leere Feld(er) ausgeblendet",
-    "allFieldsEmpty": "Keine befüllten Felder — „Leere Felder anzeigen“ aktivieren, um Lücken zu sehen."
+    "allFieldsEmpty": "Keine befüllten Felder — „Alle Felder anzeigen“ aktivieren, um Lücken zu sehen.",
+    "showAllFields": "Alle Felder anzeigen"
   },
   "domainForm": {
     "postalAddress": "Postadresse",

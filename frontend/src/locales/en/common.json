@@ -1069,9 +1069,10 @@
     "raw": "JSON",
     "fields": "Fields",
     "open": "View record",
-    "showEmptyFields": "Show empty fields",
+    "showEmptyFields": "Show all fields",
     "hiddenEmptyHint": "{{count}} empty field(s) hidden",
-    "allFieldsEmpty": "No filled fields — enable “Show empty fields” to see blanks."
+    "allFieldsEmpty": "No filled fields — enable “Show all fields” to see blanks.",
+    "showAllFields": "Show all fields"
   },
   "domainForm": {
     "postalAddress": "postal address",

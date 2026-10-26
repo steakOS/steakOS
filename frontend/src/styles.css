@@ -1447,7 +1447,33 @@ table.data tbody tr.row-selected td:last-child {
   border-top: 1px solid var(--steak-border, #e7e5e4);
 }
 
-/* Task 7646 — show-empty toggle on record view */
+/* Record view chrome (breadcrumb | show-all + close; title + status) */
+.record-view-top {
+  align-items: center;
+}
+.record-view-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: #78716c;
+  min-width: 0;
+}
+.record-view-crumb-sep {
+  opacity: 0.55;
+}
+.record-view-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.75rem;
+  padding: 0.85rem 1.1rem 0.35rem;
+}
+.record-view-identity .content-view-title {
+  margin: 0;
+}
 .record-view-show-empty {
   display: inline-flex;
   align-items: center;
@@ -1465,6 +1491,14 @@ table.data tbody tr.row-selected td:last-child {
 .record-view-empty-hint {
   font-size: 12px;
   margin: 0 0 8px;
+}
+.record-view-multiline-inner {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: inherit;
+  font-size: inherit;
+  line-height: 1.45;
 }
 
 /* Domain record view modal (master data tables) */

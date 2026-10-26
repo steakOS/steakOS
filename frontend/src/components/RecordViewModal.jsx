@@ -17,29 +17,28 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { X, Pencil } from 'lucide-react'
-import { domainsApi } from '../api/client'
-import { humanizeLabel, statusBadgeClass } from '../utils/humanize'
+import { agentsApi, domainsApi } from '../api/client'
+import { statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 import {
   filterViewEntries,
+  isEmptyViewValue,
   readShowEmptyFieldsPref,
   writeShowEmptyFieldsPref,
 } from '../utils/viewFieldEmpty'
+import {
+  TECHNICAL_VIEW_KEYS,
+  chromeDuplicateKeys,
+  viewFieldLabel,
+  recordStatusValue,
+  ensureKnownFields,
+} from '../utils/viewFieldRules'
 
 const HIDDEN_KEYS = new Set([
   'id',
-  'class',
-  'metaClass',
-  'constraints',
-  'errors',
-  'attached',
-  'dirty',
+  ...TECHNICAL_VIEW_KEYS,
 ])
-
-function formatFieldLabel(key) {
-  return humanizeLabel(key)
-}
 
 function formatValue(value) {
   if (value === null || value === undefined || value === '') return '—'
@@ -54,10 +53,24 @@ function formatValue(value) {
   return String(value)
 }
 
-function sortedEntries(record) {
+function sortedEntries(record, { pkg, resource } = {}) {
   if (!record || typeof record !== 'object') return []
-  const keys = Object.keys(record).filter((k) => !HIDDEN_KEYS.has(k) && !k.startsWith('_'))
-  const preferred = ['name', 'code', 'status', 'npubOwner']
+  const chromeDup = chromeDuplicateKeys(pkg, resource)
+  const keys = Object.keys(record).filter(
+    (k) => !HIDDEN_KEYS.has(k) && !chromeDup.has(k) && !k.startsWith('_'),
+  )
+  // Merge assigneeAgentId + assigneeHumanNpub into a single logical assignee later
+  const preferred = [
+    'description',
+    'deadlineAt',
+    'urgency',
+    'importance',
+    'assigneeAgentId',
+    'assigneeHumanNpub',
+    'npubOwner',
+    'startAt',
+    'endAt',
+  ]
   keys.sort((a, b) => {
     const ia = preferred.indexOf(a)
     const ib = preferred.indexOf(b)
@@ -73,7 +86,7 @@ function sortedEntries(record) {
 
 /**
  * Read-only modal for a domain row (master data tables).
- * Mirrors ContentRail BODY viewer chrome.
+ * Chrome: breadcrumb + show-all + close | title + status | fields (no chrome repeats).
  */
 export default function RecordViewModal({
   open,
@@ -88,7 +101,8 @@ export default function RecordViewModal({
   const [record, setRecord] = useState(seed || null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [showEmpty, setShowEmpty] = useState(() => readShowEmptyFieldsPref())
+  const [showAllFields, setShowAllFields] = useState(() => readShowEmptyFieldsPref())
+  const [assigneeLabel, setAssigneeLabel] = useState(null)
 
   useEffect(() => {
     if (!open) return undefined
@@ -127,16 +141,93 @@ export default function RecordViewModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  const allEntries = useMemo(() => sortedEntries(record), [record])
-  const entries = useMemo(
-    () => filterViewEntries(allEntries, { showEmpty }),
-    [allEntries, showEmpty],
-  )
-  const hiddenEmptyCount = showEmpty ? 0 : Math.max(0, allEntries.length - entries.length)
+  // Resolve assignee agent display name (Task)
+  useEffect(() => {
+    if (!open || !record) {
+      setAssigneeLabel(null)
+      return undefined
+    }
+    const agentId = record.assigneeAgentId
+    if (agentId == null || agentId === '') {
+      setAssigneeLabel(null)
+      return undefined
+    }
+    let cancelled = false
+    agentsApi.agents
+      .get(agentId)
+      .then((agent) => {
+        if (cancelled) return
+        const label =
+          entityDisplayLabel(agent, {
+            keys: ['name', 'displayName', 'agentKey'],
+            fallback: null,
+          }) || null
+        setAssigneeLabel(label)
+      })
+      .catch(() => {
+        if (!cancelled) setAssigneeLabel(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, record])
 
-  const onToggleShowEmpty = (e) => {
+  const recordForFields = useMemo(
+    () => ensureKnownFields(record, pkg, resource, { showAll: showAllFields }),
+    [record, pkg, resource, showAllFields],
+  )
+
+  const rawEntries = useMemo(
+    () => sortedEntries(recordForFields, { pkg, resource }),
+    [recordForFields, pkg, resource],
+  )
+
+  /** Build display rows: merge assignees into one friendly “Assignee” value. */
+  const displayEntries = useMemo(() => {
+    const rows = []
+    let assigneeEmitted = false
+    const agentId = recordForFields?.assigneeAgentId
+    const human = recordForFields?.assigneeHumanNpub
+    const hasAgent = agentId != null && agentId !== ''
+    const hasHuman = human != null && String(human).trim() !== ''
+
+    for (const [key, value] of rawEntries) {
+      if (key === 'assigneeAgentId' || key === 'assigneeHumanNpub') {
+        if (assigneeEmitted) continue
+        assigneeEmitted = true
+        let display = null
+        if (hasAgent) {
+          if (assigneeLabel) display = assigneeLabel
+          else if (showAllFields) display = `Agent #${agentId}`
+          else continue // wait for name resolve
+        } else if (hasHuman) {
+          display = String(human).trim()
+        } else if (showAllFields) {
+          display = null // empty assignee row
+        } else {
+          continue
+        }
+        rows.push(['assignee', display])
+        continue
+      }
+      rows.push([key, value])
+    }
+    return rows
+  }, [rawEntries, recordForFields, assigneeLabel, showAllFields])
+
+  const entries = useMemo(
+    () => filterViewEntries(displayEntries, { showEmpty: showAllFields }),
+    [displayEntries, showAllFields],
+  )
+
+  const hiddenEmptyCount = useMemo(() => {
+    if (showAllFields) return 0
+    return displayEntries.filter(([, v]) => isEmptyViewValue(v)).length
+  }, [displayEntries, showAllFields])
+
+  const onToggleShowAll = (e) => {
     const next = e.target.checked
-    setShowEmpty(next)
+    setShowAllFields(next)
     writeShowEmptyFieldsPref(next)
   }
 
@@ -145,6 +236,9 @@ export default function RecordViewModal({
   const title = entityDisplayLabel(record, {
     fallback: t('view.untitled', { defaultValue: 'Untitled' }),
   })
+  const statusVal = recordStatusValue(record)
+  const crumbPkg = domainGroupLabel((keys, opts) => t(keys, { ns: 'common', ...opts }), pkg)
+  const crumbRes = domainResourceLabel((keys, opts) => t(keys, { ns: 'domain', ...opts }), pkg, resource)
 
   return (
     <div
@@ -159,39 +253,25 @@ export default function RecordViewModal({
         aria-labelledby="record-view-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="content-view-header">
-          <div>
-            <div className="content-view-meta">
-              <span className="badge badge-muted">
-                {domainGroupLabel((keys, opts) => t(keys, { ns: 'common', ...opts }), pkg)}
-                {' / '}
-                {domainResourceLabel((keys, opts) => t(keys, { ns: 'domain', ...opts }), pkg, resource)}
-              </span>
-              {record?.status || record?.invoiceStatus || record?.hiveStatus ? (
-                <span
-                  className={statusBadgeClass(
-                    record.status || record.invoiceStatus || record.hiveStatus,
-                  )}
-                  style={{ marginLeft: 6 }}
-                >
-                  {record.status || record.invoiceStatus || record.hiveStatus}
-                </span>
-              ) : null}
-            </div>
-            <h2 id="record-view-title" className="content-view-title">
-              {title}
-            </h2>
-          </div>
+        {/* 1) Top chrome: breadcrumb | show all fields + close */}
+        <header className="content-view-header record-view-top">
+          <nav className="record-view-breadcrumb" aria-label="Breadcrumb">
+            <span className="record-view-crumb">{crumbPkg}</span>
+            <span className="record-view-crumb-sep" aria-hidden="true">
+              /
+            </span>
+            <span className="record-view-crumb">{crumbRes}</span>
+          </nav>
           <div className="content-view-actions">
             <label className="record-view-show-empty">
               <input
                 type="checkbox"
-                checked={showEmpty}
-                onChange={onToggleShowEmpty}
+                checked={showAllFields}
+                onChange={onToggleShowAll}
               />
               <span>
-                {t('view.showEmptyFields', {
-                  defaultValue: 'Show empty fields',
+                {t('view.showAllFields', {
+                  defaultValue: 'Show all fields',
                 })}
               </span>
             </label>
@@ -206,12 +286,22 @@ export default function RecordViewModal({
           </div>
         </header>
 
+        {/* 2) Identity: name + status pill */}
+        <div className="record-view-identity">
+          <h2 id="record-view-title" className="content-view-title">
+            {title}
+          </h2>
+          {statusVal ? (
+            <span className={statusBadgeClass(statusVal)}>{statusVal}</span>
+          ) : null}
+        </div>
+
         <div className="content-view-body">
           {loading && <p className="muted">{t('actions.loading')}</p>}
           {error && <div className="banner-error">{error}</div>}
           {!loading && record && (
             <>
-              {!showEmpty && hiddenEmptyCount > 0 ? (
+              {!showAllFields && hiddenEmptyCount > 0 ? (
                 <p className="muted record-view-empty-hint">
                   {t('view.hiddenEmptyHint', {
                     defaultValue: '{{count}} empty field(s) hidden',
@@ -222,18 +312,30 @@ export default function RecordViewModal({
               <dl className="record-view-grid">
                 {entries.map(([key, value]) => {
                   const display = formatValue(value)
-                  const isMultiline =
-                    typeof value === 'object' ||
-                    (typeof display === 'string' && (display.includes('\n') || display.length > 80))
-                  const isStatusKey = /status/i.test(key)
+                  const isJsonObject = value != null && typeof value === 'object'
+                  const isMultilineText =
+                    !isJsonObject &&
+                    typeof display === 'string' &&
+                    (display.includes('\n') || display.length > 80)
+                  const isStatusKey = key === 'status' || /status/i.test(key)
                   return (
                     <div key={key} className="record-view-row">
-                      <dt>{formatFieldLabel(key)}</dt>
-                      <dd className={isMultiline ? 'mono record-view-pre' : undefined}>
+                      <dt>{viewFieldLabel(key, (k, o) => t(k, { ns: 'common', ...o }))}</dt>
+                      <dd
+                        className={
+                          isJsonObject
+                            ? 'mono record-view-pre'
+                            : isMultilineText
+                              ? 'record-view-multiline'
+                              : undefined
+                        }
+                      >
                         {isStatusKey && typeof value === 'string' ? (
                           <span className={statusBadgeClass(value)}>{value}</span>
-                        ) : isMultiline ? (
+                        ) : isJsonObject ? (
                           <pre className="record-view-pre-inner">{display}</pre>
+                        ) : isMultilineText ? (
+                          <div className="record-view-multiline-inner">{display}</div>
                         ) : (
                           display
                         )}
@@ -245,7 +347,8 @@ export default function RecordViewModal({
               {entries.length === 0 ? (
                 <p className="muted">
                   {t('view.allFieldsEmpty', {
-                    defaultValue: 'No filled fields — enable “Show empty fields” to see blanks.',
+                    defaultValue:
+                      'No filled fields — enable “Show all fields” to see blanks.',
                   })}
                 </p>
               ) : null}

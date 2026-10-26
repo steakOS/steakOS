@@ -1069,9 +1069,10 @@
     "raw": "JSON",
     "fields": "Campos",
     "open": "Ver registro",
-    "showEmptyFields": "Mostrar campos vacíos",
+    "showEmptyFields": "Mostrar todos los campos",
     "hiddenEmptyHint": "{{count}} campo(s) vacío(s) oculto(s)",
-    "allFieldsEmpty": "No hay campos rellenos — active «Mostrar campos vacíos» para ver los en blanco."
+    "allFieldsEmpty": "No hay campos rellenos — active «Mostrar todos los campos» para ver los en blanco.",
+    "showAllFields": "Mostrar todos los campos"
   },
   "domainForm": {
     "postalAddress": "dirección postal",
