@@ -96,6 +96,8 @@ export default function RecordViewModal({
   recordId,
   seed,
   editPath,
+  /** When set, Edit opens this callback (modal edit) instead of navigating via editPath. */
+  onEdit,
 }) {
   const { t } = useTranslation(['common', 'domain'])
   const [record, setRecord] = useState(seed || null)
@@ -360,7 +362,19 @@ export default function RecordViewModal({
         </div>
 
         <footer className="content-view-footer">
-          {editPath && (
+          {onEdit && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                onEdit(record)
+                onClose?.()
+              }}
+            >
+              <Pencil size={14} /> {t('actions.edit')}
+            </button>
+          )}
+          {!onEdit && editPath && (
             <Link className="btn btn-secondary" to={editPath} onClick={onClose}>
               <Pencil size={14} /> {t('actions.edit')}
             </Link>

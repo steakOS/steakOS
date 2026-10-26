@@ -31,6 +31,7 @@ import { catalogLifecycle, lifecycleBadgeClass } from '../config/catalogLifecycl
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import ErrorDialog from '../components/ErrorDialog'
 import RecordViewModal from '../components/RecordViewModal'
+import RecordEditModal from '../components/RecordEditModal'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DomainParentLines from '../components/DomainParentLines'
 import ListPager from '../components/ListPager'
@@ -147,7 +148,9 @@ export default function DomainList() {
   const [error, setError] = useState(null)
   const [errorDetail, setErrorDetail] = useState(null)
   const [viewing, setViewing] = useState(null)
+  const [editing, setEditing] = useState(null)
   const [expandedIds, setExpandedIds] = useState(() => new Set())
+  const modalEdit = isTaskList
 
   const toggleExpand = (id) => {
     setExpandedIds((prev) => {
@@ -261,6 +264,7 @@ export default function DomainList() {
 
   useEffect(() => {
     setViewing(null)
+    setEditing(null)
     setError(null)
     setErrorDetail(null)
     setExpandedIds(new Set())
@@ -504,21 +508,32 @@ export default function DomainList() {
       >
         <Eye size={14} />
       </button>
-      <Link
-        className="btn btn-secondary"
-        to={preferDesk ? deskOpenHref(row.id) : domainFormHref(row.id)}
-        title={
-          preferDesk
-            ? t('masterData.openDesk', {
-                ns: 'common',
-                desk: deskLabel,
-                defaultValue: 'Open on {{desk}}',
-              })
-            : t('actions.edit', { ns: 'common' })
-        }
-      >
-        {preferDesk ? <ExternalLink size={14} /> : <Pencil size={14} />}
-      </Link>
+      {modalEdit ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          title={t('actions.edit', { ns: 'common' })}
+          onClick={() => setEditing(row)}
+        >
+          <Pencil size={14} />
+        </button>
+      ) : (
+        <Link
+          className="btn btn-secondary"
+          to={preferDesk ? deskOpenHref(row.id) : domainFormHref(row.id)}
+          title={
+            preferDesk
+              ? t('masterData.openDesk', {
+                  ns: 'common',
+                  desk: deskLabel,
+                  defaultValue: 'Open on {{desk}}',
+                })
+              : t('actions.edit', { ns: 'common' })
+          }
+        >
+          {preferDesk ? <ExternalLink size={14} /> : <Pencil size={14} />}
+        </Link>
+      )}
       <button
         type="button"
         className="btn btn-ghost btn-danger"
@@ -644,13 +659,32 @@ export default function DomainList() {
         resource={resource}
         recordId={viewing?.id}
         seed={viewing}
-        editPath={
-          viewing?.id != null
-            ? preferDesk
-              ? deskOpenHref(viewing.id)
-              : domainFormHref(viewing.id)
+        onEdit={
+          modalEdit
+            ? (row) => setEditing(row || viewing)
             : undefined
         }
+        editPath={
+          modalEdit
+            ? undefined
+            : viewing?.id != null
+              ? preferDesk
+                ? deskOpenHref(viewing.id)
+                : domainFormHref(viewing.id)
+              : undefined
+        }
+      />
+
+      <RecordEditModal
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        package={pkg}
+        resource={resource}
+        recordId={editing?.id}
+        seed={editing}
+        onSaved={() => {
+          reload().catch((e) => showError(e, t('actions.loadFailed', { ns: 'common' })))
+        }}
       />
 
       <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
