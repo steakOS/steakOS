@@ -19,11 +19,11 @@
       ]
     },
     {
-      "title": "Ventas y planificación de ventas: captación y gestión de clientes",
+      "title": "Ventas Advanced – Listas de precios y Oportunidades",
       "icon": "💼",
-      "text": "Las ventas son el proceso de encontrar clientes potenciales y convertirlos en clientes de pago. La planificación de ventas significa pensar en los objetivos y cómo alcanzarlos. Silver ayuda a las empresas en crecimiento a gestionar clientes potenciales, oportunidades y objetivos de ventas de forma más profesional.",
+      "text": "Las ventas encuentran clientes y los convierten en clientes de pago. En Silver, Ventas corre en profundidad Advanced: listas de precios para el mercado medio y un escritorio de Oportunidades para pipeline y seguimientos — para que un equipo en crecimiento vea el pipeline sin otra herramienta.",
       "examples": [
-        "Una empresa B2B con 40 empleados rastrea cada oportunidad de ventas y ve cuáles tienen probabilidades de cerrarse este trimestre"
+        "Una empresa B2B con 40 personas rastrea cada oportunidad y qué lista de precios aplica este trimestre"
       ]
     },
     {
@@ -51,11 +51,11 @@
       ]
     },
     {
-      "title": "Finanzas y Contabilidad: administrar el dinero de manera profesional",
+      "title": "Finanzas Advanced – Cobros y conciliación triangular",
       "icon": "💰",
-      "text": "Las finanzas cubren la facturación, los pagos, la contabilidad y los informes financieros. Silver ofrece a las empresas en crecimiento procesos financieros más sólidos, mejores informes y una visibilidad más clara de la salud financiera de la empresa.",
+      "text": "Finanzas cubre facturación, pagos e informes. En Silver, Finanzas corre en profundidad Advanced: una cola de cobros vencidos con promesas de pago, y conciliación triangular (factura ↔ pedido ↔ recepción) para que el dinero y la mercancía sigan alineados al crecer.",
       "examples": [
-        "La gerencia puede ver las pérdidas y ganancias mensuales, el flujo de caja y las facturas pendientes sin necesidad de preguntarle al contador cada vez."
+        "Finanzas ve las facturas vencidas en una cola y concilia facturas de proveedor con pedidos y recepciones antes de pagar"
       ]
     },
     {
@@ -67,11 +67,27 @@
       ]
     },
     {
-      "title": "Gobernanza, cumplimiento y riesgo: hacer las cosas de la manera correcta",
+      "title": "Gobernanza – Riesgo, resiliencia, cumplimiento",
       "icon": "⚖️",
-      "text": "La gobernanza, el cumplimiento y la gestión de riesgos ayudan a garantizar que la empresa cumpla con las leyes, gestione los riesgos y opere de manera responsable. Silver brinda a las empresas en crecimiento mejores herramientas para manejar los requisitos de cumplimiento y la gestión básica de riesgos.",
+      "text": "Gobernanza es el escritorio Silver de Riesgo, Resiliencia y Cumplimiento — al servicio de la rendición de cuentas, transparencia, equidad e independencia. Mantenga un registro ligero de riesgos y elementos de cumplimiento para que la empresa en crecimiento vea qué sigue pendiente — sin afirmar suites GRC empresariales completas.",
       "examples": [
-        "Una empresa puede realizar un seguimiento de requisitos legales importantes y ver cuáles aún necesitan atención."
+        "Rastree requisitos legales importantes y riesgos abiertos en un registro Basics del escritorio de Gobernanza"
+      ]
+    },
+    {
+      "title": "Partes interesadas – Partes y comunicaciones",
+      "icon": "🗣️",
+      "text": "El escritorio de partes interesadas guarda partes externas, un registro ligero de ética/comunicaciones y un registro simple de contratos. Viene con el paquete Silver y permanece activo — no se desactiva individualmente en la configuración.",
+      "examples": [
+        "Registre socios clave y registre contactos sensibles para que el equipo comparta un rastro honesto"
+      ]
+    },
+    {
+      "title": "Mensajería opcional – Correo y Telegram",
+      "icon": "✉️",
+      "text": "Silver puede enviar correo saliente y avisos de Telegram de forma opcional. Ambos permanecen desactivados por defecto hasta que añada credenciales en Sistema → Integraciones. La mensajería no es necesaria para abrir el paquete Silver.",
+      "examples": [
+        "Active el correo más tarde cuando SMTP esté listo; deje Telegram apagado hasta configurar un token de bot"
       ]
     },
     {
