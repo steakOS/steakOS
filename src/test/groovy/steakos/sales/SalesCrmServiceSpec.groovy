@@ -270,5 +270,6 @@ class SalesCrmServiceSpec extends Specification implements DataTest {
         steakos.configuration.AdvancedRouteCatalog.isAdvancedPath('/api/sales/crm/opportunities/12/convert')
         steakos.configuration.AdvancedRouteCatalog.isAdvancedPath('/api/sales/crm/activities/3')
         steakos.configuration.AdvancedRouteCatalog.isAdvancedPath('/sales/crm')
+        steakos.configuration.AdvancedRouteCatalog.isAdvancedPath('/sales/opportunities')
     }
 }

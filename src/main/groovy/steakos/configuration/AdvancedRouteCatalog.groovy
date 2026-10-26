@@ -32,7 +32,8 @@ final class AdvancedRouteCatalog {
             '/api/finance/collections',
             '/api/finance/match',
             '/sales/pricing',
-            '/sales/crm',
+            '/sales/opportunities',
+            '/sales/crm', // legacy SPA path (redirects to /sales/opportunities)
             '/finance/collections',
             '/finance/match'
     ].asImmutable()

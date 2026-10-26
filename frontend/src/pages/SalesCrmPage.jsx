@@ -88,7 +88,8 @@ function oppBody(src) {
 }
 
 /**
- * SalesAdvanced light CRM desk (OI-S08) — DeskShell master–detail (ADR-047).
+ * SalesAdvanced Opportunities desk (OI-S08) — DeskShell master–detail (ADR-047).
+ * Route: /sales/opportunities (legacy /sales/crm redirects).
  */
 export default function SalesCrmPage() {
   const { t } = useTranslation(['desks', 'common', 'sales'])
@@ -807,11 +808,11 @@ export default function SalesCrmPage() {
         title={
           <>
             <ContactRound size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-            {t('crm.title', { defaultValue: 'CRM' })}
+            {t('crm.title', { defaultValue: 'Opportunities' })}
           </>
         }
         subtitle={t('crm.subtitle', {
-          defaultValue: 'SalesAdvanced light opportunities and activities. Silver pack / Iron eval.',
+          defaultValue: 'Pipeline of opportunities and activities. Silver pack / Iron eval.',
         })}
         newLabel={t('crm.newOpp', { defaultValue: 'New opportunity' })}
         newExpanded={newExpanded}

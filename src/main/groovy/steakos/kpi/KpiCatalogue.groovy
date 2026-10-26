@@ -155,7 +155,7 @@ final class KpiCatalogue {
                         'money', '/sales/orders', false),
                 entry(S04, 'Opportunity pipeline', 'sales', MATURITY_DEFER, true, SENSITIVITY_NONE,
                         'DEFER until SalesAdvanced CRM (leads/opportunities)',
-                        'money', '/sales/crm', false, 'No Opportunity domain yet'),
+                        'money', '/sales/opportunities', false, 'No Opportunity domain yet'),
 
                 entry(D01, 'Jobs finished on time', 'delivery', MATURITY_BRONZE, false, SENSITIVITY_NONE,
                         'COMPLETED with completedAt <= endOfDay(scheduledAt) / completed with scheduledAt',

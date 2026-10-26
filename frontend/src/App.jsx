@@ -204,7 +204,8 @@ export default function App() {
             <Route path="system/catalogs" element={<SystemCatalogs />} />
             <Route path="sales" element={<SalesDesk />} />
             <Route path="sales/pricing" element={<SalesPricingPage />} />
-            <Route path="sales/crm" element={<SalesCrmPage />} />
+            <Route path="sales/opportunities" element={<SalesCrmPage />} />
+            <Route path="sales/crm" element={<Navigate to="/sales/opportunities" replace />} />
             <Route path="scm" element={<Navigate to="/scm/buyers" replace />} />
             <Route path="scm/buyers" element={<ScmDesk desk="buyers" />} />
             <Route path="scm/shopfloor" element={<ScmDesk desk="shopfloor" />} />

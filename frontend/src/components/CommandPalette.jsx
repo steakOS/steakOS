@@ -48,7 +48,7 @@ const FEATURE_PACKAGES = [
 
 /**
  * Ctrl+K / ⌘K jump palette (Wave B).
- * Feature entries share builders with AppShell so desks (CRM, Governance, …) stay in sync.
+ * Feature entries share builders with AppShell so desks (Opportunities, Governance, …) stay in sync.
  * Help entries navigate to the page and open Help with ?help=<key>.
  */
 export default function CommandPalette({ open, onClose, showAdvanced = false, elevated = false }) {
@@ -104,7 +104,7 @@ export default function CommandPalette({ open, onClose, showAdvanced = false, el
       keywords: 'setup wizard onboarding',
     })
 
-    // Desks / hubs — include Silver surfaces when showAdvanced (CRM, GRRC, …)
+    // Desks / hubs — include Silver surfaces when showAdvanced (Opportunities, GRRC, …)
     FEATURE_PACKAGES.forEach((pkg) => {
       if ((pkg === 'grrc' || pkg === 'stakeholder') && !showAdvanced) return
       const group = paletteGroupForPackage(pkg, t)

@@ -705,14 +705,14 @@
     "fieldMinQty": "Min quantity"
   },
   "crm": {
-    "title": "CRM",
-    "subtitle": "SalesAdvanced light opportunities and activities. Silver pack / Iron eval.",
+    "title": "Opportunities",
+    "subtitle": "Pipeline of opportunities and activities. Silver pack / Iron eval.",
     "empty": "No open opportunities. Create one with the form on the left.",
     "emptyAll": "No opportunities yet. Create one with the form on the left.",
     "openOpps": "Open opportunities",
     "allOpps": "All opportunities",
     "backSales": "← Sales desk",
-    "loadError": "Could not load CRM opportunities",
+    "loadError": "Could not load opportunities",
     "silverOnly": "Available on Silver (or Iron eval)",
     "loading": "Loading…",
     "count": "{{total}} opportunity(ies)",

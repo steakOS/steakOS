@@ -61,6 +61,8 @@ class AdvancedMetalPolicySpec extends Specification {
         '/api/sales/crm/opportunities/1'  | true
         '/api/sales/opportunities'        | true
         '/sales/crm'                      | true
+        '/sales/opportunities'            | true
+        '/sales/opportunities/1'          | true
         '/api/finance/collections'        | true
         '/api/finance/match'              | true
         '/api/finance/match/candidates'   | true

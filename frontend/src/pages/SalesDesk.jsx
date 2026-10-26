@@ -2117,8 +2117,8 @@ export default function SalesDesk() {
             <Link className="btn btn-secondary" to="/sales/pricing">
               {t('features.pricing', { ns: 'common', defaultValue: 'Price lists' })}
             </Link>
-            <Link className="btn btn-secondary" to="/sales/crm">
-              {t('features.crm', { ns: 'common', defaultValue: 'CRM' })}
+            <Link className="btn btn-secondary" to="/sales/opportunities">
+              {t('features.crm', { ns: 'common', defaultValue: 'Opportunities' })}
             </Link>
           </>
         )}

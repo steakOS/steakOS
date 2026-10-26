@@ -181,10 +181,10 @@ export function salesFeatureLinks(t, { showAdvanced = false } = {}) {
         keywords: 'pricing price list',
       },
       {
-        name: t('features.crm', { defaultValue: 'CRM' }),
-        path: '/sales/crm',
+        name: t('features.crm', { defaultValue: 'Opportunities' }),
+        path: '/sales/opportunities',
         icon: ContactRound,
-        keywords: 'crm customer relationship pipeline leads contacts',
+        keywords: 'opportunities crm pipeline leads contacts sales',
       },
     )
   }

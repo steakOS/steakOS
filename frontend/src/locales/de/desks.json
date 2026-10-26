@@ -705,14 +705,14 @@
     "fieldMinQty": "Mindestmenge"
   },
   "crm": {
-    "title": "CRM",
-    "subtitle": "SalesAdvanced — leichte Opportunities und Aktivitäten. Silver-Paket / Iron-Eval.",
+    "title": "Verkaufschancen",
+    "subtitle": "Pipeline aus Verkaufschancen und Aktivitäten. Silver-Pack / Iron-Eval.",
     "empty": "Keine offenen Opportunities. Legen Sie eine mit dem Formular links an.",
     "emptyAll": "Noch keine Opportunities. Legen Sie eine mit dem Formular links an.",
     "openOpps": "Offene Opportunities",
     "allOpps": "Alle Opportunities",
     "backSales": "← Vertriebs-Desk",
-    "loadError": "CRM-Opportunities konnten nicht geladen werden",
+    "loadError": "Verkaufschancen konnten nicht geladen werden",
     "silverOnly": "Verfügbar ab Silver (oder Iron-Eval)",
     "loading": "Laden…",
     "count": "{{total}} Opportunity(ies)",

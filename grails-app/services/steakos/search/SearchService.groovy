@@ -201,7 +201,7 @@ class SearchService {
             }
         } as List
         rows.collect { Customer c ->
-            // Sales desk customers tab — not CRM (CRM ?id= is opportunity id space; Task 7656)
+            // Sales desk customers tab — not Opportunities desk (?id= is opportunity id space; Task 7656)
             item('customer', c.id, c.name, statusOf(c), c.email ?: c.taxId,
                     "/sales?tab=customers&id=${c.id}", 'sales')
         }
