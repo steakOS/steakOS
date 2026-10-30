@@ -1556,26 +1556,9 @@ table.data tbody tr.row-selected td:last-child {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.record-edit-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.record-edit-fields label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.78rem;
-  font-weight: 650;
-  color: #78716c;
-}
-
-.record-edit-fields input,
-.record-edit-fields select,
-.record-edit-fields textarea {
-  font-weight: 500;
-  color: var(--steak-text, #1c1917);
+/* Reuse Sales/desk .form-grid input chrome (border, radius, padding). */
+.record-edit-fields.form-grid {
+  max-width: none;
 }
 .record-view-grid {
   margin: 0;

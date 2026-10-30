@@ -271,7 +271,7 @@ export default function RecordEditModal({
               {loading && <p className="muted">{t('actions.loading')}</p>}
               {error && <div className="banner-error">{error}</div>}
 
-              <div className="record-edit-fields">
+              <div className="form-grid record-edit-fields">
                 <label>
                   {t('pages.work.status', { ns: 'common', defaultValue: 'Status' })}
                   <select
