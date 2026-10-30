@@ -939,6 +939,8 @@ export default function AppShell() {
           </div>
         </header>
         <main className="content">
+          {/* Domain master lists show Resource + group + (N records) in-page — no path crumb. */}
+          {!/^\/domains(\/|$)/.test(location.pathname) && (
           <nav className="app-breadcrumb" aria-label="Breadcrumb">
             {(() => {
               const parts = location.pathname.split('/').filter(Boolean)
@@ -974,6 +976,7 @@ export default function AppShell() {
               return crumbs
             })()}
           </nav>
+          )}
           {activeCompany?.demo || activeCompany?.kind === 'DEMO' ? (
             <div
               className="banner-info"

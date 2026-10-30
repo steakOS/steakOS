@@ -468,6 +468,24 @@ select {
   word-break: break-word;
 }
 
+/* DomainList: Resource · group · (N records) — no app breadcrumb / lifecycle pill */
+.domain-list-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem 0.65rem;
+  flex-wrap: wrap;
+}
+
+.domain-list-title-group {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.domain-list-title-count {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
 .page-sub {
   margin: 0 0 1.25rem;
   color: var(--steak-muted);

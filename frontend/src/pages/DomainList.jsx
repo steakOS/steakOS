@@ -27,7 +27,7 @@ import {
   getLineChildForParent,
   listReturnHref,
 } from '../config/domainRegistry'
-import { catalogLifecycle, lifecycleBadgeClass } from '../config/catalogLifecycle'
+
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import ErrorDialog from '../components/ErrorDialog'
 import RecordViewModal from '../components/RecordViewModal'
@@ -180,14 +180,7 @@ export default function DomainList() {
   const deskLabel =
     createMeta.deskLabel ||
     t('masterData.deskDefault', { ns: 'common', defaultValue: 'process desk' })
-  const lifecycle = catalogLifecycle(pkg, resource)
   const preferDesk = interaction === 'deskShell' && !!deskPath
-  const lifecycleLabel =
-    lifecycle === 'in_use'
-      ? t('pages.catalogs.inUse', { ns: 'common' })
-      : lifecycle === 'system'
-        ? t('pages.catalogs.system', { ns: 'common' })
-        : t('pages.catalogs.reserve', { ns: 'common' })
 
   const showError = (e, title) => {
     const payload = {
@@ -547,36 +540,30 @@ export default function DomainList() {
 
   return (
     <div>
-      <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        {resourceLabel}
-        <span className="muted" style={{ fontWeight: 500, fontSize: '1rem' }}>
-          {groupLabel}
+      <h1 className="page-title domain-list-title">
+        <span className="domain-list-title-main">{resourceLabel}</span>
+        <span className="muted domain-list-title-group">{groupLabel}</span>
+        <span className="muted domain-list-title-count">
+          (
+          {t(total === 1 ? 'actions.records_one' : 'actions.records_other', {
+            ns: 'common',
+            count: total,
+          })}
+          )
         </span>
-        {(meta?.group?.navRole === 'admin' || meta?.group?.primary === false) && (
-          <span className={lifecycleBadgeClass(lifecycle)} title={lifecycleLabel}>
-            {lifecycleLabel}
-          </span>
-        )}
       </h1>
-      <p className="page-sub">
-        {t(total === 1 ? 'actions.records_one' : 'actions.records_other', {
-          ns: 'common',
-          count: total,
-        })}
-        {createMode !== 'domain' && (
-          <>
-            {' · '}
-            <span className="badge badge-draft" style={{ fontWeight: 600 }}>
-              {createMode === 'parentOnly'
-                ? t('masterData.classLine', { ns: 'common', defaultValue: 'Line item' })
-                : t('masterData.classProcess', {
-                    ns: 'common',
-                    defaultValue: 'Process document',
-                  })}
-            </span>
-          </>
-        )}
-      </p>
+      {createMode !== 'domain' && (
+        <p className="page-sub">
+          <span className="badge badge-draft" style={{ fontWeight: 600 }}>
+            {createMode === 'parentOnly'
+              ? t('masterData.classLine', { ns: 'common', defaultValue: 'Line item' })
+              : t('masterData.classProcess', {
+                  ns: 'common',
+                  defaultValue: 'Process document',
+                })}
+          </span>
+        </p>
+      )}
 
       {(preferDesk || createMode === 'deskRedirect') && deskPath && (
         <div className="banner-info" style={{ marginBottom: '0.75rem' }}>
