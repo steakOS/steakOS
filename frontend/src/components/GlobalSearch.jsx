@@ -2,10 +2,11 @@
 // Copyright 2026 The steakOS Authors
 //
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, X } from 'lucide-react'
 import { searchApi } from '../api/client'
+import { withReturnTo } from '../config/domainRegistry'
 
 const DEBOUNCE_MS = 300
 const MIN_LEN = 2
@@ -36,6 +37,7 @@ function isEditableTarget(el) {
 export default function GlobalSearch({ narrow = false }) {
   const { t } = useTranslation(['common'])
   const navigate = useNavigate()
+  const location = useLocation()
   const inputRef = useRef(null)
   const rootRef = useRef(null)
   const [expanded, setExpanded] = useState(!narrow)
@@ -155,10 +157,14 @@ export default function GlobalSearch({ narrow = false }) {
   const go = useCallback(
     (item) => {
       if (!item?.href) return
-      navigate(item.href)
+      // Stamp origin so DomainForm SAVE/cancel returns here (not domain list).
+      // Skip when already on a /domains/… surface — list session restore handles that.
+      const onDomainSurface = /^\/domains\/[^/]+\/[^/]+/.test(location.pathname)
+      const origin = onDomainSurface ? null : `${location.pathname}${location.search || ''}`
+      navigate(withReturnTo(item.href, origin))
       close()
     },
-    [close, navigate],
+    [close, location.pathname, location.search, navigate],
   )
 
   const typeLabel = (type) =>

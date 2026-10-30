@@ -131,8 +131,8 @@ export default function CompanyProfile() {
   const incomplete = setup && !setup.setupComplete
   const companyTitle = le?.name || t('pages.company.unnamed')
   const editLegal = le?.id
-    ? `/domains/configuration/LegalEntity/${le.id}`
-    : '/domains/configuration/LegalEntity'
+    ? `/domains/configuration/LegalEntity/${le.id}?returnTo=%2Fcompany`
+    : '/domains/configuration/LegalEntity?returnTo=%2Fcompany'
   const editLabel = t('pages.company.editInCatalog', { defaultValue: 'Edit in catalog' })
   const editSettings = t('pages.company.editInSettings', { defaultValue: 'Edit in Settings' })
 
