@@ -29,8 +29,10 @@ import {
   FileText,
   Wrench,
   Eye,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
-import { scmApi, catalogueApi, meApi } from '../api/client'
+import { scmApi, catalogueApi, domainsApi, meApi } from '../api/client'
 import CurrencySelect from '../components/CurrencySelect'
 import DocumentLinesEditor, {
   emptyDocLine,
@@ -240,6 +242,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
     viewModal,
     ViewButton,
     openView,
+    openEdit,
     updateViewingRecord,
   } = useRecordView({
     modalEdit: isBuyers,
@@ -414,6 +417,117 @@ export default function ScmDesk({ desk = 'buyers' }) {
       openView('procurement', 'PurchaseOrder', full)
     },
     [openView],
+  )
+
+  /** Same pill chrome as DomainList Task row actions. */
+  const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+
+  const buyersCanEditRecord = useCallback((resource, record) => {
+    if (resource === 'Vendor' || resource === 'CatalogueItem') return true
+    if (resource === 'PurchaseOrder') {
+      const st = record?.poStatus || record?.status
+      return st === 'DRAFT'
+    }
+    return false
+  }, [])
+
+  const buyersCanDeleteRecord = useCallback((resource, record) => {
+    if (resource === 'Vendor' || resource === 'CatalogueItem') return true
+    if (resource === 'PurchaseOrder') {
+      const st = record?.poStatus || record?.status
+      return st === 'DRAFT'
+    }
+    return false
+  }, [])
+
+  const onBuyersDelete = useCallback(
+    async (pkg, resource, record) => {
+      const label =
+        record?.name ||
+        record?.poNumber ||
+        t('view.untitled', { ns: 'common', defaultValue: 'this record' })
+      if (!window.confirm(t('actions.confirmDelete', { ns: 'common', label }))) return
+      setError(null)
+      try {
+        if (resource === 'PurchaseOrder') {
+          await scmApi.purchaseOrders.cancel(record.id)
+        } else {
+          await domainsApi.remove(pkg, resource, record.id)
+        }
+        setInfo(
+          t('toast.namedDeleted', {
+            ns: 'common',
+            name: label,
+            defaultValue: `Deleted ${label}`,
+          }),
+        )
+        await loadAllRef.current()
+      } catch (err) {
+        setError(err.message || String(err))
+      }
+    },
+    [t],
+  )
+
+  const renderBuyersRowActions = useCallback(
+    (pkg, resource, record, { onView } = {}) => {
+      if (!record?.id && record?.id !== 0) return null
+      const canEdit = buyersCanEditRecord(resource, record)
+      const canDelete = buyersCanDeleteRecord(resource, record)
+      return (
+        <>
+          <button
+            type="button"
+            className={ROW_ACTION_CLASS}
+            title={t('view.open', { ns: 'common' })}
+            aria-label={t('view.open', { ns: 'common' })}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (typeof onView === 'function') onView(record)
+              else openView(pkg, resource, record)
+            }}
+          >
+            <Eye size={14} />
+          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.edit', { ns: 'common' })}
+              aria-label={t('actions.edit', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openEdit(pkg, resource, record)
+              }}
+            >
+              <Pencil size={14} />
+            </button>
+          ) : null}
+          {canDelete ? (
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.delete', { ns: 'common' })}
+              aria-label={t('actions.delete', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                onBuyersDelete(pkg, resource, record)
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          ) : null}
+        </>
+      )
+    },
+    [
+      buyersCanDeleteRecord,
+      buyersCanEditRecord,
+      onBuyersDelete,
+      openEdit,
+      openView,
+      t,
+    ],
   )
 
   useEffect(() => {
@@ -1364,7 +1478,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
           { id: 'name', primary: true, render: (v) => v.name },
           { id: 'email', secondary: true, render: (v) => v.email || '—' },
         ]}
-        actions={(v) => <ViewButton pkg="procurement" resource="Vendor" record={v} />}
+        actions={(v) =>
+          isBuyers
+            ? renderBuyersRowActions('procurement', 'Vendor', v)
+            : <ViewButton pkg="procurement" resource="Vendor" record={v} />
+        }
       >
         <div className="table-wrap">
           <table className="data">
@@ -1389,7 +1507,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
                   <td className="muted">{v.email || '—'}</td>
                   <td className="mono col-priority-low">{v.currencyCode}</td>
                   <td onClick={isBuyers ? (e) => e.stopPropagation() : undefined}>
-                    <ViewButton pkg="procurement" resource="Vendor" record={v} />
+                    {isBuyers
+                      ? renderBuyersRowActions('procurement', 'Vendor', v)
+                      : <ViewButton pkg="procurement" resource="Vendor" record={v} />}
                   </td>
                 </tr>
               ))}
@@ -1421,7 +1541,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
           { id: 'sku', secondary: true, render: (p) => p.code || p.sku || '—' },
           { id: 'nature', meta: true, render: (p) => p.nature || 'GOODS' },
         ]}
-        actions={(p) => <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />}
+        actions={(p) =>
+          isBuyers
+            ? renderBuyersRowActions('catalogue', 'CatalogueItem', p)
+            : <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />
+        }
       >
         <div className="table-wrap">
           <table className="data">
@@ -1448,7 +1572,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
                   <td className="mono">{p.code || p.sku || '—'}</td>
                   <td className="muted col-priority-low">{p.nature || 'GOODS'}</td>
                   <td onClick={isBuyers ? (e) => e.stopPropagation() : undefined}>
-                    <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />
+                    {isBuyers
+                      ? renderBuyersRowActions('catalogue', 'CatalogueItem', p)
+                      : <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />}
                   </td>
                 </tr>
               ))}
@@ -1479,7 +1605,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
           { id: 'name', primary: true, render: (s) => s.name },
           { id: 'sku', secondary: true, render: (s) => s.code || s.sku || '—' },
         ]}
-        actions={(s) => <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />}
+        actions={(s) =>
+          isBuyers
+            ? renderBuyersRowActions('catalogue', 'CatalogueItem', s)
+            : <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />
+        }
       >
         <div className="table-wrap">
           <table className="data">
@@ -1504,7 +1634,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
                   <td>{s.name}</td>
                   <td className="mono">{s.code || s.sku || '—'}</td>
                   <td onClick={isBuyers ? (e) => e.stopPropagation() : undefined}>
-                    <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />
+                    {isBuyers
+                      ? renderBuyersRowActions('catalogue', 'CatalogueItem', s)
+                      : <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />}
                   </td>
                 </tr>
               ))}
@@ -1557,22 +1689,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
           },
         ]}
         actions={(po) =>
-          isBuyers ? (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              title={t('view.open', { ns: 'common' })}
-              aria-label={t('view.open', { ns: 'common' })}
-              onClick={(e) => {
-                e.stopPropagation()
-                openPoView(po)
-              }}
-            >
-              <Eye size={14} />
-            </button>
-          ) : (
-            <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />
-          )
+          isBuyers
+            ? renderBuyersRowActions('procurement', 'PurchaseOrder', po, {
+                onView: openPoView,
+              })
+            : <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />
         }
       >
         <div className="table-wrap">
@@ -1638,19 +1759,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
                     <span className={statusClass(po.poStatus)}>{po.poStatus}</span>
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    {isBuyers ? (
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        title={t('view.open', { ns: 'common' })}
-                        aria-label={t('view.open', { ns: 'common' })}
-                        onClick={() => openPoView(po)}
-                      >
-                        <Eye size={14} />
-                      </button>
-                    ) : (
-                      <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />
-                    )}
+                    {isBuyers
+                      ? renderBuyersRowActions('procurement', 'PurchaseOrder', po, {
+                          onView: openPoView,
+                        })
+                      : <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />}
                   </td>
                 </tr>
               ))}

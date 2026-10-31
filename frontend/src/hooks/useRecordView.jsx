@@ -54,6 +54,18 @@ export default function useRecordView(options = {}) {
     setViewing({ pkg, resource, record })
   }, [])
 
+  const openEdit = useCallback(
+    (pkg, resource, record) => {
+      if (!modalEdit) return
+      if (!record?.id && record?.id !== 0) return
+      const allowed =
+        typeof canModalEdit === 'function' ? canModalEdit({ pkg, resource, record }) : true
+      if (!allowed) return
+      setEditing({ pkg, resource, record })
+    },
+    [modalEdit, canModalEdit],
+  )
+
   const closeView = useCallback(() => setViewing(null), [])
 
   const updateViewingRecord = useCallback((record) => {
@@ -61,7 +73,13 @@ export default function useRecordView(options = {}) {
   }, [])
 
   const ViewButton = useCallback(
-    function ViewButton({ pkg, resource, record, className = 'btn btn-ghost', size = 14 }) {
+    function ViewButton({
+      pkg,
+      resource,
+      record,
+      className = 'btn btn-ghost btn-danger',
+      size = 14,
+    }) {
       if (!record?.id && record?.id !== 0) return null
       return (
         <button
@@ -149,6 +167,7 @@ export default function useRecordView(options = {}) {
 
   return {
     openView,
+    openEdit,
     closeView,
     updateViewingRecord,
     viewModal,
