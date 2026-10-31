@@ -18,17 +18,18 @@
 # Ensures Java 21 + PostgreSQL 16 + DB roles, then runs the package installer.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.sh | bash
+#   curl -fsSL http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.sh | bash
 #   ./bootstrap.sh --yes
-#   ./bootstrap.sh --skip-deps --base-url https://github.com/steakOS/steakOS/releases/latest/download
+#   ./bootstrap.sh --skip-deps --base-url http://umbrel.local:8101/hermesbro/steakOS/releases/latest/download
 #   ./bootstrap.sh --offline /path/to/steakOS-….zip
 #
 # Environment:
-#   STEAKOS_GITHUB_ORG   default steakOS
-#   STEAKOS_GITHUB_REPO  default steakOS
-#   STEAKOS_BASE_URL     package host (default: GitHub Releases latest/download)
+#   STEAKOS_HUB_HOST / STEAKOS_HUB_OWNER / STEAKOS_HUB_REPO  (Forgejo defaults)
+#   STEAKOS_BASE_URL     package host (default: hub releases/latest/download)
+#   STEAKOS_RAW_BASE     raw file base for fetching install.sh when not local
 #   STEAKOS_PREFIX       install dir (default: $HOME/steakOS)
 #   STEAKOS_ASSUME_YES   1 = non-interactive yes
+#   Future public GitHub: set STEAKOS_BASE_URL / STEAKOS_RAW_BASE to github.com/steakOS/steakOS
 set -euo pipefail
 
 # Default host: Forgejo hub on the office LAN (GitHub public mirror deferred).

@@ -5,11 +5,12 @@
 # Ensures Java 21 (Temurin) + PostgreSQL 16 + DB roles, then runs install.ps1.
 #
 # Usage (Admin PowerShell only when deps are missing):
-#   irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
+#   irm http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.ps1 | iex
 #   .\bootstrap.ps1 -Yes
-#   .\bootstrap.ps1 -SkipDeps -BaseUrl https://github.com/steakOS/steakOS/releases/latest/download
+#   .\bootstrap.ps1 -SkipDeps -BaseUrl http://umbrel.local:8101/hermesbro/steakOS/releases/latest/download
 #
-# Environment: STEAKOS_GITHUB_ORG, STEAKOS_GITHUB_REPO, STEAKOS_BASE_URL, STEAKOS_PREFIX, STEAKOS_ASSUME_YES
+# Environment: STEAKOS_HUB_HOST, STEAKOS_BASE_URL, STEAKOS_RAW_BASE, STEAKOS_PREFIX, STEAKOS_ASSUME_YES
+# Future public GitHub: set STEAKOS_BASE_URL / STEAKOS_RAW_BASE accordingly.
 
 [CmdletBinding()]
 param(
@@ -172,9 +173,9 @@ $here = $PSScriptRoot
 if (-not $here) { $here = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $installer = Join-Path $here 'install.ps1'
 if (-not (Test-Path $installer)) {
-    Write-Info 'Fetching install.ps1 from GitHub'
+    Write-Info 'Fetching install.ps1 from hub'
     $installer = Join-Path $env:TEMP 'steakos-install.ps1'
-    Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/$Org/$Repo/main/scripts/install/install.ps1" -OutFile $installer
+    Invoke-WebRequest -UseBasicParsing "$RawBase/scripts/install/install.ps1" -OutFile $installer
 }
 
 $env:STEAKOS_REQUIRE_CHECKSUM = '1'
