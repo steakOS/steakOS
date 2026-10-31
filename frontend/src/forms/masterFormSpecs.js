@@ -30,6 +30,8 @@ export const MASTER_FORM_KEYS = [
   'ServiceLevel',
   'Budget',
   'Payable',
+  'CatalogueItem',
+  'PurchaseOrder',
 ]
 
 function currentPeriodYyyyMm() {
@@ -485,6 +487,111 @@ const budgetSpec = {
   ],
 }
 
+/** Catalogue master — goods/services; field shape adapted from Product. */
+const catalogueItemSpec = {
+  resource: 'CatalogueItem',
+  packages: ['catalogue'],
+  empty: () => ({
+    name: '',
+    description: '',
+    sku: '',
+    unit: 'EA',
+    listPrice: '',
+    currency: 'EUR',
+    nature: 'GOODS',
+    isService: false,
+    active: true,
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'sku', label: 'SKU / code', type: 'text', placeholder: 'optional unique code' },
+    { name: 'unit', label: 'Unit', type: 'text', required: true },
+    {
+      name: 'listPrice',
+      label: 'List price',
+      type: 'number',
+      inputMode: 'decimal',
+    },
+    { name: 'currency', label: 'Price currency', type: 'currency', required: true },
+    {
+      name: 'nature',
+      label: 'Nature',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'GOODS', label: 'Goods' },
+        { value: 'SERVICE', label: 'Service' },
+      ],
+    },
+    { name: 'active', label: 'Active', type: 'checkbox' },
+  ],
+  toBody: (f) => {
+    const nature = f.nature === 'SERVICE' || f.isService ? 'SERVICE' : 'GOODS'
+    return {
+      name: f.name,
+      description: f.description || null,
+      code: f.sku || null,
+      unit: f.unit || 'EA',
+      listPrice: f.listPrice === '' || f.listPrice == null ? null : f.listPrice,
+      currency: f.currency || 'EUR',
+      currencyCode: f.currency || 'EUR',
+      nature,
+      active: f.active !== false,
+      canBeBought: true,
+      canBeSold: true,
+    }
+  },
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    sku: row.code || row.sku || '',
+    unit: row.unit || 'EA',
+    listPrice: row.listPrice != null ? String(row.listPrice) : '',
+    currency: row.currency || row.currencyCode || 'EUR',
+    nature: row.nature || (row.isService ? 'SERVICE' : 'GOODS'),
+    isService: row.nature === 'SERVICE' || !!row.isService,
+    active: row.active !== false,
+  }),
+  listColumns: [
+    { key: 'code', label: 'Code', mono: true },
+    { key: 'nature', label: 'Nature' },
+    { key: 'unit', label: 'Unit' },
+  ],
+}
+
+/** DRAFT PO header only — lines edited separately in RecordEditModal. */
+const purchaseOrderSpec = {
+  resource: 'PurchaseOrder',
+  packages: ['procurement'],
+  empty: () => ({
+    name: '',
+    description: '',
+    currencyCode: 'EUR',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'currencyCode', label: 'Currency', type: 'currency', required: true },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    currencyCode: f.currencyCode || 'EUR',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    currencyCode: row.currencyCode || 'EUR',
+  }),
+  listColumns: [
+    { key: 'poNumber', label: 'Number', mono: true },
+    { key: 'currencyCode', label: 'Ccy', mono: true },
+  ],
+}
+
 /** Finance Payable — vendor + amount aligned with FinanceHub payables create. */
 const payableSpec = {
   resource: 'Payable',
@@ -560,6 +667,8 @@ const SPECS = {
   ServiceLevel: serviceLevelSpec,
   Budget: budgetSpec,
   Payable: payableSpec,
+  CatalogueItem: catalogueItemSpec,
+  PurchaseOrder: purchaseOrderSpec,
 }
 
 /** @returns {typeof customerSpec | null} */
@@ -568,8 +677,9 @@ export function getMasterFormSpec(pkg, resource) {
   if (!spec) return null
   if (spec.packages && pkg && !spec.packages.includes(pkg)) {
     // allow if resource name unique (StockMove is under production path etc.)
-    // ServiceLevel only under service
+    // ServiceLevel only under service; CatalogueItem under catalogue
     if (resource === 'ServiceLevel' && pkg !== 'service') return null
+    if (resource === 'CatalogueItem' && pkg !== 'catalogue') return null
   }
   return spec
 }

@@ -13,11 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
-import { domainsApi } from '../api/client'
+import { catalogueApi, domainsApi, scmApi } from '../api/client'
 import TaskAssigneeSelect from './TaskAssigneeSelect'
+import DocumentLinesEditor, {
+  emptyDocLine,
+  linesToApiPayload,
+} from './DocumentLinesEditor'
+import MasterEntityFields from '../forms/MasterEntityFields'
+import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 import { statusBadgeClass } from '../utils/humanize'
 
@@ -90,10 +96,33 @@ function taskBodyFromForm(form) {
   }
 }
 
+function linesFromRecord(row) {
+  const src = row?.lines
+  if (!Array.isArray(src) || src.length === 0) {
+    return [emptyDocLine()]
+  }
+  return src.map((l) =>
+    emptyDocLine({
+      catalogueItemId: l.catalogueItemId != null ? String(l.catalogueItemId) : '',
+      productRefId: l.productRefId != null ? String(l.productRefId) : '',
+      name: l.name || '',
+      quantity: l.quantity != null ? String(l.quantity) : '1',
+      unitPriceEur: l.unitPriceEur != null ? String(l.unitPriceEur) : '0',
+      taxCode: l.taxCode || '',
+      sourceType: l.productRefType || '',
+    }),
+  )
+}
+
+function poStatusOf(row) {
+  return row?.poStatus || row?.status || null
+}
+
 /**
  * Edit modal for domain records — same chrome behaviour as RecordViewModal
  * (backdrop, Escape, click-outside, breadcrumb top bar, identity row).
- * Task (core) is the first supported resource; others fall back to a message.
+ * Supports Task (core), master-form resources (Vendor, CatalogueItem, …),
+ * and DRAFT PurchaseOrder (header + lines).
  */
 export default function RecordEditModal({
   open,
@@ -106,48 +135,120 @@ export default function RecordEditModal({
 }) {
   const { t } = useTranslation(['common', 'domain'])
   const isTask = pkg === 'core' && resource === 'Task'
-  const [form, setForm] = useState(() => formFromTaskRow(seed || {}))
+  const masterSpec = useMemo(
+    () => (isTask ? null : getMasterFormSpec(pkg, resource)),
+    [isTask, pkg, resource],
+  )
+  const isMaster = !!masterSpec
+  const isPurchaseOrder = resource === 'PurchaseOrder'
+  const isCatalogueItem = resource === 'CatalogueItem'
+
+  const [form, setForm] = useState(() =>
+    isTask ? formFromTaskRow(seed || {}) : masterSpec ? masterSpec.fromRow(seed || {}, masterSpec.empty()) : {},
+  )
+  const [lines, setLines] = useState(() => (isPurchaseOrder ? linesFromRecord(seed) : []))
+  const [recordMeta, setRecordMeta] = useState(seed || null)
   const [agentStatusHint, setAgentStatusHint] = useState(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
+  const poStatus = isPurchaseOrder ? poStatusOf(recordMeta) : null
+  const poEditable = !isPurchaseOrder || poStatus === 'DRAFT'
+
   useEffect(() => {
     if (!open) return undefined
     setError(null)
-    if (!isTask || !pkg || !resource || recordId == null) {
-      setForm(EMPTY_TASK)
-      setAgentStatusHint(null)
+
+    if (isTask) {
+      if (!pkg || !resource || recordId == null) {
+        setForm(EMPTY_TASK)
+        setAgentStatusHint(null)
+        return undefined
+      }
+      if (seed && seed.id === recordId) {
+        const raw = seed.status || 'OPEN'
+        setAgentStatusHint(isAiTaskStatus(raw) ? raw : null)
+        setForm(formFromTaskRow(seed))
+      }
+      let cancelled = false
+      setLoading(true)
+      domainsApi
+        .get(pkg, resource, recordId)
+        .then((row) => {
+          if (cancelled) return
+          const raw = row.status || 'OPEN'
+          setAgentStatusHint(isAiTaskStatus(raw) ? raw : null)
+          setForm(formFromTaskRow(row))
+        })
+        .catch((e) => {
+          if (!cancelled) {
+            setError(e.message || String(e))
+            if (seed) setForm(formFromTaskRow(seed))
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+      return () => {
+        cancelled = true
+      }
+    }
+
+    if (!isMaster || !pkg || !resource || recordId == null) {
+      setForm({})
+      setLines([])
+      setRecordMeta(null)
       return undefined
     }
+
+    const spec = masterSpec
     if (seed && seed.id === recordId) {
-      const raw = seed.status || 'OPEN'
-      setAgentStatusHint(isAiTaskStatus(raw) ? raw : null)
-      setForm(formFromTaskRow(seed))
+      setForm(spec.fromRow(seed, spec.empty()))
+      setRecordMeta(seed)
+      if (isPurchaseOrder) setLines(linesFromRecord(seed))
     }
+
     let cancelled = false
     setLoading(true)
-    domainsApi
-      .get(pkg, resource, recordId)
-      .then((row) => {
-        if (cancelled) return
-        const raw = row.status || 'OPEN'
-        setAgentStatusHint(isAiTaskStatus(raw) ? raw : null)
-        setForm(formFromTaskRow(row))
-      })
-      .catch((e) => {
-        if (!cancelled) {
-          setError(e.message || String(e))
-          if (seed) setForm(formFromTaskRow(seed))
+
+    const loadRow = async () => {
+      try {
+        let row = await domainsApi.get(pkg, resource, recordId)
+        if (isPurchaseOrder) {
+          // domains get may omit lines — prefer SCM full map when needed
+          const seedLines = seed?.id === recordId ? seed.lines : null
+          if (!Array.isArray(row?.lines) || row.lines.length === 0) {
+            try {
+              const full = await scmApi.purchaseOrders.get(recordId)
+              row = { ...row, ...full, lines: full.lines || seedLines || row.lines }
+            } catch {
+              if (seedLines) row = { ...row, lines: seedLines }
+            }
+          }
         }
-      })
-      .finally(() => {
+        if (cancelled) return
+        setRecordMeta(row)
+        setForm(spec.fromRow(row, spec.empty()))
+        if (isPurchaseOrder) setLines(linesFromRecord(row))
+      } catch (e) {
+        if (cancelled) return
+        setError(e.message || String(e))
+        if (seed) {
+          setRecordMeta(seed)
+          setForm(spec.fromRow(seed, spec.empty()))
+          if (isPurchaseOrder) setLines(linesFromRecord(seed))
+        }
+      } finally {
         if (!cancelled) setLoading(false)
-      })
+      }
+    }
+
+    loadRow()
     return () => {
       cancelled = true
     }
-  }, [open, pkg, resource, recordId, seed, isTask])
+  }, [open, pkg, resource, recordId, seed, isTask, isMaster, isPurchaseOrder, masterSpec])
 
   useEffect(() => {
     if (!open) return undefined
@@ -163,7 +264,7 @@ export default function RecordEditModal({
     setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  const onSubmit = async (e) => {
+  const onSubmitTask = async (e) => {
     e.preventDefault()
     if (!isTask || recordId == null || saving) return
     setError(null)
@@ -171,6 +272,48 @@ export default function RecordEditModal({
     try {
       const updated = await domainsApi.update(pkg, resource, recordId, taskBodyFromForm(form))
       onSaved?.(updated || { id: recordId, ...taskBodyFromForm(form) })
+      onClose?.()
+    } catch (err) {
+      setError(err.message || String(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const onSubmitMaster = async (e) => {
+    e.preventDefault()
+    if (!isMaster || recordId == null || saving || !poEditable) return
+    setError(null)
+    setSaving(true)
+    try {
+      const body = masterSpec.toBody(form)
+      let updated
+      try {
+        updated = await domainsApi.update(pkg, resource, recordId, body)
+      } catch (err) {
+        if (isCatalogueItem) {
+          updated = await catalogueApi.update(recordId, body)
+        } else {
+          throw err
+        }
+      }
+
+      if (isPurchaseOrder) {
+        const payload = linesToApiPayload(lines)
+        if (!payload.length) {
+          setError(
+            t('docLines.needOne', {
+              ns: 'common',
+              defaultValue: 'Add at least one line.',
+            }),
+          )
+          setSaving(false)
+          return
+        }
+        updated = await scmApi.purchaseOrders.setLines(recordId, { lines: payload })
+      }
+
+      onSaved?.(updated || { id: recordId, ...body })
       onClose?.()
     } catch (err) {
       setError(err.message || String(err))
@@ -187,7 +330,20 @@ export default function RecordEditModal({
     pkg,
     resource,
   )
-  const statusVal = form.status || null
+  const statusVal = isTask
+    ? form.status || null
+    : isPurchaseOrder
+      ? poStatus
+      : null
+
+  const fieldsSpecForRender = masterSpec
+    ? {
+        ...masterSpec,
+        fields: (masterSpec.fields || []).filter((f) => f.name !== 'name'),
+      }
+    : null
+
+  const unsupported = !isTask && !isMaster
 
   return (
     <div
@@ -225,7 +381,7 @@ export default function RecordEditModal({
           </div>
         </header>
 
-        {!isTask ? (
+        {unsupported ? (
           <div className="content-view-body">
             <p className="muted">
               {t('edit.unsupportedResource', {
@@ -238,8 +394,23 @@ export default function RecordEditModal({
               </button>
             </footer>
           </div>
-        ) : (
-          <form className="record-edit-form" onSubmit={onSubmit}>
+        ) : isPurchaseOrder && !poEditable ? (
+          <div className="content-view-body">
+            <p className="muted">
+              {t('edit.poNotDraft', {
+                defaultValue:
+                  'Only DRAFT purchase orders can be edited here. Status: {{status}}.',
+                status: poStatus || '—',
+              })}
+            </p>
+            <footer className="content-view-footer" style={{ marginTop: '1rem' }}>
+              <button type="button" className="btn btn-primary" onClick={onClose}>
+                {t('actions.close')}
+              </button>
+            </footer>
+          </div>
+        ) : isTask ? (
+          <form className="record-edit-form" onSubmit={onSubmitTask}>
             <div className="record-view-identity record-edit-identity">
               <label className="record-edit-name-label" htmlFor="record-edit-name">
                 <span className="sr-only">
@@ -396,6 +567,77 @@ export default function RecordEditModal({
                   }
                 />
               </div>
+            </div>
+
+            <footer className="content-view-footer">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={saving}
+                onClick={onClose}
+              >
+                {t('actions.cancel')}
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={loading || saving}>
+                {saving
+                  ? t('actions.saving', { defaultValue: 'Saving…' })
+                  : t('actions.save', { defaultValue: 'Save' })}
+              </button>
+            </footer>
+          </form>
+        ) : (
+          <form className="record-edit-form" onSubmit={onSubmitMaster}>
+            <div className="record-view-identity record-edit-identity">
+              <label className="record-edit-name-label" htmlFor="record-edit-name">
+                <span className="sr-only">
+                  {t('view.fields.name', { defaultValue: 'Name' })}
+                </span>
+                <input
+                  id="record-edit-name"
+                  name="name"
+                  className="record-edit-name-input content-view-title"
+                  value={form.name || ''}
+                  onChange={onChange}
+                  required
+                  disabled={loading || saving}
+                  placeholder={t('view.untitled', { defaultValue: 'Untitled' })}
+                  aria-labelledby="record-edit-title"
+                />
+                <span id="record-edit-title" className="sr-only">
+                  {t('actions.edit')} {form.name || crumbRes}
+                </span>
+              </label>
+              {statusVal ? (
+                <span className={statusBadgeClass(statusVal)} aria-hidden="true">
+                  {statusVal}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="content-view-body">
+              {loading && <p className="muted">{t('actions.loading')}</p>}
+              {error && <div className="banner-error">{error}</div>}
+
+              <div className="form-grid record-edit-fields">
+                <MasterEntityFields
+                  spec={fieldsSpecForRender}
+                  form={form}
+                  onChange={onChange}
+                  disabled={loading || saving}
+                  showDescription
+                />
+              </div>
+
+              {isPurchaseOrder ? (
+                <div style={{ marginTop: '1rem' }}>
+                  <DocumentLinesEditor
+                    lines={lines}
+                    onChange={setLines}
+                    forChannel="purchase"
+                    disabled={loading || saving}
+                  />
+                </div>
+              ) : null}
             </div>
 
             <footer className="content-view-footer">

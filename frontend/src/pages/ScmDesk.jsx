@@ -245,9 +245,27 @@ export default function ScmDesk({ desk = 'buyers' }) {
     updateViewingRecord,
   } = useRecordView({
     modalEdit: isBuyers,
-    canModalEdit: ({ resource }) => resource === 'Vendor',
-    onSaved: () => {
+    canModalEdit: ({ resource, record }) => {
+      if (resource === 'Vendor' || resource === 'CatalogueItem') return true
+      if (resource === 'PurchaseOrder') {
+        const st = record?.poStatus || record?.status
+        return st === 'DRAFT'
+      }
+      return false
+    },
+    onSaved: (updated) => {
       loadAllRef.current().catch(() => {})
+      // Keep buyers PO detail chrome in sync when modal edit saved a DRAFT PO
+      if (
+        updated?.id != null &&
+        (updated.poStatus != null || Array.isArray(updated.lines))
+      ) {
+        setSelectedPo((prev) =>
+          prev && String(prev.id) === String(updated.id)
+            ? { ...prev, ...updated }
+            : prev,
+        )
+      }
     },
     getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
     getFooterExtra: (ctx) => getFooterExtraRef.current?.(ctx) ?? null,

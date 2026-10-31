@@ -110,7 +110,9 @@ export default function useRecordView(options = {}) {
             : undefined
         }
         editPath={
-          useModalEdit
+          // modalEdit desks: Edit only via modal when canModalEdit; otherwise hide Edit
+          // (e.g. issued PO). Non-modal desks keep the domain-page Edit link.
+          useModalEdit || modalEdit
             ? undefined
             : viewing?.record?.id != null
               ? withReturnTo(
@@ -130,8 +132,15 @@ export default function useRecordView(options = {}) {
           resource={editing?.resource}
           recordId={editing?.record?.id}
           seed={editing?.record}
-          onSaved={() => {
-            if (typeof onSaved === 'function') onSaved()
+          onSaved={(updated) => {
+            if (updated) {
+              setViewing((prev) =>
+                prev && String(prev.record?.id) === String(updated.id)
+                  ? { ...prev, record: { ...prev.record, ...updated } }
+                  : prev,
+              )
+            }
+            if (typeof onSaved === 'function') onSaved(updated)
           }}
         />
       )}
