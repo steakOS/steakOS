@@ -29,8 +29,8 @@ buildscript {
 }
 
 // Product SemVer (VERSIONS.md V6): 0.x until SBM GA → 1.0.0. Source of V for /api/version.
-// 0.2.2 = Observability Phase 0–2 (health/metrics + Umbrel Kuma/Grafana)
-version = "0.2.2"
+// 0.2.3 = UI 2.0 (ADR-050 / PDR-034 Waves A–D)
+version = "0.2.3"
 group = "steakos"
 
 apply plugin:"eclipse"
