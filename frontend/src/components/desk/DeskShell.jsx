@@ -47,19 +47,12 @@ export default function DeskShell({
 }) {
   const { t } = useTranslation(['common', 'desks'])
   const single = layout === 'single'
+  // Never paint an empty white detail column — only mount col2 when a row is selected
+  // (Buyers layout=single never shows col2). emptyTitle/emptyBody kept for API compat.
 
   const createLabel =
     newLabel ||
     t('desk.new', { ns: 'common', defaultValue: t('actions.new', { ns: 'common', defaultValue: 'New' }) })
-  const emptyHeading =
-    emptyTitle ||
-    t('desk.emptyTitle', { ns: 'common', defaultValue: 'Select an item' })
-  const emptyText =
-    emptyBody ||
-    t('desk.emptyBody', {
-      ns: 'common',
-      defaultValue: 'Choose a row from the list to see details.',
-    })
 
   const helpAttrs = {}
   if (helpContext && typeof helpContext === 'object') {
@@ -72,7 +65,9 @@ export default function DeskShell({
   }
 
   const showTabs = Array.isArray(tabs) && tabs.length > 0
-  const sheetOpen = !single && Boolean(narrowSheetOpen && hasSelection)
+  const showCol2 = !single && Boolean(hasSelection)
+  const sheetOpen = showCol2 && Boolean(narrowSheetOpen)
+  const fullWidthList = single || !showCol2
 
   return (
     <div className={`desk-shell-root ${className}`.trim()} {...helpAttrs}>
@@ -117,7 +112,7 @@ export default function DeskShell({
       )}
 
       <div
-        className={`desk-shell${single ? ' desk-shell--single' : ''}${sheetOpen ? ' desk-shell-sheet-open' : ''}`}
+        className={`desk-shell${fullWidthList ? ' desk-shell--single' : ''}${sheetOpen ? ' desk-shell-sheet-open' : ''}`}
       >
         <div className="desk-shell-col1">
           {typeof onToggleNew === 'function' && newExpanded && (
@@ -144,7 +139,7 @@ export default function DeskShell({
           <div className="desk-shell-list">{list}</div>
         </div>
 
-        {!single && (
+        {showCol2 && (
           <div
             className={`desk-shell-col2${sheetOpen ? ' desk-shell-sheet' : ''}`}
             aria-hidden={false}
@@ -163,23 +158,16 @@ export default function DeskShell({
               </div>
             )}
 
-            {processSlot && hasSelection && (
+            {processSlot && (
               <div className="desk-shell-process">{processSlot}</div>
             )}
 
-            {!hasSelection ? (
-              <div className="desk-detail-empty card" role="status">
-                <p className="desk-detail-empty-title">{emptyHeading}</p>
-                <p className="muted desk-detail-empty-body">{emptyText}</p>
-              </div>
-            ) : (
-              <div className="desk-shell-detail">
-                {detail}
-                {detailFooter && (
-                  <footer className="desk-detail-footer">{detailFooter}</footer>
-                )}
-              </div>
-            )}
+            <div className="desk-shell-detail">
+              {detail}
+              {detailFooter && (
+                <footer className="desk-detail-footer">{detailFooter}</footer>
+              )}
+            </div>
           </div>
         )}
       </div>

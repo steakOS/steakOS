@@ -2670,7 +2670,7 @@ table.data tbody tr.row-selected td:last-child {
   max-width: 100%;
 }
 
-/* Buyers (and similar): full-width list; detail via modals */
+/* Full-width list when layout=single OR no row selected (no empty white detail column) */
 .desk-shell--single {
   grid-template-columns: 1fr;
 }
