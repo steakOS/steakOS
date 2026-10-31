@@ -939,8 +939,9 @@ export default function AppShell() {
           </div>
         </header>
         <main className="content">
-          {/* Domain master lists show Resource + group + (N records) in-page — no path crumb. */}
-          {!/^\/domains(\/|$)/.test(location.pathname) && (
+          {/* Domain master lists + Buyers desk: no path crumb (title/chrome in-page). */}
+          {!/^\/domains(\/|$)/.test(location.pathname) &&
+            !/^\/scm\/buyers(\/|$)/.test(location.pathname) && (
           <nav className="app-breadcrumb" aria-label="Breadcrumb">
             {(() => {
               const parts = location.pathname.split('/').filter(Boolean)
