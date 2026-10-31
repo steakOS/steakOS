@@ -104,7 +104,8 @@ compileJava.options.release = 17
 // GroovyCompile runs in a forked worker; give it enough heap on small machines
 tasks.withType(GroovyCompile).configureEach {
     groovyOptions.fork = true
-    groovyOptions.forkOptions.memoryMaximumSize = '2g'
+    // Cap below earlyoom 10%-avail threshold on 8Gi lab hosts (2g workers get SIGTERM).
+    groovyOptions.forkOptions.memoryMaximumSize = '768m'
 }
 
 tasks.withType(Test).configureEach {

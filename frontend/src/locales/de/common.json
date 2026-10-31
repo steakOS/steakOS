@@ -280,6 +280,11 @@
       "title": "Kein Firmenzugriff",
       "body": "Sie dürfen diese Firma nicht nutzen. Wählen Sie in den Einstellungen eine andere aktive Firma.",
       "action": "Einstellungen öffnen"
+    },
+    "documentChainLocked": {
+      "title": "Durch nachgelagertes Dokument gesperrt",
+      "body": "Ein späteres Dokument in der Prozesskette ist festgeschrieben. Rollen Sie dieses zuerst zurück (stornieren, umkehren, Unmatch oder Wareneingang rückgängig), und bearbeiten Sie dann erneut.",
+      "action": "Verstanden"
     }
   },
   "pages": {

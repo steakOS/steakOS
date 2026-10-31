@@ -33,6 +33,7 @@ class SalesOrderService {
     steakos.configuration.CompanyCurrencyService companyCurrencyService
     steakos.configuration.CompanyTaxService companyTaxService
     steakos.configuration.PartnerLocaleService partnerLocaleService
+    steakos.document.DocumentChainLockService documentChainLockService
 
     @Transactional
     SalesOrder createOrder(String npubOwner, Map fields) {
@@ -105,6 +106,7 @@ class SalesOrderService {
     @Transactional
     SalesOrder setLines(Long orderId, String npubOwner, List lineMaps) {
         SalesOrder order = load(orderId, npubOwner)
+        documentChainLockService?.assertUnlocked('SalesOrder', orderId, npubOwner)
         assertDraft(order)
         replaceLines(order, lineMaps ?: [])
         recomputeTotals(order)
@@ -167,8 +169,20 @@ class SalesOrderService {
     SalesOrder cancelOrder(Long orderId, String npubOwner) {
         SalesOrder order = load(orderId, npubOwner)
         if (order.orderStatus == 'CANCELLED') return order
+        documentChainLockService?.assertUnlocked('SalesOrder', orderId, npubOwner)
         if (order.financeInvoiceId) {
-            throw new IllegalStateException('cancel via Finance void when invoice exists (manual for now)')
+            Invoice linked = Invoice.get(order.financeInvoiceId)
+            if (linked && linked.npubOwner == npubOwner && linked.invoiceStatus != 'VOID') {
+                throw new steakos.document.DocumentChainLockedException(
+                        "Cancel blocked: invoice ${linked.invoiceNumber ?: linked.id} is ${linked.invoiceStatus}",
+                        [[
+                                 downstreamType: 'Invoice',
+                                 downstreamId  : linked.id,
+                                 status        : linked.invoiceStatus,
+                                 message       : "Invoice ${linked.invoiceNumber ?: linked.id} is ${linked.invoiceStatus}",
+                                 unlockHint    : 'Void the invoice in Finance before cancelling the order'
+                         ]])
+            }
         }
         order.orderStatus = 'CANCELLED'
         order.status = 'CANCELLED'

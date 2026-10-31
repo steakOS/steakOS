@@ -42,6 +42,7 @@ class DomainRegistryService {
     steakos.catalogue.CatalogueService catalogueService
     steakos.asset.AssetBasicsService assetBasicsService
     steakos.configuration.CompanyCurrencyService companyCurrencyService
+    steakos.document.DocumentChainLockService documentChainLockService
 
     private Map<String, Class> cache
 
@@ -459,6 +460,7 @@ class DomainRegistryService {
         if (!instance) {
             return null
         }
+        documentChainLockService?.assertDomainUnlocked(domainClass, id, activeNpub)
         Map safeBody = body != null ? new LinkedHashMap(body) : [:]
         rejectForeignNpubClaim(safeBody, activeNpub)
         // Never reassign tenant via body
@@ -723,6 +725,7 @@ class DomainRegistryService {
         if (!instance) {
             return false
         }
+        documentChainLockService?.assertDomainUnlocked(domainClass, id, activeNpub)
         try {
             instance.delete(flush: true)
             return true

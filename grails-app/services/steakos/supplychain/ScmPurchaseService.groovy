@@ -38,6 +38,7 @@ class ScmPurchaseService {
     steakos.configuration.CompanyCurrencyService companyCurrencyService
     steakos.configuration.PartnerLocaleService partnerLocaleService
     steakos.configuration.CompanyTaxService companyTaxService
+    steakos.document.DocumentChainLockService documentChainLockService
 
     @Transactional
     PurchaseOrder createPurchaseOrder(String npubOwner, Map fields) {
@@ -70,6 +71,7 @@ class ScmPurchaseService {
     @Transactional
     PurchaseOrder setLines(Long poId, String npubOwner, List lineMaps) {
         PurchaseOrder po = load(poId, npubOwner)
+        documentChainLockService?.assertUnlocked('PurchaseOrder', poId, npubOwner)
         assertEditable(po)
         replaceLines(po, lineMaps ?: [])
         recomputeTotals(po)
@@ -253,11 +255,23 @@ class ScmPurchaseService {
     PurchaseOrder cancelPurchaseOrder(Long poId, String npubOwner) {
         PurchaseOrder po = load(poId, npubOwner)
         if (po.poStatus == 'CANCELLED') return po
+        documentChainLockService?.assertUnlocked('PurchaseOrder', poId, npubOwner)
         if (po.financePayableId) {
-            throw new IllegalStateException('cancel via Finance void when payable exists (manual for now)')
+            Payable linked = Payable.get(po.financePayableId)
+            if (linked && linked.npubOwner == npubOwner && linked.payableStatus != 'VOID') {
+                throw new steakos.document.DocumentChainLockedException(
+                        "Cancel blocked: payable ${linked.id} is ${linked.payableStatus}",
+                        [[
+                                 downstreamType: 'Payable',
+                                 downstreamId  : linked.id,
+                                 status        : linked.payableStatus,
+                                 message       : "Payable ${linked.id} is ${linked.payableStatus}",
+                                 unlockHint    : 'Void the payable in Finance before cancelling the PO'
+                         ]])
+            }
         }
         if (po.poStatus in ['PART_RECEIVED', 'RECEIVED']) {
-            throw new IllegalStateException('cannot cancel after receipt')
+            throw new IllegalStateException('cannot cancel after receipt — reverse stock / un-receive first')
         }
         po.poStatus = 'CANCELLED'
         po.status = 'CANCELLED'

@@ -280,6 +280,11 @@
       "title": "Company access denied",
       "body": "You cannot use this company. Pick another active company in Settings.",
       "action": "Open settings"
+    },
+    "documentChainLocked": {
+      "title": "Locked by a downstream document",
+      "body": "A later document in the process chain is committed. Roll that document back first (void, reverse, unmatch, or un-receive), then edit again.",
+      "action": "Got it"
     }
   },
   "pages": {

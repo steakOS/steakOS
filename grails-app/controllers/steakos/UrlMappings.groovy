@@ -241,6 +241,7 @@ class UrlMappings {
         "/api/finance/match/$id/confirm"(controller: 'financeMatchApi', action: 'confirm', method: 'POST')
         "/api/finance/match/$id/reject"(controller: 'financeMatchApi', action: 'reject', method: 'POST')
         "/api/finance/match/$id/cancel"(controller: 'financeMatchApi', action: 'cancel', method: 'POST')
+        "/api/finance/match/$id/unmatch"(controller: 'financeMatchApi', action: 'unmatch', method: 'POST')
 
         // Finance ops F-S3–F-S6 (treasury, AP, plan, tax, payroll stub, control)
         "/api/finance/treasury/seed"(controller: 'financeOpsApi', action: 'treasurySeed', method: 'POST')

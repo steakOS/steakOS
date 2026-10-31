@@ -18,6 +18,7 @@ package steakos.finance
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.configuration.TenantMoneyService
+import steakos.sales.SalesOrder
 
 /**
  * Revenue / invoicing / AR (APQC 9.2, F-S2).
@@ -413,6 +414,15 @@ class FinanceRevenueService {
         inv.status = 'VOID'
         inv.settledAt = null
         inv.save(failOnError: true, flush: true)
+
+        // ADR-049 L9 — keep SalesOrder CONFIRMED; clear link so a new DRAFT can be created later
+        SalesOrder linked = SalesOrder.findByNpubOwnerAndFinanceInvoiceId(inv.npubOwner, inv.id)
+        if (linked) {
+            linked.financeInvoiceId = null
+            linked.save(failOnError: true, flush: true)
+            log.info('Cleared financeInvoiceId on order {} after voiding invoice {}', linked.orderNumber, inv.id)
+        }
+
         return inv
     }
 

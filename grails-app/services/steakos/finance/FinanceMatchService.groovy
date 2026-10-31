@@ -317,11 +317,37 @@ class FinanceMatchService {
     ThreeWayMatch cancel(String npubOwner, Long matchId) {
         ThreeWayMatch m = load(matchId, npubOwner)
         if (m.matchStatus == 'CONFIRMED') {
-            throw new IllegalStateException('cannot cancel CONFIRMED match')
+            throw new IllegalStateException('cannot cancel CONFIRMED match — use unmatch()')
         }
         m.matchStatus = 'CANCELLED'
         m.status = 'CANCELLED'
         m.save(failOnError: true, flush: true)
+        return m
+    }
+
+    /**
+     * ADR-049 P4 — compensating rollback for a CONFIRMED three-way match.
+     * Clears the lock on PO / receipt / payable without deleting history.
+     */
+    @Transactional
+    ThreeWayMatch unmatch(String npubOwner, Long matchId, Map fields = [:]) {
+        ThreeWayMatch m = load(matchId, npubOwner)
+        if (m.matchStatus == 'CANCELLED') {
+            return m
+        }
+        if (m.matchStatus != 'CONFIRMED') {
+            throw new IllegalStateException("unmatch only for CONFIRMED matches (status=${m.matchStatus})")
+        }
+        m.matchStatus = 'CANCELLED'
+        m.status = 'CANCELLED'
+        if (fields?.description) {
+            m.description = ((m.description ? m.description + '\n' : '') +
+                    "Unmatched: ${fields.description}").toString()
+        } else if (!m.description) {
+            m.description = 'Unmatched (ADR-049 compensating rollback)'
+        }
+        m.save(failOnError: true, flush: true)
+        log.info('three-way match unmatched id={}', m.id)
         return m
     }
 

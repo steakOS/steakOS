@@ -39,7 +39,8 @@ export default function ErrorDialog({ error, onClose, title = 'Request failed', 
 
   const code = error.code || error.errorCode || error.status || 'ERROR'
   const message = error.message || error.error || String(error)
-  const detail = error.detail || null
+  const unlockHint = error.unlockHint || error.body?.unlockHint || null
+  const detail = unlockHint || error.detail || null
   const stack = error.stackTrace || error.stack || null
   const status = error.status || null
 
@@ -57,7 +58,8 @@ export default function ErrorDialog({ error, onClose, title = 'Request failed', 
       `code: ${code}`,
       status != null ? `http: ${status}` : null,
       `message: ${message}`,
-      detail ? `detail: ${detail}` : null,
+      unlockHint ? `unlockHint: ${unlockHint}` : null,
+      detail && detail !== unlockHint ? `detail: ${detail}` : null,
       stack ? `\n${stack}` : null,
     ]
       .filter(Boolean)

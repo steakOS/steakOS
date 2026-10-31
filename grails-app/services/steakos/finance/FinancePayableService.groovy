@@ -18,6 +18,7 @@ package steakos.finance
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.configuration.TenantMoneyService
+import steakos.procurement.PurchaseOrder
 
 /**
  * Simple AP (APQC 9.6 subset, F-S4).
@@ -134,6 +135,15 @@ class FinancePayableService {
         p.payableStatus = 'VOID'
         p.status = 'VOID'
         p.save(failOnError: true, flush: true)
+
+        // ADR-049 L10 — keep PO CONFIRMED; clear payable link after void
+        PurchaseOrder linked = PurchaseOrder.findByNpubOwnerAndFinancePayableId(p.npubOwner, p.id)
+        if (linked) {
+            linked.financePayableId = null
+            linked.save(failOnError: true, flush: true)
+            log.info('Cleared financePayableId on PO {} after voiding payable {}', linked.poNumber, p.id)
+        }
+
         return p
     }
 

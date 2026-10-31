@@ -242,4 +242,25 @@ class FinanceMatchServiceSpec extends Specification implements DataTest {
         steakos.configuration.AdvancedRouteCatalog.isAdvancedPath('/api/finance/match/candidates')
         steakos.configuration.AdvancedRouteCatalog.isAdvancedPath('/finance/match')
     }
+
+    def "unmatch rolls back CONFIRMED match; cancel rejects CONFIRMED"() {
+        given:
+        Map f = fixture('npub-um')
+        ThreeWayMatch m = service.propose('npub-um', [purchaseOrderId: f.po.id])
+        service.confirm('npub-um', m.id)
+
+        when:
+        service.cancel('npub-um', m.id)
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        ThreeWayMatch rolled = service.unmatch('npub-um', m.id, [description: 'test rollback'])
+
+        then:
+        rolled.matchStatus == 'CANCELLED'
+        ThreeWayMatch.get(m.id).matchStatus == 'CANCELLED'
+        ThreeWayMatch.get(m.id).description.contains('Unmatched')
+    }
 }

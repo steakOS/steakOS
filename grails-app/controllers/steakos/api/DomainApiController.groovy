@@ -170,8 +170,12 @@ class DomainApiController {
                 return
             }
             render(domainRegistryService.toMap(row) as JSON)
+        } catch (steakos.document.DocumentChainLockedException e) {
+            renderApiError(409, steakos.document.DocumentChainLockedException.CODE, e, e.reasons)
         } catch (IllegalArgumentException e) {
             renderApiError(422, 'VALIDATION_ERROR', e)
+        } catch (IllegalStateException e) {
+            renderApiError(409, 'CONSTRAINT_VIOLATION', e)
         } catch (Exception e) {
             renderApiError(400, 'DOMAIN_UPDATE_FAILED', e)
         }
@@ -190,6 +194,8 @@ class DomainApiController {
                 return
             }
             render(status: 204, text: '')
+        } catch (steakos.document.DocumentChainLockedException e) {
+            renderApiError(409, steakos.document.DocumentChainLockedException.CODE, e, e.reasons)
         } catch (IllegalStateException | IllegalArgumentException e) {
             renderApiError(409, 'CONSTRAINT_VIOLATION', e)
         } catch (DataIntegrityViolationException | ConstraintViolationException e) {
@@ -223,7 +229,7 @@ class DomainApiController {
         return domainClass
     }
 
-    private void renderApiError(int status, String code, Throwable e) {
+    private void renderApiError(int status, String code, Throwable e, List reasons = null) {
         Throwable root = rootCause(e)
         String message = friendlyMessage(code, root)
         String detail = root?.message ?: e?.message
@@ -233,6 +239,10 @@ class DomainApiController {
                 error : message,
                 detail: detail
         ]
+        if (reasons) {
+            body.reasons = reasons
+            body.unlockHint = reasons.collect { it.unlockHint ?: it.message }.join(' · ')
+        }
         if (Environment.current == Environment.DEVELOPMENT) {
             body.stackTrace = stackString(e)
         }
@@ -242,6 +252,9 @@ class DomainApiController {
 
     private static String friendlyMessage(String code, Throwable root) {
         String raw = root?.message ?: ''
+        if (code == steakos.document.DocumentChainLockedException.CODE) {
+            return raw ?: 'This record is locked by a downstream document. Roll back that document first.'
+        }
         if (code == 'CONSTRAINT_VIOLATION' || raw.toLowerCase().contains('foreign key')
                 || raw.toLowerCase().contains('still referenced')) {
             String table = null

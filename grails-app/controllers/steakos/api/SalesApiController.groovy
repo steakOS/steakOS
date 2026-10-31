@@ -219,6 +219,8 @@ class SalesApiController {
     private void wrap(Closure c) {
         try {
             render(c.call(resolveNpub(params)) as JSON)
+        } catch (steakos.document.DocumentChainLockedException e) {
+            renderChainLocked(e)
         } catch (IllegalArgumentException | IllegalStateException e) {
             render(status: 400, text: ([error: e.message] as JSON))
         }
@@ -234,9 +236,22 @@ class SalesApiController {
             } else {
                 render(result as JSON)
             }
+        } catch (steakos.document.DocumentChainLockedException e) {
+            renderChainLocked(e)
         } catch (IllegalArgumentException | IllegalStateException e) {
             render(status: 400, text: ([error: e.message] as JSON))
         }
+    }
+
+    private void renderChainLocked(steakos.document.DocumentChainLockedException e) {
+        Map payload = [
+                code      : steakos.document.DocumentChainLockedException.CODE,
+                error     : e.message,
+                detail    : e.message,
+                reasons   : e.reasons,
+                unlockHint: e.reasons?.collect { it.unlockHint ?: it.message }?.join(' · ')
+        ]
+        render(status: 409, text: (payload as JSON))
     }
 
     private String resolveNpub(Object source) {

@@ -88,6 +88,11 @@ export const ERROR_RECOVERY = {
     bodyKey: 'errors.companyForbidden.body',
     actions: [{ labelKey: 'errors.companyForbidden.action', href: '/settings' }],
   },
+  DOCUMENT_CHAIN_LOCKED: {
+    titleKey: 'errors.documentChainLocked.title',
+    bodyKey: 'errors.documentChainLocked.body',
+    actions: [{ labelKey: 'errors.documentChainLocked.action', href: null }],
+  },
 }
 
 /**

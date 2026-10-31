@@ -30,6 +30,7 @@ class SalesQuoteService {
     steakos.configuration.CompanyCurrencyService companyCurrencyService
     steakos.configuration.CompanyTaxService companyTaxService
     steakos.configuration.PartnerLocaleService partnerLocaleService
+    steakos.document.DocumentChainLockService documentChainLockService
 
     @Transactional
     CustomerQuote createQuote(String npubOwner, Map fields) {
@@ -78,6 +79,7 @@ class SalesQuoteService {
     @Transactional
     CustomerQuote setLines(Long quoteId, String npubOwner, List lineMaps) {
         CustomerQuote q = load(quoteId, npubOwner)
+        documentChainLockService?.assertUnlocked('CustomerQuote', quoteId, npubOwner)
         assertEditable(q)
         replaceLines(q, lineMaps ?: [])
         recomputeTotals(q)

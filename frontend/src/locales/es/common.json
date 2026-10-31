@@ -280,6 +280,11 @@
       "title": "Acceso a empresa denegado",
       "body": "No puede usar esta empresa. Elija otra empresa activa en Ajustes.",
       "action": "Abrir ajustes"
+    },
+    "documentChainLocked": {
+      "title": "Bloqueado por un documento posterior",
+      "body": "Un documento posterior de la cadena de proceso está confirmado. Revierta ese documento primero (anular, revertir, deshacer match o deshacer recepción) y luego edite de nuevo.",
+      "action": "Entendido"
     }
   },
   "pages": {

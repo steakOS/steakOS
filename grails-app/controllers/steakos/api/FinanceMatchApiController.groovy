@@ -39,7 +39,8 @@ class FinanceMatchApiController {
             propose   : 'POST',
             confirm   : 'POST',
             reject    : 'POST',
-            cancel    : 'POST'
+            cancel    : 'POST',
+            unmatch   : 'POST'
     ]
 
     FinanceMatchService financeMatchService
@@ -94,6 +95,14 @@ class FinanceMatchApiController {
     def cancel() {
         wrapMutate(200) { String npub, Map body ->
             ThreeWayMatch m = financeMatchService.cancel(npub, params.long('id'))
+            financeMatchService.toMap(m)
+        }
+    }
+
+    /** POST /api/finance/match/$id/unmatch — ADR-049 P4 compensating rollback for CONFIRMED */
+    def unmatch() {
+        wrapMutate(200) { String npub, Map body ->
+            ThreeWayMatch m = financeMatchService.unmatch(npub, params.long('id'), body)
             financeMatchService.toMap(m)
         }
     }

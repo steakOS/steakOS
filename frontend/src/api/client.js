@@ -17,7 +17,7 @@
  * Structured API error for UI dialogs (code, message, detail, stack).
  */
 export class ApiError extends Error {
-  constructor({ message, code, status, detail, stackTrace, body } = {}) {
+  constructor({ message, code, status, detail, stackTrace, body, unlockHint, reasons } = {}) {
     super(message || 'Request failed')
     this.name = 'ApiError'
     this.code = code || 'REQUEST_FAILED'
@@ -25,6 +25,8 @@ export class ApiError extends Error {
     this.detail = detail || null
     this.stackTrace = stackTrace || null
     this.body = body || null
+    this.unlockHint = unlockHint || body?.unlockHint || null
+    this.reasons = reasons || body?.reasons || null
   }
 }
 
@@ -157,6 +159,8 @@ export async function api(path, options = {}) {
       detail: data?.detail || null,
       stackTrace: data?.stackTrace || null,
       body: data,
+      unlockHint: data?.unlockHint || null,
+      reasons: data?.reasons || null,
     })
   }
   return data
