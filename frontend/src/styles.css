@@ -2692,6 +2692,12 @@ table.data tbody tr.row-selected td:last-child {
   align-items: center;
 }
 
+/* One height for every pill in the desk tab row (tabs + New) */
+.desk-shell-tabs > .btn {
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
 .desk-new-collapsed {
   width: 100%;
   margin-bottom: 0.75rem;

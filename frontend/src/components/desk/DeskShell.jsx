@@ -103,7 +103,7 @@ export default function DeskShell({
                   className="btn btn-secondary desk-new-collapsed desk-new-in-tabs"
                   onClick={onToggleNew}
                 >
-                  <Plus size={16} aria-hidden /> {createLabel}
+                  <Plus size={14} aria-hidden /> {createLabel}
                 </button>
               )}
             </div>
