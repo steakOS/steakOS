@@ -566,7 +566,12 @@
     "subtitle": "Entry Level — physical asset register. Flags for financial depreciation (Finance agents) and required maintenance (attach schedule; later shopfloor/maintenance activities).",
     "register": "Physical assets",
     "registerHint": "Name, tag, location, owner, status. Optional IT link, financial depreciation, and maintenance flags.",
-    "digitalLink": "Open Digital / IT desk →"
+    "digitalLink": "Open Digital / IT desk →",
+    "newAsset": "New asset",
+    "createAsset": "Create asset",
+    "tabs": {
+      "assets": "Assets"
+    }
   },
   "banking": {
     "label": "Banking"

@@ -35,6 +35,7 @@ export const MASTER_FORM_KEYS = [
   'Competitor',
   'StrategyItem',
   'DevelopmentProject',
+  'PhysicalAsset',
 ]
 
 function currentPeriodYyyyMm() {
@@ -848,6 +849,92 @@ const developmentProjectSpec = {
   ],
 }
 
+/** AssetBasics — physical plant / vehicles / tools (G4). */
+const physicalAssetSpec = {
+  resource: 'PhysicalAsset',
+  packages: ['asset'],
+  empty: () => ({
+    name: '',
+    description: '',
+    assetTag: '',
+    location: '',
+    ownerName: '',
+    status: 'DRAFT',
+    itManaged: false,
+    configItemId: '',
+    financialDepreciation: false,
+    requiresMaintenance: false,
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'assetTag', label: 'Asset tag', type: 'text', placeholder: 'Inventory / plate / serial' },
+    { name: 'location', label: 'Location', type: 'text' },
+    { name: 'ownerName', label: 'Owner', type: 'text', placeholder: 'Person or org responsible' },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'DRAFT', label: 'Draft' },
+        { value: 'IN_SERVICE', label: 'In service' },
+        { value: 'MAINTENANCE', label: 'Maintenance' },
+        { value: 'RETIRED', label: 'Retired' },
+      ],
+    },
+    { name: 'itManaged', label: 'IT-managed (link ConfigItem)', type: 'checkbox' },
+    {
+      name: 'configItemId',
+      label: 'Config item id',
+      type: 'number',
+      inputMode: 'numeric',
+      placeholder: 'Optional when IT-managed',
+    },
+    { name: 'financialDepreciation', label: 'Financial depreciation', type: 'checkbox' },
+    { name: 'requiresMaintenance', label: 'Requires maintenance', type: 'checkbox' },
+  ],
+  toBody: (f) => {
+    const rawId = f.configItemId
+    let configItemId = null
+    if (rawId !== '' && rawId != null) {
+      const n = Number(rawId)
+      configItemId = Number.isFinite(n) ? n : null
+    }
+    return {
+      name: f.name,
+      description: f.description || null,
+      assetTag: f.assetTag || null,
+      location: f.location || null,
+      ownerName: f.ownerName || null,
+      status: f.status || 'DRAFT',
+      itManaged: !!f.itManaged,
+      configItemId,
+      financialDepreciation: !!f.financialDepreciation,
+      requiresMaintenance: !!f.requiresMaintenance,
+    }
+  },
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    assetTag: row.assetTag || '',
+    location: row.location || '',
+    ownerName: row.ownerName || '',
+    status: row.status || 'DRAFT',
+    itManaged: row.itManaged === true || row.itManaged === 'true',
+    configItemId: row.configItemId != null ? String(row.configItemId) : '',
+    financialDepreciation:
+      row.financialDepreciation === true || row.financialDepreciation === 'true',
+    requiresMaintenance: row.requiresMaintenance === true || row.requiresMaintenance === 'true',
+  }),
+  listColumns: [
+    { key: 'assetTag', label: 'Tag' },
+    { key: 'location', label: 'Location' },
+    { key: 'status', label: 'Status' },
+  ],
+}
+
 const SPECS = {
   Customer: customerSpec,
   Vendor: vendorSpec,
@@ -862,6 +949,7 @@ const SPECS = {
   Competitor: competitorSpec,
   StrategyItem: strategyItemSpec,
   DevelopmentProject: developmentProjectSpec,
+  PhysicalAsset: physicalAssetSpec,
 }
 
 /** @returns {typeof customerSpec | null} */

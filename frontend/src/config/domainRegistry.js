@@ -254,7 +254,14 @@ export const CREATE_META = {
     deskLabel: 'Strategy desk',
   },
   'development/DevelopmentProject': { entityClass: 'A', createMode: 'deskRedirect', interaction: 'deskShell', deskPath: '/development', defaultTab: 'projects', deskLabel: 'Development desk' },
-  'asset/PhysicalAsset': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
+  'asset/PhysicalAsset': {
+    entityClass: 'A',
+    createMode: 'deskRedirect',
+    interaction: 'deskShell',
+    deskPath: '/assets',
+    defaultTab: 'assets',
+    deskLabel: 'Assets desk',
+  },
 
   // —— human ——
   'human/Candidate': {

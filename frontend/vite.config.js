@@ -45,7 +45,16 @@ export default defineConfig({
       '/login': grailsProxy(),
       '/logout': grailsProxy(),
       '/logoff': grailsProxy(),
-      '/assets': grailsProxy(),
+      // Grails asset-pipeline is /assets/<file>; exact /assets is the SPA Asset desk.
+      '/assets': {
+        ...grailsProxy(),
+        bypass(req) {
+          const path = req.url?.split('?')[0]
+          if (path === '/assets' || path === '/assets/') {
+            return '/index.html'
+          }
+        },
+      },
       '/app': grailsProxy(),
     },
   },
