@@ -206,23 +206,30 @@ class AsClaimsService {
         listPage(npubOwner, status, 200, 0).items as List<Claims>
     }
 
+    static final List CLAIM_SORT_FIELDS = [
+            'id', 'name', 'claimNumber', 'claimStatus', 'status',
+            'claimAmountEur', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /**
-     * Paged claims with optional claimStatus filter. Returns [items, total].
+     * Paged claims with optional claimStatus filter. Returns [items, total, sort, order].
      */
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status) {
-            return [
-                    items: Claims.findAllByNpubOwnerAndClaimStatus(npub, status, opts),
-                    total: Claims.countByNpubOwnerAndClaimStatus(npub, status) as int
-            ]
-        }
-        return [
-                items: Claims.findAllByNpubOwner(npub, opts),
-                total: Claims.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', CLAIM_SORT_FIELDS)
+        List items = Claims.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('claimStatus', status)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Claims.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('claimStatus', status)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

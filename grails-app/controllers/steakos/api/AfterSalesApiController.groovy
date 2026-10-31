@@ -45,13 +45,15 @@ class AfterSalesApiController {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
             boolean activeOnly = params.activeOnly != 'false'
-            Map result = asServiceLevelService.listPage(npub, activeOnly, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = asServiceLevelService.listPage(
+                    npub, activeOnly, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { asServiceLevelService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc']
             )
         }
     }
@@ -79,14 +81,16 @@ class AfterSalesApiController {
     def inquiryList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
             Map result = asInquiryService.listPage(
-                    npub, params.status as String, params.kind as String, page.max as int, page.offset as int)
+                    npub, params.status as String, params.kind as String,
+                    page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { asInquiryService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -146,13 +150,15 @@ class AfterSalesApiController {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
             String cover = (params.status ?: params.coverStatus) as String
-            Map result = asWarrantyService.listPage(npub, cover, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = asWarrantyService.listPage(
+                    npub, cover, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { asWarrantyService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -192,13 +198,15 @@ class AfterSalesApiController {
     def claimList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = asClaimsService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = asClaimsService.listPage(
+                    npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { asClaimsService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -257,13 +265,15 @@ class AfterSalesApiController {
     def rmaList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = asRmaService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = asRmaService.listPage(
+                    npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { asRmaService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }

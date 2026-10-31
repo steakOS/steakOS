@@ -44,6 +44,7 @@ import PendingContentComposer, {
 import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import CustomerSelect from '../components/CustomerSelect'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
@@ -218,10 +219,80 @@ export default function AfterSalesDesk() {
   const [warPage, setWarPage] = useState({ max: 25, offset: 0, total: 0 })
   const [claimPage, setClaimPage] = useState({ max: 25, offset: 0, total: 0 })
   const [rmaPage, setRmaPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [inqSort, setInqSort] = useState('id')
+  const [inqOrder, setInqOrder] = useState('desc')
+  const [warSort, setWarSort] = useState('id')
+  const [warOrder, setWarOrder] = useState('desc')
+  const [claimSort, setClaimSort] = useState('id')
+  const [claimOrder, setClaimOrder] = useState('desc')
+  const [rmaSort, setRmaSort] = useState('id')
+  const [rmaOrder, setRmaOrder] = useState('desc')
   /** Dropdown options (not paged) — max 100 until typeahead. */
   const [customerOptions, setCustomerOptions] = useState([])
   const [levelOptions, setLevelOptions] = useState([])
   const [warrantyOptions, setWarrantyOptions] = useState([])
+
+  const INQ_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'inquiryNumber', label: 'Number' },
+      { value: 'name', label: 'Subject' },
+      { value: 'customerName', label: 'Customer' },
+      { value: 'kind', label: 'Kind' },
+      { value: 'caseStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const WAR_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'warrantyNumber', label: 'Number' },
+      { value: 'customerName', label: 'Customer' },
+      { value: 'productName', label: 'Product' },
+      { value: 'coverStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const CLAIM_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'claimNumber', label: 'Number' },
+      { value: 'claimAmountEur', label: 'EUR' },
+      { value: 'claimStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const RMA_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'rmaNumber', label: 'Number' },
+      { value: 'customerName', label: 'Customer' },
+      { value: 'productName', label: 'Product' },
+      { value: 'rmaStatus', label: 'Status' },
+    ],
+    [],
+  )
+
+  const onInqSortChange = useCallback(({ sort: s, order: o }) => {
+    setInqSort(s || 'id')
+    setInqOrder(o === 'asc' ? 'asc' : 'desc')
+    setInqPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onWarSortChange = useCallback(({ sort: s, order: o }) => {
+    setWarSort(s || 'id')
+    setWarOrder(o === 'asc' ? 'asc' : 'desc')
+    setWarPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onClaimSortChange = useCallback(({ sort: s, order: o }) => {
+    setClaimSort(s || 'id')
+    setClaimOrder(o === 'asc' ? 'asc' : 'desc')
+    setClaimPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onRmaSortChange = useCallback(({ sort: s, order: o }) => {
+    setRmaSort(s || 'id')
+    setRmaOrder(o === 'asc' ? 'asc' : 'desc')
+    setRmaPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
 
   const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
 
@@ -278,11 +349,31 @@ export default function AfterSalesDesk() {
       salesApi.customers.list({ max: 100, offset: 0 }),
       aftersalesApi.serviceLevels.list({ max: levelPage.max, offset: levelPage.offset }),
       aftersalesApi.serviceLevels.list({ max: 100, offset: 0 }),
-      aftersalesApi.inquiries.list({ max: inqPage.max, offset: inqPage.offset }),
-      aftersalesApi.warranties.list({ max: warPage.max, offset: warPage.offset }),
+      aftersalesApi.inquiries.list({
+        max: inqPage.max,
+        offset: inqPage.offset,
+        sort: inqSort,
+        order: inqOrder,
+      }),
+      aftersalesApi.warranties.list({
+        max: warPage.max,
+        offset: warPage.offset,
+        sort: warSort,
+        order: warOrder,
+      }),
       aftersalesApi.warranties.list({ max: 100, offset: 0 }),
-      aftersalesApi.claims.list({ max: claimPage.max, offset: claimPage.offset }),
-      aftersalesApi.rmas.list({ max: rmaPage.max, offset: rmaPage.offset }),
+      aftersalesApi.claims.list({
+        max: claimPage.max,
+        offset: claimPage.offset,
+        sort: claimSort,
+        order: claimOrder,
+      }),
+      aftersalesApi.rmas.list({
+        max: rmaPage.max,
+        offset: rmaPage.offset,
+        sort: rmaSort,
+        order: rmaOrder,
+      }),
       catalogueApi.list({ nature: 'GOODS', activeOnly: true, max: 100, offset: 0 }),
     ])
     const custItems = cust.items || []
@@ -344,12 +435,20 @@ export default function AfterSalesDesk() {
     levelPage.offset,
     inqPage.max,
     inqPage.offset,
+    inqSort,
+    inqOrder,
     warPage.max,
     warPage.offset,
+    warSort,
+    warOrder,
     claimPage.max,
     claimPage.offset,
+    claimSort,
+    claimOrder,
     rmaPage.max,
     rmaPage.offset,
+    rmaSort,
+    rmaOrder,
   ])
 
   loadAllRef.current = loadAll
@@ -1524,6 +1623,10 @@ export default function AfterSalesDesk() {
                     items={warranties}
                     empty="—"
                     onSelect={(w) => openView('service', 'Warranty', w)}
+                    sortFields={WAR_SORT_MENU}
+                    sort={warSort}
+                    order={warOrder}
+                    onSortChange={onWarSortChange}
                     fields={[
                       {
                         id: 'number',
@@ -1556,10 +1659,35 @@ export default function AfterSalesDesk() {
                       <table className="data">
                         <thead>
                           <tr>
-                            <th>{t('wb.number', { ns: 'common' })}</th>
-                            <th>{t('wb.customer', { ns: 'common' })}</th>
-                            <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
-                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <ListSortHeader
+                              field="warrantyNumber"
+                              label={t('wb.number', { ns: 'common' })}
+                              sort={warSort}
+                              order={warOrder}
+                              onSortChange={onWarSortChange}
+                            />
+                            <ListSortHeader
+                              field="customerName"
+                              label={t('wb.customer', { ns: 'common' })}
+                              sort={warSort}
+                              order={warOrder}
+                              onSortChange={onWarSortChange}
+                            />
+                            <ListSortHeader
+                              field="productName"
+                              label={t('wb.product', { ns: 'common' })}
+                              sort={warSort}
+                              order={warOrder}
+                              onSortChange={onWarSortChange}
+                              className="col-priority-low"
+                            />
+                            <ListSortHeader
+                              field="coverStatus"
+                              label={t('wb.status', { ns: 'common' })}
+                              sort={warSort}
+                              order={warOrder}
+                              onSortChange={onWarSortChange}
+                            />
                             <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
@@ -1610,6 +1738,10 @@ export default function AfterSalesDesk() {
                     items={inquiries}
                     empty="—"
                                         onSelect={(i) => openInqView(i)}
+                    sortFields={INQ_SORT_MENU}
+                    sort={inqSort}
+                    order={inqOrder}
+                    onSortChange={onInqSortChange}
                     fields={[
                       {
                         id: 'number',
@@ -1647,12 +1779,43 @@ export default function AfterSalesDesk() {
                       <table className="data">
                         <thead>
                           <tr>
-                            <th>{t('wb.number', { ns: 'common' })}</th>
-                            <th>{t('wb.subject', { ns: 'common' })}</th>
-                            <th>{t('wb.customer', { ns: 'common' })}</th>
-                            <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
+                            <ListSortHeader
+                              field="inquiryNumber"
+                              label={t('wb.number', { ns: 'common' })}
+                              sort={inqSort}
+                              order={inqOrder}
+                              onSortChange={onInqSortChange}
+                            />
+                            <ListSortHeader
+                              field="name"
+                              label={t('wb.subject', { ns: 'common' })}
+                              sort={inqSort}
+                              order={inqOrder}
+                              onSortChange={onInqSortChange}
+                            />
+                            <ListSortHeader
+                              field="customerName"
+                              label={t('wb.customer', { ns: 'common' })}
+                              sort={inqSort}
+                              order={inqOrder}
+                              onSortChange={onInqSortChange}
+                            />
+                            <ListSortHeader
+                              field="kind"
+                              label={t('wb.kind', { ns: 'common' })}
+                              sort={inqSort}
+                              order={inqOrder}
+                              onSortChange={onInqSortChange}
+                              className="col-priority-low"
+                            />
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <ListSortHeader
+                              field="caseStatus"
+                              label={t('wb.status', { ns: 'common' })}
+                              sort={inqSort}
+                              order={inqOrder}
+                              onSortChange={onInqSortChange}
+                            />
                             <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
@@ -1708,6 +1871,10 @@ export default function AfterSalesDesk() {
                     items={claims}
                     empty="—"
                                         onSelect={(c) => openClaimView(c)}
+                    sortFields={CLAIM_SORT_MENU}
+                    sort={claimSort}
+                    order={claimOrder}
+                    onSortChange={onClaimSortChange}
                     fields={[
                       {
                         id: 'number',
@@ -1741,11 +1908,29 @@ export default function AfterSalesDesk() {
                       <table className="data">
                         <thead>
                           <tr>
-                            <th>{t('wb.number', { ns: 'common' })}</th>
+                            <ListSortHeader
+                              field="claimNumber"
+                              label={t('wb.number', { ns: 'common' })}
+                              sort={claimSort}
+                              order={claimOrder}
+                              onSortChange={onClaimSortChange}
+                            />
                             <th>{t('aftersales.warrantiesList')}</th>
-                            <th>EUR</th>
+                            <ListSortHeader
+                              field="claimAmountEur"
+                              label="EUR"
+                              sort={claimSort}
+                              order={claimOrder}
+                              onSortChange={onClaimSortChange}
+                            />
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <ListSortHeader
+                              field="claimStatus"
+                              label={t('wb.status', { ns: 'common' })}
+                              sort={claimSort}
+                              order={claimOrder}
+                              onSortChange={onClaimSortChange}
+                            />
                             <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
@@ -1801,6 +1986,10 @@ export default function AfterSalesDesk() {
                     items={rmas}
                     empty="—"
                                         onSelect={(r) => openRmaView(r)}
+                    sortFields={RMA_SORT_MENU}
+                    sort={rmaSort}
+                    order={rmaOrder}
+                    onSortChange={onRmaSortChange}
                     fields={[
                       {
                         id: 'number',
@@ -1832,11 +2021,36 @@ export default function AfterSalesDesk() {
                       <table className="data">
                         <thead>
                           <tr>
-                            <th>{t('wb.number', { ns: 'common' })}</th>
-                            <th>{t('wb.customer', { ns: 'common' })}</th>
-                            <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
+                            <ListSortHeader
+                              field="rmaNumber"
+                              label={t('wb.number', { ns: 'common' })}
+                              sort={rmaSort}
+                              order={rmaOrder}
+                              onSortChange={onRmaSortChange}
+                            />
+                            <ListSortHeader
+                              field="customerName"
+                              label={t('wb.customer', { ns: 'common' })}
+                              sort={rmaSort}
+                              order={rmaOrder}
+                              onSortChange={onRmaSortChange}
+                            />
+                            <ListSortHeader
+                              field="productName"
+                              label={t('wb.product', { ns: 'common' })}
+                              sort={rmaSort}
+                              order={rmaOrder}
+                              onSortChange={onRmaSortChange}
+                              className="col-priority-low"
+                            />
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                            <th>{t('wb.status', { ns: 'common' })}</th>
+                            <ListSortHeader
+                              field="rmaStatus"
+                              label={t('wb.status', { ns: 'common' })}
+                              sort={rmaSort}
+                              order={rmaOrder}
+                              onSortChange={onRmaSortChange}
+                            />
                             <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>

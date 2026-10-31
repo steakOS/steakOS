@@ -221,23 +221,47 @@ class DelOrderService {
         listOrdersPage(npubOwner, status, 200, 0).items as List<ServiceOrder>
     }
 
+    static final List ORDER_SORT_FIELDS = [
+            'id', 'name', 'orderNumber', 'fulfillStatus', 'status',
+            'amountEur', 'customerName', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /**
-     * Paged service orders with optional fulfillStatus filter. Returns [items, total].
+     * Paged service orders with optional fulfillStatus filter. Returns [items, total, sort, order].
      */
     @Transactional(readOnly = true)
-    Map listOrdersPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listOrdersPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                       Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status) {
-            return [
-                    items: ServiceOrder.findAllByNpubOwnerAndFulfillStatus(npub, status, opts),
-                    total: ServiceOrder.countByNpubOwnerAndFulfillStatus(npub, status) as int
-            ]
-        }
-        return [
-                items: ServiceOrder.findAllByNpubOwner(npub, opts),
-                total: ServiceOrder.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', ORDER_SORT_FIELDS)
+        String term = steakos.api.ListPaging.likeContains(listOpts?.q as String)
+        List items = ServiceOrder.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('fulfillStatus', status)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('orderNumber', term)
+                    ilike('customerName', term)
+                    ilike('description', term)
+                }
+            }
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = ServiceOrder.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('fulfillStatus', status)
+            if (term) {
+                or {
+                    ilike('name', term)
+                    ilike('orderNumber', term)
+                    ilike('customerName', term)
+                    ilike('description', term)
+                }
+            }
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

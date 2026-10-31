@@ -79,14 +79,17 @@ class DeliveryApiController {
             boolean activeOnly = params.activeOnly != 'false'
             // assignees=true|1 → sync from ACTIVE HR employment and return HUMAN resources only
             boolean assigneesOnly = params.assignees in ['true', '1', 'yes'] || params.fromHr in ['true', '1', 'yes']
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
             Map result = delResourceService.listResourcesPage(
-                    npub, activeOnly, page.max as int, page.offset as int, params.q as String, assigneesOnly)
+                    npub, activeOnly, page.max as int, page.offset as int,
+                    params.q as String, assigneesOnly, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { delResourceService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc', q: params.q, assignees: assigneesOnly]
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc',
+                     q: params.q, assignees: assigneesOnly]
             )
         }
     }
@@ -114,13 +117,15 @@ class DeliveryApiController {
     def orderList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = delOrderService.listOrdersPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order, q: params.q]
+            Map result = delOrderService.listOrdersPage(
+                    npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { delOrderService.toMap(it, false) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc', q: params.q]
             )
         }
     }

@@ -153,23 +153,30 @@ class AsRmaService {
         listPage(npubOwner, status, 200, 0).items as List<Rma>
     }
 
+    static final List RMA_SORT_FIELDS = [
+            'id', 'name', 'rmaNumber', 'rmaStatus', 'status',
+            'customerName', 'productName', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /**
-     * Paged RMAs with optional rmaStatus filter. Returns [items, total].
+     * Paged RMAs with optional rmaStatus filter. Returns [items, total, sort, order].
      */
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status) {
-            return [
-                    items: Rma.findAllByNpubOwnerAndRmaStatus(npub, status, opts),
-                    total: Rma.countByNpubOwnerAndRmaStatus(npub, status) as int
-            ]
-        }
-        return [
-                items: Rma.findAllByNpubOwner(npub, opts),
-                total: Rma.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', RMA_SORT_FIELDS)
+        List items = Rma.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('rmaStatus', status)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Rma.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('rmaStatus', status)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

@@ -168,25 +168,34 @@ class AsInquiryService {
         listPage(npubOwner, status, kind, 200, 0).items as List<Inquiry>
     }
 
+    static final List INQUIRY_SORT_FIELDS = [
+            'id', 'name', 'inquiryNumber', 'caseStatus', 'status', 'kind',
+            'customerName', 'priority', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /**
-     * Paged inquiries with optional caseStatus / kind filters. Returns [items, total].
+     * Paged inquiries with optional caseStatus / kind filters. Returns [items, total, sort, order].
      */
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String status = null, String kind = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String status = null, String kind = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', INQUIRY_SORT_FIELDS)
         int limit = Math.max(1, max)
         int off = Math.max(0, offset)
-        List items = Inquiry.createCriteria().list(max: limit, offset: off, sort: 'id', order: 'desc') {
+        List items = Inquiry.createCriteria().list(max: limit, offset: off) {
             eq('npubOwner', npub)
             if (status) eq('caseStatus', status)
             if (kind) eq('kind', kind)
+            steakos.api.ListPaging.applyOrders(delegate, so)
         } as List
         Number total = Inquiry.createCriteria().count {
             eq('npubOwner', npub)
             if (status) eq('caseStatus', status)
             if (kind) eq('kind', kind)
         }
-        [items: items, total: total as int]
+        [items: items, total: total as int, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

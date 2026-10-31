@@ -105,23 +105,30 @@ class AsWarrantyService {
         listPage(npubOwner, coverStatus, 200, 0).items as List<Warranty>
     }
 
+    static final List WARRANTY_SORT_FIELDS = [
+            'id', 'name', 'warrantyNumber', 'coverStatus', 'status',
+            'customerName', 'productName', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /**
-     * Paged warranties with optional coverStatus filter. Returns [items, total].
+     * Paged warranties with optional coverStatus filter. Returns [items, total, sort, order].
      */
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String coverStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String coverStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (coverStatus) {
-            return [
-                    items: Warranty.findAllByNpubOwnerAndCoverStatus(npub, coverStatus, opts),
-                    total: Warranty.countByNpubOwnerAndCoverStatus(npub, coverStatus) as int
-            ]
-        }
-        return [
-                items: Warranty.findAllByNpubOwner(npub, opts),
-                total: Warranty.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', WARRANTY_SORT_FIELDS)
+        List items = Warranty.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (coverStatus) eq('coverStatus', coverStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Warranty.createCriteria().count {
+            eq('npubOwner', npub)
+            if (coverStatus) eq('coverStatus', coverStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

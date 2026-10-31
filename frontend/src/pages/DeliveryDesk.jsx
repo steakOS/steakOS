@@ -49,6 +49,7 @@ import PendingContentComposer, {
 import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import CustomerSelect from '../components/CustomerSelect'
 import ResourceSelect from '../components/ResourceSelect'
 import DeskNewFab from '../components/DeskNewFab'
@@ -192,9 +193,45 @@ export default function DeliveryDesk() {
   const [svcPage, setSvcPage] = useState({ max: 25, offset: 0, total: 0 })
   const [resPage, setResPage] = useState({ max: 25, offset: 0, total: 0 })
   const [orderPage, setOrderPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [orderSort, setOrderSort] = useState('id')
+  const [orderOrder, setOrderOrder] = useState('desc')
+  const [resSort, setResSort] = useState('name')
+  const [resOrder, setResOrder] = useState('asc')
   /** Dropdown options (not paged) — max 100 until typeahead. */
   const [customerOptions, setCustomerOptions] = useState([])
   const [resourceOptions, setResourceOptions] = useState([])
+
+  const ORDER_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'orderNumber', label: 'Number' },
+      { value: 'customerName', label: 'Customer' },
+      { value: 'amountEur', label: 'EUR' },
+      { value: 'fulfillStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const RESOURCE_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'resourceKind', label: 'Kind' },
+      { value: 'status', label: 'Status' },
+    ],
+    [],
+  )
+
+  const onOrderSortChange = useCallback(({ sort: s, order: o }) => {
+    setOrderSort(s || 'id')
+    setOrderOrder(o === 'asc' ? 'asc' : 'desc')
+    setOrderPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+
+  const onResSortChange = useCallback(({ sort: s, order: o }) => {
+    setResSort(s || 'name')
+    setResOrder(o === 'asc' ? 'asc' : 'desc')
+    setResPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
 
   const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
 
@@ -234,10 +271,20 @@ export default function DeliveryDesk() {
         max: svcPage.max,
         offset: svcPage.offset,
       }),
-      deliveryApi.resources.list({ max: resPage.max, offset: resPage.offset }),
+      deliveryApi.resources.list({
+        max: resPage.max,
+        offset: resPage.offset,
+        sort: resSort,
+        order: resOrder,
+      }),
       // Assignee pickers: active employed humans from HR (not arbitrary delivery resources)
       deliveryApi.resources.list({ max: 200, offset: 0, assignees: true }),
-      deliveryApi.orders.list({ max: orderPage.max, offset: orderPage.offset }),
+      deliveryApi.orders.list({
+        max: orderPage.max,
+        offset: orderPage.offset,
+        sort: orderSort,
+        order: orderOrder,
+      }),
     ])
     const cust = c.items || []
     const os = o.items || []
@@ -286,8 +333,12 @@ export default function DeliveryDesk() {
     svcPage.offset,
     resPage.max,
     resPage.offset,
+    resSort,
+    resOrder,
     orderPage.max,
     orderPage.offset,
+    orderSort,
+    orderOrder,
   ])
 
   loadAllRef.current = loadAll
@@ -1187,6 +1238,10 @@ export default function DeliveryDesk() {
         items={resources}
         empty="—"
         onSelect={(r) => openView('delivery', 'Resource', r)}
+        sortFields={RESOURCE_SORT_MENU}
+        sort={resSort}
+        order={resOrder}
+        onSortChange={onResSortChange}
         fields={[
           { id: 'name', primary: true, render: (r) => r.name },
           { id: 'kind', secondary: true, render: (r) => r.resourceKind || '—' },
@@ -1202,8 +1257,24 @@ export default function DeliveryDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('wb.kind', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={resSort}
+                  order={resOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onResSortChange}
+                />
+                <ListSortHeader
+                  field="resourceKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={resSort}
+                  order={resOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onResSortChange}
+                />
                 <th className="col-priority-low">{t('wb.hours', { ns: 'common' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
@@ -1244,6 +1315,10 @@ export default function DeliveryDesk() {
         items={orders}
         empty="—"
         onSelect={(o) => openOrderView(o)}
+        sortFields={ORDER_SORT_MENU}
+        sort={orderSort}
+        order={orderOrder}
+        onSortChange={onOrderSortChange}
         fields={[
           {
             id: 'number',
@@ -1275,10 +1350,34 @@ export default function DeliveryDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.number', { ns: 'common' })}</th>
-                <th>{t('wb.customer', { ns: 'common' })}</th>
-                <th>EUR</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="orderNumber"
+                  label={t('wb.number', { ns: 'common' })}
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={onOrderSortChange}
+                />
+                <ListSortHeader
+                  field="customerName"
+                  label={t('wb.customer', { ns: 'common' })}
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={onOrderSortChange}
+                />
+                <ListSortHeader
+                  field="amountEur"
+                  label="EUR"
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={onOrderSortChange}
+                />
+                <ListSortHeader
+                  field="fulfillStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={orderSort}
+                  order={orderOrder}
+                  onSortChange={onOrderSortChange}
+                />
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>

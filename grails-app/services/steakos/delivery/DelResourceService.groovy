@@ -78,19 +78,26 @@ class DelResourceService {
         listResourcesPage(npubOwner, activeOnly, 200, 0).items as List<Resource>
     }
 
+    static final List RESOURCE_SORT_FIELDS = [
+            'id', 'name', 'resourceKind', 'status', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /**
      * Paged resources. Optional free-text {@code q} on name/email/personRef.
      * When {@code assigneesOnly}, sync from active HR files and return HUMAN rows linked to employment.
      */
     @Transactional
     Map listResourcesPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0,
-                          String q = null, boolean assigneesOnly = false) {
+                          String q = null, boolean assigneesOnly = false, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
         if (assigneesOnly) {
             syncHumanAssigneesFromHr(npub)
         }
-        String term = q?.trim() ? "%${q.trim()}%" : null
-        List items = Resource.createCriteria().list(max: max, offset: offset, sort: 'name', order: 'asc') {
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', RESOURCE_SORT_FIELDS)
+        String term = steakos.api.ListPaging.likeContains(
+                (listOpts?.q != null ? listOpts.q : q) as String)
+        List items = Resource.createCriteria().list(max: max, offset: offset) {
             eq('npubOwner', npub)
             if (activeOnly) eq('active', Boolean.TRUE)
             if (assigneesOnly) {
@@ -104,6 +111,7 @@ class DelResourceService {
                     ilike('personRef', term)
                 }
             }
+            steakos.api.ListPaging.applyOrders(delegate, so)
         } as List
         Number total = Resource.createCriteria().count {
             eq('npubOwner', npub)
@@ -120,7 +128,7 @@ class DelResourceService {
                 }
             }
         } as Number
-        [items: items, total: total?.intValue() ?: 0]
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     /**

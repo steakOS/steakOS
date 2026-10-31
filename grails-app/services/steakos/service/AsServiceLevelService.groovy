@@ -70,23 +70,29 @@ class AsServiceLevelService {
         listPage(npubOwner, activeOnly, 200, 0).items as List<ServiceLevel>
     }
 
+    static final List SERVICE_LEVEL_SORT_FIELDS = [
+            'id', 'name', 'code', 'status', 'channel', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /**
-     * Paged service levels. Returns [items, total].
+     * Paged service levels. Returns [items, total, sort, order].
      */
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'name', order: 'asc', max: max, offset: offset]
-        if (activeOnly) {
-            return [
-                    items: ServiceLevel.findAllByNpubOwnerAndActive(npub, Boolean.TRUE, opts),
-                    total: ServiceLevel.countByNpubOwnerAndActive(npub, Boolean.TRUE) as int
-            ]
-        }
-        return [
-                items: ServiceLevel.findAllByNpubOwner(npub, opts),
-                total: ServiceLevel.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', SERVICE_LEVEL_SORT_FIELDS)
+        List items = ServiceLevel.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = ServiceLevel.createCriteria().count {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(ServiceLevel sl) {
