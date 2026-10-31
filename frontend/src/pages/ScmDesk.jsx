@@ -1373,7 +1373,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>{t('wb.email', { ns: 'common' })}</th>
                 <th className="col-priority-low">CCY</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
@@ -1430,7 +1430,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>SKU</th>
                 <th className="col-priority-low">{t('wb.type', { ns: 'common' })}</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
@@ -1487,7 +1487,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
               <tr>
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>SKU</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
@@ -1608,7 +1608,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
                   order={poOrder}
                   onSortChange={onPoSortChange}
                 />
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
