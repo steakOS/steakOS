@@ -2697,6 +2697,14 @@ table.data tbody tr.row-selected td:last-child {
   align-items: center;
 }
 
+/* Buyers: pull title closer to tab pills (swap prior 12px above / 24px below). */
+.scm-desk-buyers .desk-shell-header.page-header {
+  gap: 0.5rem 1rem;
+}
+.scm-desk-buyers .desk-shell-tabs {
+  margin-top: 0;
+}
+
 /* One height for every pill in the desk tab row (tabs + New) */
 .desk-shell-tabs > .btn {
   min-height: 44px;

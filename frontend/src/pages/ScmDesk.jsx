@@ -2079,7 +2079,10 @@ export default function ScmDesk({ desk = 'buyers' }) {
       {info && <div className="banner-info">{info}</div>}
       {viewModal}
 
-      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
+      <div
+        className="toolbar"
+        style={{ marginBottom: isBuyers ? '1.5rem' : '0.75rem' }}
+      >
         <button type="button" className="btn" onClick={refresh} disabled={loading || !!busy}>
           <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
         </button>
