@@ -59,6 +59,7 @@ import VendorSelect from '../components/VendorSelect'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
+import RowActionSlots from '../components/RowActionSlots'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
@@ -475,49 +476,55 @@ export default function ScmDesk({ desk = 'buyers' }) {
       const canEdit = buyersCanEditRecord(resource, record)
       const canDelete = buyersCanDeleteRecord(resource, record)
       return (
-        <>
-          <button
-            type="button"
-            className={ROW_ACTION_CLASS}
-            title={t('view.open', { ns: 'common' })}
-            aria-label={t('view.open', { ns: 'common' })}
-            onClick={(e) => {
-              e.stopPropagation()
-              if (typeof onView === 'function') onView(record)
-              else openView(pkg, resource, record)
-            }}
-          >
-            <Eye size={14} />
-          </button>
-          {canEdit ? (
+        <RowActionSlots
+          view={
             <button
               type="button"
               className={ROW_ACTION_CLASS}
-              title={t('actions.edit', { ns: 'common' })}
-              aria-label={t('actions.edit', { ns: 'common' })}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
               onClick={(e) => {
                 e.stopPropagation()
-                openEdit(pkg, resource, record)
+                if (typeof onView === 'function') onView(record)
+                else openView(pkg, resource, record)
               }}
             >
-              <Pencil size={14} />
+              <Eye size={14} />
             </button>
-          ) : null}
-          {canDelete ? (
-            <button
-              type="button"
-              className={ROW_ACTION_CLASS}
-              title={t('actions.delete', { ns: 'common' })}
-              aria-label={t('actions.delete', { ns: 'common' })}
-              onClick={(e) => {
-                e.stopPropagation()
-                onBuyersDelete(pkg, resource, record)
-              }}
-            >
-              <Trash2 size={14} />
-            </button>
-          ) : null}
-        </>
+          }
+          edit={
+            canEdit ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.edit', { ns: 'common' })}
+                aria-label={t('actions.edit', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openEdit(pkg, resource, record)
+                }}
+              >
+                <Pencil size={14} />
+              </button>
+            ) : null
+          }
+          delete={
+            canDelete ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.delete', { ns: 'common' })}
+                aria-label={t('actions.delete', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onBuyersDelete(pkg, resource, record)
+                }}
+              >
+                <Trash2 size={14} />
+              </button>
+            ) : null
+          }
+        />
       )
     },
     [

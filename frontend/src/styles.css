@@ -612,6 +612,42 @@ select {
   color: #991b1b;
 }
 
+/* Fixed View · Edit · Delete columns (RowActionSlots) — missing actions keep width.
+   Column width matches icon-only .btn (≈46px) so View stays aligned across rows. */
+.row-action-slots {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 2.875rem);
+  column-gap: 0.25rem;
+  align-items: center;
+  justify-items: center;
+  vertical-align: middle;
+}
+
+.row-action-slots:has(> .row-action-slot-others) {
+  grid-template-columns: repeat(3, 2.875rem) auto;
+}
+
+.row-action-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 1.875rem;
+}
+
+.row-action-slot-ph {
+  display: block;
+  box-sizing: border-box;
+  width: 2.875rem;
+  height: 1.875rem;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.row-action-slot-others {
+  justify-self: start;
+}
+
 .card {
   background: var(--steak-card);
   border: 1px solid var(--steak-border);

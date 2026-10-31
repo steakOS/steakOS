@@ -33,6 +33,7 @@ import ErrorDialog from '../components/ErrorDialog'
 import RecordViewModal from '../components/RecordViewModal'
 import RecordEditModal from '../components/RecordEditModal'
 import ResponsiveDataList from '../components/ResponsiveDataList'
+import RowActionSlots from '../components/RowActionSlots'
 import DomainParentLines from '../components/DomainParentLines'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
@@ -502,50 +503,56 @@ export default function DomainList() {
   const rowActionClass = 'btn btn-ghost btn-danger'
 
   const rowActions = (row) => (
-    <>
-      <button
-        type="button"
-        className={rowActionClass}
-        title={t('view.open', { ns: 'common' })}
-        onClick={() => setViewing(row)}
-      >
-        <Eye size={14} />
-      </button>
-      {modalEdit ? (
+    <RowActionSlots
+      view={
         <button
           type="button"
           className={rowActionClass}
-          title={t('actions.edit', { ns: 'common' })}
-          onClick={() => setEditing(row)}
+          title={t('view.open', { ns: 'common' })}
+          onClick={() => setViewing(row)}
         >
-          <Pencil size={14} />
+          <Eye size={14} />
         </button>
-      ) : (
-        <Link
+      }
+      edit={
+        modalEdit ? (
+          <button
+            type="button"
+            className={rowActionClass}
+            title={t('actions.edit', { ns: 'common' })}
+            onClick={() => setEditing(row)}
+          >
+            <Pencil size={14} />
+          </button>
+        ) : (
+          <Link
+            className={rowActionClass}
+            to={preferDesk ? deskOpenHref(row.id) : domainFormHref(row.id)}
+            title={
+              preferDesk
+                ? t('masterData.openDesk', {
+                    ns: 'common',
+                    desk: deskLabel,
+                    defaultValue: 'Open on {{desk}}',
+                  })
+                : t('actions.edit', { ns: 'common' })
+            }
+          >
+            {preferDesk ? <ExternalLink size={14} /> : <Pencil size={14} />}
+          </Link>
+        )
+      }
+      delete={
+        <button
+          type="button"
           className={rowActionClass}
-          to={preferDesk ? deskOpenHref(row.id) : domainFormHref(row.id)}
-          title={
-            preferDesk
-              ? t('masterData.openDesk', {
-                  ns: 'common',
-                  desk: deskLabel,
-                  defaultValue: 'Open on {{desk}}',
-                })
-              : t('actions.edit', { ns: 'common' })
-          }
+          title={t('actions.delete', { ns: 'common' })}
+          onClick={() => onDelete(row.id, row)}
         >
-          {preferDesk ? <ExternalLink size={14} /> : <Pencil size={14} />}
-        </Link>
-      )}
-      <button
-        type="button"
-        className={rowActionClass}
-        title={t('actions.delete', { ns: 'common' })}
-        onClick={() => onDelete(row.id, row)}
-      >
-        <Trash2 size={14} />
-      </button>
-    </>
+          <Trash2 size={14} />
+        </button>
+      }
+    />
   )
 
   const titleBlock = (
