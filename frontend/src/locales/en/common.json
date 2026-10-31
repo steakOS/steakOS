@@ -1214,7 +1214,7 @@
     "demoSuffix": " (Demo)",
     "versionTitle": "Product version + template tier (VERSIONS.md / setup)",
     "search": {
-      "placeholder": "Search customers, invoices, tasks…",
+      "placeholder": "Search anything…",
       "aria": "Global search",
       "empty": "No matches",
       "error": "Search failed",

@@ -1214,7 +1214,7 @@
     "demoSuffix": "(Demo)",
     "versionTitle": "Versión del producto + nivel de plantilla (VERSIONS.md/setup)",
     "search": {
-      "placeholder": "Buscar clientes, facturas, tareas…",
+      "placeholder": "Buscar cualquier cosa…",
       "aria": "Búsqueda global",
       "empty": "Sin coincidencias",
       "error": "Error de búsqueda",

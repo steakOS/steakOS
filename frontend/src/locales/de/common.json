@@ -1214,7 +1214,7 @@
     "demoSuffix": " (Demo)",
     "versionTitle": "Produktversion + Vorlagen-Stufe (VERSIONS.md / Setup)",
     "search": {
-      "placeholder": "Kunden, Rechnungen, Aufgaben suchen…",
+      "placeholder": "Alles durchsuchen…",
       "aria": "Globale Suche",
       "empty": "Keine Treffer",
       "error": "Suche fehlgeschlagen",

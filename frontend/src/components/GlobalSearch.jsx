@@ -206,10 +206,10 @@ export default function GlobalSearch({ narrow = false }) {
           type="button"
           className="btn btn-ghost global-search-icon-btn"
           title={t('shell.search.placeholder', {
-            defaultValue: 'Search customers, invoices, tasks…',
+            defaultValue: 'Search anything…',
           })}
           aria-label={t('shell.search.placeholder', {
-            defaultValue: 'Search customers, invoices, tasks…',
+            defaultValue: 'Search anything…',
           })}
           onClick={focusSearch}
         >
@@ -231,7 +231,7 @@ export default function GlobalSearch({ narrow = false }) {
           className="global-search-input"
           value={q}
           placeholder={t('shell.search.placeholder', {
-            defaultValue: 'Search customers, invoices, tasks…',
+            defaultValue: 'Search anything…',
           })}
           aria-label={t('shell.search.aria', { defaultValue: 'Global search' })}
           aria-expanded={showPanel}
