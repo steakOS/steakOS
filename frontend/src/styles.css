@@ -2683,12 +2683,21 @@ table.data tbody tr.row-selected td:last-child {
 
 .desk-shell-tabs {
   margin-top: 0.5rem;
+  align-items: center;
 }
 
 .desk-new-collapsed {
   width: 100%;
   margin-bottom: 0.75rem;
   min-height: 44px;
+}
+
+/* Collapsed New sits in the tab row (after last tab), not full-width under list */
+.desk-new-collapsed.desk-new-in-tabs {
+  width: auto;
+  margin-bottom: 0;
+  margin-left: 0.25rem;
+  flex-shrink: 0;
 }
 
 .desk-new-expanded {

@@ -77,24 +77,37 @@ export default function DeskShell({
         <header className="desk-shell-header page-header" style={{ marginBottom: '1rem' }}>
           {title && <h1 className="page-title">{title}</h1>}
           {subtitle && <p className="page-sub">{subtitle}</p>}
-          {showTabs && (
-            <div className="tab-row desk-tabs desk-shell-tabs toolbar-scroll" role="tablist">
-              {tabs.map((tabDef) => {
-                const Icon = tabDef.icon
-                const selected = activeTab === tabDef.id
-                return (
-                  <button
-                    key={tabDef.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    className={`btn ${selected ? 'btn-primary' : 'btn-ghost'}`}
-                    onClick={() => onTabChange?.(tabDef.id)}
-                  >
-                    {Icon ? <Icon size={14} aria-hidden /> : null} {tabDef.label}
-                  </button>
-                )
-              })}
+          {(showTabs || typeof onToggleNew === 'function') && (
+            <div
+              className="tab-row desk-tabs desk-shell-tabs toolbar-scroll"
+              role={showTabs ? 'tablist' : undefined}
+            >
+              {showTabs &&
+                tabs.map((tabDef) => {
+                  const Icon = tabDef.icon
+                  const selected = activeTab === tabDef.id
+                  return (
+                    <button
+                      key={tabDef.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      className={`btn ${selected ? 'btn-primary' : 'btn-ghost'}`}
+                      onClick={() => onTabChange?.(tabDef.id)}
+                    >
+                      {Icon ? <Icon size={14} aria-hidden /> : null} {tabDef.label}
+                    </button>
+                  )
+                })}
+              {typeof onToggleNew === 'function' && !newExpanded && (
+                <button
+                  type="button"
+                  className="btn btn-secondary desk-new-collapsed desk-new-in-tabs"
+                  onClick={onToggleNew}
+                >
+                  <Plus size={16} aria-hidden /> {createLabel}
+                </button>
+              )}
             </div>
           )}
         </header>
@@ -102,33 +115,23 @@ export default function DeskShell({
 
       <div className={`desk-shell${sheetOpen ? ' desk-shell-sheet-open' : ''}`}>
         <div className="desk-shell-col1">
-          {typeof onToggleNew === 'function' && (
-            newExpanded ? (
-              <div className="desk-new-expanded card" id="desk-create">
-                <div className="desk-new-expanded-bar">
-                  <h2 className="section-label" style={{ marginTop: 0, marginBottom: 0 }}>
-                    {createLabel}
-                  </h2>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={onToggleNew}
-                    aria-label={t('actions.cancel', { ns: 'common', defaultValue: 'Cancel' })}
-                  >
-                    <X size={16} aria-hidden />
-                  </button>
-                </div>
-                {newPanel}
+          {typeof onToggleNew === 'function' && newExpanded && (
+            <div className="desk-new-expanded card" id="desk-create">
+              <div className="desk-new-expanded-bar">
+                <h2 className="section-label" style={{ marginTop: 0, marginBottom: 0 }}>
+                  {createLabel}
+                </h2>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={onToggleNew}
+                  aria-label={t('actions.cancel', { ns: 'common', defaultValue: 'Cancel' })}
+                >
+                  <X size={16} aria-hidden />
+                </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-secondary desk-new-collapsed"
-                onClick={onToggleNew}
-              >
-                <Plus size={16} aria-hidden /> {createLabel}
-              </button>
-            )
+              {newPanel}
+            </div>
           )}
 
           {toolbar && <div className="desk-shell-toolbar toolbar">{toolbar}</div>}
