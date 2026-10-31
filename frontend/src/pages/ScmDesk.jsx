@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -28,6 +28,7 @@ import {
   ClipboardCheck,
   FileText,
   Wrench,
+  Eye,
 } from 'lucide-react'
 import { scmApi, catalogueApi, meApi } from '../api/client'
 import CurrencySelect from '../components/CurrencySelect'
@@ -83,7 +84,15 @@ const SHOP_FLOOR_TABS = [
 export default function ScmDesk({ desk = 'buyers' }) {
   const isBuyers = desk !== 'shopfloor'
   const { t } = useTranslation(['desks', 'common', 'content'])
-  const { viewModal, ViewButton } = useRecordView()
+  const loadAllRef = useRef(async () => {})
+  const getBelowFieldsRef = useRef(null)
+  const getFooterExtraRef = useRef(null)
+  const deepLinkOpened = useRef(null)
+  const selectedPoRef = useRef(null)
+  const poWarningsRef = useRef([])
+  const busyRef = useRef(null)
+  const posRef = useRef([])
+  const runPoRef = useRef(async () => {})
   const TAB_DEFS = isBuyers ? BUYERS_TABS : SHOP_FLOOR_TABS
   const tabs = useMemo(
     () => TAB_DEFS.map((d) => ({ id: d.id, label: t(d.labelKey), icon: d.icon })),
@@ -211,7 +220,6 @@ export default function ScmDesk({ desk = 'buyers' }) {
     notes: '',
   })
   const [salesOrderId, setSalesOrderId] = useState('')
-
   const [vendorPage, setVendorPage] = useState({ max: 25, offset: 0, total: 0 })
   const [poPage, setPoPage] = useState({ max: 25, offset: 0, total: 0 })
   const [prodPage, setProdPage] = useState({ max: 25, offset: 0, total: 0 })
@@ -224,6 +232,26 @@ export default function ScmDesk({ desk = 'buyers' }) {
   const [poQ, setPoQ] = useState('')
   const [poSort, setPoSort] = useState('id')
   const [poOrder, setPoOrder] = useState('desc')
+
+  selectedPoRef.current = selectedPo
+  poWarningsRef.current = poWarnings
+  busyRef.current = busy
+  posRef.current = pos
+
+  const {
+    viewModal,
+    ViewButton,
+    openView,
+    updateViewingRecord,
+  } = useRecordView({
+    modalEdit: isBuyers,
+    canModalEdit: ({ resource }) => resource === 'Vendor',
+    onSaved: () => {
+      loadAllRef.current().catch(() => {})
+    },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
+    getFooterExtra: (ctx) => getFooterExtraRef.current?.(ctx) ?? null,
+  })
 
   const PO_SORT_MENU = useMemo(
     () => [
@@ -341,6 +369,8 @@ export default function ScmDesk({ desk = 'buyers' }) {
     lotPage.offset,
   ])
 
+  loadAllRef.current = loadAll
+
   const selectPo = useCallback(async (id) => {
     if (!id) {
       setSelectedPo(null)
@@ -350,6 +380,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
     const full = await scmApi.purchaseOrders.get(id)
     setSelectedPo(full)
     setPoWarnings(Array.isArray(full?.warnings) ? full.warnings : [])
+    return full
   }, [])
 
   const selectProd = useCallback(async (id) => {
@@ -360,13 +391,35 @@ export default function ScmDesk({ desk = 'buyers' }) {
     setSelectedProd(await scmApi.production.get(id))
   }, [])
 
+  const openPoView = useCallback(
+    async (po) => {
+      if (!po?.id && po?.id !== 0) return
+      const full = await scmApi.purchaseOrders.get(po.id)
+      setSelectedPo(full)
+      setPoWarnings(Array.isArray(full?.warnings) ? full.warnings : [])
+      openView('procurement', 'PurchaseOrder', full)
+    },
+    [openView],
+  )
+
   useEffect(() => {
     let cancelled = false
     const run = async () => {
       try {
         if (tab === 'purchase') {
-          if (selectedId) await selectPo(selectedId)
-          else if (!cancelled) {
+          if (selectedId) {
+            const full = await selectPo(selectedId)
+            // Buyers deep-link: open PO RecordView once per id (single-column + modal).
+            if (
+              isBuyers &&
+              !cancelled &&
+              full &&
+              deepLinkOpened.current !== String(selectedId)
+            ) {
+              openView('procurement', 'PurchaseOrder', full)
+              deepLinkOpened.current = String(selectedId)
+            }
+          } else if (!cancelled) {
             setSelectedPo(null)
             setPoWarnings([])
           }
@@ -387,7 +440,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
     return () => {
       cancelled = true
     }
-  }, [tab, selectedId, selectPo, selectProd])
+  }, [tab, selectedId, selectPo, selectProd, isBuyers, openView])
 
   useEffect(() => {
     if (!selectedId) return
@@ -504,8 +557,14 @@ export default function ScmDesk({ desk = 'buyers' }) {
       setNewExpanded(false)
       setInfo(t('toast.numberAmount', { ns: 'common', what: 'PO', number: po.poNumber, amount: Number(po.amountEur).toFixed(2) }))
       await loadAll()
-      setSelectedId(String(po.id))
       setTab('purchase')
+      if (isBuyers) {
+        deepLinkOpened.current = String(po.id)
+        setSelectedId(String(po.id))
+        await openPoView(po)
+      } else {
+        setSelectedId(String(po.id))
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -525,6 +584,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
       if (action === 'receive') result = await scmApi.purchaseOrders.receive(selectedPo.id)
       if (action === 'cancel') result = await scmApi.purchaseOrders.cancel(selectedPo.id)
 
+      let updatedPo = null
       if (action === 'confirm') {
         setInfo(
           `Confirmed ${result.purchaseOrder?.poNumber}` +
@@ -533,14 +593,18 @@ export default function ScmDesk({ desk = 'buyers' }) {
               : '') +
             (result.alreadyConfirmed ? ' (already)' : ''),
         )
-        setSelectedPo(result.purchaseOrder)
+        updatedPo = result.purchaseOrder
+        setSelectedPo(updatedPo)
       } else if (action === 'receive') {
         setInfo(t('toast.receivedStock', { ns: 'common', number: result.receipt?.receiptNumber }))
-        setSelectedPo(result.purchaseOrder)
+        updatedPo = result.purchaseOrder
+        setSelectedPo(updatedPo)
       } else {
-        setSelectedPo(result)
+        updatedPo = result
+        setSelectedPo(updatedPo)
         setInfo(t('toast.numberStatus', { ns: 'common', what: action, number: result.poNumber, status: result.poStatus }))
       }
+      if (updatedPo) updateViewingRecord(updatedPo)
       await loadAll()
     } catch (err) {
       setError(err.message)
@@ -548,6 +612,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
       setBusy(null)
     }
   }
+  runPoRef.current = runPo
 
   const onCreateProd = async (e) => {
     e.preventDefault()
@@ -853,7 +918,8 @@ export default function ScmDesk({ desk = 'buyers' }) {
   }, [tab, pos, prods])
 
   useDeskKeyboard({
-    enabled: !newExpanded && (tab === 'purchase' || tab === 'production'),
+    // Buyers is single-column + modal; skip list→pane keyboard selection.
+    enabled: !isBuyers && !newExpanded && (tab === 'purchase' || tab === 'production'),
     itemIds: keyboardIds,
     selectedId,
     setSelectedId,
@@ -955,6 +1021,109 @@ export default function ScmDesk({ desk = 'buyers' }) {
       <ContentRail package={pkg} resource={resource} id={id} onChanged={onChanged} />
     </details>
   )
+
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (!isBuyers || resource !== 'PurchaseOrder' || !record) return null
+    const live = selectedPoRef.current
+    const po = live?.id === record.id ? live : record
+    const warnings =
+      po.warnings || (live?.id === record.id ? poWarningsRef.current : null)
+    return (
+      <>
+        {warnings?.length > 0 && (
+          <div className="banner-info" role="status" style={{ marginBottom: 8 }}>
+            {warnings.map((w) => (
+              <div key={w.code + w.message}>{w.message}</div>
+            ))}
+          </div>
+        )}
+        <h3 className="section-label">{t('wb.lines', { ns: 'common' })}</h3>
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{t('wb.name', { ns: 'common' })}</th>
+                <th>{t('wb.qty', { ns: 'common' })}</th>
+                <th>{t('scm.rcv')}</th>
+                <th>{t('wb.total', { ns: 'common' })}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(po.lines || []).map((l) => (
+                <tr key={l.id || l.lineNo}>
+                  <td>{l.lineNo}</td>
+                  <td>{l.name}</td>
+                  <td>{l.quantity}</td>
+                  <td>{l.quantityReceived}</td>
+                  <td>{Number(l.lineTotalEur).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {collapsedContentRail('procurement', 'PurchaseOrder', po.id, async () =>
+          setPoContentMap(
+            await fetchContentMap('procurement', 'PurchaseOrder', posRef.current),
+          ),
+        )}
+      </>
+    )
+  }
+
+  getFooterExtraRef.current = ({ resource, record }) => {
+    if (!isBuyers || resource !== 'PurchaseOrder' || !record) return null
+    const live = selectedPoRef.current
+    const po = live?.id === record.id ? live : record
+    const isBusy = !!busyRef.current
+    return (
+      <>
+        {['DRAFT'].includes(po.poStatus) && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => runPoRef.current('send')}
+            disabled={isBusy}
+          >
+            <Send size={16} /> Send
+          </button>
+        )}
+        {['CONFIRMED', 'PART_RECEIVED', 'SENT'].includes(po.poStatus) && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => runPoRef.current('receive')}
+            disabled={isBusy}
+          >
+            <Truck size={16} /> Receive → stock
+          </button>
+        )}
+        {['DRAFT', 'SENT'].includes(po.poStatus) && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => runPoRef.current('confirm')}
+            disabled={isBusy}
+          >
+            <Check size={16} /> Confirm → payable
+          </button>
+        )}
+        {po.financePayableId && (
+          <Link className="btn btn-secondary" to="/finance/payables">
+            Payable →
+          </Link>
+        )}
+        <a
+          className="btn"
+          href={scmApi.purchaseOrders.pdfUrl(po.id)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <FileText size={16} /> Download purchase order PDF
+        </a>
+      </>
+    )
+  }
 
   const vendorCreatePanel = (
     <form className="form-grid" onSubmit={onCreateVendor}>
@@ -1179,6 +1348,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
       <ResponsiveDataList
         items={vendors}
         empty="—"
+        onSelect={isBuyers ? (v) => openView('procurement', 'Vendor', v) : undefined}
         fields={[
           { id: 'name', primary: true, render: (v) => v.name },
           { id: 'email', secondary: true, render: (v) => v.email || '—' },
@@ -1197,11 +1367,17 @@ export default function ScmDesk({ desk = 'buyers' }) {
             </thead>
             <tbody>
               {vendors.map((v) => (
-                <tr key={v.id}>
+                <tr
+                  key={v.id}
+                  className={isBuyers ? 'row-click' : undefined}
+                  onClick={
+                    isBuyers ? () => openView('procurement', 'Vendor', v) : undefined
+                  }
+                >
                   <td>{v.name}</td>
                   <td className="muted">{v.email || '—'}</td>
                   <td className="mono col-priority-low">{v.currencyCode}</td>
-                  <td>
+                  <td onClick={isBuyers ? (e) => e.stopPropagation() : undefined}>
                     <ViewButton pkg="procurement" resource="Vendor" record={v} />
                   </td>
                 </tr>
@@ -1229,6 +1405,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
       <ResponsiveDataList
         items={products}
         empty="—"
+        onSelect={
+          isBuyers ? (p) => openView('catalogue', 'CatalogueItem', p) : undefined
+        }
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           { id: 'sku', secondary: true, render: (p) => p.code || p.sku || '—' },
@@ -1248,11 +1427,19 @@ export default function ScmDesk({ desk = 'buyers' }) {
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr key={p.id}>
+                <tr
+                  key={p.id}
+                  className={isBuyers ? 'row-click' : undefined}
+                  onClick={
+                    isBuyers
+                      ? () => openView('catalogue', 'CatalogueItem', p)
+                      : undefined
+                  }
+                >
                   <td>{p.name}</td>
                   <td className="mono">{p.code || p.sku || '—'}</td>
                   <td className="muted col-priority-low">{p.nature || 'GOODS'}</td>
-                  <td>
+                  <td onClick={isBuyers ? (e) => e.stopPropagation() : undefined}>
                     <ViewButton pkg="catalogue" resource="CatalogueItem" record={p} />
                   </td>
                 </tr>
@@ -1280,6 +1467,9 @@ export default function ScmDesk({ desk = 'buyers' }) {
       <ResponsiveDataList
         items={services}
         empty="—"
+        onSelect={
+          isBuyers ? (s) => openView('catalogue', 'CatalogueItem', s) : undefined
+        }
         fields={[
           { id: 'name', primary: true, render: (s) => s.name },
           { id: 'sku', secondary: true, render: (s) => s.code || s.sku || '—' },
@@ -1297,10 +1487,18 @@ export default function ScmDesk({ desk = 'buyers' }) {
             </thead>
             <tbody>
               {services.map((s) => (
-                <tr key={s.id}>
+                <tr
+                  key={s.id}
+                  className={isBuyers ? 'row-click' : undefined}
+                  onClick={
+                    isBuyers
+                      ? () => openView('catalogue', 'CatalogueItem', s)
+                      : undefined
+                  }
+                >
                   <td>{s.name}</td>
                   <td className="mono">{s.code || s.sku || '—'}</td>
-                  <td>
+                  <td onClick={isBuyers ? (e) => e.stopPropagation() : undefined}>
                     <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />
                   </td>
                 </tr>
@@ -1337,8 +1535,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
       <ResponsiveDataList
         items={pos}
         empty="—"
-        selectedKey={selectedPo?.id}
-        onSelect={(po) => setSelectedId(String(po.id))}
+        selectedKey={isBuyers ? undefined : selectedPo?.id}
+        onSelect={(po) => {
+          if (isBuyers) openPoView(po)
+          else setSelectedId(String(po.id))
+        }}
         sortFields={PO_SORT_MENU}
         sort={poSort}
         order={poOrder}
@@ -1362,9 +1563,24 @@ export default function ScmDesk({ desk = 'buyers' }) {
               po.amountEur != null ? `${Number(po.amountEur).toFixed(2)} EUR` : '—',
           },
         ]}
-        actions={(po) => (
-          <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />
-        )}
+        actions={(po) =>
+          isBuyers ? (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openPoView(po)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          ) : (
+            <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />
+          )
+        }
       >
         <div className="table-wrap">
           <table className="data">
@@ -1406,9 +1622,18 @@ export default function ScmDesk({ desk = 'buyers' }) {
               {pos.map((po) => (
                 <tr
                   key={po.id}
-                  data-selected={selectedPo?.id === po.id ? 'true' : undefined}
-                  className={selectedPo?.id === po.id ? 'row-selected' : 'row-click'}
-                  onClick={() => setSelectedId(String(po.id))}
+                  data-selected={
+                    !isBuyers && selectedPo?.id === po.id ? 'true' : undefined
+                  }
+                  className={
+                    !isBuyers && selectedPo?.id === po.id
+                      ? 'row-selected'
+                      : 'row-click'
+                  }
+                  onClick={() => {
+                    if (isBuyers) openPoView(po)
+                    else setSelectedId(String(po.id))
+                  }}
                 >
                   <td className="mono">{po.poNumber}</td>
                   <td>{po.vendorName || '—'}</td>
@@ -1420,7 +1645,19 @@ export default function ScmDesk({ desk = 'buyers' }) {
                     <span className={statusClass(po.poStatus)}>{po.poStatus}</span>
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />
+                    {isBuyers ? (
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        title={t('view.open', { ns: 'common' })}
+                        aria-label={t('view.open', { ns: 'common' })}
+                        onClick={() => openPoView(po)}
+                      >
+                        <Eye size={14} />
+                      </button>
+                    ) : (
+                      <ViewButton pkg="procurement" resource="PurchaseOrder" record={po} />
+                    )}
                   </td>
                 </tr>
               ))}
@@ -1878,6 +2115,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
       </div>
 
       <DeskShell
+        layout={isBuyers ? 'single' : 'split'}
         title={
           <>
             <DeskIcon size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
@@ -1893,14 +2131,14 @@ export default function ScmDesk({ desk = 'buyers' }) {
         onToggleNew={tab === 'inventory' ? undefined : requestToggleNew}
         newPanel={newPanel}
         list={list}
-        hasSelection={hasSelection}
+        hasSelection={isBuyers ? false : hasSelection}
         emptyTitle={emptyTitle}
         emptyBody={emptyBody}
-        detail={detail}
-        detailFooter={detailFooter}
-        processSlot={processSlot}
+        detail={isBuyers ? null : detail}
+        detailFooter={isBuyers ? null : detailFooter}
+        processSlot={isBuyers ? null : processSlot}
         helpContext={helpContext}
-        narrowSheetOpen={narrow && hasSelection}
+        narrowSheetOpen={isBuyers ? false : narrow && hasSelection}
         onCloseSheet={() => setSelectedId(null)}
       />
 

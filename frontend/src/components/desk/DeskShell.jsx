@@ -42,8 +42,11 @@ export default function DeskShell({
   className = '',
   narrowSheetOpen = false,
   onCloseSheet,
+  /** 'split' = list|detail (default). 'single' = full-width list + modals (Buyers). */
+  layout = 'split',
 }) {
   const { t } = useTranslation(['common', 'desks'])
+  const single = layout === 'single'
 
   const createLabel =
     newLabel ||
@@ -69,7 +72,7 @@ export default function DeskShell({
   }
 
   const showTabs = Array.isArray(tabs) && tabs.length > 0
-  const sheetOpen = Boolean(narrowSheetOpen && hasSelection)
+  const sheetOpen = !single && Boolean(narrowSheetOpen && hasSelection)
 
   return (
     <div className={`desk-shell-root ${className}`.trim()} {...helpAttrs}>
@@ -113,7 +116,9 @@ export default function DeskShell({
         </header>
       )}
 
-      <div className={`desk-shell${sheetOpen ? ' desk-shell-sheet-open' : ''}`}>
+      <div
+        className={`desk-shell${single ? ' desk-shell--single' : ''}${sheetOpen ? ' desk-shell-sheet-open' : ''}`}
+      >
         <div className="desk-shell-col1">
           {typeof onToggleNew === 'function' && newExpanded && (
             <div className="desk-new-expanded card" id="desk-create">
@@ -139,42 +144,44 @@ export default function DeskShell({
           <div className="desk-shell-list">{list}</div>
         </div>
 
-        <div
-          className={`desk-shell-col2${sheetOpen ? ' desk-shell-sheet' : ''}`}
-          aria-hidden={false}
-        >
-          {sheetOpen && (
-            <div className="desk-shell-sheet-bar">
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={onCloseSheet}
-                aria-label={t('desk.closeSheet', { ns: 'common', defaultValue: 'Close detail' })}
-              >
-                <X size={16} aria-hidden />{' '}
-                {t('actions.close', { ns: 'common', defaultValue: 'Close' })}
-              </button>
-            </div>
-          )}
+        {!single && (
+          <div
+            className={`desk-shell-col2${sheetOpen ? ' desk-shell-sheet' : ''}`}
+            aria-hidden={false}
+          >
+            {sheetOpen && (
+              <div className="desk-shell-sheet-bar">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={onCloseSheet}
+                  aria-label={t('desk.closeSheet', { ns: 'common', defaultValue: 'Close detail' })}
+                >
+                  <X size={16} aria-hidden />{' '}
+                  {t('actions.close', { ns: 'common', defaultValue: 'Close' })}
+                </button>
+              </div>
+            )}
 
-          {processSlot && hasSelection && (
-            <div className="desk-shell-process">{processSlot}</div>
-          )}
+            {processSlot && hasSelection && (
+              <div className="desk-shell-process">{processSlot}</div>
+            )}
 
-          {!hasSelection ? (
-            <div className="desk-detail-empty card" role="status">
-              <p className="desk-detail-empty-title">{emptyHeading}</p>
-              <p className="muted desk-detail-empty-body">{emptyText}</p>
-            </div>
-          ) : (
-            <div className="desk-shell-detail">
-              {detail}
-              {detailFooter && (
-                <footer className="desk-detail-footer">{detailFooter}</footer>
-              )}
-            </div>
-          )}
-        </div>
+            {!hasSelection ? (
+              <div className="desk-detail-empty card" role="status">
+                <p className="desk-detail-empty-title">{emptyHeading}</p>
+                <p className="muted desk-detail-empty-body">{emptyText}</p>
+              </div>
+            ) : (
+              <div className="desk-shell-detail">
+                {detail}
+                {detailFooter && (
+                  <footer className="desk-detail-footer">{detailFooter}</footer>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

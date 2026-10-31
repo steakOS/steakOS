@@ -2663,10 +2663,16 @@ table.data tbody tr.row-selected td:last-child {
 .desk-shell {
   display: grid;
   grid-template-columns: minmax(280px, 38%) 1fr;
+
   gap: 1rem;
   align-items: start;
   min-width: 0;
   max-width: 100%;
+}
+
+/* Buyers (and similar): full-width list; detail via modals */
+.desk-shell--single {
+  grid-template-columns: 1fr;
 }
 
 .desk-shell-col1,

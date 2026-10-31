@@ -18,19 +18,31 @@ import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Eye } from 'lucide-react'
 import RecordViewModal from '../components/RecordViewModal'
+import RecordEditModal from '../components/RecordEditModal'
 import { withReturnTo } from '../config/domainRegistry'
 
 /**
  * Shared Eye + RecordViewModal for desk tables and other list UIs.
- * Usage:
- *   const { viewModal, ViewButton, openView } = useRecordView()
- *   <ViewButton pkg="sales" resource="Customer" record={c} />
- *   {viewModal}
+ *
+ * @param {object} [options]
+ * @param {boolean} [options.modalEdit] — Edit opens RecordEditModal (Task-style) instead of domain page
+ * @param {() => void} [options.onSaved] — after modal edit save
+ * @param {(ctx: {pkg, resource, record}) => ReactNode} [options.getBelowFields]
+ * @param {(ctx: {pkg, resource, record}) => ReactNode} [options.getFooterExtra]
+ * @param {(ctx: {pkg, resource, record}) => boolean} [options.canModalEdit] — default true when modalEdit
  */
-export default function useRecordView() {
+export default function useRecordView(options = {}) {
+  const {
+    modalEdit = false,
+    onSaved,
+    getBelowFields,
+    getFooterExtra,
+    canModalEdit,
+  } = options
   const { t } = useTranslation('common')
   const location = useLocation()
   const [viewing, setViewing] = useState(null)
+  const [editing, setEditing] = useState(null)
   // DomainList already restores via sessionStorage; only stamp returnTo from desks/hubs.
   const onDomainMasterList = /^\/domains\/[^/]+\/[^/]+\/?$/.test(location.pathname)
   const originPath = onDomainMasterList
@@ -43,6 +55,10 @@ export default function useRecordView() {
   }, [])
 
   const closeView = useCallback(() => setViewing(null), [])
+
+  const updateViewingRecord = useCallback((record) => {
+    setViewing((prev) => (prev ? { ...prev, record } : prev))
+  }, [])
 
   const ViewButton = useCallback(
     function ViewButton({ pkg, resource, record, className = 'btn btn-ghost', size = 14 }) {
@@ -65,24 +81,70 @@ export default function useRecordView() {
     [openView, t],
   )
 
+  const ctx = viewing
+    ? { pkg: viewing.pkg, resource: viewing.resource, record: viewing.record }
+    : null
+  const useModalEdit =
+    modalEdit &&
+    ctx &&
+    (typeof canModalEdit === 'function' ? canModalEdit(ctx) : true)
+
   const viewModal = (
-    <RecordViewModal
-      open={!!viewing}
-      onClose={closeView}
-      package={viewing?.pkg}
-      resource={viewing?.resource}
-      recordId={viewing?.record?.id}
-      seed={viewing?.record}
-      editPath={
-        viewing?.record?.id != null
-          ? withReturnTo(
-              `/domains/${viewing.pkg}/${viewing.resource}/${viewing.record.id}`,
-              originPath,
-            )
-          : undefined
-      }
-    />
+    <>
+      <RecordViewModal
+        open={!!viewing}
+        onClose={closeView}
+        package={viewing?.pkg}
+        resource={viewing?.resource}
+        recordId={viewing?.record?.id}
+        seed={viewing?.record}
+        onEdit={
+          useModalEdit
+            ? (rec) => {
+                setEditing({
+                  pkg: viewing.pkg,
+                  resource: viewing.resource,
+                  record: rec || viewing.record,
+                })
+              }
+            : undefined
+        }
+        editPath={
+          useModalEdit
+            ? undefined
+            : viewing?.record?.id != null
+              ? withReturnTo(
+                  `/domains/${viewing.pkg}/${viewing.resource}/${viewing.record.id}`,
+                  originPath,
+                )
+              : undefined
+        }
+        belowFields={ctx && getBelowFields ? getBelowFields(ctx) : null}
+        footerExtra={ctx && getFooterExtra ? getFooterExtra(ctx) : null}
+      />
+      {modalEdit && (
+        <RecordEditModal
+          open={!!editing}
+          onClose={() => setEditing(null)}
+          package={editing?.pkg}
+          resource={editing?.resource}
+          recordId={editing?.record?.id}
+          seed={editing?.record}
+          onSaved={() => {
+            if (typeof onSaved === 'function') onSaved()
+          }}
+        />
+      )}
+    </>
   )
 
-  return { openView, closeView, viewModal, ViewButton, viewing }
+  return {
+    openView,
+    closeView,
+    updateViewingRecord,
+    viewModal,
+    ViewButton,
+    viewing,
+    setViewing,
+  }
 }

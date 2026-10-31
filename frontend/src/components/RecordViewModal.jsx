@@ -98,6 +98,10 @@ export default function RecordViewModal({
   editPath,
   /** When set, Edit opens this callback (modal edit) instead of navigating via editPath. */
   onEdit,
+  /** Optional nodes after the field grid (e.g. PO lines, ContentRail). */
+  belowFields = null,
+  /** Optional footer actions before Edit/Close (e.g. Send / Confirm / Receive). */
+  footerExtra = null,
 }) {
   const { t } = useTranslation(['common', 'domain'])
   const [record, setRecord] = useState(seed || null)
@@ -354,6 +358,7 @@ export default function RecordViewModal({
                   })}
                 </p>
               ) : null}
+              {belowFields}
             </>
           )}
           {!loading && !record && !error && (
@@ -362,6 +367,7 @@ export default function RecordViewModal({
         </div>
 
         <footer className="content-view-footer">
+          {footerExtra}
           {onEdit && (
             <button
               type="button"
