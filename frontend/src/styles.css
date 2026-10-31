@@ -599,6 +599,19 @@ select {
   border-color: #fecaca;
 }
 
+/* Ghost + danger (DomainList row actions): keep reddish outline over ghost hover. */
+.btn-ghost.btn-danger {
+  background: transparent;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.btn-ghost.btn-danger:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
 .card {
   background: var(--steak-card);
   border: 1px solid var(--steak-border);

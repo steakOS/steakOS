@@ -498,11 +498,14 @@ export default function DomainList() {
     return row.status && resource !== 'Invoice' ? row.status : null
   }
 
+  /** View / edit / delete — same pill chrome as delete (transparent + reddish outline). */
+  const rowActionClass = 'btn btn-ghost btn-danger'
+
   const rowActions = (row) => (
     <>
       <button
         type="button"
-        className="btn btn-ghost"
+        className={rowActionClass}
         title={t('view.open', { ns: 'common' })}
         onClick={() => setViewing(row)}
       >
@@ -511,7 +514,7 @@ export default function DomainList() {
       {modalEdit ? (
         <button
           type="button"
-          className="btn btn-secondary"
+          className={rowActionClass}
           title={t('actions.edit', { ns: 'common' })}
           onClick={() => setEditing(row)}
         >
@@ -519,7 +522,7 @@ export default function DomainList() {
         </button>
       ) : (
         <Link
-          className="btn btn-secondary"
+          className={rowActionClass}
           to={preferDesk ? deskOpenHref(row.id) : domainFormHref(row.id)}
           title={
             preferDesk
@@ -536,7 +539,7 @@ export default function DomainList() {
       )}
       <button
         type="button"
-        className="btn btn-ghost btn-danger"
+        className={rowActionClass}
         title={t('actions.delete', { ns: 'common' })}
         onClick={() => onDelete(row.id, row)}
       >
@@ -887,7 +890,7 @@ export default function DomainList() {
                       {thSort('status', t('wb.status', { ns: 'common' }))}
                     </>
                   )}
-                  <th />
+                  <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                 </tr>
               </thead>
               <tbody>
