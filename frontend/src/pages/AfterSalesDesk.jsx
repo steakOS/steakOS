@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -23,6 +23,9 @@ import {
   Check,
   X,
   Play,
+  Eye,
+  Pencil,
+  Trash2,
   Shield,
   Package,
   MessageSquare,
@@ -30,9 +33,8 @@ import {
   Users,
   FileText,
 } from 'lucide-react'
-import { aftersalesApi, salesApi, catalogueApi, meApi } from '../api/client'
+import { aftersalesApi, salesApi, catalogueApi, domainsApi, meApi } from '../api/client'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
-import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import useRecordView from '../hooks/useRecordView'
@@ -46,10 +48,10 @@ import CustomerSelect from '../components/CustomerSelect'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
-import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import RowActionSlots from '../components/RowActionSlots'
+import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
-import useNarrowViewport from '../hooks/useNarrowViewport'
 
 const TAB_DEFS = [
   { id: 'inquiries', labelKey: 'aftersales.tabs.inquiries', icon: MessageSquare },
@@ -60,17 +62,28 @@ const TAB_DEFS = [
 ]
 
 /**
- * AfterSales desk (AS-S0–AS-S3): same UI shell as Delivery desk.
- * Customers from sales.Customer; create customer for distributor / walk-in cases.
+ * AfterSales desk (AS-S0–AS-S3) — Buyers UI 2.0 (ADR-050): single-column + modal registers.
  */
 export default function AfterSalesDesk() {
   const { t } = useTranslation(['desks', 'common', 'content'])
-  const { viewModal, ViewButton } = useRecordView()
+  const loadAllRef = useRef(async () => {})
+  const deepLinkOpened = useRef(null)
+  const getBelowFieldsRef = useRef(null)
+  const getFooterExtraRef = useRef(null)
+  const runInquiryRef = useRef(async () => {})
+  const runClaimRef = useRef(async () => {})
+  const runRmaRef = useRef(async () => {})
+  const selectedInqRef = useRef(null)
+  const selectedClaimRef = useRef(null)
+  const selectedRmaRef = useRef(null)
+  const inquiriesRef = useRef([])
+  const claimsRef = useRef([])
+  const rmasRef = useRef([])
+  const busyRef = useRef(null)
   const tabs = useMemo(
     () => TAB_DEFS.map((d) => ({ id: d.id, label: t(d.labelKey), icon: d.icon })),
     [t],
   )
-  const narrow = useNarrowViewport()
   const [tab, setTab] = useState(() => {
     if (typeof window === 'undefined') return 'inquiries'
     const urlTab = new URLSearchParams(window.location.search).get('tab')
@@ -210,6 +223,31 @@ export default function AfterSalesDesk() {
   const [levelOptions, setLevelOptions] = useState([])
   const [warrantyOptions, setWarrantyOptions] = useState([])
 
+  const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+
+  const {
+    viewModal,
+    openView,
+    openEdit,
+    updateViewingRecord,
+  } = useRecordView({
+    modalEdit: true,
+    canModalEdit: () => true,
+    onSaved: (updated) => {
+      loadAllRef.current().catch(() => {})
+      if (!updated?.id) return
+      const sync = (setter) =>
+        setter((prev) =>
+          prev && String(prev.id) === String(updated.id) ? { ...prev, ...updated } : prev,
+        )
+      sync(setSelectedInq)
+      sync(setSelectedClaim)
+      sync(setSelectedRma)
+    },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
+    getFooterExtra: (ctx) => getFooterExtraRef.current?.(ctx) ?? null,
+  })
+
   const customerLabel = (c) => {
     if (!c) return '—'
     const kind = c.customerKind ? ` (${c.customerKind})` : ''
@@ -314,6 +352,15 @@ export default function AfterSalesDesk() {
     rmaPage.offset,
   ])
 
+  loadAllRef.current = loadAll
+  selectedInqRef.current = selectedInq
+  selectedClaimRef.current = selectedClaim
+  selectedRmaRef.current = selectedRma
+  inquiriesRef.current = inquiries
+  claimsRef.current = claims
+  rmasRef.current = rmas
+  busyRef.current = busy
+
   const selectInquiry = useCallback(async (id) => {
     if (!id) {
       setSelectedInq(null)
@@ -338,35 +385,65 @@ export default function AfterSalesDesk() {
     setSelectedRma(await aftersalesApi.rmas.get(id))
   }, [])
 
+  const openInqView = useCallback(
+    async (rec) => {
+      if (!rec?.id && rec?.id !== 0) return
+      const full = await aftersalesApi.inquiries.get(rec.id)
+      setSelectedInq(full)
+      openView('service', 'Inquiry', full)
+    },
+    [openView],
+  )
+  const openClaimView = useCallback(
+    async (rec) => {
+      if (!rec?.id && rec?.id !== 0) return
+      const full = await aftersalesApi.claims.get(rec.id)
+      setSelectedClaim(full)
+      openView('service', 'Claims', full)
+    },
+    [openView],
+  )
+  const openRmaView = useCallback(
+    async (rec) => {
+      if (!rec?.id && rec?.id !== 0) return
+      const full = await aftersalesApi.rmas.get(rec.id)
+      setSelectedRma(full)
+      openView('service', 'Rma', full)
+    },
+    [openView],
+  )
+
   useEffect(() => {
     let cancelled = false
     const run = async () => {
+      if (!selectedId) return
+      if (deepLinkOpened.current === String(selectedId)) return
       try {
+        let pkg = 'service'
+        let resource = 'Inquiry'
+        let record = null
         if (tab === 'inquiries') {
-          if (selectedId) await selectInquiry(selectedId)
-          else if (!cancelled) setSelectedInq(null)
-          if (!cancelled) {
-            setSelectedClaim(null)
-            setSelectedRma(null)
-          }
+          record = await aftersalesApi.inquiries.get(selectedId)
+          if (!cancelled && record) setSelectedInq(record)
+          resource = 'Inquiry'
         } else if (tab === 'claims') {
-          if (selectedId) await selectClaim(selectedId)
-          else if (!cancelled) setSelectedClaim(null)
-          if (!cancelled) {
-            setSelectedInq(null)
-            setSelectedRma(null)
-          }
+          record = await aftersalesApi.claims.get(selectedId)
+          if (!cancelled && record) setSelectedClaim(record)
+          resource = 'Claims'
         } else if (tab === 'rmas') {
-          if (selectedId) await selectRma(selectedId)
-          else if (!cancelled) setSelectedRma(null)
-          if (!cancelled) {
-            setSelectedInq(null)
-            setSelectedClaim(null)
-          }
-        } else if (!cancelled) {
-          setSelectedInq(null)
-          setSelectedClaim(null)
-          setSelectedRma(null)
+          record = await aftersalesApi.rmas.get(selectedId)
+          if (!cancelled && record) setSelectedRma(record)
+          resource = 'Rma'
+        } else if (tab === 'warranties') {
+          record = await aftersalesApi.warranties.get(selectedId)
+          resource = 'Warranty'
+        } else if (tab === 'levels') {
+          record = await aftersalesApi.serviceLevels.get(selectedId)
+          resource = 'ServiceLevel'
+        }
+        if (!cancelled && record) {
+          openView(pkg, resource, record)
+          deepLinkOpened.current = String(selectedId)
         }
       } catch (e) {
         if (!cancelled) setError(e.message || String(e))
@@ -376,15 +453,7 @@ export default function AfterSalesDesk() {
     return () => {
       cancelled = true
     }
-  }, [tab, selectedId, selectInquiry, selectClaim, selectRma])
-
-  useEffect(() => {
-    if (!selectedId) return
-    const id = window.requestAnimationFrame(() => {
-      scrollSelectedIntoView('.desk-shell-list')
-    })
-    return () => window.cancelAnimationFrame(id)
-  }, [selectedId, tab, selectedInq?.id, selectedClaim?.id, selectedRma?.id])
+  }, [selectedId, tab, openView])
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -502,9 +571,10 @@ export default function AfterSalesDesk() {
       setInqPage((pg) => ({ ...pg, offset: 0 }))
       setNewExpanded(false)
       await loadAll()
+      setTab('inquiries')
+      deepLinkOpened.current = String(i.id)
       setSelectedId(String(i.id))
-      setTab('inquiries')
-      setTab('inquiries')
+      await openInqView(i)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -513,17 +583,19 @@ export default function AfterSalesDesk() {
   }
 
   const runInquiry = async (action) => {
-    if (!selectedInq?.id) return
+    const live = selectedInqRef.current
+    if (!live?.id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
       let result
-      if (action === 'start') result = await aftersalesApi.inquiries.start(selectedInq.id)
-      if (action === 'resolve') result = await aftersalesApi.inquiries.resolve(selectedInq.id)
-      if (action === 'close') result = await aftersalesApi.inquiries.close(selectedInq.id)
-      if (action === 'cancel') result = await aftersalesApi.inquiries.cancel(selectedInq.id)
+      if (action === 'start') result = await aftersalesApi.inquiries.start(live.id)
+      if (action === 'resolve') result = await aftersalesApi.inquiries.resolve(live.id)
+      if (action === 'close') result = await aftersalesApi.inquiries.close(live.id)
+      if (action === 'cancel') result = await aftersalesApi.inquiries.cancel(live.id)
       setSelectedInq(result)
+      updateViewingRecord(result)
       setInfo(t('toast.numberStatus', { ns: 'common', what: t('labels.inquiry', { ns: 'common' }), number: result.inquiryNumber, status: result.caseStatus }))
       await loadAll()
     } catch (err) {
@@ -532,6 +604,7 @@ export default function AfterSalesDesk() {
       setBusy(null)
     }
   }
+  runInquiryRef.current = runInquiry
 
   const onCreateWar = async (e) => {
     e.preventDefault()
@@ -583,9 +656,10 @@ export default function AfterSalesDesk() {
       setClaimPage((pg) => ({ ...pg, offset: 0 }))
       setNewExpanded(false)
       await loadAll()
+      setTab('claims')
+      deepLinkOpened.current = String(c.id)
       setSelectedId(String(c.id))
-      setTab('claims')
-      setTab('claims')
+      await openClaimView(c)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -594,18 +668,19 @@ export default function AfterSalesDesk() {
   }
 
   const runClaim = async (action) => {
-    if (!selectedClaim?.id) return
+    const live = selectedClaimRef.current
+    if (!live?.id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
+      let updated = null
       if (action === 'validate') {
-        const result = await aftersalesApi.claims.validate(selectedClaim.id)
-        setSelectedClaim(result)
-        setInfo(t('toast.validated', { ns: 'common', number: result.claimNumber }))
+        updated = await aftersalesApi.claims.validate(live.id)
+        setInfo(t('toast.validated', { ns: 'common', number: updated.claimNumber }))
       } else if (action === 'approve') {
-        const result = await aftersalesApi.claims.approve(selectedClaim.id)
-        setSelectedClaim(result.claim || result)
+        const result = await aftersalesApi.claims.approve(live.id)
+        updated = result.claim || result
         if (result.financeCreditInvoiceId) {
           setInfo('Claim approved → Finance credit')
         } else {
@@ -614,15 +689,17 @@ export default function AfterSalesDesk() {
           )
         }
       } else if (action === 'reject') {
-        const result = await aftersalesApi.claims.reject(selectedClaim.id, {
+        updated = await aftersalesApi.claims.reject(live.id, {
           resolution: 'Rejected from desk',
         })
-        setSelectedClaim(result)
-        setInfo(t('toast.claimRejected', { ns: 'common', number: result.claimNumber }))
+        setInfo(t('toast.claimRejected', { ns: 'common', number: updated.claimNumber }))
       } else if (action === 'close') {
-        const result = await aftersalesApi.claims.close(selectedClaim.id)
-        setSelectedClaim(result)
-        setInfo(t('toast.claimClosed', { ns: 'common', number: result.claimNumber }))
+        updated = await aftersalesApi.claims.close(live.id)
+        setInfo(t('toast.claimClosed', { ns: 'common', number: updated.claimNumber }))
+      }
+      if (updated) {
+        setSelectedClaim(updated)
+        updateViewingRecord(updated)
       }
       await loadAll()
     } catch (err) {
@@ -631,6 +708,7 @@ export default function AfterSalesDesk() {
       setBusy(null)
     }
   }
+  runClaimRef.current = runClaim
 
   const onCreateRma = async (e) => {
     e.preventDefault()
@@ -665,9 +743,10 @@ export default function AfterSalesDesk() {
       setRmaPage((pg) => ({ ...pg, offset: 0 }))
       setNewExpanded(false)
       await loadAll()
+      setTab('rmas')
+      deepLinkOpened.current = String(r.id)
       setSelectedId(String(r.id))
-      setTab('rmas')
-      setTab('rmas')
+      await openRmaView(r)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -676,27 +755,31 @@ export default function AfterSalesDesk() {
   }
 
   const runRma = async (action) => {
-    if (!selectedRma?.id) return
+    const live = selectedRmaRef.current
+    if (!live?.id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
+      let updated = null
       if (action === 'confirm') {
-        const result = await aftersalesApi.rmas.confirm(selectedRma.id)
-        setSelectedRma(result.rma || result)
+        const result = await aftersalesApi.rmas.confirm(live.id)
+        updated = result.rma || result
         setInfo(
           result.stockMoveId
             ? 'RMA confirmed → stock move'
             : 'RMA confirmed (no stock — set product id)',
         )
       } else if (action === 'close') {
-        const result = await aftersalesApi.rmas.close(selectedRma.id)
-        setSelectedRma(result)
-        setInfo(t('toast.rmaClosed', { ns: 'common', number: result.rmaNumber }))
+        updated = await aftersalesApi.rmas.close(live.id)
+        setInfo(t('toast.rmaClosed', { ns: 'common', number: updated.rmaNumber }))
       } else if (action === 'cancel') {
-        const result = await aftersalesApi.rmas.cancel(selectedRma.id)
-        setSelectedRma(result)
-        setInfo(t('toast.rmaCancelled', { ns: 'common', number: result.rmaNumber }))
+        updated = await aftersalesApi.rmas.cancel(live.id)
+        setInfo(t('toast.rmaCancelled', { ns: 'common', number: updated.rmaNumber }))
+      }
+      if (updated) {
+        setSelectedRma(updated)
+        updateViewingRecord(updated)
       }
       await loadAll()
     } catch (err) {
@@ -705,6 +788,91 @@ export default function AfterSalesDesk() {
       setBusy(null)
     }
   }
+  runRmaRef.current = runRma
+
+  const onDelete = useCallback(
+    async (pkg, resource, record) => {
+      const label =
+        record?.name ||
+        record?.inquiryNumber ||
+        record?.claimNumber ||
+        record?.rmaNumber ||
+        record?.warrantyNumber ||
+        t('view.untitled', { ns: 'common', defaultValue: 'this record' })
+      if (!window.confirm(t('actions.confirmDelete', { ns: 'common', label }))) return
+      setError(null)
+      try {
+        if (resource === 'Inquiry') await aftersalesApi.inquiries.cancel(record.id)
+        else if (resource === 'Rma') await aftersalesApi.rmas.cancel(record.id)
+        else await domainsApi.remove(pkg, resource, record.id)
+        setInfo(
+          t('toast.namedDeleted', {
+            ns: 'common',
+            name: label,
+            defaultValue: `Deleted ${label}`,
+          }),
+        )
+        await loadAllRef.current()
+      } catch (err) {
+        setError(err.message || String(err))
+      }
+    },
+    [t],
+  )
+
+  const renderRowActions = useCallback(
+    (pkg, resource, record, { onView } = {}) => {
+      if (!record?.id && record?.id !== 0) return null
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (typeof onView === 'function') onView(record)
+                else openView(pkg, resource, record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.edit', { ns: 'common' })}
+              aria-label={t('actions.edit', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openEdit(pkg, resource, record)
+              }}
+            >
+              <Pencil size={14} />
+            </button>
+          }
+          delete={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.delete', { ns: 'common' })}
+              aria-label={t('actions.delete', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(pkg, resource, record)
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          }
+        />
+      )
+    },
+    [onDelete, openEdit, openView, t],
+  )
 
   /** Shared customer typeahead + create-customer affordance */
   const CustomerField = ({ value, onChange, required = false, label = 'Customer' }) => (
@@ -890,12 +1058,7 @@ export default function AfterSalesDesk() {
     return t('desk.new', { ns: 'common', defaultValue: 'New' })
   }, [tab, t])
 
-  const hasSelection = useMemo(() => {
-    if (tab === 'inquiries') return Boolean(selectedInq?.id)
-    if (tab === 'claims') return Boolean(selectedClaim?.id)
-    if (tab === 'rmas') return Boolean(selectedRma?.id)
-    return false
-  }, [tab, selectedInq?.id, selectedClaim?.id, selectedRma?.id])
+  const hasSelection = false
 
   const helpContext = useMemo(() => {
     const base = { desk: 'aftersales', tab, processCode: 'AS_INQUIRY' }
@@ -925,13 +1088,6 @@ export default function AfterSalesDesk() {
     }
     return base
   }, [tab, selectedInq, selectedClaim, selectedRma])
-
-  const processStatus = tab === 'inquiries' ? selectedInq?.caseStatus : null
-
-  const processSlot =
-    tab === 'inquiries' ? (
-      <DeskProcessSlot processCode="AS_INQUIRY" status={processStatus} />
-    ) : null
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
@@ -1284,12 +1440,10 @@ export default function AfterSalesDesk() {
 
   const levelsList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-                    Service levels ({levelPage.total})
-                  </h2>
-                  <ResponsiveDataList
+<ResponsiveDataList
                     items={levels}
                     empty="—"
+                    onSelect={(sl) => openView('service', 'ServiceLevel', sl)}
                     fields={[
                       { id: 'name', primary: true, render: (sl) => sl.name },
                       {
@@ -1311,9 +1465,7 @@ export default function AfterSalesDesk() {
                             .join(' · ') || '—',
                       },
                     ]}
-                    actions={(sl) => (
-                      <ViewButton pkg="service" resource="ServiceLevel" record={sl} />
-                    )}
+                    actions={(sl) => renderRowActions('service', 'ServiceLevel', sl)}
                   >
                     <div className="table-wrap">
                       <table className="data">
@@ -1325,12 +1477,16 @@ export default function AfterSalesDesk() {
                               {t('wb.period', { ns: 'common' }) /* Response hours */}
                             </th>
                             <th className="col-priority-low">{t('aftersales.resolve')}</th>
-                            <th />
+                            <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {levels.map((sl) => (
-                            <tr key={sl.id}>
+                            <tr
+                              key={sl.id}
+                              className="row-click"
+                              onClick={() => openView('service', 'ServiceLevel', sl)}
+                            >
                               <td>{sl.name}</td>
                               <td className="mono">{sl.code || '—'}</td>
                               <td className="col-priority-low">
@@ -1339,8 +1495,11 @@ export default function AfterSalesDesk() {
                               <td className="col-priority-low">
                                 {sl.resolveHours != null ? `${sl.resolveHours}h` : '—'}
                               </td>
-                              <td style={{ whiteSpace: 'nowrap' }}>
-                                <ViewButton pkg="service" resource="ServiceLevel" record={sl} />
+                              <td
+                                style={{ whiteSpace: 'nowrap' }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {renderRowActions('service', 'ServiceLevel', sl)}
                               </td>
                             </tr>
                           ))}
@@ -1361,12 +1520,10 @@ export default function AfterSalesDesk() {
 
   const warrantiesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-                    Warranties ({warPage.total})
-                  </h2>
-                  <ResponsiveDataList
+<ResponsiveDataList
                     items={warranties}
                     empty="—"
+                    onSelect={(w) => openView('service', 'Warranty', w)}
                     fields={[
                       {
                         id: 'number',
@@ -1393,9 +1550,7 @@ export default function AfterSalesDesk() {
                         render: (w) => w.productName || '—',
                       },
                     ]}
-                    actions={(w) => (
-                      <ViewButton pkg="service" resource="Warranty" record={w} />
-                    )}
+                    actions={(w) => renderRowActions('service', 'Warranty', w)}
                   >
                     <div className="table-wrap">
                       <table className="data">
@@ -1405,12 +1560,16 @@ export default function AfterSalesDesk() {
                             <th>{t('wb.customer', { ns: 'common' })}</th>
                             <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
                             <th>{t('wb.status', { ns: 'common' })}</th>
-                            <th />
+                            <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {warranties.map((w) => (
-                            <tr key={w.id}>
+                            <tr
+                              key={w.id}
+                              className="row-click"
+                              onClick={() => openView('service', 'Warranty', w)}
+                            >
                               <td className="mono">{w.warrantyNumber}</td>
                               <td>{w.customerName || customerNameById(w.customerId) || '—'}</td>
                               <td className="col-priority-low">
@@ -1422,8 +1581,11 @@ export default function AfterSalesDesk() {
                                   {w.inForce ? ' · in force' : ''}
                                 </span>
                               </td>
-                              <td style={{ whiteSpace: 'nowrap' }}>
-                                <ViewButton pkg="service" resource="Warranty" record={w} />
+                              <td
+                                style={{ whiteSpace: 'nowrap' }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {renderRowActions('service', 'Warranty', w)}
                               </td>
                             </tr>
                           ))}
@@ -1444,14 +1606,10 @@ export default function AfterSalesDesk() {
 
   const inquiriesList = (
     <>
-      <h2 className="section-label">
-                    {t('aftersales.inquiriesCount', { count: inqPage.total })}
-                  </h2>
-                  <ResponsiveDataList
+<ResponsiveDataList
                     items={inquiries}
                     empty="—"
-                    selectedKey={selectedInq?.id}
-                    onSelect={(i) => setSelectedId(String(i.id))}
+                                        onSelect={(i) => openInqView(i)}
                     fields={[
                       {
                         id: 'number',
@@ -1481,9 +1639,9 @@ export default function AfterSalesDesk() {
                         render: (i) => i.kind,
                       },
                     ]}
-                    actions={(i) => (
-                      <ViewButton pkg="service" resource="Inquiry" record={i} />
-                    )}
+                    actions={(i) =>
+                      renderRowActions('service', 'Inquiry', i, { onView: () => openInqView(i) })
+                    }
                   >
                     <div className="table-wrap">
                       <table className="data">
@@ -1495,16 +1653,15 @@ export default function AfterSalesDesk() {
                             <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                             <th>{t('wb.status', { ns: 'common' })}</th>
-                            <th />
+                            <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {inquiries.map((i) => (
                             <tr
                               key={i.id}
-                              data-selected={selectedInq?.id === i.id ? 'true' : undefined}
-                            className={selectedInq?.id === i.id ? 'row-selected' : 'row-click'}
-                              onClick={() => setSelectedId(String(i.id))}
+                              className="row-click"
+                              onClick={() => openInqView(i)}
                             >
                               <td className="mono">{i.inquiryNumber}</td>
                               <td>
@@ -1526,7 +1683,7 @@ export default function AfterSalesDesk() {
                                 style={{ whiteSpace: 'nowrap' }}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <ViewButton pkg="service" resource="Inquiry" record={i} />
+                                {renderRowActions('service', 'Inquiry', i, { onView: () => openInqView(i) })}
                               </td>
                             </tr>
                           ))}
@@ -1547,12 +1704,10 @@ export default function AfterSalesDesk() {
 
   const claimsList = (
     <>
-      <h2 className="section-label">Claims ({claimPage.total})</h2>
-                  <ResponsiveDataList
+<ResponsiveDataList
                     items={claims}
                     empty="—"
-                    selectedKey={selectedClaim?.id}
-                    onSelect={(c) => setSelectedId(String(c.id))}
+                                        onSelect={(c) => openClaimView(c)}
                     fields={[
                       {
                         id: 'number',
@@ -1578,9 +1733,9 @@ export default function AfterSalesDesk() {
                             : '—',
                       },
                     ]}
-                    actions={(c) => (
-                      <ViewButton pkg="service" resource="Claims" record={c} />
-                    )}
+                    actions={(c) =>
+                      renderRowActions('service', 'Claims', c, { onView: () => openClaimView(c) })
+                    }
                   >
                     <div className="table-wrap">
                       <table className="data">
@@ -1591,16 +1746,15 @@ export default function AfterSalesDesk() {
                             <th>EUR</th>
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                             <th>{t('wb.status', { ns: 'common' })}</th>
-                            <th />
+                            <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {claims.map((c) => (
                             <tr
                               key={c.id}
-                              data-selected={selectedClaim?.id === c.id ? 'true' : undefined}
-                            className={selectedClaim?.id === c.id ? 'row-selected' : 'row-click'}
-                              onClick={() => setSelectedId(String(c.id))}
+                              className="row-click"
+                              onClick={() => openClaimView(c)}
                             >
                               <td className="mono">{c.claimNumber}</td>
                               <td>{c.warrantyNumber || '—'}</td>
@@ -1622,7 +1776,7 @@ export default function AfterSalesDesk() {
                                 style={{ whiteSpace: 'nowrap' }}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <ViewButton pkg="service" resource="Claims" record={c} />
+                                {renderRowActions('service', 'Claims', c, { onView: () => openClaimView(c) })}
                               </td>
                             </tr>
                           ))}
@@ -1643,14 +1797,10 @@ export default function AfterSalesDesk() {
 
   const rmasList = (
     <>
-      <h2 className="section-label">
-                    {t('aftersales.returnsCount', { count: rmaPage.total })}
-                  </h2>
-                  <ResponsiveDataList
+<ResponsiveDataList
                     items={rmas}
                     empty="—"
-                    selectedKey={selectedRma?.id}
-                    onSelect={(r) => setSelectedId(String(r.id))}
+                                        onSelect={(r) => openRmaView(r)}
                     fields={[
                       {
                         id: 'number',
@@ -1674,9 +1824,9 @@ export default function AfterSalesDesk() {
                         render: (r) => r.productName || '—',
                       },
                     ]}
-                    actions={(r) => (
-                      <ViewButton pkg="service" resource="Rma" record={r} />
-                    )}
+                    actions={(r) =>
+                      renderRowActions('service', 'Rma', r, { onView: () => openRmaView(r) })
+                    }
                   >
                     <div className="table-wrap">
                       <table className="data">
@@ -1687,16 +1837,15 @@ export default function AfterSalesDesk() {
                             <th className="col-priority-low">{t('wb.product', { ns: 'common' })}</th>
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                             <th>{t('wb.status', { ns: 'common' })}</th>
-                            <th />
+                            <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {rmas.map((r) => (
                             <tr
                               key={r.id}
-                              data-selected={selectedRma?.id === r.id ? 'true' : undefined}
-                            className={selectedRma?.id === r.id ? 'row-selected' : 'row-click'}
-                              onClick={() => setSelectedId(String(r.id))}
+                              className="row-click"
+                              onClick={() => openRmaView(r)}
                             >
                               <td className="mono">{r.rmaNumber}</td>
                               <td>{r.customerName || customerNameById(r.customerId) || '—'}</td>
@@ -1716,7 +1865,7 @@ export default function AfterSalesDesk() {
                                 style={{ whiteSpace: 'nowrap' }}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <ViewButton pkg="service" resource="Rma" record={r} />
+                                {renderRowActions('service', 'Rma', r, { onView: () => openRmaView(r) })}
                               </td>
                             </tr>
                           ))}
@@ -1748,263 +1897,200 @@ export default function AfterSalesDesk() {
               ? rmasList
               : null
 
-  let detail = null
-  let detailFooter = null
-
-  if (tab === 'inquiries' && selectedInq) {
-    detail = (
-      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
-      <div className="inv-detail-hero">
-                        <div>
-                          <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                            {selectedInq.inquiryNumber}
-                          </div>
-                          <div className="muted">
-                            {selectedInq.customerName ||
-                              customerNameById(selectedInq.customerId) ||
-                              t('wb.noCustomer', { ns: 'common' })}{' '}
-                            ·{' '}
-                            <span className={statusClass(selectedInq.caseStatus)}>
-                              {selectedInq.caseStatus}
-                            </span>
-                          </div>
-                          <div className="muted" style={{ fontSize: '0.85rem' }}>
-                            {selectedInq.kind} · {selectedInq.priority} · {selectedInq.channel}
-                            {selectedInq.overdue
-                              ? ` · ${t('pages.dashboard.overdue', { ns: 'common' })}`
-                              : ''}
-                          </div>
-                        </div>
-                      </div>
-                      {selectedInq.description && (
-                        <p style={{ whiteSpace: 'pre-wrap' }}>{selectedInq.description}</p>
-                      )}
-                      <div className="toolbar">
-                        {['OPEN'].includes(selectedInq.caseStatus) && (
-                          <button
-                            type="button"
-                            className="btn"
-                            onClick={() => runInquiry('start')}
-                            disabled={!!busy}
-                          >
-                            <Play size={16} /> {t('aftersales.start')}
-                          </button>
-                        )}
-                        {['OPEN', 'IN_PROGRESS'].includes(selectedInq.caseStatus) && (
-                          <button
-                            type="button"
-                            className="btn"
-                            onClick={() => runInquiry('resolve')}
-                            disabled={!!busy}
-                          >
-                            <Check size={16} /> {t('aftersales.resolve')}
-                          </button>
-                        )}
-                        {selectedInq.caseStatus !== 'CLOSED' &&
-                          selectedInq.caseStatus !== 'CANCELLED' && (
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              onClick={() => runInquiry('close')}
-                              disabled={!!busy}
-                            >
-                              {t('actions.close', { ns: 'common' })}
-                            </button>
-                          )}
-                        {selectedInq.caseStatus !== 'CLOSED' &&
-                          selectedInq.caseStatus !== 'CANCELLED' && (
-                            <button
-                              type="button"
-                              className="btn btn-ghost"
-                              onClick={() => runInquiry('cancel')}
-                              disabled={!!busy}
-                            >
-                              <X size={16} /> {t('actions.cancel', { ns: 'common' })}
-                            </button>
-                          )}
-                      </div>
-                      {collapsedContentRail('service', 'Inquiry', selectedInq.id, async () =>
-                          setInqContentMap(await fetchContentMap('service', 'Inquiry', inquiries)))}
-      </div>
-    )
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (!record) return null
+    if (resource === 'Inquiry') {
+      const live = selectedInqRef.current
+      const inq = live?.id === record.id ? live : record
+      return (
+        <>
+          {inq.description && (
+            <p style={{ whiteSpace: 'pre-wrap' }}>{inq.description}</p>
+          )}
+          {collapsedContentRail('service', 'Inquiry', inq.id, async () =>
+            setInqContentMap(await fetchContentMap('service', 'Inquiry', inquiriesRef.current)),
+          )}
+        </>
+      )
+    }
+    if (resource === 'Claims') {
+      const live = selectedClaimRef.current
+      const claim = live?.id === record.id ? live : record
+      return (
+        <>
+          {collapsedContentRail('service', 'Claims', claim.id, async () =>
+            setClaimContentMap(await fetchContentMap('service', 'Claims', claimsRef.current)),
+          )}
+        </>
+      )
+    }
+    if (resource === 'Rma') {
+      const live = selectedRmaRef.current
+      const rma = live?.id === record.id ? live : record
+      return (
+        <>
+          {collapsedContentRail('service', 'Rma', rma.id, async () =>
+            setRmaContentMap(await fetchContentMap('service', 'Rma', rmasRef.current)),
+          )}
+        </>
+      )
+    }
+    return null
   }
 
-  if (tab === 'claims' && selectedClaim) {
-    detail = (
-      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
-      <div className="inv-detail-hero">
-                        <div>
-                          <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                            {selectedClaim.claimNumber}
-                          </div>
-                          <div className="muted">
-                            {t('aftersales.warrantyRef', {
-                              ref: selectedClaim.warrantyNumber || '—',
-                            })}{' '}
-                            ·{' '}
-                            <span className={statusClass(selectedClaim.claimStatus)}>
-                              {selectedClaim.claimStatus}
-                            </span>
-                          </div>
-                          {selectedClaim.financeCreditInvoiceId && (
-                            <div className="muted" style={{ fontSize: '0.85rem' }}>
-                              {t('aftersales.financeCreditInvoice')}
-                            </div>
-                          )}
-                        </div>
-                        <div className="inv-amount">
-                          {Number(selectedClaim.claimAmountEur || 0).toFixed(2)} EUR
-                          {selectedClaim.claimAmountSats != null && (
-                            <div className="muted mono" style={{ fontSize: '0.8rem' }}>
-                              {selectedClaim.claimAmountSats} sats
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="toolbar">
-                        {['RECEIVED'].includes(selectedClaim.claimStatus) && (
-                          <button
-                            type="button"
-                            className="btn"
-                            onClick={() => runClaim('validate')}
-                            disabled={!!busy}
-                          >
-                            {t('aftersales.validate')}
-                          </button>
-                        )}
-                        {['RECEIVED', 'VALIDATED'].includes(selectedClaim.claimStatus) && (
-                          <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={() => runClaim('approve')}
-                            disabled={!!busy}
-                          >
-                            <Check size={16} /> {t('aftersales.approveFinance')}
-                          </button>
-                        )}
-                        {['RECEIVED', 'VALIDATED'].includes(selectedClaim.claimStatus) && (
-                          <button
-                            type="button"
-                            className="btn btn-ghost"
-                            onClick={() => runClaim('reject')}
-                            disabled={!!busy}
-                          >
-                            <X size={16} /> {t('aftersales.reject')}
-                          </button>
-                        )}
-                        {['APPROVED', 'REJECTED'].includes(selectedClaim.claimStatus) && (
-                          <button
-                            type="button"
-                            className="btn"
-                            onClick={() => runClaim('close')}
-                            disabled={!!busy}
-                          >
-                            {t('actions.close', { ns: 'common' })}
-                          </button>
-                        )}
-                      </div>
-                      {collapsedContentRail('service', 'Claims', selectedClaim.id, async () =>
-                          setClaimContentMap(await fetchContentMap('service', 'Claims', claims)))}
-      </div>
-    )
+  getFooterExtraRef.current = ({ resource, record }) => {
+    if (!record) return null
+    const isBusy = !!busyRef.current
+    if (resource === 'Inquiry') {
+      const live = selectedInqRef.current
+      const inq = live?.id === record.id ? live : record
+      return (
+        <>
+          {['OPEN'].includes(inq.caseStatus) && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => runInquiryRef.current('start')}
+              disabled={isBusy}
+            >
+              <Play size={16} /> {t('aftersales.start')}
+            </button>
+          )}
+          {['OPEN', 'IN_PROGRESS'].includes(inq.caseStatus) && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => runInquiryRef.current('resolve')}
+              disabled={isBusy}
+            >
+              <Check size={16} /> {t('aftersales.resolve')}
+            </button>
+          )}
+          {inq.caseStatus !== 'CLOSED' && inq.caseStatus !== 'CANCELLED' && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => runInquiryRef.current('close')}
+              disabled={isBusy}
+            >
+              {t('actions.close', { ns: 'common' })}
+            </button>
+          )}
+          {inq.caseStatus !== 'CLOSED' && inq.caseStatus !== 'CANCELLED' && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => runInquiryRef.current('cancel')}
+              disabled={isBusy}
+            >
+              <X size={16} /> {t('actions.cancel', { ns: 'common' })}
+            </button>
+          )}
+        </>
+      )
+    }
+    if (resource === 'Claims') {
+      const live = selectedClaimRef.current
+      const claim = live?.id === record.id ? live : record
+      return (
+        <>
+          {['RECEIVED'].includes(claim.claimStatus) && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => runClaimRef.current('validate')}
+              disabled={isBusy}
+            >
+              {t('aftersales.validate')}
+            </button>
+          )}
+          {['RECEIVED', 'VALIDATED'].includes(claim.claimStatus) && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => runClaimRef.current('approve')}
+              disabled={isBusy}
+            >
+              <Check size={16} /> {t('aftersales.approveFinance')}
+            </button>
+          )}
+          {['RECEIVED', 'VALIDATED'].includes(claim.claimStatus) && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => runClaimRef.current('reject')}
+              disabled={isBusy}
+            >
+              <X size={16} /> {t('aftersales.reject')}
+            </button>
+          )}
+          {['APPROVED', 'REJECTED'].includes(claim.claimStatus) && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => runClaimRef.current('close')}
+              disabled={isBusy}
+            >
+              {t('actions.close', { ns: 'common' })}
+            </button>
+          )}
+        </>
+      )
+    }
+    if (resource === 'Rma') {
+      const live = selectedRmaRef.current
+      const rma = live?.id === record.id ? live : record
+      return (
+        <>
+          {rma.rmaStatus === 'REQUESTED' && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => runRmaRef.current('confirm')}
+              disabled={isBusy}
+            >
+              <Check size={16} /> {t('aftersales.confirmScmStock')}
+            </button>
+          )}
+          {rma.rmaStatus !== 'CLOSED' && rma.rmaStatus !== 'CANCELLED' && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => runRmaRef.current('close')}
+              disabled={isBusy}
+            >
+              {t('actions.close', { ns: 'common' })}
+            </button>
+          )}
+          {rma.rmaStatus === 'REQUESTED' && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => runRmaRef.current('cancel')}
+              disabled={isBusy}
+            >
+              <X size={16} /> {t('actions.cancel', { ns: 'common' })}
+            </button>
+          )}
+          <a
+            className="btn"
+            href={aftersalesApi.rmas.pdfUrl(rma.id)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <FileText size={16} /> Download RMA PDF
+          </a>
+        </>
+      )
+    }
+    return null
   }
 
-  if (tab === 'rmas' && selectedRma) {
-    detail = (
-      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
-      <div className="inv-detail-hero">
-                        <div>
-                          <div className="about-display" style={{ fontSize: '1.35rem' }}>
-                            {selectedRma.rmaNumber}
-                          </div>
-                          <div className="muted">
-                            {selectedRma.customerName ||
-                              customerNameById(selectedRma.customerId) ||
-                              t('wb.noCustomer', { ns: 'common' })}{' '}
-                            ·{' '}
-                            <span className={statusClass(selectedRma.rmaStatus)}>
-                              {selectedRma.rmaStatus}
-                            </span>
-                          </div>
-                          <div className="muted" style={{ fontSize: '0.85rem' }}>
-                            {t('aftersales.qtyLabel', { qty: selectedRma.quantity })}
-                            {selectedRma.stockMoveId
-                              ? ` · ${t('aftersales.stockRef')}`
-                              : ''}
-                          </div>
-                        </div>
-                        {selectedRma.expectedRefundEur != null && (
-                          <div className="inv-amount">
-                            {Number(selectedRma.expectedRefundEur).toFixed(2)} EUR
-                            <div className="muted" style={{ fontSize: '0.75rem' }}>
-                              {t('aftersales.expectedRefund')}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="toolbar">
-                        {selectedRma.rmaStatus === 'REQUESTED' && (
-                          <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={() => runRma('confirm')}
-                            disabled={!!busy}
-                          >
-                            <Check size={16} /> {t('aftersales.confirmScmStock')}
-                          </button>
-                        )}
-                        {selectedRma.rmaStatus !== 'CLOSED' &&
-                          selectedRma.rmaStatus !== 'CANCELLED' && (
-                            <button
-                              type="button"
-                              className="btn"
-                              onClick={() => runRma('close')}
-                              disabled={!!busy}
-                            >
-                              {t('actions.close', { ns: 'common' })}
-                            </button>
-                          )}
-                        {selectedRma.rmaStatus === 'REQUESTED' && (
-                          <button
-                            type="button"
-                            className="btn btn-ghost"
-                            onClick={() => runRma('cancel')}
-                            disabled={!!busy}
-                          >
-                            <X size={16} /> {t('actions.cancel', { ns: 'common' })}
-                          </button>
-                        )}
-                        <a
-                          className="btn"
-                          href={aftersalesApi.rmas.pdfUrl(selectedRma.id)}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <FileText size={16} /> Download RMA PDF
-                        </a>
-                      </div>
-                      {collapsedContentRail('service', 'Rma', selectedRma.id, async () =>
-                          setRmaContentMap(await fetchContentMap('service', 'Rma', rmas)))}
-      </div>
-    )
-  }
-
-  const emptyTitle =
-    tab === 'inquiries'
-      ? t('aftersales.selectInquiry')
-      : tab === 'claims'
-        ? t('aftersales.selectClaim', { defaultValue: 'Select a claim' })
-        : tab === 'rmas'
-          ? t('aftersales.selectRma', { defaultValue: 'Select an RMA' })
-          : t('desk.emptyTitle', { ns: 'common' })
-  const emptyBody =
-    tab === 'inquiries' || tab === 'claims' || tab === 'rmas'
-
-      ? t('desk.emptyBody', { ns: 'common' })
-      : t('desk.emptyBodyMasters', {
-          ns: 'common',
-          defaultValue: 'Use + New to create, or View on a row for the full record.',
-        })
+  const emptyTitle = t('desk.emptyTitle', { ns: 'common' })
+  const emptyBody = t('desk.emptyBodyMasters', {
+    ns: 'common',
+    defaultValue: 'Use + New to create, or View on a row for the full record.',
+  })
 
   return (
     <div className="page aftersales-desk-page">
@@ -2014,10 +2100,7 @@ export default function AfterSalesDesk() {
 
       {showNewCustomer && (
         <section className="card" style={{ marginBottom: '1rem' }}>
-          <h2 className="section-label" style={{ marginTop: 0 }}>
-            {t('aftersales.newCustomer')}
-          </h2>
-          <p className="muted" style={{ marginTop: 0, fontSize: '0.9rem' }}>
+<p className="muted" style={{ marginTop: 0, fontSize: '0.9rem' }}>
             For end customers reached via a distributor (or any case not already on the sales
             books). Uses the Sales Customer domain.
           </p>
@@ -2072,7 +2155,7 @@ export default function AfterSalesDesk() {
         </section>
       )}
 
-      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
+      <div className="toolbar" style={{ marginBottom: '1.5rem' }}>
         <button type="button" className="btn" onClick={refresh} disabled={loading || !!busy}>
           <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
         </button>
@@ -2092,13 +2175,14 @@ export default function AfterSalesDesk() {
       </div>
 
       <DeskShell
+        layout="single"
         title={
           <>
             <Headphones size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
             {t('aftersales.title')}
           </>
         }
-        subtitle={t('aftersales.subtitle')}
+        subtitle={null}
         tabs={tabs}
         activeTab={tab}
         onTabChange={requestTabChange}
@@ -2107,15 +2191,14 @@ export default function AfterSalesDesk() {
         onToggleNew={requestToggleNew}
         newPanel={newPanel}
         list={list}
-        hasSelection={hasSelection}
+        hasSelection={false}
         emptyTitle={emptyTitle}
         emptyBody={emptyBody}
-        detail={detail}
-        detailFooter={detailFooter}
-        processSlot={processSlot}
+        detail={null}
+        detailFooter={null}
+        processSlot={null}
         helpContext={helpContext}
-        narrowSheetOpen={narrow && hasSelection}
-        onCloseSheet={() => setSelectedId(null)}
+        narrowSheetOpen={false}
       />
 
       <DeskNewFab label={newLabel} onClick={() => !newExpanded && requestToggleNew()} />

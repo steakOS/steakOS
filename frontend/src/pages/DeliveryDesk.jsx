@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -23,12 +23,15 @@ import {
   Check,
   Play,
   Calendar,
-  User,
+  Eye,
+  Pencil,
+  Trash2,
   Users,
   Package,
   FileText,
+  User,
 } from 'lucide-react'
-import { deliveryApi, catalogueApi, salesApi, meApi } from '../api/client'
+import { deliveryApi, catalogueApi, salesApi, domainsApi, meApi } from '../api/client'
 import DocumentLinesEditor, {
   emptyDocLine,
   linesToApiPayload,
@@ -37,7 +40,6 @@ import MasterEntityFields from '../forms/MasterEntityFields'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 
 const serviceMasterSpec = getMasterFormSpec('delivery', 'Service')
-import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import useRecordView from '../hooks/useRecordView'
@@ -52,10 +54,10 @@ import ResourceSelect from '../components/ResourceSelect'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
-import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import RowActionSlots from '../components/RowActionSlots'
+import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
-import useNarrowViewport from '../hooks/useNarrowViewport'
 
 const TAB_DEFS = [
   { id: 'customers', labelKey: 'delivery.tabs.customers', icon: Users },
@@ -65,16 +67,23 @@ const TAB_DEFS = [
 ]
 
 /**
- * Delivery desk (D-S0–D-S3): catalogue → resource → fulfill. No Finance invoice (D3).
+ * Delivery desk (D-S0–D-S3) — Buyers UI 2.0 (ADR-050): single-column + modal registers.
  */
 export default function DeliveryDesk() {
   const { t } = useTranslation(['desks', 'common', 'content', 'sales'])
-  const { viewModal, ViewButton } = useRecordView()
+  const loadAllRef = useRef(async () => {})
+  const deepLinkOpened = useRef(null)
+  const getBelowFieldsRef = useRef(null)
+  const getFooterExtraRef = useRef(null)
+  const runOrderRef = useRef(async () => {})
+  const selectedRef = useRef(null)
+  const ordersRef = useRef([])
+  const resourceOptionsRef = useRef([])
+  const busyRef = useRef(null)
   const tabs = useMemo(
     () => TAB_DEFS.map((d) => ({ id: d.id, label: t(d.labelKey), icon: d.icon })),
     [t],
   )
-  const narrow = useNarrowViewport()
   const [tab, setTab] = useState(() => {
     if (typeof window === 'undefined') return 'orders'
     const urlTab = new URLSearchParams(window.location.search).get('tab')
@@ -187,6 +196,34 @@ export default function DeliveryDesk() {
   const [customerOptions, setCustomerOptions] = useState([])
   const [resourceOptions, setResourceOptions] = useState([])
 
+  const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+
+  const {
+    viewModal,
+    openView,
+    openEdit,
+    updateViewingRecord,
+  } = useRecordView({
+    modalEdit: true,
+    canModalEdit: ({ resource, record }) => {
+      if (resource === 'Customer' || resource === 'CatalogueItem' || resource === 'Resource') return true
+      if (resource === 'ServiceOrder') {
+        return (record?.fulfillStatus || record?.status) === 'DRAFT'
+      }
+      return false
+    },
+    onSaved: (updated) => {
+      loadAllRef.current().catch(() => {})
+      if (updated?.id != null && (updated.fulfillStatus != null || Array.isArray(updated.lines))) {
+        setSelected((prev) =>
+          prev && String(prev.id) === String(updated.id) ? { ...prev, ...updated } : prev,
+        )
+      }
+    },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
+    getFooterExtra: (ctx) => getFooterExtraRef.current?.(ctx) ?? null,
+  })
+
   const loadAll = useCallback(async () => {
     const [c, cPick, s, r, rPick, o] = await Promise.all([
       salesApi.customers.list({ max: custPage.max, offset: custPage.offset }),
@@ -253,6 +290,12 @@ export default function DeliveryDesk() {
     orderPage.offset,
   ])
 
+  loadAllRef.current = loadAll
+  selectedRef.current = selected
+  ordersRef.current = orders
+  resourceOptionsRef.current = resourceOptions
+  busyRef.current = busy
+
   const selectOrder = useCallback(async (id) => {
     if (!id) {
       setSelected(null)
@@ -261,15 +304,45 @@ export default function DeliveryDesk() {
     setSelected(await deliveryApi.orders.get(id))
   }, [])
 
+  const openOrderView = useCallback(
+    async (order) => {
+      if (!order?.id && order?.id !== 0) return
+      const full = await deliveryApi.orders.get(order.id)
+      setSelected(full)
+      openView('delivery', 'ServiceOrder', full)
+    },
+    [openView],
+  )
+
   useEffect(() => {
     let cancelled = false
     const run = async () => {
+      if (!selectedId) return
+      if (deepLinkOpened.current === String(selectedId)) return
       try {
-        if (tab === 'orders') {
-          if (selectedId) await selectOrder(selectedId)
-          else if (!cancelled) setSelected(null)
-        } else if (!cancelled) {
-          setSelected(null)
+        const resource =
+          tab === 'customers'
+            ? ['sales', 'Customer']
+            : tab === 'services'
+              ? ['catalogue', 'CatalogueItem']
+              : tab === 'resources'
+                ? ['delivery', 'Resource']
+                : ['delivery', 'ServiceOrder']
+        const [pkg, res] = resource
+        let record = null
+        if (res === 'ServiceOrder') {
+          record = await deliveryApi.orders.get(selectedId)
+          if (!cancelled && record) setSelected(record)
+        } else if (res === 'Customer') {
+          record = await domainsApi.get(pkg, res, selectedId)
+        } else if (res === 'CatalogueItem') {
+          record = await domainsApi.get(pkg, res, selectedId)
+        } else {
+          record = await deliveryApi.resources.get(selectedId)
+        }
+        if (!cancelled && record) {
+          openView(pkg, res, record)
+          deepLinkOpened.current = String(selectedId)
         }
       } catch (e) {
         if (!cancelled) setError(e.message || String(e))
@@ -279,15 +352,7 @@ export default function DeliveryDesk() {
     return () => {
       cancelled = true
     }
-  }, [tab, selectedId, selectOrder])
-
-  useEffect(() => {
-    if (!selectedId) return
-    const id = window.requestAnimationFrame(() => {
-      scrollSelectedIntoView('.desk-shell-list')
-    })
-    return () => window.cancelAnimationFrame(id)
-  }, [selectedId, tab, selected?.id])
+  }, [selectedId, tab, openView])
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -430,8 +495,10 @@ export default function DeliveryDesk() {
       setInfo(t('toast.numberAmount', { ns: 'common', what: t('labels.order', { ns: 'common' }), number: o.orderNumber, amount: Number(o.amountEur).toFixed(2) }))
       setOrderPage((pg) => ({ ...pg, offset: 0 }))
       await loadAll()
-      setSelectedId(String(o.id))
       setTab('orders')
+      deepLinkOpened.current = String(o.id)
+      setSelectedId(String(o.id))
+      await openOrderView(o)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -452,8 +519,12 @@ export default function DeliveryDesk() {
       )
       setOrderPage((pg) => ({ ...pg, offset: 0 }))
       await loadAll()
-      if (items[0]?.id) setSelectedId(String(items[0].id))
       setTab('orders')
+      if (items[0]?.id) {
+        deepLinkOpened.current = String(items[0].id)
+        setSelectedId(String(items[0].id))
+        await openOrderView(items[0])
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -462,32 +533,34 @@ export default function DeliveryDesk() {
   }
 
   const runOrder = async (action) => {
-    if (!selected?.id) return
+    const live = selectedRef.current
+    if (!live?.id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
-      let result
+      let updated = null
       if (action === 'schedule') {
-        result = await deliveryApi.orders.schedule(selected.id, {
-          resourceId: selected.resourceId || undefined,
+        updated = await deliveryApi.orders.schedule(live.id, {
+          resourceId: live.resourceId || undefined,
         })
-        setSelected(result)
-        setInfo(t('toast.scheduled', { ns: 'common', number: result.orderNumber }))
+        setInfo(t('toast.scheduled', { ns: 'common', number: updated.orderNumber }))
       } else if (action === 'start') {
-        result = await deliveryApi.orders.start(selected.id)
-        setSelected(result)
-        setInfo(t('toast.started', { ns: 'common', name: result.orderNumber }))
+        updated = await deliveryApi.orders.start(live.id)
+        setInfo(t('toast.started', { ns: 'common', name: updated.orderNumber }))
       } else if (action === 'complete') {
-        result = await deliveryApi.orders.complete(selected.id)
-        setSelected(result.order)
+        const result = await deliveryApi.orders.complete(live.id)
+        updated = result.order
         setInfo(
           `Completed ${result.order?.orderNumber} · no Finance invoice (Sales owns billing)`,
         )
       } else if (action === 'cancel') {
-        result = await deliveryApi.orders.cancel(selected.id)
-        setSelected(result)
-        setInfo(t('toast.cancelled', { ns: 'common', number: result.orderNumber }))
+        updated = await deliveryApi.orders.cancel(live.id)
+        setInfo(t('toast.cancelled', { ns: 'common', number: updated.orderNumber }))
+      }
+      if (updated) {
+        setSelected(updated)
+        updateViewingRecord(updated)
       }
       await loadAll()
     } catch (err) {
@@ -496,14 +569,17 @@ export default function DeliveryDesk() {
       setBusy(null)
     }
   }
+  runOrderRef.current = runOrder
 
   const onAssign = async (resourceId) => {
-    if (!selected?.id) return
+    const live = selectedRef.current
+    if (!live?.id) return
     setBusy('assign')
     setError(null)
     try {
-      const o = await deliveryApi.orders.assign(selected.id, resourceId || null)
+      const o = await deliveryApi.orders.assign(live.id, resourceId || null)
       setSelected(o)
+      updateViewingRecord(o)
       setInfo(resourceId ? t('toast.assigned', { ns: 'common' }) : t('delivery.unassigned'))
       await loadAll()
     } catch (err) {
@@ -512,6 +588,107 @@ export default function DeliveryDesk() {
       setBusy(null)
     }
   }
+
+  const canEditRecord = useCallback((resource, record) => {
+    if (resource === 'Customer' || resource === 'CatalogueItem' || resource === 'Resource') return true
+    if (resource === 'ServiceOrder') return (record?.fulfillStatus || record?.status) === 'DRAFT'
+    return false
+  }, [])
+
+  const canDeleteRecord = useCallback((resource, record) => {
+    if (resource === 'Customer' || resource === 'CatalogueItem' || resource === 'Resource') return true
+    if (resource === 'ServiceOrder') return (record?.fulfillStatus || record?.status) === 'DRAFT'
+    return false
+  }, [])
+
+  const onDelete = useCallback(
+    async (pkg, resource, record) => {
+      const label =
+        record?.name ||
+        record?.orderNumber ||
+        t('view.untitled', { ns: 'common', defaultValue: 'this record' })
+      if (!window.confirm(t('actions.confirmDelete', { ns: 'common', label }))) return
+      setError(null)
+      try {
+        if (resource === 'ServiceOrder') {
+          await deliveryApi.orders.cancel(record.id)
+        } else {
+          await domainsApi.remove(pkg, resource, record.id)
+        }
+        setInfo(
+          t('toast.namedDeleted', {
+            ns: 'common',
+            name: label,
+            defaultValue: `Deleted ${label}`,
+          }),
+        )
+        await loadAllRef.current()
+      } catch (err) {
+        setError(err.message || String(err))
+      }
+    },
+    [t],
+  )
+
+  const renderRowActions = useCallback(
+    (pkg, resource, record, { onView } = {}) => {
+      if (!record?.id && record?.id !== 0) return null
+      const canEdit = canEditRecord(resource, record)
+      const canDelete = canDeleteRecord(resource, record)
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (typeof onView === 'function') onView(record)
+                else openView(pkg, resource, record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            canEdit ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.edit', { ns: 'common' })}
+                aria-label={t('actions.edit', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openEdit(pkg, resource, record)
+                }}
+              >
+                <Pencil size={14} />
+              </button>
+            ) : null
+          }
+          delete={
+            canDelete ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.delete', { ns: 'common' })}
+                aria-label={t('actions.delete', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(pkg, resource, record)
+                }}
+              >
+                <Trash2 size={14} />
+              </button>
+            ) : null
+          }
+        />
+      )
+    },
+    [canDeleteRecord, canEditRecord, onDelete, openEdit, openView, t],
+  )
 
 
   const DEFAULT_ORDER_LINES = () => [
@@ -599,7 +776,7 @@ export default function DeliveryDesk() {
   }, [tab, orders])
 
   useDeskKeyboard({
-    enabled: !newExpanded && tab === 'orders',
+    enabled: false,
     itemIds: keyboardIds,
     selectedId,
     setSelectedId,
@@ -646,11 +823,6 @@ export default function DeliveryDesk() {
     return t('desk.new', { ns: 'common', defaultValue: 'New' })
   }, [tab, t])
 
-  const hasSelection = useMemo(() => {
-    if (tab === 'orders') return Boolean(selected?.id)
-    return false
-  }, [tab, selected?.id])
-
   const helpContext = useMemo(() => {
     const base = { desk: 'delivery', tab }
     if (tab === 'orders' && selected) {
@@ -664,13 +836,6 @@ export default function DeliveryDesk() {
     }
     return base
   }, [tab, selected])
-
-  const processStatus = tab === 'orders' ? selected?.fulfillStatus : null
-
-  const processSlot =
-    tab === 'orders' ? (
-      <DeskProcessSlot processCode="DEL_SERVICE_ORDER" status={processStatus} />
-    ) : null
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
@@ -885,21 +1050,19 @@ export default function DeliveryDesk() {
   // —— lists ——
   const customersList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('customer.list', { ns: 'sales' })} ({custPage.total})
-      </h2>
       {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
       <ResponsiveDataList
         items={customers}
         empty={t('customer.empty', { ns: 'sales' })}
         loading={loading}
+        onSelect={(c) => openView('sales', 'Customer', c)}
         fields={[
           { id: 'name', primary: true, render: (c) => c.name },
           { id: 'email', secondary: true, render: (c) => c.email || '—' },
           { id: 'kind', priority: 'low', render: (c) => c.customerKind },
           { id: 'ccy', priority: 'low', render: (c) => c.currencyCode },
         ]}
-        actions={(c) => <ViewButton pkg="sales" resource="Customer" record={c} />}
+        actions={(c) => renderRowActions('sales', 'Customer', c)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -910,7 +1073,7 @@ export default function DeliveryDesk() {
                 <th>{t('customer.table.email', { ns: 'sales' })}</th>
                 <th className="col-priority-low">{t('customer.table.content', { ns: 'sales' })}</th>
                 <th className="col-priority-low">{t('wb.ccy', { ns: 'common' })}</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
@@ -922,7 +1085,11 @@ export default function DeliveryDesk() {
                 </tr>
               )}
               {customers.map((c) => (
-                <tr key={c.id}>
+                <tr
+                  key={c.id}
+                  className="row-click"
+                  onClick={() => openView('sales', 'Customer', c)}
+                >
                   <td>{c.name}</td>
                   <td className="col-priority-low">{c.customerKind}</td>
                   <td className="muted">{c.email || '—'}</td>
@@ -930,8 +1097,8 @@ export default function DeliveryDesk() {
                     <ContentChannelIcons summary={customerContentMap[c.id]} />
                   </td>
                   <td className="mono col-priority-low">{c.currencyCode}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="sales" resource="Customer" record={c} />
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {renderRowActions('sales', 'Customer', c)}
                   </td>
                 </tr>
               ))}
@@ -952,12 +1119,10 @@ export default function DeliveryDesk() {
 
   const servicesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Services ({svcPage.total})
-      </h2>
       <ResponsiveDataList
         items={services}
         empty="—"
+        onSelect={(s) => openView('catalogue', 'CatalogueItem', s)}
         fields={[
           { id: 'name', primary: true, render: (s) => s.name },
           { id: 'unit', secondary: true, render: (s) => s.unit || '—' },
@@ -970,7 +1135,7 @@ export default function DeliveryDesk() {
                 : '—',
           },
         ]}
-        actions={(s) => <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />}
+        actions={(s) => renderRowActions('catalogue', 'CatalogueItem', s)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -979,12 +1144,16 @@ export default function DeliveryDesk() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>{t('wb.unit', { ns: 'common' })}</th>
                 <th>EUR</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
               {services.map((s) => (
-                <tr key={s.id}>
+                <tr
+                  key={s.id}
+                  className="row-click"
+                  onClick={() => openView('catalogue', 'CatalogueItem', s)}
+                >
                   <td>{s.name}</td>
                   <td>{s.unit}</td>
                   <td>
@@ -992,8 +1161,8 @@ export default function DeliveryDesk() {
                       ? Number(s.listPrice ?? s.listPriceEur).toFixed(2)
                       : '—'}
                   </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="catalogue" resource="CatalogueItem" record={s} />
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {renderRowActions('catalogue', 'CatalogueItem', s)}
                   </td>
                 </tr>
               ))}
@@ -1014,12 +1183,10 @@ export default function DeliveryDesk() {
 
   const resourcesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Resources ({resPage.total})
-      </h2>
       <ResponsiveDataList
         items={resources}
         empty="—"
+        onSelect={(r) => openView('delivery', 'Resource', r)}
         fields={[
           { id: 'name', primary: true, render: (r) => r.name },
           { id: 'kind', secondary: true, render: (r) => r.resourceKind || '—' },
@@ -1029,7 +1196,7 @@ export default function DeliveryDesk() {
             render: (r) => (r.capacityHours != null ? `${r.capacityHours}h` : '—'),
           },
         ]}
-        actions={(r) => <ViewButton pkg="delivery" resource="Resource" record={r} />}
+        actions={(r) => renderRowActions('delivery', 'Resource', r)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1038,17 +1205,21 @@ export default function DeliveryDesk() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>{t('wb.kind', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.hours', { ns: 'common' })}</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
               {resources.map((r) => (
-                <tr key={r.id}>
+                <tr
+                  key={r.id}
+                  className="row-click"
+                  onClick={() => openView('delivery', 'Resource', r)}
+                >
                   <td>{r.name}</td>
                   <td>{r.resourceKind}</td>
                   <td className="col-priority-low">{r.capacityHours ?? '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="delivery" resource="Resource" record={r} />
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {renderRowActions('delivery', 'Resource', r)}
                   </td>
                 </tr>
               ))}
@@ -1069,14 +1240,10 @@ export default function DeliveryDesk() {
 
   const ordersList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Orders ({orderPage.total})
-      </h2>
       <ResponsiveDataList
         items={orders}
         empty="—"
-        selectedKey={selected?.id}
-        onSelect={(o) => setSelectedId(String(o.id))}
+        onSelect={(o) => openOrderView(o)}
         fields={[
           {
             id: 'number',
@@ -1100,7 +1267,9 @@ export default function DeliveryDesk() {
               o.amountEur != null ? `${Number(o.amountEur).toFixed(2)} EUR` : '—',
           },
         ]}
-        actions={(o) => <ViewButton pkg="delivery" resource="ServiceOrder" record={o} />}
+        actions={(o) =>
+          renderRowActions('delivery', 'ServiceOrder', o, { onView: () => openOrderView(o) })
+        }
       >
         <div className="table-wrap">
           <table className="data">
@@ -1110,16 +1279,15 @@ export default function DeliveryDesk() {
                 <th>{t('wb.customer', { ns: 'common' })}</th>
                 <th>EUR</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((o) => (
                 <tr
                   key={o.id}
-                  data-selected={selected?.id === o.id ? 'true' : undefined}
-                  className={selected?.id === o.id ? 'row-selected' : 'row-click'}
-                  onClick={() => setSelectedId(String(o.id))}
+                  className="row-click"
+                  onClick={() => openOrderView(o)}
                 >
                   <td className="mono">{o.orderNumber}</td>
                   <td>{o.customerName || '—'}</td>
@@ -1127,8 +1295,10 @@ export default function DeliveryDesk() {
                   <td>
                     <span className={statusClass(o.fulfillStatus)}>{o.fulfillStatus}</span>
                   </td>
-                  <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="delivery" resource="ServiceOrder" record={o} />
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {renderRowActions('delivery', 'ServiceOrder', o, {
+                      onView: () => openOrderView(o),
+                    })}
                   </td>
                 </tr>
               ))}
@@ -1158,62 +1328,31 @@ export default function DeliveryDesk() {
             ? ordersList
             : null
 
-  let detail = null
-  let detailFooter = null
-
-  if (tab === 'orders' && selected) {
-    detail = (
-      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
-        <div className="inv-detail-hero">
-          <div>
-            <div className="about-display" style={{ fontSize: '1.35rem' }}>
-              {selected.orderNumber}
-            </div>
-            <div className="muted">
-              {selected.customerName || t('wb.noCustomer', { ns: 'common' })} ·{' '}
-              <span className={statusClass(selected.fulfillStatus)}>
-                {selected.fulfillStatus}
-              </span>
-            </div>
-            {selected.sourceSalesOrderId && (
-              <div className="muted" style={{ fontSize: '0.85rem' }}>
-                From sales order
-              </div>
-            )}
-            {selected.resourceName && (
-              <div className="muted" style={{ fontSize: '0.85rem' }}>
-                Assignee: {selected.resourceName}
-              </div>
-            )}
-          </div>
-          <div className="inv-amount">
-            {Number(selected.amountEur || 0).toFixed(2)} EUR
-            {selected.amountSats != null && (
-              <div className="muted mono" style={{ fontSize: '0.8rem' }}>
-                {selected.amountSats} sats
-              </div>
-            )}
-          </div>
-        </div>
-
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (resource !== 'ServiceOrder' || !record) return null
+    const live = selectedRef.current
+    const order = live?.id === record.id ? live : record
+    const opts = resourceOptionsRef.current || []
+    return (
+      <>
         <label>
           {t('delivery.assignEmployee', { defaultValue: 'Assign employee' })}
           <select
-            value={selected.resourceId || ''}
+            value={order.resourceId || ''}
             onChange={(e) => onAssign(e.target.value)}
-            disabled={!!busy || selected.fulfillStatus === 'COMPLETED'}
+            disabled={!!busyRef.current || order.fulfillStatus === 'COMPLETED'}
           >
             <option value="">
               {t('delivery.noAssignee', { defaultValue: '— none —' })}
             </option>
-            {resourceOptions.length === 0 && (
+            {opts.length === 0 && (
               <option value="" disabled>
                 {t('delivery.emptyAssignees', {
                   defaultValue: 'No active employees — add people in HR first.',
                 })}
               </option>
             )}
-            {resourceOptions.map((r) => (
+            {opts.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
                 {r.email ? ` · ${r.email}` : ''}
@@ -1221,38 +1360,6 @@ export default function DeliveryDesk() {
             ))}
           </select>
         </label>
-
-        <div className="toolbar">
-          {['DRAFT'].includes(selected.fulfillStatus) && (
-            <button
-              type="button"
-              className="btn"
-              onClick={() => runOrder('schedule')}
-              disabled={!!busy}
-            >
-              <Calendar size={16} /> Schedule
-            </button>
-          )}
-          {['DRAFT', 'SCHEDULED'].includes(selected.fulfillStatus) && (
-            <button
-              type="button"
-              className="btn"
-              onClick={() => runOrder('start')}
-              disabled={!!busy}
-            >
-              <Play size={16} /> Start
-            </button>
-          )}
-          <a
-            className="btn"
-            href={deliveryApi.orders.pdfUrl(selected.id)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <FileText size={16} /> Download delivery PDF
-          </a>
-        </div>
-
         <h3 className="section-label">{t('wb.lines', { ns: 'common' })}</h3>
         <div className="table-wrap">
           <table className="data">
@@ -1265,7 +1372,7 @@ export default function DeliveryDesk() {
               </tr>
             </thead>
             <tbody>
-              {(selected.lines || []).map((l) => (
+              {(order.lines || []).map((l) => (
                 <tr key={l.id || l.lineNo}>
                   <td>{l.lineNo}</td>
                   <td>{l.name}</td>
@@ -1276,43 +1383,69 @@ export default function DeliveryDesk() {
             </tbody>
           </table>
         </div>
-        {collapsedContentRail('delivery', 'ServiceOrder', selected.id, async () =>
-          setOrderContentMap(await fetchContentMap('delivery', 'ServiceOrder', orders)),
+        {collapsedContentRail('delivery', 'ServiceOrder', order.id, async () =>
+          setOrderContentMap(await fetchContentMap('delivery', 'ServiceOrder', ordersRef.current)),
         )}
-      </div>
+      </>
     )
-
-    if (
-      selected.fulfillStatus !== 'COMPLETED' &&
-      selected.fulfillStatus !== 'CANCELLED'
-    ) {
-      detailFooter = (
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => runOrder('complete')}
-          disabled={!!busy}
-        >
-          <Check size={16} /> Complete
-        </button>
-      )
-    }
   }
 
-  const emptyTitle =
-    tab === 'orders'
-      ? t('delivery.selectOrder')
-      : t('desk.emptyTitle', { ns: 'common' })
-  const emptyBody =
-    tab === 'orders'
-      ? t('desk.emptyBody', { ns: 'common' })
-      : t('desk.emptyBodyMasters', {
-          ns: 'common',
-          defaultValue: 'Use + New to create, or View on a row for the full record.',
-        })
+  getFooterExtraRef.current = ({ resource, record }) => {
+    if (resource !== 'ServiceOrder' || !record) return null
+    const live = selectedRef.current
+    const order = live?.id === record.id ? live : record
+    const isBusy = !!busyRef.current
+    return (
+      <>
+        {['DRAFT'].includes(order.fulfillStatus) && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => runOrderRef.current('schedule')}
+            disabled={isBusy}
+          >
+            <Calendar size={16} /> Schedule
+          </button>
+        )}
+        {['DRAFT', 'SCHEDULED'].includes(order.fulfillStatus) && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => runOrderRef.current('start')}
+            disabled={isBusy}
+          >
+            <Play size={16} /> Start
+          </button>
+        )}
+        {order.fulfillStatus !== 'COMPLETED' && order.fulfillStatus !== 'CANCELLED' && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => runOrderRef.current('complete')}
+            disabled={isBusy}
+          >
+            <Check size={16} /> Complete
+          </button>
+        )}
+        <a
+          className="btn"
+          href={deliveryApi.orders.pdfUrl(order.id)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <FileText size={16} /> Download delivery PDF
+        </a>
+      </>
+    )
+  }
+
+  const emptyTitle = t('desk.emptyTitle', { ns: 'common' })
+  const emptyBody = t('desk.emptyBodyMasters', {
+    ns: 'common',
+    defaultValue: 'Use + New to create, or View on a row for the full record.',
+  })
 
   void orderContentMap
-  void User
 
   return (
     <div className="page delivery-desk-page">
@@ -1320,7 +1453,7 @@ export default function DeliveryDesk() {
       {info && <div className="banner-info">{info}</div>}
       {viewModal}
 
-      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
+      <div className="toolbar" style={{ marginBottom: '1.5rem' }}>
         <button type="button" className="btn" onClick={refresh} disabled={loading || !!busy}>
           <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
         </button>
@@ -1333,13 +1466,14 @@ export default function DeliveryDesk() {
       </div>
 
       <DeskShell
+        layout="single"
         title={
           <>
             <Briefcase size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
             {t('delivery.title')}
           </>
         }
-        subtitle={t('delivery.subtitle')}
+        subtitle={null}
         tabs={tabs}
         activeTab={tab}
         onTabChange={requestTabChange}
@@ -1348,15 +1482,14 @@ export default function DeliveryDesk() {
         onToggleNew={requestToggleNew}
         newPanel={newPanel}
         list={list}
-        hasSelection={hasSelection}
+        hasSelection={false}
         emptyTitle={emptyTitle}
         emptyBody={emptyBody}
-        detail={detail}
-        detailFooter={detailFooter}
-        processSlot={processSlot}
+        detail={null}
+        detailFooter={null}
+        processSlot={null}
         helpContext={helpContext}
-        narrowSheetOpen={narrow && hasSelection}
-        onCloseSheet={() => setSelectedId(null)}
+        narrowSheetOpen={false}
       />
 
       <DeskNewFab label={newLabel} onClick={() => !newExpanded && requestToggleNew()} />

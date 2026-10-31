@@ -38,6 +38,11 @@ export const MASTER_FORM_KEYS = [
   'StrategyItem',
   'DevelopmentProject',
   'PhysicalAsset',
+  'ServiceOrder',
+  'Inquiry',
+  'Warranty',
+  'Claims',
+  'Rma',
 ]
 
 function currentPeriodYyyyMm() {
@@ -598,7 +603,6 @@ const purchaseOrderSpec = {
   ],
 }
 
-
 /** DRAFT quote header only — lines shown in RecordView belowFields. */
 const customerQuoteSpec = {
   resource: 'CustomerQuote',
@@ -1023,6 +1027,191 @@ const physicalAssetSpec = {
   ],
 }
 
+/** DRAFT ServiceOrder header — lines/process stay on the desk modal. */
+const serviceOrderSpec = {
+  resource: 'ServiceOrder',
+  packages: ['delivery'],
+  empty: () => ({
+    name: '',
+    description: '',
+    currencyCode: 'EUR',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'currencyCode', label: 'Currency', type: 'currency', required: true },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    currencyCode: f.currencyCode || 'EUR',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    currencyCode: row.currencyCode || 'EUR',
+  }),
+  listColumns: [
+    { key: 'orderNumber', label: 'Number', mono: true },
+    { key: 'fulfillStatus', label: 'Status' },
+  ],
+}
+
+const inquirySpec = {
+  resource: 'Inquiry',
+  packages: ['service'],
+  empty: () => ({
+    name: '',
+    description: '',
+    caseStatus: 'OPEN',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'caseStatus',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'OPEN', label: 'Open' },
+        { value: 'IN_PROGRESS', label: 'In progress' },
+        { value: 'RESOLVED', label: 'Resolved' },
+        { value: 'CLOSED', label: 'Closed' },
+        { value: 'CANCELLED', label: 'Cancelled' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    caseStatus: f.caseStatus || 'OPEN',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    caseStatus: row.caseStatus || 'OPEN',
+  }),
+  listColumns: [{ key: 'caseStatus', label: 'Status' }],
+}
+
+const warrantySpec = {
+  resource: 'Warranty',
+  packages: ['service'],
+  empty: () => ({
+    name: '',
+    description: '',
+    coverStatus: 'DRAFT',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'coverStatus',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'DRAFT', label: 'Draft' },
+        { value: 'ACTIVE', label: 'Active' },
+        { value: 'EXPIRED', label: 'Expired' },
+        { value: 'VOID', label: 'Void' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    coverStatus: f.coverStatus || 'DRAFT',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    coverStatus: row.coverStatus || 'DRAFT',
+  }),
+  listColumns: [{ key: 'coverStatus', label: 'Status' }],
+}
+
+const claimsSpec = {
+  resource: 'Claims',
+  packages: ['service'],
+  empty: () => ({
+    name: '',
+    description: '',
+    claimStatus: 'RECEIVED',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'claimStatus',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'RECEIVED', label: 'Received' },
+        { value: 'VALIDATED', label: 'Validated' },
+        { value: 'APPROVED', label: 'Approved' },
+        { value: 'REJECTED', label: 'Rejected' },
+        { value: 'CLOSED', label: 'Closed' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    claimStatus: f.claimStatus || 'RECEIVED',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    claimStatus: row.claimStatus || 'RECEIVED',
+  }),
+  listColumns: [{ key: 'claimStatus', label: 'Status' }],
+}
+
+const rmaSpec = {
+  resource: 'Rma',
+  packages: ['service'],
+  empty: () => ({
+    name: '',
+    description: '',
+    rmaStatus: 'REQUESTED',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'rmaStatus',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'REQUESTED', label: 'Requested' },
+        { value: 'CONFIRMED', label: 'Confirmed' },
+        { value: 'CLOSED', label: 'Closed' },
+        { value: 'CANCELLED', label: 'Cancelled' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    rmaStatus: f.rmaStatus || 'REQUESTED',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    rmaStatus: row.rmaStatus || 'REQUESTED',
+  }),
+  listColumns: [{ key: 'rmaStatus', label: 'Status' }],
+}
+
 const SPECS = {
   Customer: customerSpec,
   Vendor: vendorSpec,
@@ -1040,6 +1229,11 @@ const SPECS = {
   StrategyItem: strategyItemSpec,
   DevelopmentProject: developmentProjectSpec,
   PhysicalAsset: physicalAssetSpec,
+  ServiceOrder: serviceOrderSpec,
+  Inquiry: inquirySpec,
+  Warranty: warrantySpec,
+  Claims: claimsSpec,
+  Rma: rmaSpec,
 }
 
 /** @returns {typeof customerSpec | null} */

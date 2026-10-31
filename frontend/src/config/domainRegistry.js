@@ -180,7 +180,14 @@ export const CREATE_META = {
   },
 
   // —— delivery ——
-  'delivery/Resource': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
+  'delivery/Resource': {
+    entityClass: 'A',
+    createMode: 'domain',
+    interaction: 'deskShell',
+    deskPath: '/delivery',
+    defaultTab: 'resources',
+    deskLabel: 'Delivery desk',
+  },
   'delivery/ServiceOrder': {
     entityClass: 'B',
     createMode: 'deskRedirect',
@@ -226,7 +233,14 @@ export const CREATE_META = {
     deskLabel: 'AfterSales desk',
   },
   'service/Satisfaction': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
-  'service/ServiceLevel': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
+  'service/ServiceLevel': {
+    entityClass: 'A',
+    createMode: 'domain',
+    interaction: 'deskShell',
+    deskPath: '/aftersales',
+    defaultTab: 'levels',
+    deskLabel: 'AfterSales desk',
+  },
   'service/Warranty': {
     entityClass: 'B',
     createMode: 'deskRedirect',
