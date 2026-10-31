@@ -13,6 +13,7 @@ const MIN_LEN = 2
 
 const TYPE_ORDER = [
   'customer',
+  'opportunity',
   'vendor',
   'catalogueItem',
   'customerQuote',

@@ -26,6 +26,7 @@ import steakos.procurement.PurchaseOrder
 import steakos.procurement.Vendor
 import steakos.sales.Customer
 import steakos.sales.CustomerQuote
+import steakos.sales.Opportunity
 import steakos.sales.SalesOrder
 import steakos.api.ListPaging
 import steakos.security.RoleProfileService
@@ -128,6 +129,13 @@ class SearchService {
                         }
                 ],
                 [
+                        type    : 'opportunity',
+                        family  : 'sales',
+                        fetch   : { String term, String npub, int max ->
+                            searchOpportunity(term, npub, max)
+                        }
+                ],
+                [
                         type    : 'vendor',
                         family  : 'scm',
                         fetch   : { String term, String npub, int max ->
@@ -204,6 +212,28 @@ class SearchService {
             // Sales desk customers tab — not Opportunities desk (?id= is opportunity id space; Task 7656)
             item('customer', c.id, c.name, statusOf(c), c.email ?: c.taxId,
                     "/sales?tab=customers&id=${c.id}", 'sales')
+        }
+    }
+
+    /** Opportunities desk deep-link (Task 7655) — was missing from S0 fan-out. */
+    private List<Map> searchOpportunity(String term, String npub, int max) {
+        String like = ListPaging.likeContains(term)
+        if (!like) return []
+        List rows = Opportunity.createCriteria().list(max: max, offset: 0, sort: 'id', order: 'desc') {
+            if (npub) eq('npubOwner', npub)
+            eq('active', Boolean.TRUE)
+            or {
+                ilike('name', like)
+                ilike('contactName', like)
+                ilike('contactEmail', like)
+                ilike('ownerName', like)
+                ilike('description', like)
+            }
+        } as List
+        rows.collect { Opportunity o ->
+            String subtitle = [o.contactName, o.contactEmail].findAll { it }.join(' · ')
+            item('opportunity', o.id, o.name, o.stage ?: statusOf(o), subtitle ?: null,
+                    "/sales/opportunities?id=${o.id}", 'sales')
         }
     }
 

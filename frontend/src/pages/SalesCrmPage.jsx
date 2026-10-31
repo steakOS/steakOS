@@ -18,6 +18,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ContactRound, Plus, RefreshCw, Ban, Check } from 'lucide-react'
 import ResponsiveDataList from '../components/ResponsiveDataList'
+import ListFilterBar from '../components/ListFilterBar'
 import { salesApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrencySelect from '../components/CurrencySelect'
@@ -131,6 +132,7 @@ export default function SalesCrmPage() {
   }, [])
 
   const [openOnly, setOpenOnly] = useState(true)
+  const [listQ, setListQ] = useState('')
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
   const [selected, setSelected] = useState(null)
@@ -149,6 +151,7 @@ export default function SalesCrmPage() {
     try {
       const params = { max: 50, offset: 0 }
       if (openOnly) params.open = true
+      if (listQ.trim()) params.q = listQ.trim()
       const data = await salesApi.crm.listOpportunities(params)
       setItems(data?.items || [])
       setTotal(data?.total ?? (data?.items || []).length)
@@ -159,7 +162,7 @@ export default function SalesCrmPage() {
     } finally {
       setLoading(false)
     }
-  }, [openOnly, t])
+  }, [openOnly, listQ, t])
 
   useEffect(() => {
     load()
@@ -503,6 +506,12 @@ export default function SalesCrmPage() {
 
   const toolbar = (
     <>
+      <ListFilterBar
+        q={listQ}
+        onQChange={setListQ}
+        placeholder={t('crm.search', { defaultValue: 'Search opportunities…' })}
+        ariaLabel={t('actions.search', { ns: 'common', defaultValue: 'Search' })}
+      />
       <button
         type="button"
         className={`btn ${openOnly ? 'btn-primary' : 'btn-ghost'} filter-select`}
