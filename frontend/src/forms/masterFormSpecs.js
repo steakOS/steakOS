@@ -32,6 +32,8 @@ export const MASTER_FORM_KEYS = [
   'Payable',
   'CatalogueItem',
   'PurchaseOrder',
+  'CustomerQuote',
+  'SalesOrder',
   'Competitor',
   'StrategyItem',
   'DevelopmentProject',
@@ -596,6 +598,92 @@ const purchaseOrderSpec = {
   ],
 }
 
+
+/** DRAFT quote header only — lines shown in RecordView belowFields. */
+const customerQuoteSpec = {
+  resource: 'CustomerQuote',
+  packages: ['sales'],
+  empty: () => ({
+    name: '',
+    description: '',
+    quoteStatus: 'DRAFT',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'quoteStatus',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'DRAFT', label: 'Draft' },
+        { value: 'SENT', label: 'Sent' },
+        { value: 'ACCEPTED', label: 'Accepted' },
+        { value: 'REJECTED', label: 'Rejected' },
+        { value: 'EXPIRED', label: 'Expired' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    quoteStatus: f.quoteStatus || 'DRAFT',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    quoteStatus: row.quoteStatus || 'DRAFT',
+  }),
+  listColumns: [
+    { key: 'quoteNumber', label: 'Number', mono: true },
+    { key: 'quoteStatus', label: 'Status' },
+  ],
+}
+
+/** DRAFT sales order header only — lines shown in RecordView belowFields. */
+const salesOrderSpec = {
+  resource: 'SalesOrder',
+  packages: ['sales'],
+  empty: () => ({
+    name: '',
+    description: '',
+    orderStatus: 'DRAFT',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'orderStatus',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'DRAFT', label: 'Draft' },
+        { value: 'CONFIRMED', label: 'Confirmed' },
+        { value: 'CLOSED', label: 'Closed' },
+        { value: 'CANCELLED', label: 'Cancelled' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    orderStatus: f.orderStatus || 'DRAFT',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    orderStatus: row.orderStatus || 'DRAFT',
+  }),
+  listColumns: [
+    { key: 'orderNumber', label: 'Number', mono: true },
+    { key: 'orderStatus', label: 'Status' },
+  ],
+}
+
 /** Finance Payable — vendor + amount aligned with FinanceHub payables create. */
 const payableSpec = {
   resource: 'Payable',
@@ -946,6 +1034,8 @@ const SPECS = {
   Payable: payableSpec,
   CatalogueItem: catalogueItemSpec,
   PurchaseOrder: purchaseOrderSpec,
+  CustomerQuote: customerQuoteSpec,
+  SalesOrder: salesOrderSpec,
   Competitor: competitorSpec,
   StrategyItem: strategyItemSpec,
   DevelopmentProject: developmentProjectSpec,
