@@ -199,7 +199,15 @@ function renderField(field, form, handle, setField, disabled) {
       <input
         id={id}
         name={field.name}
-        type={field.type === 'email' ? 'email' : field.type === 'number' ? 'text' : 'text'}
+        type={
+          field.type === 'email'
+            ? 'email'
+            : field.type === 'date'
+              ? 'date'
+              : field.type === 'number'
+                ? 'text'
+                : 'text'
+        }
         value={val ?? ''}
         disabled={disabled}
         required={!!field.required}

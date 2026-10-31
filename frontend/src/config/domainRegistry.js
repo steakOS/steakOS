@@ -237,9 +237,23 @@ export const CREATE_META = {
   },
 
   // —— strategy / development / asset (G4 thin) ——
-  'strategy/Competitor': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
-  'strategy/StrategyItem': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
-  'development/DevelopmentProject': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
+  'strategy/Competitor': {
+    entityClass: 'A',
+    createMode: 'deskRedirect',
+    interaction: 'deskShell',
+    deskPath: '/strategy',
+    defaultTab: 'competitors',
+    deskLabel: 'Strategy desk',
+  },
+  'strategy/StrategyItem': {
+    entityClass: 'A',
+    createMode: 'deskRedirect',
+    interaction: 'deskShell',
+    deskPath: '/strategy',
+    defaultTab: 'topics',
+    deskLabel: 'Strategy desk',
+  },
+  'development/DevelopmentProject': { entityClass: 'A', createMode: 'deskRedirect', interaction: 'deskShell', deskPath: '/development', defaultTab: 'projects', deskLabel: 'Development desk' },
   'asset/PhysicalAsset': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
 
   // —— human ——

@@ -540,13 +540,26 @@
     "competitors": "Competitors",
     "competitorsHint": "Register competitors you watch.",
     "items": "Strategy topics",
-    "itemsHint": "Vision, mission, strategies, needs, and factors (light notes)."
+    "itemsHint": "Vision, mission, strategies, needs, and factors (light notes).",
+    "tabs": {
+      "competitors": "Competitors",
+      "topics": "Strategy topics"
+    },
+    "newCompetitor": "New competitor",
+    "createCompetitor": "Create competitor",
+    "newTopic": "New topic",
+    "createTopic": "Create topic"
   },
   "development": {
     "title": "Development",
     "subtitle": "Entry Level/Light Process — product development projects. Separate from Capability projects.",
     "projects": "Development projects",
-    "projectsHint": "NPD, revision, and other development initiatives (light)."
+    "projectsHint": "NPD, revision, and other development initiatives (light).",
+    "newProject": "New project",
+    "createProject": "Create project",
+    "tabs": {
+      "projects": "Projects"
+    }
   },
   "asset": {
     "title": "Assets",

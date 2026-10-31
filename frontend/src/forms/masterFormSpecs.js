@@ -18,7 +18,7 @@
  * Used by DomainForm and desk create panels.
  *
  * Each field: { name, labelKey, label, type, required?, options?, placeholder?, inputMode? }
- * type: text | textarea | email | select | checkbox | number
+ * type: text | textarea | email | select | checkbox | number | date
  */
 
 export const MASTER_FORM_KEYS = [
@@ -32,6 +32,9 @@ export const MASTER_FORM_KEYS = [
   'Payable',
   'CatalogueItem',
   'PurchaseOrder',
+  'Competitor',
+  'StrategyItem',
+  'DevelopmentProject',
 ]
 
 function currentPeriodYyyyMm() {
@@ -658,6 +661,193 @@ const payableSpec = {
   ],
 }
 
+const competitorSpec = {
+  resource: 'Competitor',
+  packages: ['strategy'],
+  empty: () => ({
+    name: '',
+    description: '',
+    status: 'ACTIVE',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'ACTIVE', label: 'Active' },
+        { value: 'WATCH', label: 'Watch' },
+        { value: 'INACTIVE', label: 'Inactive' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    status: f.status || 'ACTIVE',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    status: row.status || 'ACTIVE',
+  }),
+  listColumns: [{ key: 'status', label: 'Status' }],
+}
+
+const strategyItemSpec = {
+  resource: 'StrategyItem',
+  packages: ['strategy'],
+  empty: () => ({
+    name: '',
+    description: '',
+    itemKind: 'STRATEGY',
+    status: 'DRAFT',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'itemKind',
+      label: 'Kind',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'VISION', label: 'Vision' },
+        { value: 'MISSION', label: 'Mission' },
+        { value: 'STRATEGY', label: 'Strategy' },
+        { value: 'NEED', label: 'Need' },
+        { value: 'FACTOR', label: 'Factor' },
+      ],
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'DRAFT', label: 'Draft' },
+        { value: 'ACTIVE', label: 'Active' },
+        { value: 'ARCHIVED', label: 'Archived' },
+      ],
+    },
+  ],
+  toBody: (f) => ({
+    name: f.name,
+    description: f.description || null,
+    itemKind: f.itemKind || 'STRATEGY',
+    status: f.status || 'DRAFT',
+  }),
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    itemKind: row.itemKind || 'STRATEGY',
+    status: row.status || 'DRAFT',
+  }),
+  listColumns: [
+    { key: 'itemKind', label: 'Kind' },
+    { key: 'status', label: 'Status' },
+  ],
+}
+
+function toDateInputValue(v) {
+  if (v == null || v === '') return ''
+  if (typeof v === 'string') {
+    const m = v.match(/^(\d{4}-\d{2}-\d{2})/)
+    return m ? m[1] : ''
+  }
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    return v.toISOString().slice(0, 10)
+  }
+  return ''
+}
+
+/** DevelopmentBasics — NPD / revision project (G4). */
+const developmentProjectSpec = {
+  resource: 'DevelopmentProject',
+  packages: ['development'],
+  empty: () => ({
+    name: '',
+    description: '',
+    projectKind: 'NPD',
+    projectStatus: 'DRAFT',
+    catalogueItemId: '',
+    startDate: '',
+    endDate: '',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    {
+      name: 'projectKind',
+      label: 'Kind',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'NPD', label: 'NPD' },
+        { value: 'REVISION', label: 'Revision' },
+        { value: 'OTHER', label: 'Other' },
+      ],
+    },
+    {
+      name: 'projectStatus',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'DRAFT', label: 'Draft' },
+        { value: 'ACTIVE', label: 'Active' },
+        { value: 'DONE', label: 'Done' },
+        { value: 'CANCELLED', label: 'Cancelled' },
+      ],
+    },
+    {
+      name: 'catalogueItemId',
+      label: 'Catalogue item id',
+      type: 'number',
+      inputMode: 'numeric',
+      placeholder: 'Optional',
+    },
+    { name: 'startDate', label: 'Start date', type: 'date', placeholder: 'YYYY-MM-DD' },
+    { name: 'endDate', label: 'End date', type: 'date', placeholder: 'YYYY-MM-DD' },
+  ],
+  toBody: (f) => {
+    const rawId = f.catalogueItemId
+    let catalogueItemId = null
+    if (rawId !== '' && rawId != null) {
+      const n = Number(rawId)
+      catalogueItemId = Number.isFinite(n) ? n : null
+    }
+    return {
+      name: f.name,
+      description: f.description || null,
+      projectKind: f.projectKind || 'NPD',
+      projectStatus: f.projectStatus || 'DRAFT',
+      catalogueItemId,
+      startDate: f.startDate || null,
+      endDate: f.endDate || null,
+    }
+  },
+  fromRow: (row, empty) => ({
+    ...empty,
+    name: row.name || '',
+    description: row.description || '',
+    projectKind: row.projectKind || 'NPD',
+    projectStatus: row.projectStatus || 'DRAFT',
+    catalogueItemId: row.catalogueItemId != null ? String(row.catalogueItemId) : '',
+    startDate: toDateInputValue(row.startDate),
+    endDate: toDateInputValue(row.endDate),
+  }),
+  listColumns: [
+    { key: 'projectKind', label: 'Kind' },
+    { key: 'projectStatus', label: 'Status' },
+  ],
+}
+
 const SPECS = {
   Customer: customerSpec,
   Vendor: vendorSpec,
@@ -669,6 +859,9 @@ const SPECS = {
   Payable: payableSpec,
   CatalogueItem: catalogueItemSpec,
   PurchaseOrder: purchaseOrderSpec,
+  Competitor: competitorSpec,
+  StrategyItem: strategyItemSpec,
+  DevelopmentProject: developmentProjectSpec,
 }
 
 /** @returns {typeof customerSpec | null} */
