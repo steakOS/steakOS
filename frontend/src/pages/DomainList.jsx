@@ -28,7 +28,7 @@ import {
   listReturnHref,
 } from '../config/domainRegistry'
 
-import { getMasterFormSpec } from '../forms/masterFormSpecs'
+import { getMasterFormSpec, hasMasterFormSpec } from '../forms/masterFormSpecs'
 import ErrorDialog from '../components/ErrorDialog'
 import RecordViewModal from '../components/RecordViewModal'
 import RecordEditModal from '../components/RecordEditModal'
@@ -151,7 +151,19 @@ export default function DomainList() {
   const [viewing, setViewing] = useState(null)
   const [editing, setEditing] = useState(null)
   const [expandedIds, setExpandedIds] = useState(() => new Set())
-  const modalEdit = isTaskList
+  /** Modal edit when Task or a master-form resource (ADR-048 / ADR-050). Else Edit slot blank. */
+  const supportsModalEdit = isTaskList || hasMasterFormSpec(pkg, resource)
+  const canModalEditRow = useCallback(
+    (row) => {
+      if (!supportsModalEdit || !row) return false
+      if (resource === 'PurchaseOrder') {
+        const st = row.poStatus || row.status
+        return st === 'DRAFT'
+      }
+      return true
+    },
+    [supportsModalEdit, resource],
+  )
 
   const toggleExpand = (id) => {
     setExpandedIds((prev) => {
@@ -515,32 +527,17 @@ export default function DomainList() {
         </button>
       }
       edit={
-        modalEdit ? (
+        canModalEditRow(row) ? (
           <button
             type="button"
             className={rowActionClass}
             title={t('actions.edit', { ns: 'common' })}
+            aria-label={t('actions.edit', { ns: 'common' })}
             onClick={() => setEditing(row)}
           >
             <Pencil size={14} />
           </button>
-        ) : (
-          <Link
-            className={rowActionClass}
-            to={preferDesk ? deskOpenHref(row.id) : domainFormHref(row.id)}
-            title={
-              preferDesk
-                ? t('masterData.openDesk', {
-                    ns: 'common',
-                    desk: deskLabel,
-                    defaultValue: 'Open on {{desk}}',
-                  })
-                : t('actions.edit', { ns: 'common' })
-            }
-          >
-            {preferDesk ? <ExternalLink size={14} /> : <Pencil size={14} />}
-          </Link>
-        )
+        ) : null
       }
       delete={
         <button
@@ -746,32 +743,26 @@ export default function DomainList() {
         recordId={viewing?.id}
         seed={viewing}
         onEdit={
-          modalEdit
+          viewing && canModalEditRow(viewing)
             ? (row) => setEditing(row || viewing)
             : undefined
         }
-        editPath={
-          modalEdit
-            ? undefined
-            : viewing?.id != null
-              ? preferDesk
-                ? deskOpenHref(viewing.id)
-                : domainFormHref(viewing.id)
-              : undefined
-        }
+        editPath={undefined}
       />
 
-      <RecordEditModal
-        open={!!editing}
-        onClose={() => setEditing(null)}
-        package={pkg}
-        resource={resource}
-        recordId={editing?.id}
-        seed={editing}
-        onSaved={() => {
-          reload().catch((e) => showError(e, t('actions.loadFailed', { ns: 'common' })))
-        }}
-      />
+      {supportsModalEdit && (
+        <RecordEditModal
+          open={!!editing}
+          onClose={() => setEditing(null)}
+          package={pkg}
+          resource={resource}
+          recordId={editing?.id}
+          seed={editing}
+          onSaved={() => {
+            reload().catch((e) => showError(e, t('actions.loadFailed', { ns: 'common' })))
+          }}
+        />
+      )}
 
       {!isTaskList && (
         <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
