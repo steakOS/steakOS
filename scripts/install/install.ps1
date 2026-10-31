@@ -63,7 +63,8 @@ try {
         Write-Info "Downloading $artUrl"
         Invoke-WebRequest -Uri $artUrl -OutFile $zipPath -UseBasicParsing
 
-        # optional checksums (best-effort)
+        # checksums — required for GitHub / STEAKOS_REQUIRE_CHECKSUM=1
+        $requireSum = ($env:STEAKOS_REQUIRE_CHECKSUM -eq '1') -or ($BaseUrl -match 'github\.com')
         try {
             $sumUrl = "$BaseUrl/checksums.sha256"
             $sumFile = Join-Path $tmp 'checksums.sha256'
@@ -77,9 +78,11 @@ try {
                 }
                 Write-Info 'Checksum OK'
             } else {
+                if ($requireSum) { throw "checksums.sha256 has no entry for $zipName (required on public host)" }
                 Write-Info "checksums.sha256 has no entry for $zipName — skipping"
             }
         } catch {
+            if ($requireSum) { throw }
             Write-Info "Checksum verify skipped: $($_.Exception.Message)"
         }
     }

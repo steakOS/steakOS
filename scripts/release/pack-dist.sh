@@ -235,6 +235,13 @@ echo "==> Writing dist/out/checksums.sha256"
 # Publish install entrypoints next to artifacts (for static HTTP hosting)
 cp -a "$ROOT/scripts/install/install.sh" "$OUT_ROOT/install.sh"
 cp -a "$ROOT/scripts/install/install.ps1" "$OUT_ROOT/install.ps1"
+if [[ -f "$ROOT/scripts/install/bootstrap.sh" ]]; then
+  cp -a "$ROOT/scripts/install/bootstrap.sh" "$OUT_ROOT/bootstrap.sh"
+  chmod +x "$OUT_ROOT/bootstrap.sh"
+fi
+if [[ -f "$ROOT/scripts/install/bootstrap.ps1" ]]; then
+  cp -a "$ROOT/scripts/install/bootstrap.ps1" "$OUT_ROOT/bootstrap.ps1"
+fi
 chmod +x "$OUT_ROOT/install.sh"
 
 # latest pointer (symlink when possible)

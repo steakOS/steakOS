@@ -106,7 +106,11 @@ else
   info "Downloading $ART_URL"
   curl -fL --progress-bar "$ART_URL" -o "$ZIP_PATH"
 
-  # optional checksum verification
+  # checksum verification (required for public GitHub / STEAKOS_REQUIRE_CHECKSUM=1)
+  REQUIRE_SUM="${STEAKOS_REQUIRE_CHECKSUM:-0}"
+  if [[ "$BASE_URL" == *github.com* ]]; then
+    REQUIRE_SUM=1
+  fi
   if curl -fsSL "$BASE_URL/checksums.sha256" -o "$TMPDIR_INSTALL/checksums.sha256" 2>/dev/null; then
     info "Verifying checksum"
     if command -v sha256sum >/dev/null 2>&1; then
@@ -120,13 +124,27 @@ else
             || sha256sum -c <(grep "$ZIP_NAME" checksums.sha256) \
             || die "checksum mismatch"
         else
+          if [[ "$REQUIRE_SUM" == "1" ]]; then
+            die "checksums.sha256 has no entry for $ZIP_NAME (required on public host)"
+          fi
           info "checksums.sha256 has no entry for $ZIP_NAME — skipping strict check"
         fi
       )
     elif command -v shasum >/dev/null 2>&1; then
-      info "shasum present; manual verify recommended (sha256sum not found)"
+      (
+        cd "$TMPDIR_INSTALL"
+        cp -f pkg.zip "$ZIP_NAME" 2>/dev/null || true
+        EXPECT="$(grep "$(basename "$ZIP_NAME")" checksums.sha256 | awk '{print $1}')"
+        GOT="$(shasum -a 256 pkg.zip | awk '{print $1}')"
+        [[ -n "$EXPECT" && "$EXPECT" == "$GOT" ]] || die "checksum mismatch (shasum)"
+      )
+    else
+      die "need sha256sum or shasum to verify download"
     fi
   else
+    if [[ "$REQUIRE_SUM" == "1" ]]; then
+      die "checksums.sha256 missing on $BASE_URL (required for GitHub / public installs)"
+    fi
     info "No checksums.sha256 on host — skipping verify (OK for trusted LAN)"
   fi
 fi
