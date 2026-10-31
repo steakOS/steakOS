@@ -538,31 +538,111 @@ export default function DomainList() {
     </>
   )
 
-  return (
-    <div>
-      <h1 className="page-title domain-list-title">
-        <span className="domain-list-title-main">{resourceLabel}</span>
-        <span className="muted domain-list-title-group">{groupLabel}</span>
-        <span className="muted domain-list-title-count">
-          (
-          {t(total === 1 ? 'actions.records_one' : 'actions.records_other', {
+  const titleBlock = (
+    <h1 className="page-title domain-list-title">
+      <span className="domain-list-title-main">{resourceLabel}</span>
+      <span className="muted domain-list-title-group">{groupLabel}</span>
+      <span className="muted domain-list-title-count">
+        (
+        {t(total === 1 ? 'actions.records_one' : 'actions.records_other', {
+          ns: 'common',
+          count: total,
+        })}
+        )
+      </span>
+    </h1>
+  )
+
+  const createActions = (
+    <>
+      {createMode === 'domain' && preferDesk && deskPath && (
+        <Link className="btn btn-primary" to={deskNewHref}>
+          <Plus size={16} /> {t('actions.create', { ns: 'common' })}
+        </Link>
+      )}
+      {createMode === 'domain' && !preferDesk && (
+        <Link className="btn btn-primary" to={domainNewHref}>
+          <Plus size={16} /> {t('actions.create', { ns: 'common' })}
+        </Link>
+      )}
+      {createMode === 'deskRedirect' && deskPath && (
+        <Link className="btn btn-primary" to={deskNewHref}>
+          <ExternalLink size={16} />{' '}
+          {t('masterData.openDesk', {
             ns: 'common',
-            count: total,
+            desk: deskLabel,
+            defaultValue: 'Create on {{desk}}',
           })}
-          )
-        </span>
-      </h1>
-      {createMode !== 'domain' && (
-        <p className="page-sub">
-          <span className="badge badge-draft" style={{ fontWeight: 600 }}>
-            {createMode === 'parentOnly'
-              ? t('masterData.classLine', { ns: 'common', defaultValue: 'Line item' })
-              : t('masterData.classProcess', {
-                  ns: 'common',
-                  defaultValue: 'Process document',
-                })}
-          </span>
-        </p>
+        </Link>
+      )}
+      {createMode === 'parentOnly' && deskPath && (
+        <Link className="btn" to={deskTabHref}>
+          <ExternalLink size={16} />{' '}
+          {t('masterData.openParentDesk', {
+            ns: 'common',
+            desk: deskLabel,
+            defaultValue: 'Open {{desk}}',
+          })}
+        </Link>
+      )}
+    </>
+  )
+
+  const searchAndRefresh = (
+    <>
+      <ListFilterBar
+        q={q}
+        onQChange={setQ}
+        placeholder={t('masterData.search', {
+          ns: 'common',
+          defaultValue: 'Search…',
+        })}
+        ariaLabel={t('actions.search', { ns: 'common', defaultValue: 'Search' })}
+      />
+      {createMode === 'parentOnly' && createMeta.parentResource && (
+        <Link
+          className="btn btn-secondary"
+          to={`/domains/${pkg}/${createMeta.parentResource}`}
+        >
+          {t('masterData.viewParents', {
+            ns: 'common',
+            parent: createMeta.parentResource,
+            defaultValue: 'View {{parent}} list',
+          })}
+        </Link>
+      )}
+      <button type="button" className="btn" onClick={load} disabled={loading}>
+        <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
+      </button>
+    </>
+  )
+
+  return (
+    <div className={isTaskList ? 'domain-list domain-list--task' : 'domain-list'}>
+      {isTaskList ? (
+        <header className="page-header domain-list-header domain-list-header--task">
+          <div className="domain-list-header-start">
+            {titleBlock}
+            {createActions}
+          </div>
+          <div className="domain-list-header-end">{searchAndRefresh}</div>
+        </header>
+      ) : (
+        <>
+          {titleBlock}
+          {createMode !== 'domain' && (
+            <p className="page-sub">
+              <span className="badge badge-draft" style={{ fontWeight: 600 }}>
+                {createMode === 'parentOnly'
+                  ? t('masterData.classLine', { ns: 'common', defaultValue: 'Line item' })
+                  : t('masterData.classProcess', {
+                      ns: 'common',
+                      defaultValue: 'Process document',
+                    })}
+              </span>
+            </p>
+          )}
+        </>
       )}
 
       {(preferDesk || createMode === 'deskRedirect') && deskPath && (
@@ -674,62 +754,12 @@ export default function DomainList() {
         }}
       />
 
-      <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
-        {createMode === 'domain' && preferDesk && deskPath && (
-          <Link className="btn btn-primary" to={deskNewHref}>
-            <Plus size={16} /> {t('actions.create', { ns: 'common' })}
-          </Link>
-        )}
-        {createMode === 'domain' && !preferDesk && (
-          <Link className="btn btn-primary" to={domainNewHref}>
-            <Plus size={16} /> {t('actions.create', { ns: 'common' })}
-          </Link>
-        )}
-        {createMode === 'deskRedirect' && deskPath && (
-          <Link className="btn btn-primary" to={deskNewHref}>
-            <ExternalLink size={16} />{' '}
-            {t('masterData.openDesk', {
-              ns: 'common',
-              desk: deskLabel,
-              defaultValue: 'Create on {{desk}}',
-            })}
-          </Link>
-        )}
-        {createMode === 'parentOnly' && deskPath && (
-          <Link className="btn" to={deskTabHref}>
-            <ExternalLink size={16} />{' '}
-            {t('masterData.openParentDesk', {
-              ns: 'common',
-              desk: deskLabel,
-              defaultValue: 'Open {{desk}}',
-            })}
-          </Link>
-        )}
-        <ListFilterBar
-          q={q}
-          onQChange={setQ}
-          placeholder={t('masterData.search', {
-            ns: 'common',
-            defaultValue: 'Search…',
-          })}
-          ariaLabel={t('actions.search', { ns: 'common', defaultValue: 'Search' })}
-        />
-        {createMode === 'parentOnly' && createMeta.parentResource && (
-          <Link
-            className="btn btn-secondary"
-            to={`/domains/${pkg}/${createMeta.parentResource}`}
-          >
-            {t('masterData.viewParents', {
-              ns: 'common',
-              parent: createMeta.parentResource,
-              defaultValue: 'View {{parent}} list',
-            })}
-          </Link>
-        )}
-        <button type="button" className="btn" onClick={load} disabled={loading}>
-          <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
-        </button>
-      </div>
+      {!isTaskList && (
+        <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
+          {createActions}
+          {searchAndRefresh}
+        </div>
+      )}
 
       {loading && items.length === 0 ? (
         <p className="muted">{t('actions.loading', { ns: 'common' })}</p>

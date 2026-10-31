@@ -486,6 +486,47 @@ select {
   font-size: 1rem;
 }
 
+/* Task list only: title + Create | Search + Refresh on one row */
+.domain-list-header--task {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.domain-list-header--task .page-title,
+.domain-list-header--task .page-sub {
+  width: auto;
+}
+
+.domain-list-header--task .domain-list-title {
+  margin: 0;
+}
+
+.domain-list-header-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-width: 0;
+}
+
+.domain-list-header-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.domain-list-header-end .list-filter-bar {
+  margin-left: 0;
+}
+
 .page-sub {
   margin: 0 0 1.25rem;
   color: var(--steak-muted);
