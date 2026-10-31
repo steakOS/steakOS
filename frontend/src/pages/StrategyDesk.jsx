@@ -34,7 +34,7 @@ export default function StrategyDesk() {
     {
       to: '/domains/strategy/StrategyItem',
       icon: Target,
-      title: t('strategy.items', { defaultValue: 'Strategy items' }),
+      title: t('strategy.items', { defaultValue: 'Strategy topics' }),
       body: t('strategy.itemsHint', {
         defaultValue: 'Vision, mission, strategies, needs, and factors (light notes).',
       }),

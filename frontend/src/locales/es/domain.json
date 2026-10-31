@@ -141,7 +141,7 @@
   "editTitle": "Editar {{resource}}",
   "strategy": {
     "Competitor": "Competidor",
-    "StrategyItem": "Elemento de estrategia"
+    "StrategyItem": "Tema de estrategia"
   },
   "development": {
     "DevelopmentProject": "Proyecto de desarrollo"
