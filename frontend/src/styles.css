@@ -2706,6 +2706,15 @@ table.data tbody tr.row-selected td:last-child {
   margin-top: 0;
 }
 
+/* Buyers is modal-only — never paint a detail / empty second column. */
+.scm-desk-buyers .desk-shell {
+  grid-template-columns: 1fr !important;
+}
+.scm-desk-buyers .desk-shell-col2,
+.scm-desk-buyers .desk-detail-empty {
+  display: none !important;
+}
+
 /* One height for every pill in the desk tab row (tabs + New) */
 .desk-shell-tabs > .btn {
   min-height: 44px;
