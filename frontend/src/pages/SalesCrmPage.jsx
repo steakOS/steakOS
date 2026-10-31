@@ -814,6 +814,8 @@ export default function SalesCrmPage() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave C: keep split — stage/activities/convert workspace stays with selection.
+        layout="split"
         title={
           <>
             <ContactRound size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

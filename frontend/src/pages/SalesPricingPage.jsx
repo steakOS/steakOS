@@ -727,6 +727,8 @@ export default function SalesPricingPage() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave C: keep split — header + lines editor is the persistent detail workspace.
+        layout="split"
         title={
           <>
             <Tags size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

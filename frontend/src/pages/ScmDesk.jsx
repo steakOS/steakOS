@@ -1791,9 +1791,6 @@ export default function ScmDesk({ desk = 'buyers' }) {
 
   const productionList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Orders ({prods.length})
-      </h2>
       <ResponsiveDataList
         items={prods}
         empty="—"
@@ -1826,7 +1823,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
                 <th>{t('wb.qty', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
@@ -1846,7 +1843,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
                   <td>
                     <span className={statusClass(o.prodStatus)}>{o.prodStatus}</span>
                   </td>
-                  <td onClick={(e) => e.stopPropagation()}>
+                  <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     <ViewButton pkg="production" resource="ProductionOrder" record={o} />
                   </td>
                 </tr>
@@ -2231,6 +2228,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
       </div>
 
       <DeskShell
+        // ADR-050 Wave C: shop floor needs persistent production/lot detail workspace.
         layout={isBuyers ? 'single' : 'split'}
         title={
           <>

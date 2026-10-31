@@ -710,6 +710,8 @@ export default function FinanceTransactions() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave C: keep split — period trial-balance (or selected account) is the always-on workspace.
+        layout="split"
         title={
           <>
             <BookOpen size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

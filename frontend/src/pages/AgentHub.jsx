@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -28,11 +28,14 @@ import {
   Check,
   X,
   Sparkles,
+  Eye,
+  Pencil,
 } from 'lucide-react'
 import { agentsApi, agentTokenApi } from '../api/client'
 import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
+import { hasMasterFormSpec } from '../forms/masterFormSpecs'
 import useRecordView from '../hooks/useRecordView'
 import PendingContentComposer, {
   attachPendingContent,
@@ -40,6 +43,7 @@ import PendingContentComposer, {
 import { fetchContentMap } from '../utils/contentSummary'
 import { labelFromList } from '../utils/entityDisplayLabel'
 import ResponsiveDataList from '../components/ResponsiveDataList'
+import RowActionSlots from '../components/RowActionSlots'
 import ListPager from '../components/ListPager'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
@@ -60,9 +64,61 @@ const SECTION_DEFS = [
  * Agentic Resources — DeskShell master–detail (ADR-047 / Nielsen).
  * Route sections: /agents/:section — agents · hives · hitl · memory. Selection via ?id=.
  */
+const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' })
+
 export default function AgentHub() {
   const { t } = useTranslation(['desks', 'common', 'content'])
-  const { viewModal, ViewButton } = useRecordView()
+  const loadAllRef = useRef(null)
+  const { viewModal, ViewButton, openView, openEdit } = useRecordView({
+    modalEdit: true,
+    canModalEdit: ({ pkg, resource }) => hasMasterFormSpec(pkg, resource),
+    onSaved: () => {
+      loadAllRef.current?.().catch(() => {})
+    },
+  })
+  const renderRowActions = useCallback(
+    (pkg, resource, record) => {
+      if (!record?.id && record?.id !== 0) return null
+      const canEdit = hasMasterFormSpec(pkg, resource)
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openView(pkg, resource, record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            canEdit ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.edit', { ns: 'common' })}
+                aria-label={t('actions.edit', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openEdit(pkg, resource, record)
+                }}
+              >
+                <Pencil size={14} />
+              </button>
+            ) : null
+          }
+          delete={null}
+        />
+      )
+    },
+    [openEdit, openView, t],
+  )
   const navigate = useNavigate()
   const location = useLocation()
   const narrow = useNarrowViewport()
@@ -267,6 +323,7 @@ export default function AgentHub() {
     memoryPage.max,
     memoryPage.offset,
   ])
+  loadAllRef.current = loadSection
 
   useEffect(() => {
     setLoading(true)
@@ -1075,7 +1132,7 @@ export default function AgentHub() {
             render: (a) => <ContentChannelIcons summary={agentContentMap[a.id]} />,
           },
         ]}
-        actions={(a) => <ViewButton pkg="agents" resource="Agent" record={a} />}
+        actions={(a) => renderRowActions('agents', 'Agent', a)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1086,7 +1143,7 @@ export default function AgentHub() {
                 <th className="col-priority-low">{t('agents.runtime')}</th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1115,7 +1172,7 @@ export default function AgentHub() {
                     <span className={statusClass(a.agentStatus)}>{a.agentStatus}</span>
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="agents" resource="Agent" record={a} />
+                    {renderRowActions('agents', 'Agent', a)}
                   </td>
                 </tr>
               ))}
@@ -1172,7 +1229,7 @@ export default function AgentHub() {
             render: (h) => h.hiveMasterAgentId || '—',
           },
         ]}
-        actions={(h) => <ViewButton pkg="agents" resource="Hive" record={h} />}
+        actions={(h) => renderRowActions('agents', 'Hive', h)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1182,7 +1239,7 @@ export default function AgentHub() {
                 <th>{t('agents.area')}</th>
                 <th className="col-priority-low">{t('agents.master')}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1200,7 +1257,7 @@ export default function AgentHub() {
                     <span className={statusClass(h.hiveStatus)}>{h.hiveStatus}</span>
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="agents" resource="Hive" record={h} />
+                    {renderRowActions('agents', 'Hive', h)}
                   </td>
                 </tr>
               ))}
@@ -1252,7 +1309,7 @@ export default function AgentHub() {
             render: (a) => <span className={statusClass(a.decision)}>{a.decision}</span>,
           },
         ]}
-        actions={(a) => <ViewButton pkg="agents" resource="Approval" record={a} />}
+        actions={(a) => renderRowActions('agents', 'Approval', a)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1261,7 +1318,7 @@ export default function AgentHub() {
                 <th>{t('wb.title', { ns: 'common' })}</th>
                 <th>{t('agents.risk')}</th>
                 <th>{t('agents.decision')}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1285,7 +1342,7 @@ export default function AgentHub() {
                     <span className={statusClass(a.decision)}>{a.decision}</span>
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="agents" resource="Approval" record={a} />
+                    {renderRowActions('agents', 'Approval', a)}
                   </td>
                 </tr>
               ))}
@@ -1329,7 +1386,7 @@ export default function AgentHub() {
             render: (m) => labelFromList(agents, m.agentId),
           },
         ]}
-        actions={(m) => <ViewButton pkg="agents" resource="Memory" record={m} />}
+        actions={(m) => renderRowActions('agents', 'Memory', m)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1339,7 +1396,7 @@ export default function AgentHub() {
                 <th>{t('wb.kind', { ns: 'common' })}</th>
                 <th>{t('agents.score')}</th>
                 <th className="col-priority-low">{t('agents.tabs.agents')}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1355,7 +1412,7 @@ export default function AgentHub() {
                   <td>{m.score != null ? m.score : '—'}</td>
                   <td className="col-priority-low">{labelFromList(agents, m.agentId)}</td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="agents" resource="Memory" record={m} />
+                    {renderRowActions('agents', 'Memory', m)}
                   </td>
                 </tr>
               ))}
@@ -1757,6 +1814,8 @@ export default function AgentHub() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave D: split for agent/hive/HITL process detail; col2 gated by hasSelection.
+        layout="split"
         title={
           <>
             <SectionIcon size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

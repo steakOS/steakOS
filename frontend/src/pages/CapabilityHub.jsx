@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -28,12 +28,15 @@ import {
   Play,
   Check,
   X,
+  Eye,
+  Pencil,
 } from 'lucide-react'
 import { capabilityApi } from '../api/client'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import ListPager from '../components/ListPager'
 import ProcessDiagram from '../components/ProcessDiagram'
+import { hasMasterFormSpec } from '../forms/masterFormSpecs'
 import useRecordView from '../hooks/useRecordView'
 import PendingContentComposer, {
   attachPendingContent,
@@ -41,6 +44,7 @@ import PendingContentComposer, {
 import { fetchContentMap } from '../utils/contentSummary'
 import { localizeProcess } from '../utils/localizeProcess'
 import ResponsiveDataList from '../components/ResponsiveDataList'
+import RowActionSlots from '../components/RowActionSlots'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
@@ -63,9 +67,62 @@ const SECTION_DEFS = [
  * Capability ops — DeskShell master–detail (ADR-047 / Nielsen WP-3).
  * Route sections: /capability/:section — portfolios · programs · projects · processes · quality · changes · knowledge.
  */
+const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' })
+
 export default function CapabilityHub() {
   const { t, i18n } = useTranslation(['desks', 'common', 'content', 'processes'])
-  const { viewModal, ViewButton } = useRecordView()
+  const loadAllRef = useRef(null)
+  const { viewModal, openView, openEdit } = useRecordView({
+    modalEdit: true,
+    canModalEdit: ({ pkg, resource }) => hasMasterFormSpec(pkg, resource),
+    onSaved: () => {
+      loadAllRef.current?.().catch(() => {})
+    },
+  })
+  const renderRowActions = useCallback(
+    (pkg, resource, record, others = null) => {
+      if (!record?.id && record?.id !== 0) return null
+      const canEdit = hasMasterFormSpec(pkg, resource)
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openView(pkg, resource, record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            canEdit ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.edit', { ns: 'common' })}
+                aria-label={t('actions.edit', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openEdit(pkg, resource, record)
+                }}
+              >
+                <Pencil size={14} />
+              </button>
+            ) : null
+          }
+          delete={null}
+          others={others}
+        />
+      )
+    },
+    [openEdit, openView, t],
+  )
   const navigate = useNavigate()
   const location = useLocation()
   const narrow = useNarrowViewport()
@@ -333,6 +390,7 @@ export default function CapabilityHub() {
     stdPage.max,
     stdPage.offset,
   ])
+  loadAllRef.current = loadSection
 
   useEffect(() => {
     setLoading(true)
@@ -1385,7 +1443,7 @@ export default function CapabilityHub() {
                 Close
               </button>
             )}
-            <ViewButton pkg="capability" resource="Portfolio" record={p} />
+            {renderRowActions('capability', 'Portfolio', p)}
           </>
         )}
       >
@@ -1396,7 +1454,7 @@ export default function CapabilityHub() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th className="col-priority-low">Owner</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th>{t('wb.actions', { ns: 'common' })}</th>
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1440,7 +1498,7 @@ export default function CapabilityHub() {
                         Close
                       </button>
                     )}
-                    <ViewButton pkg="capability" resource="Portfolio" record={p} />
+                    {renderRowActions('capability', 'Portfolio', p)}
                   </td>
                 </tr>
               ))}
@@ -1494,7 +1552,7 @@ export default function CapabilityHub() {
             ),
           },
         ]}
-        actions={(p) => <ViewButton pkg="capability" resource="Program" record={p} />}
+        actions={(p) => renderRowActions('capability', 'Program', p)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1505,7 +1563,7 @@ export default function CapabilityHub() {
                   {t('labels.portfolio', { ns: 'common' })}
                 </th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th>{t('wb.actions', { ns: 'common' })}</th>
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1529,7 +1587,7 @@ export default function CapabilityHub() {
                       <span className={statusClass(p.programStatus)}>{p.programStatus}</span>
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                      <ViewButton pkg="capability" resource="Program" record={p} />
+                      {renderRowActions('capability', 'Program', p)}
                     </td>
                   </tr>
               ))}
@@ -1622,7 +1680,7 @@ export default function CapabilityHub() {
                 <X size={14} />
               </button>
             )}
-            <ViewButton pkg="capability" resource="Project" record={p} />
+            {renderRowActions('capability', 'Project', p)}
           </>
         )}
       >
@@ -1633,7 +1691,7 @@ export default function CapabilityHub() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th>{t('wb.actions', { ns: 'common' })}</th>
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1701,7 +1759,7 @@ export default function CapabilityHub() {
                         <X size={14} />
                       </button>
                     )}
-                    <ViewButton pkg="capability" resource="Project" record={p} />
+                    {renderRowActions('capability', 'Project', p)}
                   </td>
                 </tr>
               ))}
@@ -1812,7 +1870,7 @@ export default function CapabilityHub() {
                 {t('capability.retire')}
               </button>
             )}
-            <ViewButton pkg="capability" resource="Process" record={p} />
+            {renderRowActions('capability', 'Process', p)}
           </>
         )}
       >
@@ -1824,7 +1882,7 @@ export default function CapabilityHub() {
                 <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
                 <th>{t('wb.kind', { ns: 'common' })}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1888,7 +1946,7 @@ export default function CapabilityHub() {
                         {t('capability.retire')}
                       </button>
                     )}
-                    <ViewButton pkg="capability" resource="Process" record={p} />
+                    {renderRowActions('capability', 'Process', p)}
                   </td>
                 </tr>
               ))}
@@ -1977,7 +2035,7 @@ export default function CapabilityHub() {
                 Archive
               </button>
             )}
-            <ViewButton pkg="capability" resource="Quality" record={q} />
+            {renderRowActions('capability', 'Quality', q)}
           </>
         )}
       >
@@ -1988,7 +2046,7 @@ export default function CapabilityHub() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -2024,7 +2082,7 @@ export default function CapabilityHub() {
                         Archive
                       </button>
                     )}
-                    <ViewButton pkg="capability" resource="Quality" record={q} />
+                    {renderRowActions('capability', 'Quality', q)}
                   </td>
                 </tr>
               ))}
@@ -2110,7 +2168,7 @@ export default function CapabilityHub() {
                 <X size={14} />
               </button>
             )}
-            <ViewButton pkg="capability" resource="Change" record={c} />
+            {renderRowActions('capability', 'Change', c)}
           </>
         )}
       >
@@ -2120,8 +2178,8 @@ export default function CapabilityHub() {
               <tr>
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th>{t('wb.actions', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -2188,7 +2246,7 @@ export default function CapabilityHub() {
                     )}
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="capability" resource="Change" record={c} />
+                    {renderRowActions('capability', 'Change', c)}
                   </td>
                 </tr>
               ))}
@@ -2233,7 +2291,7 @@ export default function CapabilityHub() {
             render: (k) => k.parentId || '—',
           },
         ]}
-        actions={(k) => <ViewButton pkg="capability" resource="KnowledgeArea" record={k} />}
+        actions={(k) => renderRowActions('capability', 'KnowledgeArea', k)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -2243,7 +2301,7 @@ export default function CapabilityHub() {
                 <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('capability.parent')}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -2256,7 +2314,7 @@ export default function CapabilityHub() {
                     <span className={statusClass(k.areaStatus)}>{k.areaStatus}</span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="capability" resource="KnowledgeArea" record={k} />
+                    {renderRowActions('capability', 'KnowledgeArea', k)}
                   </td>
                 </tr>
               ))}
@@ -2295,7 +2353,7 @@ export default function CapabilityHub() {
             render: (s) => s.unit || '—',
           },
         ]}
-        actions={(s) => <ViewButton pkg="capability" resource="Standard" record={s} />}
+        actions={(s) => renderRowActions('capability', 'Standard', s)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -2305,7 +2363,7 @@ export default function CapabilityHub() {
                 <th>{t('capability.metric')}</th>
                 <th>{t('capability.target')}</th>
                 <th className="col-priority-low">{t('wb.unit', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -2316,7 +2374,7 @@ export default function CapabilityHub() {
                   <td>{s.targetValue || '—'}</td>
                   <td className="col-priority-low">{s.unit || '—'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="capability" resource="Standard" record={s} />
+                    {renderRowActions('capability', 'Standard', s)}
                   </td>
                 </tr>
               ))}
@@ -2742,6 +2800,8 @@ export default function CapabilityHub() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave D: split for portfolio/project/process detail; col2 gated by hasSelection.
+        layout="split"
         title={
           <>
             <SectionIcon size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

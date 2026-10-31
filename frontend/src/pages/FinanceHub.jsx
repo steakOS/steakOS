@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -24,11 +24,15 @@ import {
   Users,
   Shield,
   RefreshCw,
+  Eye,
+  Pencil,
 } from 'lucide-react'
 import { financeOpsApi, meApi } from '../api/client'
 import { allowsSilverSurfaces } from '../utils/silverSurfaces'
+import { hasMasterFormSpec } from '../forms/masterFormSpecs'
 import useRecordView from '../hooks/useRecordView'
 import ResponsiveDataList from '../components/ResponsiveDataList'
+import RowActionSlots from '../components/RowActionSlots'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -39,6 +43,9 @@ import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+
+const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' })
 
 function periodNow() {
   const d = new Date()
@@ -62,9 +69,58 @@ const CREATE_TABS = new Set(['payables', 'budgets', 'payroll'])
  */
 export default function FinanceHub() {
   const { t } = useTranslation(['desks', 'common'])
-  const { viewModal, ViewButton } = useRecordView()
   const navigate = useNavigate()
   const narrow = useNarrowViewport()
+  const loadTabRef = useRef(null)
+  const { viewModal, ViewButton, openView, openEdit } = useRecordView({
+    modalEdit: true,
+    canModalEdit: ({ pkg, resource }) => hasMasterFormSpec(pkg, resource),
+    onSaved: () => {
+      loadTabRef.current?.().catch(() => {})
+    },
+  })
+  const renderRowActions = useCallback(
+    (pkg, resource, record) => {
+      if (!record?.id && record?.id !== 0) return null
+      const canEdit = hasMasterFormSpec(pkg, resource)
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openView(pkg, resource, record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            canEdit ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.edit', { ns: 'common' })}
+                aria-label={t('actions.edit', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openEdit(pkg, resource, record)
+                }}
+              >
+                <Pencil size={14} />
+              </button>
+            ) : null
+          }
+          delete={null}
+        />
+      )
+    },
+    [openEdit, openView, t],
+  )
   const TABS = useMemo(
     () => TAB_DEFS.map((d) => ({ ...d, label: t(d.labelKey) })),
     [t],
@@ -280,6 +336,8 @@ export default function FinanceHub() {
     auditPage.max,
     auditPage.offset,
   ])
+
+  loadTabRef.current = loadTab
 
   useEffect(() => {
     loadTab()
@@ -640,7 +698,7 @@ export default function FinanceHub() {
               render: (p) => p.accountKind,
             },
           ]}
-          actions={(p) => <ViewButton pkg="finance" resource="Treasury" record={p} />}
+          actions={(p) => renderRowActions('finance', 'Treasury', p)}
         >
           <div className="table-wrap">
             <table className="data">
@@ -651,7 +709,7 @@ export default function FinanceHub() {
                   <th>{t('finance.bookBalance')}</th>
                   <th className="col-priority-low">{t('finance.sats')}</th>
                   <th className="col-priority-low">{t('finance.coa')}</th>
-                  <th />
+                  <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -680,7 +738,7 @@ export default function FinanceHub() {
                     </td>
                     <td className="mono col-priority-low">{p.coaCode}</td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                      <ViewButton pkg="finance" resource="Treasury" record={p} />
+                      {renderRowActions('finance', 'Treasury', p)}
                     </td>
                   </tr>
                 ))}
@@ -722,7 +780,7 @@ export default function FinanceHub() {
               render: (p) => p.payableStatus,
             },
           ]}
-          actions={(p) => <ViewButton pkg="finance" resource="Payable" record={p} />}
+          actions={(p) => renderRowActions('finance', 'Payable', p)}
         >
           <div className="table-wrap">
             <table className="data">
@@ -731,7 +789,7 @@ export default function FinanceHub() {
                   <th>{t('wb.vendor', { ns: 'common' })}</th>
                   <th>EUR</th>
                   <th>{t('wb.status', { ns: 'common' })}</th>
-                  <th />
+                  <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -746,7 +804,7 @@ export default function FinanceHub() {
                     <td>{Number(p.amountEur).toFixed(2)}</td>
                     <td>{p.payableStatus}</td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                      <ViewButton pkg="finance" resource="Payable" record={p} />
+                      {renderRowActions('finance', 'Payable', p)}
                     </td>
                   </tr>
                 ))}
@@ -789,7 +847,7 @@ export default function FinanceHub() {
               render: (b) => `${Number(b.amountEur).toFixed(2)} EUR`,
             },
           ]}
-          actions={(b) => <ViewButton pkg="finance" resource="Budget" record={b} />}
+          actions={(b) => renderRowActions('finance', 'Budget', b)}
         >
           <div className="table-wrap">
             <table className="data">
@@ -798,7 +856,7 @@ export default function FinanceHub() {
                   <th>{t('wb.period', { ns: 'common' })}</th>
                   <th>{t('wb.name', { ns: 'common' })}</th>
                   <th>EUR</th>
-                  <th />
+                  <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -813,7 +871,7 @@ export default function FinanceHub() {
                     <td>{b.name || t('finance.budgetFallback')}</td>
                     <td>{Number(b.amountEur).toFixed(2)}</td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                      <ViewButton pkg="finance" resource="Budget" record={b} />
+                      {renderRowActions('finance', 'Budget', b)}
                     </td>
                   </tr>
                 ))}
@@ -862,7 +920,7 @@ export default function FinanceHub() {
               render: (taxRow) => taxRow.taxStatus,
             },
           ]}
-          actions={(taxRow) => <ViewButton pkg="finance" resource="Tax" record={taxRow} />}
+          actions={(taxRow) => renderRowActions('finance', 'Tax', taxRow)}
         >
           <div className="table-wrap">
             <table className="data">
@@ -872,7 +930,7 @@ export default function FinanceHub() {
                   <th className="col-priority-low">{t('finance.jurisdiction')}</th>
                   <th>{t('wb.amount', { ns: 'common' })}</th>
                   <th>{t('wb.status', { ns: 'common' })}</th>
-                  <th />
+                  <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -888,7 +946,7 @@ export default function FinanceHub() {
                     <td>{Number(taxRow.amountEur).toFixed(2)}</td>
                     <td>{taxRow.taxStatus}</td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                      <ViewButton pkg="finance" resource="Tax" record={taxRow} />
+                      {renderRowActions('finance', 'Tax', taxRow)}
                     </td>
                   </tr>
                 ))}
@@ -931,7 +989,7 @@ export default function FinanceHub() {
               render: (p) => `${Number(p.amountEur).toFixed(2)} · ${p.payrollStatus}`,
             },
           ]}
-          actions={(p) => <ViewButton pkg="finance" resource="PayrollItem" record={p} />}
+          actions={(p) => renderRowActions('finance', 'PayrollItem', p)}
         >
           <div className="table-wrap">
             <table className="data">
@@ -941,7 +999,7 @@ export default function FinanceHub() {
                   <th>{t('wb.period', { ns: 'common' })}</th>
                   <th>EUR</th>
                   <th>{t('wb.status', { ns: 'common' })}</th>
-                  <th />
+                  <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -957,7 +1015,7 @@ export default function FinanceHub() {
                     <td>{Number(p.amountEur).toFixed(2)}</td>
                     <td>{p.payrollStatus}</td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                      <ViewButton pkg="finance" resource="PayrollItem" record={p} />
+                      {renderRowActions('finance', 'PayrollItem', p)}
                     </td>
                   </tr>
                 ))}
@@ -1004,13 +1062,13 @@ export default function FinanceHub() {
               render: (a) => a.sourceType || '—',
             },
           ]}
-          actions={(a) => (
-            <ViewButton
-              pkg="finance"
-              resource="JournalEntry"
-              record={{ id: a.id, name: a.name, period: a.period }}
-            />
-          )}
+          actions={(a) =>
+            renderRowActions('finance', 'JournalEntry', {
+              id: a.id,
+              name: a.name,
+              period: a.period,
+            })
+          }
         >
           <div className="table-wrap">
             <table className="data">
@@ -1019,7 +1077,7 @@ export default function FinanceHub() {
                   <th>{t('wb.name', { ns: 'common' })}</th>
                   <th>{t('wb.period', { ns: 'common' })}</th>
                   <th className="col-priority-low">{t('finance.source')}</th>
-                  <th />
+                  <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1036,11 +1094,11 @@ export default function FinanceHub() {
                       {a.sourceType || '—'}
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                      <ViewButton
-                        pkg="finance"
-                        resource="JournalEntry"
-                        record={{ id: a.id, name: a.name, period: a.period }}
-                      />
+                      {renderRowActions('finance', 'JournalEntry', {
+                        id: a.id,
+                        name: a.name,
+                        period: a.period,
+                      })}
                     </td>
                   </tr>
                 ))}
@@ -1421,13 +1479,15 @@ export default function FinanceHub() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave D: budgets/control overview + selection detail; never empty col2 (showDetail).
+        layout="split"
         title={
           <>
             <SectionIcon size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
             {t('finance.hubTitle')}
           </>
         }
-        subtitle={t('finance.hubSubtitle')}
+        subtitle={null}
         tabs={tabs}
         activeTab={tab}
         onTabChange={requestTabChange}

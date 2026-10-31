@@ -15,8 +15,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ShieldAlert, RefreshCw, Plus } from 'lucide-react'
+import { ShieldAlert, RefreshCw, Plus, Eye, Trash2 } from 'lucide-react'
 import { grrcApi } from '../api/client'
+import useRecordView from '../hooks/useRecordView'
+import RowActionSlots from '../components/RowActionSlots'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -72,9 +74,16 @@ function statusClass(s) {
 /**
  * GRRCBasics desk (G7) — DeskShell master–detail (ADR-047 / Nielsen).
  */
+const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' })
+
 export default function GrrcDesk() {
   const { t } = useTranslation(['desks', 'common'])
   const narrow = useNarrowViewport()
+  const { viewModal, openView } = useRecordView({
+    modalEdit: true,
+    canModalEdit: () => false,
+  })
 
   const [tab, setTab] = useState(() => {
     if (typeof window === 'undefined') return 'risks'
@@ -174,7 +183,6 @@ export default function GrrcDesk() {
   }, [load])
 
   const items = tab === 'risks' ? risks : compliance
-  const total = tab === 'risks' ? riskTotal : compTotal
 
   useEffect(() => {
     setEditing(false)
@@ -221,6 +229,69 @@ export default function GrrcDesk() {
     window.confirm(
       t('actions.confirmDelete', { ns: 'common', label, defaultValue: `Delete ${label}?` }),
     )
+
+  const onRowDelete = useCallback(
+    (kind, record) => {
+      const label = record?.name || t('view.untitled', { ns: 'common', defaultValue: 'this record' })
+      if (!confirmDelete(label)) return
+      run(async () => {
+        if (kind === 'risks') await grrcApi.risks.delete(record.id)
+        else await grrcApi.compliance.delete(record.id)
+        if (selectedId && String(selectedId) === String(record.id)) setSelectedId(null)
+        setInfo(
+          t('grrc.deleted', {
+            defaultValue: 'Deleted {{name}}',
+            name: label,
+          }),
+        )
+      })
+    },
+    // run / selectedId stable enough via closure; load refreshes via run side-effects
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedId, t],
+  )
+
+  const renderRowActions = useCallback(
+    (kind, record) => {
+      if (!record?.id && record?.id !== 0) return null
+      const pkg = 'grrc'
+      const resource = kind === 'risks' ? 'RiskItem' : 'ComplianceItem'
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openView(pkg, resource, record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={null}
+          delete={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.delete', { ns: 'common' })}
+              aria-label={t('actions.delete', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                onRowDelete(kind, record)
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          }
+        />
+      )
+    },
+    [onRowDelete, openView, t],
+  )
 
   const resetCreateForms = useCallback(() => {
     setRiskForm(emptyRisk())
@@ -514,7 +585,7 @@ export default function GrrcDesk() {
       </form>
     )
 
-  const listTable = (cols, emptyKey, emptyDefault) =>
+  const listTable = (cols, emptyKey, emptyDefault, actionKind) =>
     items.length === 0 ? (
       <p className="muted">{t(emptyKey, { defaultValue: emptyDefault })}</p>
     ) : (
@@ -525,6 +596,7 @@ export default function GrrcDesk() {
               {cols.map((c) => (
                 <th key={c.key}>{c.label}</th>
               ))}
+              <th>{ACTION_TH(t)}</th>
             </tr>
           </thead>
           <tbody>
@@ -538,6 +610,9 @@ export default function GrrcDesk() {
                 {cols.map((c) => (
                   <td key={c.key}>{c.render(row)}</td>
                 ))}
+                <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                  {renderRowActions(actionKind, row)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -548,9 +623,6 @@ export default function GrrcDesk() {
   const list =
     tab === 'risks' ? (
       <>
-        <h2 className="section-label" style={{ marginTop: 0 }}>
-          {t('grrc.risksList', { defaultValue: 'Risks' })} ({total})
-        </h2>
         {loading && !error && !silverGate ? (
           <p className="muted">{t('grrc.loading', { defaultValue: 'Loading…' })}</p>
         ) : (
@@ -574,14 +646,12 @@ export default function GrrcDesk() {
             ],
             'grrc.emptyRisks',
             'No risks yet. Add one with New to start the register.',
+            'risks',
           )
         )}
       </>
     ) : (
       <>
-        <h2 className="section-label" style={{ marginTop: 0 }}>
-          {t('grrc.complianceList', { defaultValue: 'Compliance' })} ({total})
-        </h2>
         {loading && !error && !silverGate ? (
           <p className="muted">{t('grrc.loading', { defaultValue: 'Loading…' })}</p>
         ) : (
@@ -605,6 +675,7 @@ export default function GrrcDesk() {
             ],
             'grrc.emptyCompliance',
             'No compliance items yet. Register a policy or control with New.',
+            'compliance',
           )
         )}
       </>
@@ -860,6 +931,7 @@ export default function GrrcDesk() {
     <div className="page">
       {error && <div className="banner-error">{error}</div>}
       {info && <div className="banner-info">{info}</div>}
+      {viewModal}
 
       {silverGate && (
         <section className="card" style={{ marginBottom: '1rem' }}>
@@ -882,6 +954,8 @@ export default function GrrcDesk() {
       {!silverGate && (
         <>
           <DeskShell
+            // ADR-050 Wave D: split for risk/compliance detail + close/edit workspace.
+            layout="split"
             title={
               <>
                 <ShieldAlert size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

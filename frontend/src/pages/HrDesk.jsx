@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -28,17 +28,21 @@ import {
   FileText,
   Briefcase,
   UserCog,
+  Eye,
+  Pencil,
 } from 'lucide-react'
 import { hrApi, meApi } from '../api/client'
 import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
+import { hasMasterFormSpec } from '../forms/masterFormSpecs'
 import useRecordView from '../hooks/useRecordView'
 import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
 import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
+import RowActionSlots from '../components/RowActionSlots'
 import ListPager from '../components/ListPager'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
@@ -69,9 +73,61 @@ function currentPayrollPeriod() {
 /**
  * HR desk — DeskShell master–detail (ADR-047 / Nielsen). HR0–HR8.
  */
+const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
+const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' })
+
 export default function HrDesk() {
   const { t } = useTranslation(['desks', 'common', 'content'])
-  const { viewModal, ViewButton } = useRecordView()
+  const loadAllRef = useRef(null)
+  const { viewModal, openView, openEdit } = useRecordView({
+    modalEdit: true,
+    canModalEdit: ({ pkg, resource }) => hasMasterFormSpec(pkg, resource),
+    onSaved: () => {
+      loadAllRef.current?.().catch(() => {})
+    },
+  })
+  const renderRowActions = useCallback(
+    (pkg, resource, record) => {
+      if (!record?.id && record?.id !== 0) return null
+      const canEdit = hasMasterFormSpec(pkg, resource)
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openView(pkg, resource, record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            canEdit ? (
+              <button
+                type="button"
+                className={ROW_ACTION_CLASS}
+                title={t('actions.edit', { ns: 'common' })}
+                aria-label={t('actions.edit', { ns: 'common' })}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openEdit(pkg, resource, record)
+                }}
+              >
+                <Pencil size={14} />
+              </button>
+            ) : null
+          }
+          delete={null}
+        />
+      )
+    },
+    [openEdit, openView, t],
+  )
   const narrow = useNarrowViewport()
   const tabs = useMemo(
     () => TAB_DEFS.map((d) => ({ id: d.id, label: t(d.labelKey), icon: d.icon })),
@@ -315,6 +371,7 @@ export default function HrDesk() {
     partyPage.max,
     partyPage.offset,
   ])
+  loadAllRef.current = loadAll
 
   const selectCandidate = useCallback(async (id) => {
     if (!id) {
@@ -1205,9 +1262,6 @@ export default function HrDesk() {
 
   const filesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        People ({filesPage.total})
-      </h2>
       <ResponsiveDataList
         items={files}
         empty="—"
@@ -1241,7 +1295,7 @@ export default function HrDesk() {
             render: (f) => f.employmentKind,
           },
         ]}
-        actions={(f) => <ViewButton pkg="human" resource="HRFile" record={f} />}
+        actions={(f) => renderRowActions('human', 'HRFile', f)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1252,7 +1306,7 @@ export default function HrDesk() {
                 <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1275,7 +1329,7 @@ export default function HrDesk() {
                     <span className={statusClass(f.employmentStatus)}>{f.employmentStatus}</span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="human" resource="HRFile" record={f} />
+                    {renderRowActions('human', 'HRFile', f)}
                   </td>
                 </tr>
               ))}
@@ -1296,9 +1350,6 @@ export default function HrDesk() {
 
   const candidatesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Candidates ({candPage.total})
-      </h2>
       <ResponsiveDataList
         items={candidates}
         empty="—"
@@ -1318,7 +1369,7 @@ export default function HrDesk() {
             render: (c) => <span className={statusClass(c.stage)}>{c.stage}</span>,
           },
         ]}
-        actions={(c) => <ViewButton pkg="human" resource="Candidate" record={c} />}
+        actions={(c) => renderRowActions('human', 'Candidate', c)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1328,7 +1379,7 @@ export default function HrDesk() {
                 <th>{t('wb.role', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th>{t('hr.stage')}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1348,7 +1399,7 @@ export default function HrDesk() {
                     <span className={statusClass(c.stage)}>{c.stage}</span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="human" resource="Candidate" record={c} />
+                    {renderRowActions('human', 'Candidate', c)}
                   </td>
                 </tr>
               ))}
@@ -1369,9 +1420,6 @@ export default function HrDesk() {
 
   const timeList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Entries ({timePage.total})
-      </h2>
       <ResponsiveDataList
         items={timeEntries}
         empty="—"
@@ -1393,7 +1441,7 @@ export default function HrDesk() {
             render: (row) => row.timeKind,
           },
         ]}
-        actions={(row) => <ViewButton pkg="human" resource="TimeTrack" record={row} />}
+        actions={(row) => renderRowActions('human', 'TimeTrack', row)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1402,7 +1450,7 @@ export default function HrDesk() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>{t('wb.hours', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1412,7 +1460,7 @@ export default function HrDesk() {
                   <td>{row.hours}</td>
                   <td className="col-priority-low">{row.timeKind}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="human" resource="TimeTrack" record={row} />
+                    {renderRowActions('human', 'TimeTrack', row)}
                   </td>
                 </tr>
               ))}
@@ -1433,9 +1481,6 @@ export default function HrDesk() {
 
   const payrollList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Periods ({payPage.total})
-      </h2>
       <ResponsiveDataList
         items={payrolls}
         empty="—"
@@ -1461,7 +1506,7 @@ export default function HrDesk() {
             render: (p) => Number(p.totalEur || 0).toFixed(2),
           },
         ]}
-        actions={(p) => <ViewButton pkg="human" resource="Payroll" record={p} />}
+        actions={(p) => renderRowActions('human', 'Payroll', p)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1470,7 +1515,7 @@ export default function HrDesk() {
                 <th>{t('wb.period', { ns: 'common' })}</th>
                 <th>EUR</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1487,7 +1532,7 @@ export default function HrDesk() {
                     <span className={statusClass(p.payrollStatus)}>{p.payrollStatus}</span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                    <ViewButton pkg="human" resource="Payroll" record={p} />
+                    {renderRowActions('human', 'Payroll', p)}
                   </td>
                 </tr>
               ))}
@@ -1508,9 +1553,6 @@ export default function HrDesk() {
 
   const plansList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Plans ({planPage.total})
-      </h2>
       <ResponsiveDataList
         items={plans}
         empty="—"
@@ -1528,7 +1570,7 @@ export default function HrDesk() {
             render: (p) => p.plannedCount,
           },
         ]}
-        actions={(p) => <ViewButton pkg="human" resource="HeadcountPlan" record={p} />}
+        actions={(p) => renderRowActions('human', 'HeadcountPlan', p)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1537,7 +1579,7 @@ export default function HrDesk() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th>{t('hr.count')}</th>
                 <th className="col-priority-low">{t('wb.role', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1547,7 +1589,7 @@ export default function HrDesk() {
                   <td>{p.plannedCount}</td>
                   <td className="col-priority-low">{p.roleLabel || '—'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="human" resource="HeadcountPlan" record={p} />
+                    {renderRowActions('human', 'HeadcountPlan', p)}
                   </td>
                 </tr>
               ))}
@@ -1568,9 +1610,6 @@ export default function HrDesk() {
 
   const goalsList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Goals ({goalPage.total})
-      </h2>
       <ResponsiveDataList
         items={goals}
         empty="—"
@@ -1593,7 +1632,7 @@ export default function HrDesk() {
             render: (g) => g.progress,
           },
         ]}
-        actions={(g) => <ViewButton pkg="human" resource="Goal" record={g} />}
+        actions={(g) => renderRowActions('human', 'Goal', g)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1603,7 +1642,7 @@ export default function HrDesk() {
                 <th className="col-priority-low">{t('hr.owner')}</th>
                 <th className="col-priority-low">%</th>
                 <th>{t('wb.status', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1616,7 +1655,7 @@ export default function HrDesk() {
                     <span className={statusClass(g.goalStatus)}>{g.goalStatus}</span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="human" resource="Goal" record={g} />
+                    {renderRowActions('human', 'Goal', g)}
                   </td>
                 </tr>
               ))}
@@ -1637,9 +1676,6 @@ export default function HrDesk() {
 
   const policiesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Policies ({policyPage.total})
-      </h2>
       <ResponsiveDataList
         items={policies}
         empty="—"
@@ -1657,7 +1693,7 @@ export default function HrDesk() {
             render: (p) => <span className="mono">{p.code || '—'}</span>,
           },
         ]}
-        actions={(p) => <ViewButton pkg="human" resource="Policy" record={p} />}
+        actions={(p) => renderRowActions('human', 'Policy', p)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1666,7 +1702,7 @@ export default function HrDesk() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
                 <th>{t('wb.kind', { ns: 'common' })}</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1676,7 +1712,7 @@ export default function HrDesk() {
                   <td className="mono col-priority-low">{p.code || '—'}</td>
                   <td>{p.policyKind}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="human" resource="Policy" record={p} />
+                    {renderRowActions('human', 'Policy', p)}
                   </td>
                 </tr>
               ))}
@@ -1697,9 +1733,6 @@ export default function HrDesk() {
 
   const partiesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        Parties ({partyPage.total})
-      </h2>
       <ResponsiveDataList
         items={parties}
         empty="—"
@@ -1726,7 +1759,7 @@ export default function HrDesk() {
             ),
           },
         ]}
-        actions={(p) => <ViewButton pkg="human" resource="PartyAccess" record={p} />}
+        actions={(p) => renderRowActions('human', 'PartyAccess', p)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -1735,7 +1768,7 @@ export default function HrDesk() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
                 <th>User</th>
-                <th />
+                <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1752,7 +1785,7 @@ export default function HrDesk() {
                     )}
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <ViewButton pkg="human" resource="PartyAccess" record={p} />
+                    {renderRowActions('human', 'PartyAccess', p)}
                   </td>
                 </tr>
               ))}
@@ -1984,6 +2017,8 @@ export default function HrDesk() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave D: split for process detail (candidates/payroll/time); col2 gated by hasSelection.
+        layout="split"
         title={
           <>
             <Users size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

@@ -876,6 +876,8 @@ export default function FinanceInvoices() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave C: keep split — issue/settle/BTC receive workspace stays visible with selection.
+        layout="split"
         title={
           <>
             <FileText size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />

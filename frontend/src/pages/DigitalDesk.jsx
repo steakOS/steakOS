@@ -1701,6 +1701,9 @@ export default function DigitalDesk() {
       </div>
 
       <DeskShell
+        // ADR-050 Wave C: keep split — ITChange/ItTicket need persistent process detail;
+        // master tabs already gate empty col2 via hasSelection=false.
+        layout="split"
         title={
           <>
             <Server size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
