@@ -759,7 +759,8 @@ export default function ScmDesk({ desk = 'buyers' }) {
 
 
   const deskTitle = isBuyers ? t('scm.buyersTitle') : t('scm.shopFloorTitle')
-  const deskSubtitle = isBuyers ? t('scm.buyersSubtitle') : t('scm.shopFloorSubtitle')
+  // Buyers: no process-flow subtitle under the title (tabs + hops are enough).
+  const deskSubtitle = isBuyers ? null : t('scm.shopFloorSubtitle')
   const DeskIcon = isBuyers ? Package : Factory
 
   const DEFAULT_PO_LINES = () => [
