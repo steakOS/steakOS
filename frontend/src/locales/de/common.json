@@ -406,6 +406,20 @@
         "finance.postingRules": "Buchungsregeln (Auto-Journale)",
         "finance.invoices": "Rechnungen",
         "finance.treasury": "Treasury"
+      },
+      "desksTitle": "Listen & Desks (UI 2.0)",
+      "desksBody": "So sehen Listen und Desks aus: Aktion-Symbole (Ansehen · Bearbeiten · Löschen), Pop-up-Formulare, und wann noch ein Seitendetail erscheint. Auch in der Hilfe-Schublade (?) auf jedem Desk.",
+      "desksLoading": "Desk-Hilfe wird geladen…",
+      "desksTopics": {
+        "app.ui20": "Listen & Desks (UI 2.0)",
+        "sales.desk": "Innendienst / Sales desk",
+        "scm.desk": "Buyers Desk",
+        "scm.shopfloor": "Shop Floor Control",
+        "delivery.desk": "Delivery desk",
+        "aftersales.desk": "AfterSales desk",
+        "strategy.desk": "Strategie-Desk",
+        "development.desk": "Entwicklungs-Desk",
+        "asset.desk": "Asset-Arbeitsplatz"
       }
     },
     "import": {

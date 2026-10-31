@@ -406,6 +406,20 @@
         "finance.postingRules": "Posting rules (auto journals)",
         "finance.invoices": "Invoices",
         "finance.treasury": "Treasury"
+      },
+      "desksTitle": "Lists & desks (UI 2.0)",
+      "desksBody": "How lists and desks look: Action icons (View · Edit · Delete), pop-up forms, and when a side detail still appears. Also from the Help drawer (?) on any desk.",
+      "desksLoading": "Loading desks help…",
+      "desksTopics": {
+        "app.ui20": "Lists & desks (UI 2.0)",
+        "sales.desk": "Sales desk",
+        "scm.desk": "Buyers Desk",
+        "scm.shopfloor": "Shop Floor Control",
+        "delivery.desk": "Delivery desk",
+        "aftersales.desk": "AfterSales desk",
+        "strategy.desk": "Strategy desk",
+        "development.desk": "Development desk",
+        "asset.desk": "Assets desk"
       }
     },
     "import": {

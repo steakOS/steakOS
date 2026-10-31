@@ -406,6 +406,20 @@
         "finance.postingRules": "Reglas de asiento (asientos automáticos)",
         "finance.invoices": "Facturas",
         "finance.treasury": "Tesorería"
+      },
+      "desksTitle": "Listas y escritorios (UI 2.0)",
+      "desksBody": "Cómo se ven listas y escritorios: iconos de Acción (Ver · Editar · Eliminar), formularios emergentes, y cuándo sigue apareciendo un detalle lateral. También en el cajón de Ayuda (?) en cualquier escritorio.",
+      "desksLoading": "Cargando ayuda de escritorios…",
+      "desksTopics": {
+        "app.ui20": "Listas y escritorios (UI 2.0)",
+        "sales.desk": "Escritorio de ventas",
+        "scm.desk": "Escritorio de compras",
+        "scm.shopfloor": "Control de taller",
+        "delivery.desk": "Escritorio de entrega",
+        "aftersales.desk": "Escritorio posventa",
+        "strategy.desk": "Escritorio de estrategia",
+        "development.desk": "Escritorio de desarrollo",
+        "asset.desk": "Escritorio de activos"
       }
     },
     "import": {

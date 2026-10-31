@@ -35,16 +35,30 @@ const WORK_HELP_KEYS = ['help.work.actionNow', 'app.dashboard']
 
 const FINANCE_HELP_KEYS = ['finance.postingRules', 'finance.invoices', 'finance.treasury']
 
+/** UI 2.0 desk chrome + major desks (ADR-050 / PDR-034). */
+const DESKS_HELP_KEYS = [
+  'app.ui20',
+  'sales.desk',
+  'scm.desk',
+  'scm.shopfloor',
+  'delivery.desk',
+  'aftersales.desk',
+  'strategy.desk',
+  'development.desk',
+  'asset.desk',
+]
+
 function topicLabelKey(helpKey) {
   if (ROLE_HELP_KEYS.includes(helpKey)) return `pages.help.roleTopics.${helpKey}`
   if (SETTINGS_HELP_KEYS.includes(helpKey)) return `pages.help.settingsTopics.${helpKey}`
   if (WORK_HELP_KEYS.includes(helpKey)) return `pages.help.workTopics.${helpKey}`
   if (FINANCE_HELP_KEYS.includes(helpKey)) return `pages.help.financeTopics.${helpKey}`
+  if (DESKS_HELP_KEYS.includes(helpKey)) return `pages.help.desksTopics.${helpKey}`
   return `pages.help.roleTopics.${helpKey}`
 }
 
 /**
- * Help center — tour, IT support, Roles, Settings language, Action-NOW.
+ * Help center — tour, IT support, Roles, Settings language, Action-NOW, desks UI 2.0.
  */
 export default function HelpCenter() {
   const { t, i18n } = useTranslation('common')
@@ -88,6 +102,11 @@ export default function HelpCenter() {
   const financeTopics = useMemo(
     () =>
       FINANCE_HELP_KEYS.map((key) => topics.find((x) => x.helpKey === key)).filter(Boolean),
+    [topics],
+  )
+  const desksTopics = useMemo(
+    () =>
+      DESKS_HELP_KEYS.map((key) => topics.find((x) => x.helpKey === key)).filter(Boolean),
     [topics],
   )
 
@@ -246,6 +265,24 @@ export default function HelpCenter() {
         {renderTopicPicker(
           financeTopics,
           t('pages.help.financeLoading', { defaultValue: 'Loading finance help…' }),
+        )}
+      </div>
+
+      <div className="card" style={{ marginTop: 12 }}>
+        <h2>{t('pages.help.desksTitle', { defaultValue: 'Lists & desks (UI 2.0)' })}</h2>
+        <p className="page-sub">
+          {t('pages.help.desksBody', {
+            defaultValue:
+              'How lists and desks look: Action icons (View · Edit · Delete), pop-up forms, and when a side detail still appears. Also from the Help drawer (?) on any desk.',
+          })}{' '}
+          <Link to="/sales">{t('nav.sales', { defaultValue: 'Sales' })}</Link>
+          {' · '}
+          <Link to="/scm/buyers">{t('nav.buyers', { defaultValue: 'Buyers' })}</Link>
+          {'.'}
+        </p>
+        {renderTopicPicker(
+          desksTopics,
+          t('pages.help.desksLoading', { defaultValue: 'Loading desks help…' }),
         )}
       </div>
 
