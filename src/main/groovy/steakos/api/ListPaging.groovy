@@ -114,6 +114,19 @@ class ListPaging {
         body
     }
 
+    /**
+     * Apply primary sort + id-asc tie-break inside a GORM criteria builder (Task 7640 D3).
+     * Call from createCriteria().list { … applyOrders(delegate, so) }.
+     */
+    static void applyOrders(Object criteria, Map so) {
+        String sort = (so?.sort ?: 'id') as String
+        String orderDir = (so?.order ?: 'desc') as String
+        criteria.order(sort, orderDir)
+        if (sort != 'id') {
+            criteria.order('id', 'asc')
+        }
+    }
+
     private static Integer readInt(def params, String key) {
         if (params == null) return null
         try {

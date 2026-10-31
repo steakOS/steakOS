@@ -405,6 +405,8 @@ export const agentGatewayApi = {
       if (params.decision) q.set('decision', params.decision)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/agent/proposals${qs ? `?${qs}` : ''}`)
     },
@@ -423,6 +425,8 @@ export const catalogueApi = {
     if (params.activeOnly === false) q.set('activeOnly', 'false')
     if (params.max != null) q.set('max', String(params.max))
     if (params.offset != null) q.set('offset', String(params.offset))
+    if (params.sort) q.set('sort', params.sort)
+    if (params.order) q.set('order', params.order)
     const qs = q.toString()
     return api(`/api/catalogue/items${qs ? `?${qs}` : ''}`)
   },
@@ -738,6 +742,8 @@ export const salesApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.q) q.set('q', params.q)
       if (params.listKind) q.set('listKind', params.listKind)
       if (params.customerId != null) q.set('customerId', String(params.customerId))
@@ -803,6 +809,8 @@ export const grrcApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.status) q.set('status', params.status)
       const qs = q.toString()
       return api(`/api/grrc/risks${qs ? `?${qs}` : ''}`)
@@ -819,6 +827,8 @@ export const grrcApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.status) q.set('status', params.status)
       const qs = q.toString()
       return api(`/api/grrc/compliance${qs ? `?${qs}` : ''}`)
@@ -837,6 +847,8 @@ export const stakeholderApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.status) q.set('status', params.status)
       if (params.partyKind) q.set('partyKind', params.partyKind)
       const qs = q.toString()
@@ -852,6 +864,8 @@ export const stakeholderApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.status) q.set('status', params.status)
       if (params.partyId != null) q.set('partyId', String(params.partyId))
       const qs = q.toString()
@@ -871,6 +885,8 @@ export const aftersalesApi = {
       if (params.activeOnly === false) q.set('activeOnly', 'false')
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/aftersales/service-levels${qs ? `?${qs}` : ''}`)
     },
@@ -885,6 +901,8 @@ export const aftersalesApi = {
       if (params.kind) q.set('kind', params.kind)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/aftersales/inquiries${qs ? `?${qs}` : ''}`)
     },
@@ -905,6 +923,8 @@ export const aftersalesApi = {
       if (params.coverStatus) q.set('coverStatus', params.coverStatus)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/aftersales/warranties${qs ? `?${qs}` : ''}`)
     },
@@ -920,6 +940,8 @@ export const aftersalesApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/aftersales/claims${qs ? `?${qs}` : ''}`)
     },
@@ -939,6 +961,8 @@ export const aftersalesApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/aftersales/rmas${qs ? `?${qs}` : ''}`)
     },
@@ -962,6 +986,8 @@ export const capabilityApi = {
       if (params.kind) q.set('kind', params.kind)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/processes${qs ? `?${qs}` : ''}`)
     },
@@ -983,6 +1009,8 @@ export const capabilityApi = {
       if (params.processId) q.set('processId', params.processId)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/procedures${qs ? `?${qs}` : ''}`)
     },
@@ -994,6 +1022,8 @@ export const capabilityApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/portfolios${qs ? `?${qs}` : ''}`)
     },
@@ -1006,6 +1036,8 @@ export const capabilityApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/programs${qs ? `?${qs}` : ''}`)
     },
@@ -1017,6 +1049,8 @@ export const capabilityApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/projects${qs ? `?${qs}` : ''}`)
     },
@@ -1037,6 +1071,8 @@ export const capabilityApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/qualities${qs ? `?${qs}` : ''}`)
     },
@@ -1058,6 +1094,8 @@ export const capabilityApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/changes${qs ? `?${qs}` : ''}`)
     },
@@ -1078,6 +1116,8 @@ export const capabilityApi = {
       if (params.activeOnly) q.set('activeOnly', 'true')
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/knowledge${qs ? `?${qs}` : ''}`)
     },
@@ -1091,6 +1131,8 @@ export const capabilityApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/capability/standards${qs ? `?${qs}` : ''}`)
     },
@@ -1108,6 +1150,8 @@ export const scmApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.q) q.set('q', params.q)
       const qs = q.toString()
       return api(`/api/scm/vendors${qs ? `?${qs}` : ''}`)
@@ -1152,6 +1196,8 @@ export const scmApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/scm/production-orders${qs ? `?${qs}` : ''}`)
     },
@@ -1177,6 +1223,8 @@ export const scmApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/scm/lots${qs ? `?${qs}` : ''}`)
     },
@@ -1199,6 +1247,8 @@ export const deliveryApi = {
       if (params.activeOnly === false) q.set('activeOnly', 'false')
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/delivery/services${qs ? `?${qs}` : ''}`)
     },
@@ -1213,6 +1263,8 @@ export const deliveryApi = {
       if (params.assignees === true || params.fromHr === true) q.set('assignees', 'true')
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.q) q.set('q', params.q)
       const qs = q.toString()
       return api(`/api/delivery/resources${qs ? `?${qs}` : ''}`)
@@ -1227,6 +1279,8 @@ export const deliveryApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/delivery/orders${qs ? `?${qs}` : ''}`)
     },
@@ -1264,6 +1318,8 @@ export const hrApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/files${qs ? `?${qs}` : ''}`)
     },
@@ -1278,6 +1334,8 @@ export const hrApi = {
       if (params.stage) q.set('stage', params.stage)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/candidates${qs ? `?${qs}` : ''}`)
     },
@@ -1295,6 +1353,8 @@ export const hrApi = {
       if (params.hrFileId) q.set('hrFileId', String(params.hrFileId))
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/time${qs ? `?${qs}` : ''}`)
     },
@@ -1305,6 +1365,8 @@ export const hrApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/payrolls${qs ? `?${qs}` : ''}`)
     },
@@ -1321,6 +1383,8 @@ export const hrApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/plans${qs ? `?${qs}` : ''}`)
     },
@@ -1331,6 +1395,8 @@ export const hrApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/goals${qs ? `?${qs}` : ''}`)
     },
@@ -1344,6 +1410,8 @@ export const hrApi = {
       if (params.activeOnly === false) q.set('activeOnly', 'false')
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/policies${qs ? `?${qs}` : ''}`)
     },
@@ -1355,6 +1423,8 @@ export const hrApi = {
       if (params.partyKind) q.set('partyKind', params.partyKind)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/hr/parties${qs ? `?${qs}` : ''}`)
     },
@@ -1370,6 +1440,8 @@ export const digitalApi = {
       if (params.activeOnly) q.set('activeOnly', 'true')
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/digital/systems${qs ? `?${qs}` : ''}`)
     },
@@ -1383,6 +1455,8 @@ export const digitalApi = {
       if (params.dataClass) q.set('dataClass', params.dataClass)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/digital/data${qs ? `?${qs}` : ''}`)
     },
@@ -1395,6 +1469,8 @@ export const digitalApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/digital/solutions${qs ? `?${qs}` : ''}`)
     },
@@ -1410,6 +1486,8 @@ export const digitalApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/digital/changes${qs ? `?${qs}` : ''}`)
     },
@@ -1426,6 +1504,8 @@ export const digitalApi = {
       if (params.systemId) q.set('systemId', params.systemId)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/digital/cis${qs ? `?${qs}` : ''}`)
     },
@@ -1438,6 +1518,8 @@ export const digitalApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/digital/tickets${qs ? `?${qs}` : ''}`)
     },
@@ -1458,6 +1540,8 @@ export const agentsApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/agents/agents${qs ? `?${qs}` : ''}`)
     },
@@ -1476,6 +1560,8 @@ export const agentsApi = {
       if (params.status) q.set('status', params.status)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/agents/hives${qs ? `?${qs}` : ''}`)
     },
@@ -1496,6 +1582,8 @@ export const agentsApi = {
       if (params.decision) q.set('decision', params.decision)
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/agents/approvals${qs ? `?${qs}` : ''}`)
     },
@@ -1516,6 +1604,8 @@ export const agentsApi = {
       if (params.includeArchived) q.set('includeArchived', 'true')
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/agents/memories${qs ? `?${qs}` : ''}`)
     },
@@ -1530,6 +1620,8 @@ export const agentsApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       const qs = q.toString()
       return api(`/api/agents/links${qs ? `?${qs}` : ''}`)
     },

@@ -221,9 +221,14 @@ class DomainRegistryService {
         listPage(domainClass, max, offset, filters ?: [:]).items as List
     }
 
-    /** Curated sort allowlist (Task 7640 D4); Task adds deadline/urgency fields. */
+    /**
+     * Curated sort allowlist (Task 7640 D4). resolveListSort keeps only properties
+     * that exist on the domain class — extra keys here are safe no-ops per resource.
+     */
     static final List DOMAIN_SORT_FIELDS = [
-            'id', 'name', 'code', 'status', 'dateCreated', 'lastUpdated'
+            'id', 'name', 'code', 'status', 'dateCreated', 'lastUpdated',
+            'amountEur', 'customerName', 'kind', 'active', 'priority',
+            'referenceText', 'description'
     ].asImmutable()
 
     static final List TASK_SORT_FIELDS = (
