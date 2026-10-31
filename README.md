@@ -251,8 +251,8 @@ curl -fsSL http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/in
 irm http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.ps1 | iex
 ```
 
-Prefer to read the script first? Open the same URL in a browser, save the file, then run it locally. Package files (zip + checksum) are hub **Releases** assets — package base URL:  
-`http://umbrel.local:8101/hermesbro/steakOS/releases/latest/download`.
+Prefer to read the script first? Open the same URL in a browser, save the file, then run it locally. Package files (zip + checksum) are hub **Releases** assets (e.g. tag `v0.2.3`). The bootstrap script asks the hub API for the latest tag, then downloads from  
+`http://umbrel.local:8101/hermesbro/steakOS/releases/download/<tag>/`.
 
 Install troubleshooting: companion doc `docs/installation/TROUBLESHOOTING-INSTALL.md` (and [Getting started](https://steakos.org/getting-started.html) when the public site mirrors this story).
 

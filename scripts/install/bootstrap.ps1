@@ -32,10 +32,15 @@ $HubRepo = if ($env:STEAKOS_HUB_REPO) { $env:STEAKOS_HUB_REPO } else { 'steakOS'
 $Org = if ($env:STEAKOS_GITHUB_ORG) { $env:STEAKOS_GITHUB_ORG } else { 'steakOS' }
 $Repo = if ($env:STEAKOS_GITHUB_REPO) { $env:STEAKOS_GITHUB_REPO } else { 'steakOS' }
 $RawBase = if ($env:STEAKOS_RAW_BASE) { $env:STEAKOS_RAW_BASE } else { "$HubHost/$HubOwner/$HubRepo/raw/branch/main" }
-if (-not $BaseUrl) {
-    $BaseUrl = "$HubHost/$HubOwner/$HubRepo/releases/latest/download"
-}
 if ($env:STEAKOS_ASSUME_YES -eq '1') { $Yes = $true }
+
+function Resolve-ReleaseBase {
+    if ($env:STEAKOS_BASE_URL) { return $env:STEAKOS_BASE_URL.TrimEnd('/') }
+    if ($BaseUrl) { return $BaseUrl.TrimEnd('/') }
+    $meta = Invoke-RestMethod -UseBasicParsing -Uri "$HubHost/api/v1/repos/$HubOwner/$HubRepo/releases/latest"
+    if (-not $meta.tag_name) { Die 'latest release has no tag_name' }
+    return "$HubHost/$HubOwner/$HubRepo/releases/download/$($meta.tag_name)"
+}
 
 function Write-Info([string] $Msg) { Write-Host "==> $Msg" }
 function Die([string] $Msg) { throw "error: $Msg" }
@@ -186,7 +191,9 @@ $pkgArgs = @{
 if ($OfflineZip) {
     $pkgArgs['OfflineZip'] = $OfflineZip
 } else {
-    $pkgArgs['BaseUrl'] = $BaseUrl
+    $resolved = Resolve-ReleaseBase
+    Write-Info "Release package host: $resolved"
+    $pkgArgs['BaseUrl'] = $resolved
 }
 if ($Version) { $pkgArgs['Version'] = $Version }
 

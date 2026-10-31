@@ -39,9 +39,8 @@ HUB_OWNER="${STEAKOS_HUB_OWNER:-hermesbro}"
 HUB_REPO="${STEAKOS_HUB_REPO:-steakOS}"
 ORG="${STEAKOS_GITHUB_ORG:-steakOS}"
 REPO="${STEAKOS_GITHUB_REPO:-steakOS}"
-DEFAULT_BASE="${HUB_HOST}/${HUB_OWNER}/${HUB_REPO}/releases/latest/download"
 RAW_BASE="${STEAKOS_RAW_BASE:-${HUB_HOST}/${HUB_OWNER}/${HUB_REPO}/raw/branch/main}"
-BASE_URL="${STEAKOS_BASE_URL:-$DEFAULT_BASE}"
+BASE_URL="${STEAKOS_BASE_URL:-}"
 PREFIX="${STEAKOS_PREFIX:-${HOME}/steakOS}"
 OFFLINE_ZIP=""
 NO_START=0
@@ -55,6 +54,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 die() { echo "error: $*" >&2; exit 1; }
 info() { echo "==> $*"; }
 warn() { echo "warn: $*" >&2; }
+
+# Forgejo/Gitea has no GitHub-style …/releases/latest/download/ folder — resolve tag via API.
+resolve_release_base() {
+  if [[ -n "${STEAKOS_BASE_URL:-}" ]]; then
+    echo "${STEAKOS_BASE_URL%/}"
+    return
+  fi
+  need_cmd curl
+  local meta tag
+  meta="$(curl -fsSL "${HUB_HOST}/api/v1/repos/${HUB_OWNER}/${HUB_REPO}/releases/latest")" \
+    || die "cannot fetch latest release metadata from ${HUB_HOST}"
+  tag="$(echo "$meta" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
+  [[ -n "$tag" ]] || die "latest release has no tag_name"
+  echo "${HUB_HOST}/${HUB_OWNER}/${HUB_REPO}/releases/download/${tag}"
+}
 
 usage() {
   sed -n '17,35p' "$0"
@@ -289,17 +303,21 @@ if [[ ! -f "$INSTALLER" ]]; then
 fi
 
 # --- package install (may unpack SQL) -----------------------------------------
+if [[ -z "$OFFLINE_ZIP" ]]; then
+  if [[ -z "$BASE_URL" ]]; then
+    BASE_URL="$(resolve_release_base)"
+  fi
+  BASE_URL="${BASE_URL%/}"
+  info "Release package host: $BASE_URL"
+fi
+
 PKG_ARGS=(--prefix "$PREFIX" --base-url "$BASE_URL")
 [[ -n "$OFFLINE_ZIP" ]] && PKG_ARGS=(--prefix "$PREFIX" --offline "$OFFLINE_ZIP")
 [[ -n "$VERSION_PIN" ]] && PKG_ARGS+=(--version "$VERSION_PIN")
 [[ "$NO_START" -eq 1 ]] && PKG_ARGS+=(--no-start)
 [[ "$ASSUME_YES" == "1" ]] && PKG_ARGS+=(--yes)
-# Require checksum on non-LAN hosts and whenever STEAKOS_REQUIRE_CHECKSUM=1 (P5)
-if [[ "$BASE_URL" == *github.com* || "${STEAKOS_REQUIRE_CHECKSUM:-0}" == "1" ]]; then
-  export STEAKOS_REQUIRE_CHECKSUM=1
-fi
-# Always verify when fetching from a releases/download path
-if [[ "$BASE_URL" == */releases/*/download || "$BASE_URL" == */releases/latest/download ]]; then
+# Require checksum on release hosts / GitHub / explicit flag (P5)
+if [[ "$BASE_URL" == *github.com* || "$BASE_URL" == */releases/download/* || "${STEAKOS_REQUIRE_CHECKSUM:-0}" == "1" ]]; then
   export STEAKOS_REQUIRE_CHECKSUM=1
 fi
 
