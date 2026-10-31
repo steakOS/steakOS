@@ -225,7 +225,7 @@
     "matrixDesk": {
       "title": "Permiso denegado para este escritorio",
       "body": "Su rol no puede realizar esta acción en este escritorio. Pida a un admin ajustar la matriz de roles, o abra una superficie permitida.",
-      "action": "Abrir cobros"
+      "action": "Abrir roles"
     },
     "matrixSystem": {
       "title": "Acción de sistema no permitida",
@@ -1222,6 +1222,7 @@
       "hint": "/ enfoca · Esc cierra · ⌘K salta a páginas",
       "types": {
         "customer": "Cliente",
+        "opportunity": "Oportunidad",
         "vendor": "Proveedor",
         "catalogueItem": "Catálogo",
         "customerQuote": "Cotización",

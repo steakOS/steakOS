@@ -225,7 +225,7 @@
     "matrixDesk": {
       "title": "Keine Berechtigung für diesen Desk",
       "body": "Ihre Rolle darf diese Aktion auf diesem Desk nicht ausführen. Bitten Sie einen Admin um Anpassung der Rollenmatrix, oder öffnen Sie eine erlaubte Oberfläche.",
-      "action": "Forderungen öffnen"
+      "action": "Rollen öffnen"
     },
     "matrixSystem": {
       "title": "Systemaktion nicht erlaubt",
@@ -1222,6 +1222,7 @@
       "hint": "/ fokussiert · Esc schließt · ⌘K springt zu Seiten",
       "types": {
         "customer": "Kunde",
+        "opportunity": "Opportunity",
         "vendor": "Lieferant",
         "catalogueItem": "Katalog",
         "customerQuote": "Angebot",

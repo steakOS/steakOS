@@ -85,7 +85,7 @@ class MatrixAccessFilter extends OncePerRequestFilter {
                 ok = !!cell.change
             } else if (verb == ApiPermissionMapper.VERB_DELETE) {
                 ok = !!cell.delete
-                // Presets keep desk delete=false; allow creator/self to remove own Task
+                // Presets keep desk delete=false; Task: Admin/CEO, assignee, or owner may delete
                 if (!ok && SelfAssignedTaskDelete.allows(method, path, request.contextPath, user)) {
                     ok = true
                 }

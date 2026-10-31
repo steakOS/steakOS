@@ -225,7 +225,7 @@
     "matrixDesk": {
       "title": "Permission denied for this desk",
       "body": "Your role cannot perform this action on this desk. Ask an admin to adjust the role matrix, or open a surface your role can use.",
-      "action": "Open receivables"
+      "action": "Open roles"
     },
     "matrixSystem": {
       "title": "System action not allowed",
@@ -1222,6 +1222,7 @@
       "hint": "Press / to focus · Esc to close · ⌘K jumps to pages",
       "types": {
         "customer": "Customer",
+        "opportunity": "Opportunity",
         "vendor": "Vendor",
         "catalogueItem": "Catalogue",
         "customerQuote": "Quote",

@@ -105,7 +105,8 @@ test.describe('Nielsen DeskShell smoke', () => {
     if (res.ok()) {
       const text = await res.text()
       expect(text).toContain('MATRIX_DESK_FORBIDDEN')
-      expect(text).toContain('/finance/invoices')
+      expect(text).toContain('/roles')
+      expect(text).not.toContain('/finance/invoices')
     }
   })
 

@@ -42,4 +42,31 @@ class SelfAssignedTaskDeleteSpec extends Specification {
         SelfAssignedTaskDelete.assigneeMatchesUser('npub1alice', u)
         !SelfAssignedTaskDelete.assigneeMatchesUser('npub1bob', u)
     }
+
+    def "identityMatchesUser covers owner and assignee forms"() {
+        given:
+        User u = new User(username: 'bob', npub: 'npub1bob')
+
+        expect:
+        SelfAssignedTaskDelete.identityMatchesUser('user:bob', u)
+        SelfAssignedTaskDelete.identityMatchesUser('npub1bob', u)
+        !SelfAssignedTaskDelete.identityMatchesUser('user:admin', u)
+    }
+
+    def "isElevatedActor uses roleProfileId without authorities"() {
+        expect:
+        SelfAssignedTaskDelete.isElevatedActor(new User(username: 'a', roleProfileId: 'admin'))
+        SelfAssignedTaskDelete.isElevatedActor(new User(username: 'c', roleProfileId: 'ceo'))
+        !SelfAssignedTaskDelete.isElevatedActor(new User(username: 'o', roleProfileId: 'office'))
+        !SelfAssignedTaskDelete.isElevatedActor(null)
+    }
+
+    def "allows short-circuits for admin profile without DB"() {
+        given:
+        User admin = new User(username: 'admin', roleProfileId: 'admin')
+
+        expect:
+        SelfAssignedTaskDelete.allows('DELETE', '/api/domains/core/Task/99999', '', admin)
+        !SelfAssignedTaskDelete.allows('DELETE', '/api/domains/sales/Customer/1', '', admin)
+    }
 }

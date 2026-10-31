@@ -8,11 +8,15 @@ import steakos.User
 import steakos.core.Task
 
 /**
- * Matrix exception: desk {@code delete} is false for all presets (PDR-025),
- * but a human may always hard-delete a Task assigned to themselves.
+ * Matrix exception for {@code DELETE /api/domains/core/Task/{id}}.
+ * Desk {@code delete} stays false for all presets (PDR-025), but Task hard-delete
+ * is allowed when the actor is the human assignee, the npub owner, or Admin/CEO.
  */
 @CompileStatic
 final class SelfAssignedTaskDelete {
+
+    private static final Set<String> ELEVATED_PROFILES =
+            (['admin', 'ceo'] as Set).asImmutable()
 
     private SelfAssignedTaskDelete() {}
 
@@ -33,11 +37,12 @@ final class SelfAssignedTaskDelete {
         return m.group(1) as Long
     }
 
-    static boolean assigneeMatchesUser(String assigneeHumanNpub, User user) {
-        if (!user || !assigneeHumanNpub?.trim()) {
+    /** Match {@code user:{username}} or raw npub against the acting user. */
+    static boolean identityMatchesUser(String identity, User user) {
+        if (!user || !identity?.trim()) {
             return false
         }
-        String a = assigneeHumanNpub.trim()
+        String a = identity.trim()
         if (user.username) {
             if (a == "user:${user.username}") {
                 return true
@@ -47,8 +52,30 @@ final class SelfAssignedTaskDelete {
         return npub && a == npub
     }
 
+    /** @deprecated use {@link #identityMatchesUser} — kept for existing call sites/tests. */
+    static boolean assigneeMatchesUser(String assigneeHumanNpub, User user) {
+        identityMatchesUser(assigneeHumanNpub, user)
+    }
+
+    /** Admin/CEO via roleProfileId (no DB) or Spring ROLE_ADMIN / ROLE_CEO. */
+    static boolean isElevatedActor(User user) {
+        if (!user) {
+            return false
+        }
+        String pid = user.roleProfileId?.trim()?.toLowerCase()
+        if (pid && ELEVATED_PROFILES.contains(pid)) {
+            return true
+        }
+        try {
+            return !!user.authorities?.any { it?.authority == 'ROLE_ADMIN' || it?.authority == 'ROLE_CEO' }
+        } catch (Exception ignored) {
+            return false
+        }
+    }
+
     /**
-     * True when DELETE targets a Task whose {@code assigneeHumanNpub} is the acting user.
+     * True when DELETE targets a Task the actor may remove:
+     * Admin/CEO, human assignee, or npub owner.
      * Uses {@code withNewSession} because MatrixAccessFilter runs outside OSIV.
      */
     static boolean allows(String method, String requestUri, String contextPath, User user) {
@@ -56,15 +83,25 @@ final class SelfAssignedTaskDelete {
         if (id == null || !user) {
             return false
         }
+        // roleProfileId is on the User row already loaded by the filter
+        String pid = user.roleProfileId?.trim()?.toLowerCase()
+        if (pid && ELEVATED_PROFILES.contains(pid)) {
+            return true
+        }
         try {
-            boolean match = false
+            boolean ok = false
             Task.withNewSession {
+                if (isElevatedActor(user)) {
+                    ok = true
+                    return
+                }
                 Task task = Task.get(id)
                 if (task) {
-                    match = assigneeMatchesUser(task.assigneeHumanNpub, user)
+                    ok = identityMatchesUser(task.assigneeHumanNpub, user) ||
+                            identityMatchesUser(task.npubOwner, user)
                 }
             }
-            return match
+            return ok
         } catch (Exception ignored) {
             return false
         }

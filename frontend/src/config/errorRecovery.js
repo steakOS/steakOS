@@ -21,7 +21,8 @@ export const ERROR_RECOVERY = {
   MATRIX_DESK_FORBIDDEN: {
     titleKey: 'errors.matrixDesk.title',
     bodyKey: 'errors.matrixDesk.body',
-    actions: [{ labelKey: 'errors.matrixDesk.action', href: '/finance/invoices' }],
+    // Roles matrix — not Finance AR (wrong for core/Task and most desks)
+    actions: [{ labelKey: 'errors.matrixDesk.action', href: '/roles' }],
   },
   MATRIX_SYSTEM_FORBIDDEN: {
     titleKey: 'errors.matrixSystem.title',
