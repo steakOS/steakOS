@@ -16,5 +16,7 @@
   "ticketSubmit": "Ticket öffnen",
   "ticketCreated": "Ticket {{number}} geöffnet.",
   "ticketViewAll": "Alle Tickets anzeigen",
-  "backToContext": "Zurück zur Seitenhilfe"
+  "backToContext": "Zurück zur Seitenhilfe",
+  "ui20Title": "Listen & Desks (UI 2.0)",
+  "ui20Hint": "Tabs, Aktions-Icons (Ansehen · Bearbeiten · Löschen) und Modals"
 }

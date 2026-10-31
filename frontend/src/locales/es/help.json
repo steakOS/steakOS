@@ -16,5 +16,7 @@
   "ticketSubmit": "billete abierto",
   "ticketCreated": "Boleto {{number}} abierto.",
   "ticketViewAll": "Ver todas las entradas",
-  "backToContext": "Volver a la página de ayuda"
+  "backToContext": "Volver a la página de ayuda",
+  "ui20Title": "Listas y escritorios (UI 2.0)",
+  "ui20Hint": "Pestañas, iconos de Acción (Ver · Editar · Eliminar) y modales"
 }

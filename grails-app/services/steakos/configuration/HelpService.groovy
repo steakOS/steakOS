@@ -43,10 +43,50 @@ class HelpService {
             finance     : [label: 'Financial resources', desk: '/finance/treasury', blurb: 'Ledger, invoices, treasury, AP'],
             capability  : [label: 'Business capabilities', desk: '/capability/projects', blurb: 'Projects, processes, quality, change'],
             agents      : [label: 'Agentic workforce', desk: '/agents/agents', blurb: 'Agents, hives, HITL, memory'],
+            strategy    : [label: 'Strategy', desk: '/strategy', blurb: 'Competitors and strategy topics'],
+            development : [label: 'Development', desk: '/development', blurb: 'NPD / revision projects'],
+            asset       : [label: 'Assets', desk: '/assets', blurb: 'Physical plant, vehicles, and tools'],
             generic     : [label: 'Content catalog', desk: '/help', blurb: 'System content types'],
             configuration: [label: 'Configuration', desk: '/settings', blurb: 'Company and user settings'],
             helper      : [label: 'Reference data', desk: '/system/catalogs', blurb: 'Countries, currencies, statuses'],
     ].asImmutable()
+
+    /** Reusable operator chrome guide (ADR-050 / PDR-034) — append to desk help bodies */
+    private static final String UI20_HOW_DESKS = '''## How desks look (UI 2.0)
+
+Most object desks use **DeskShell `layout=single`**: a full-width list with **no empty white detail column**.
+
+- **Tabs** + **New** share one pill row
+- Table **Action** column: fixed icon slots **View (Eye) · Edit (Pencil) · Delete (Trash)** — ghost+danger pills; missing actions leave blank placeholders so icons stay aligned
+- **View** / **Edit** open **modals** (RecordView / RecordEdit); Edit is blank when not allowed (e.g. issued PO / accepted quote)
+- Process actions for documents live in the **view modal footer** on single desks
+- Some desks stay **split** (Shop Floor, Digital, Finance invoices/transactions, CRM, Pricing, HR, Capability, Agents): detail appears only when you select a row — never an empty col2 on load
+
+Template references: Task list `/domains/core/Task` · Buyers `/scm/buyers`.'''
+
+    private static final String UI20_HOW_DESKS_DE = '''## So sehen Desks aus (UI 2.0)
+
+Die meisten Objekt-Desks nutzen **DeskShell `layout=single`**: volle Listenbreite, **keine leere weiße Detailspalte**.
+
+- **Tabs** + **Neu** teilen eine Pill-Zeile
+- Tabellen-Spalte **Aktion**: feste Icon-Slots **Ansehen (Auge) · Bearbeiten (Stift) · Löschen (Papierkorb)** — ghost+danger-Pills; fehlende Aktionen lassen leere Platzhalter
+- **Ansehen** / **Bearbeiten** öffnen **Modals**; Bearbeiten bleibt leer, wenn nicht erlaubt (z. B. ausgestellte Bestellung / angenommenes Angebot)
+- Prozessaktionen für Belege stehen in der **Footer-Zeile des Ansichts-Modals** auf Single-Desks
+- Manche Desks bleiben **geteilt** (Shopfloor, Digital, Finance Rechnungen/Buchungen, CRM, Pricing, HR, Capability, Agents): Detail nur nach Zeilenauswahl — nie eine leere Spalte beim Laden
+
+Vorlagen: Aufgabenliste `/domains/core/Task` · Einkauf `/scm/buyers`.'''
+
+    private static final String UI20_HOW_DESKS_ES = '''## Aspecto de los escritorios (UI 2.0)
+
+La mayoría de escritorios de objetos usan **DeskShell `layout=single`**: lista a ancho completo, **sin columna de detalle blanca vacía**.
+
+- **Pestañas** + **Nuevo** comparten una fila de píldoras
+- Columna de tabla **Acción**: ranuras fijas **Ver (Ojo) · Editar (Lápiz) · Eliminar (Papelera)** — píldoras ghost+danger; acciones ausentes dejan marcadores de posición
+- **Ver** / **Editar** abren **modales**; Editar queda en blanco cuando no está permitido (p. ej. OC emitida / oferta aceptada)
+- Las acciones de proceso de documentos viven en el **pie del modal de vista** en escritorios single
+- Algunos escritorios siguen en **split** (Taller, Digital, facturas/asientos Finance, CRM, Pricing, RR. HH., Capability, Agents): el detalle solo al seleccionar una fila — nunca una col2 vacía al cargar
+
+Plantillas: lista de tareas `/domains/core/Task` · Compradores `/scm/buyers`.'''
 
     /** Optional rich copy for high-traffic master data (key = package.Resource) */
     private static final Map DOMAIN_BLURBS = [
@@ -63,7 +103,8 @@ class HelpService {
 **Tips**
 - Prefer status transitions over deleting work history
 - Use **My work** (`/work`) for list + Eisenhower board
-- Capability ProjectItem can link via optional taskId''',
+- Capability ProjectItem can link via optional taskId
+- Domain list **Action** column: **View (Eye) · Edit (Pencil) · Delete (Trash)** — View/Edit open **modals** (UI 2.0 template)''',
             'capability.Process'     : '''**Processes** are the catalogue of how work flows (APQC 13.1).
 
 **Kinds:** SYSTEM (seeded product paths, read-only) · HUMAN · AGENTIC · OTHER
@@ -87,6 +128,8 @@ class HelpService {
 2. Use them on the **Sales desk** for quotes and orders
 3. Confirming an order can create a **draft invoice**
 
+**Tips:** list **Action** column uses **Eye / Pencil / Trash**; View and Edit open **modals**.
+
 **Related:** Sales desk · Invoices · CSV import (Customers pack)''',
             'sales.CustomerQuote'    : '''**Customer quotes** capture proposed pricing before an order.
 
@@ -106,10 +149,14 @@ Product vs service flags matter for Delivery and SCM hand-offs.''',
 
 Create here or import via CSV, then use on the **Buyers desk** for purchase orders.
 
-Fields: contact, taxId, currency, active.''',
+Fields: contact, taxId, currency, active.
+
+**Tips:** **Action** column **Eye / Pencil / Trash**; View/Edit open **modals** (same chrome as Buyers desk).''',
             'procurement.PurchaseOrder': '''**Purchase orders** to suppliers.
 
-Desk flow: create → send → confirm → receive (may create payables). Lines: **PurchaseOrderLine**.''',
+Desk flow: create → send → confirm → receive (may create payables). Lines: **PurchaseOrderLine**.
+
+**Tips:** **Action** column **View (Eye) · Edit (Pencil) · Delete (Trash)** — Edit/Delete only while **DRAFT**; issued/confirmed POs show View only (blank Edit placeholder). View/Edit use **modals**; process steps (send/confirm/receive) live in the **view modal footer** on the Buyers desk.''',
             'catalogue.CatalogueItem': '''**Catalogue item** — unified goods + services master.
 
 Nature GOODS (SKU/unit, buy/sell) or SERVICE. Used by sales lines, BOMs, production, stock, and delivery.''',
@@ -323,7 +370,9 @@ Operational path for commercial work:
 
 Master data under Sales still available for admin lists.
 
-**Currency:** set **Preferred currency** on the customer and **document currency** on the quote/order. Mismatches with company currency (top bar) or catalogue list-price currency show as soft warnings (save still allowed). Admin enables codes under **Settings → Currencies we use**.'''],
+**Currency:** set **Preferred currency** on the customer and **document currency** on the quote/order. Mismatches with company currency (top bar) or catalogue list-price currency show as soft warnings (save still allowed). Admin enables codes under **Settings → Currencies we use**.
+
+''' + UI20_HOW_DESKS],
             [key: 'currency.catalog', title: 'Currencies we use', route: '/settings', family: 'core',
              body: '''# Currencies we use
 
@@ -378,7 +427,11 @@ Amounts use your company **primary value rail** (EUR, USD, or BTC). Optional **F
 
 Seed COA from General Ledger if accounts are missing.
 
-**Live vs mock:** DEMO companies use **mock settle only**. LIVE companies choose a **Bitcoin integration level** (Settings / setup wizard). Lightning marketing claims only at **Level 3 (BTCPay)** — see **Live payments (BTCPay)**.'''],
+**Live vs mock:** DEMO companies use **mock settle only**. LIVE companies choose a **Bitcoin integration level** (Settings / setup wizard). Lightning marketing claims only at **Level 3 (BTCPay)** — see **Live payments (BTCPay)**.
+
+This surface stays a **justified split** desk: pick a row to open detail (no empty pane on load).
+
+''' + UI20_HOW_DESKS],
             [key: 'finance.payments.live', title: 'Live payments (BTCPay)', route: '/finance/payments', family: 'finance',
              body: '''# Live payments (BTCPay)
 
@@ -427,7 +480,9 @@ Positions, payables, budgets, tax, payroll stub, control — open the section ta
 
 **Dual positions:** a fiat bank and a Bitcoin wallet share one chart of accounts. Carrying values follow your **primary value rail** — see **Primary value rail & BTC FX**.
 
-For **live Bitcoin receive**, see **Live payments (BTCPay)** (Finance → Payments).'''],
+For **live Bitcoin receive**, see **Live payments (BTCPay)** (Finance → Payments).
+
+''' + UI20_HOW_DESKS],
             [key: 'finance.postingRules', title: 'Posting rules (auto journals)', route: '/finance/posting-rules', family: 'finance',
              body: '''# Posting rules
 
@@ -463,7 +518,11 @@ Bad or missing rules **block** settle/pay (error `POSTING_RULES_*`) — no silen
 
 Vendor → PO → send → confirm → receive (stock / Finance payable).
 
-Shop floor (production, quality, inventory) is a **separate** desk: **Shop Floor Control** (`/scm/shopfloor`).'''],
+Shop floor (production, quality, inventory) is a **separate** desk: **Shop Floor Control** (`/scm/shopfloor`).
+
+This desk is the **UI 2.0 process-desk template** (`layout=single` + modals).
+
+''' + UI20_HOW_DESKS],
             [key: 'scm.shopfloor', title: 'Shop Floor Control', route: '/scm/shopfloor', family: 'scm',
              body: '''# Shop Floor Control
 
@@ -471,23 +530,39 @@ Shop floor (production, quality, inventory) is a **separate** desk: **Shop Floor
 
 Product/BOM → production order → release → complete · lot checks · stock.
 
-Purchasing (vendors, POs) lives on the **Buyers Desk** (`/scm/buyers`).'''],
+Purchasing (vendors, POs) lives on the **Buyers Desk** (`/scm/buyers`).
+
+Justified **split** layout: detail opens when you select a row.
+
+''' + UI20_HOW_DESKS],
             [key: 'delivery.desk', title: 'Delivery desk', route: '/delivery', family: 'delivery',
              body: '''# Delivery desk
 
-Services & resources → service orders (from sales or manual) → schedule → assign → start → complete.'''],
+Services & resources → service orders (from sales or manual) → schedule → assign → start → complete.
+
+''' + UI20_HOW_DESKS],
             [key: 'aftersales.desk', title: 'AfterSales desk', route: '/aftersales', family: 'service',
              body: '''# AfterSales desk
 
-Inquiries, warranties, claims, RMAs. Claims may create Finance credit drafts; RMAs can post stock receipts.'''],
+Inquiries, warranties, claims, RMAs. Claims may create Finance credit drafts; RMAs can post stock receipts.
+
+''' + UI20_HOW_DESKS],
             [key: 'hr.desk', title: 'HR desk', route: '/hr', family: 'human',
              body: '''# HR desk
 
-Candidates → hire · HR files · time · payroll periods · goals · policies · party access.'''],
+Candidates → hire · HR files · time · payroll periods · goals · policies · party access.
+
+Justified **split** layout: detail opens when you select a row.
+
+''' + UI20_HOW_DESKS],
             [key: 'digital.desk', title: 'Digital desk', route: '/digital', family: 'digital',
              body: '''# Digital / IT desk
 
-Systems, data assets, solutions, IT changes, CIs, internal tickets.'''],
+Systems, data assets, solutions, IT changes, CIs, internal tickets.
+
+Justified **split** layout: detail opens when you select a row.
+
+''' + UI20_HOW_DESKS],
             [key: 'asset.desk', title: 'Assets desk', route: '/assets', family: 'asset',
              body: '''# Assets desk
 
@@ -498,13 +573,35 @@ Physical plant, vehicles, and tools (AssetBasics register).
 - **Financial depreciation** — when checked, Finance-module agents may pick the asset up and post depreciation values in a financial period
 - **Asset requires maintenance** — when checked, physical maintenance is expected; attach the manufacturer schedule (XLSX or PDF) on the record via Object Companion. Later, agents may create shopfloor or maintenance activities to extend asset life
 
-Flags are Basics intent markers; automatic depreciation posting and maintenance work orders deepen later.'''],
+Flags are Basics intent markers; automatic depreciation posting and maintenance work orders deepen later.
+
+''' + UI20_HOW_DESKS],
+            [key: 'strategy.desk', title: 'Strategy desk', route: '/strategy', family: 'strategy',
+             body: '''# Strategy desk
+
+**Competitors** and **Strategy topics** — single-column list with modal view/edit (UI 2.0).
+
+Use tabs + **New** in the tab row; Action column **Eye · Pencil · Trash**.
+
+''' + UI20_HOW_DESKS],
+            [key: 'development.desk', title: 'Development desk', route: '/development', family: 'development',
+             body: '''# Development desk
+
+**Development projects** (NPD / revisions) — single-column desk with modal view/edit.
+
+Tabs + **New** in the tab row; Action column **Eye · Pencil · Trash**.
+
+''' + UI20_HOW_DESKS],
             [key: 'capability.hub', title: 'Capability hub', route: '/capability', family: 'capability',
              body: '''# Capability hub
 
 Projects, processes, quality, changes, knowledge — use the section tabs.
 
-**Process charts:** open **Processes**, pick a SYSTEM process, then hover/focus a step for What / Who / Where — see **Process charts**.'''],
+**Process charts:** open **Processes**, pick a SYSTEM process, then hover/focus a step for What / Who / Where — see **Process charts**.
+
+Justified **split** layout: detail opens when you select a row.
+
+''' + UI20_HOW_DESKS],
             [key: 'process.chart', title: 'Process charts', route: '/capability/processes', family: 'capability',
              body: '''# Process charts
 
@@ -528,7 +625,11 @@ Closed beta claims **Agent Basics** only — not Agent Pro.
 
 To connect an **operator-owned** runtime (Hermes or similar), see **Activate agent / Hermes** — mint a token under **System → Integrations**, paste into the host, smoke-read, optional HITL.
 
-Open **Agents** from the nav or Ctrl+K → **AI / Agents**.'''],
+Open **Agents** from the nav or Ctrl+K → **AI / Agents**.
+
+Justified **split** layout: detail opens when you select a row.
+
+''' + UI20_HOW_DESKS],
             [key: 'agents.activate', title: 'Hermes agent (API tokens)', route: '/system/integrations', family: 'agents',
              body: '''# Hermes agent (API tokens)
 
@@ -897,6 +998,25 @@ On list/detail screens for a record:
 - **Content** — typed BODY (Note, Help, Risk, …)
 
 Master-data pages use the same rail as desks.'''],
+            [key: 'app.ui20', title: 'Lists & desks (UI 2.0)', route: '/help', family: 'core',
+             body: '''# Lists & desks (UI 2.0)
+
+Operator chrome for lists and desks (ADR-050 / PDR-034). Visual templates: **Task** DomainList (`/domains/core/Task`) and **Buyers** (`/scm/buyers`).
+
+''' + UI20_HOW_DESKS + '''
+
+## Single vs split
+
+| Pattern | When | Detail |
+|---------|------|--------|
+| **Single** | Sales, Buyers, Delivery, AfterSales, Assets, Strategy, Development | Full-width list; View/Edit in modals; process actions in view-modal footer |
+| **Split** | Shop Floor, Digital, Finance invoices/transactions, CRM, Pricing, HR, Capability, Agents | Detail pane only after you select a row — never an empty white column on load |
+
+## Action column
+
+Fixed order **View · Edit · Delete**. Icons stay column-aligned because gated actions leave blank placeholders. Edit is blank when the record cannot be changed (issued PO, accepted quote, …).
+
+**See also:** any desk Help drawer · Buyers Desk · Task master list'''],
     ].asImmutable()
 
     void ensureSeeded() {
@@ -1148,7 +1268,8 @@ Master-data pages use the same rail as desks.'''],
 **Tipps**
 - Status ändern statt Historie zu löschen
 - **Meine Arbeit** (`/work`) = Liste + Eisenhower 3×3
-- ProjectItem kann optional taskId verknüpfen''',
+- ProjectItem kann optional taskId verknüpfen
+- Spalte **Aktion**: **Ansehen (Auge) · Bearbeiten (Stift) · Löschen (Papierkorb)** — Ansehen/Bearbeiten öffnen **Modals** (UI 2.0)''',
             'capability.Process': '''**Prozesse** sind der Katalog der Arbeitsflüsse (APQC 13.1).
 
 **Arten:** SYSTEM (geseedet, nur lesen) · HUMAN · AGENTIC · OTHER. Status: DRAFT · ACTIVE · RETIRED.
@@ -1160,6 +1281,8 @@ SYSTEM-Seeds: Bestellung, Angebot→Auftrag, Rechnung, Serviceauftrag, Anfrage, 
 
 **Ablauf:** Kunde anlegen → im **Vertriebstisch** Angebot/Auftrag → Bestätigung kann eine **Entwurfsrechnung** erzeugen.
 
+**Tipps:** Spalte **Aktion** mit **Auge / Stift / Papierkorb**; Ansehen und Bearbeiten öffnen **Modals**.
+
 **Verwandt:** Vertriebstisch · Rechnungen · CSV-Import''',
             'sales.CustomerQuote': '''**Kundenangebote** vor dem Auftrag.
 
@@ -1167,6 +1290,14 @@ Bevorzugt im **Vertriebstisch**: anlegen → senden → annehmen/ablehnen. Posit
             'sales.SalesOrder': '''**Verkaufsaufträge** als verbindliche Bestellung.
 
 Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwurf).''',
+            'procurement.Vendor': '''**Lieferant** für den Einkauf.
+
+Hier anlegen oder per CSV importieren, dann am **Einkaufs-Desk** für Bestellungen nutzen.
+
+**Tipps:** **Aktion** **Auge / Stift / Papierkorb**; Ansehen/Bearbeiten öffnen **Modals**.''',
+            'procurement.PurchaseOrder': '''**Bestellungen** an Lieferanten.
+
+Ablauf: anlegen → senden → bestätigen → Wareneingang. **Aktion**: Bearbeiten/Löschen nur im Status **DRAFT**; danach nur Ansehen. Prozessschritte im **Ansichts-Modal**.''',
     ].asImmutable()
 
     private static final Map DOMAIN_BLURBS_ES = [
@@ -1177,7 +1308,8 @@ Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwur
 **Consejos**
 - Cambie el estado en lugar de borrar el historial
 - **Mi trabajo** (`/work`) = lista + Eisenhower 3×3
-- ProjectItem puede vincular opcionalmente un taskId''',
+- ProjectItem puede vincular opcionalmente un taskId
+- Columna **Acción**: **Ver (Ojo) · Editar (Lápiz) · Eliminar (Papelera)** — Ver/Editar abren **modales** (UI 2.0)''',
             'capability.Process': '''Los **procesos** son el catálogo de flujos de trabajo (APQC 13.1).
 
 **Tipos:** SYSTEM (sembrados, solo lectura) · HUMAN · AGENTIC · OTHER. Estado: DRAFT · ACTIVE · RETIRED.
@@ -1189,6 +1321,8 @@ Semillas SYSTEM: pedido de compra, oferta→pedido, factura, orden de servicio, 
 
 **Flujo:** crear cliente → en el **escritorio de ventas** oferta/pedido → la confirmación puede generar una **factura borrador**.
 
+**Consejos:** columna **Acción** con **Ojo / Lápiz / Papelera**; Ver y Editar abren **modales**.
+
 **Relacionado:** escritorio de ventas · facturas · importación CSV''',
             'sales.CustomerQuote': '''**Ofertas de cliente** antes del pedido.
 
@@ -1196,6 +1330,14 @@ Prefiera el **escritorio de ventas**: crear → enviar → aceptar/rechazar. Lí
             'sales.SalesOrder': '''**Pedidos de venta** como compromiso comercial vinculante.
 
 Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero).''',
+            'procurement.Vendor': '''**Proveedor** para compras.
+
+Créelo aquí o importe por CSV; úselo en el **escritorio de compradores** para pedidos de compra.
+
+**Consejos:** **Acción** **Ojo / Lápiz / Papelera**; Ver/Editar abren **modales**.''',
+            'procurement.PurchaseOrder': '''**Pedidos de compra** a proveedores.
+
+Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar solo en **DRAFT**; después solo Ver. Pasos de proceso en el **modal de vista**.''',
     ].asImmutable()
 
     private static String buildDomainMarkdown(String title, String pkg, String res, String humanRes,
@@ -1316,6 +1458,12 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             ctx.package = 'capability'
         } else if (path.startsWith('/agents')) {
             ctx.package = 'agents'
+        } else if (path == '/strategy' || path?.startsWith('/strategy/')) {
+            ctx.package = 'strategy'
+        } else if (path == '/development' || path?.startsWith('/development/')) {
+            ctx.package = 'development'
+        } else if (path == '/assets' || path?.startsWith('/assets/')) {
+            ctx.package = 'asset'
         } else if (path in ['/sales', '/scm', '/scm/buyers', '/scm/shopfloor', '/delivery', '/aftersales', '/hr', '/digital']
                 || path?.startsWith('/scm/')) {
             ctx.package = path.substring(1)
@@ -1415,11 +1563,15 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
                 }
             }
         }
-        // A4 — Security disclosure
+        // A4 — Security disclosure + UI 2.0 chrome guide
         if (path == '/about' || path?.startsWith('/about') || path == '/help' || path?.startsWith('/help')) {
             HelpTopic sec = HelpTopic.findByHelpKey('security.disclose')
             if (sec && sec.id != primary?.id && !out.any { it.helpKey == 'security.disclose' }) {
                 out << topicMap(sec)
+            }
+            HelpTopic ui20 = HelpTopic.findByHelpKey('app.ui20')
+            if (ui20 && ui20.id != primary?.id && !out.any { it.helpKey == 'app.ui20' }) {
+                out << topicMap(ui20, lang)
             }
         }
         // A7 — Process charts
@@ -1573,6 +1725,7 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
 
     private static final Map FEATURE_TITLES_DE = [
             'app.dashboard'      : 'CEO-Dashboard',
+            'app.ui20'           : 'Listen & Desks (UI 2.0)',
             'system.settings'    : 'Einstellungen',
             'help.work.actionNow': 'Aktivitäten - JETZT',
             'help.partners.locale': 'Partnersprache (Kommunikation)',
@@ -1586,11 +1739,25 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             'help.tax.ust'       : 'Deutsche USt-Steuercodes',
             'help.tax.reverseCharge': 'Reverse Charge & innergemeinschaftliche Lieferung (IG)',
             'finance.postingRules': 'Buchungsregeln (Auto-Journale)',
+            'sales.desk'         : 'Innendienst',
+            'scm.desk'           : 'Einkaufs-Desk',
+            'scm.shopfloor'      : 'Shopfloor-Steuerung',
+            'delivery.desk'      : 'Delivery-Desk',
+            'aftersales.desk'    : 'AfterSales-Desk',
+            'hr.desk'            : 'HR-Desk',
+            'digital.desk'       : 'Digital-Desk',
             'asset.desk'         : 'Asset-Arbeitsplatz',
+            'strategy.desk'      : 'Strategie-Desk',
+            'development.desk'   : 'Development-Desk',
+            'capability.hub'     : 'Capability-Hub',
+            'agents.hub'         : 'KI- / Agenten-Hub',
+            'finance.treasury'   : 'Treasury',
+            'finance.invoices'   : 'Rechnungen',
     ].asImmutable()
 
     private static final Map FEATURE_TITLES_ES = [
             'app.dashboard'      : 'Panel CEO',
+            'app.ui20'           : 'Listas y escritorios (UI 2.0)',
             'system.settings'    : 'Configuración',
             'help.work.actionNow': 'Actividades - AHORA',
             'help.partners.locale': 'Idioma de comunicación del socio',
@@ -1601,7 +1768,20 @@ Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero
             'help.users.danger'  : 'Seguridad: Admin, CEO y desactivar',
             'help.users.privacy' : 'Privacidad, RR. HH. y solo lectura',
             'help.roles.demo'    : 'Practicar roles (Demo / formación)',
+            'sales.desk'         : 'Escritorio de ventas',
+            'scm.desk'           : 'Escritorio de compradores',
+            'scm.shopfloor'      : 'Control de taller',
+            'delivery.desk'      : 'Escritorio de entrega',
+            'aftersales.desk'    : 'Escritorio posventa',
+            'hr.desk'            : 'Escritorio de RR. HH.',
+            'digital.desk'       : 'Escritorio digital',
             'asset.desk'         : 'Escritorio de activos',
+            'strategy.desk'      : 'Escritorio de estrategia',
+            'development.desk'   : 'Escritorio de desarrollo',
+            'capability.hub'     : 'Hub de capacidades',
+            'agents.hub'         : 'Hub de IA / agentes',
+            'finance.treasury'   : 'Tesorería',
+            'finance.invoices'   : 'Facturas',
     ].asImmutable()
 
     private static final Map FEATURE_BODIES_DE = [
@@ -1643,7 +1823,101 @@ Operativer Verkauf:
 2. **Angebot** → senden → annehmen/ablehnen
 3. **Auftrag** → bestätigen (kann Entwurfsrechnung erzeugen)
 
-Stammdaten unter Vertrieb bleiben für Admin-Listen verfügbar.''',
+Stammdaten unter Vertrieb bleiben für Admin-Listen verfügbar.
+
+''' + UI20_HOW_DESKS_DE,
+            'scm.desk'      : '''# Einkaufs-Desk
+
+**Lieferanten · Produkte · Services · Bestellungen**
+
+Lieferant → Bestellung → senden → bestätigen → Wareneingang.
+
+Shopfloor ist ein **separater** Desk (`/scm/shopfloor`). Dies ist die **UI-2.0-Vorlage** (`layout=single` + Modals).
+
+''' + UI20_HOW_DESKS_DE,
+            'scm.shopfloor' : '''# Shopfloor-Steuerung
+
+**Fertigungsaufträge · Qualität / Lose · Bestand**
+
+Geteiltes Layout: Detail erst nach Zeilenauswahl.
+
+''' + UI20_HOW_DESKS_DE,
+            'delivery.desk' : '''# Delivery-Desk
+
+Services & Ressourcen → Serviceaufträge → planen → zuweisen → starten → abschließen.
+
+''' + UI20_HOW_DESKS_DE,
+            'aftersales.desk': '''# AfterSales-Desk
+
+Anfragen, Garantien, Claims, RMAs. Claims können Finanz-Gutschrift-Entwürfe erzeugen.
+
+''' + UI20_HOW_DESKS_DE,
+            'hr.desk'       : '''# HR-Desk
+
+Kandidaten → Einstellung · Personalakten · Zeit · Payroll · Ziele.
+
+Geteiltes Layout: Detail erst nach Zeilenauswahl.
+
+''' + UI20_HOW_DESKS_DE,
+            'digital.desk'  : '''# Digital-Desk
+
+Systeme, Datenassets, Solutions, IT-Changes, CIs, interne Tickets.
+
+Geteiltes Layout: Detail erst nach Zeilenauswahl.
+
+''' + UI20_HOW_DESKS_DE,
+            'strategy.desk' : '''# Strategie-Desk
+
+**Wettbewerber** und **Strategiethemen** — einspaltige Liste mit Modal Ansehen/Bearbeiten.
+
+''' + UI20_HOW_DESKS_DE,
+            'development.desk': '''# Development-Desk
+
+**Development-Projekte** (NPD / Revisionen) — einspaltiger Desk mit Modal Ansehen/Bearbeiten.
+
+''' + UI20_HOW_DESKS_DE,
+            'capability.hub': '''# Capability-Hub
+
+Projekte, Prozesse, Qualität, Changes, Wissen — Abschnitt-Tabs.
+
+Geteiltes Layout: Detail erst nach Zeilenauswahl.
+
+''' + UI20_HOW_DESKS_DE,
+            'agents.hub'    : '''# KI- / Agenten-Hub
+
+**Agents**, **Hives**, **HITL**, **Memory**. Closed Beta: nur Agent Basics.
+
+Geteiltes Layout: Detail erst nach Zeilenauswahl.
+
+''' + UI20_HOW_DESKS_DE,
+            'finance.treasury': '''# Treasury
+
+Positionen, Verbindlichkeiten, Budgets, Steuer, Payroll-Stub — Tabs auf diesem Hub.
+
+''' + UI20_HOW_DESKS_DE,
+            'finance.invoices': '''# Rechnungen
+
+1. Entwurf anlegen  
+2. **Ausstellen**  
+3. **Ausgleichen** bei Zahlung  
+
+Geteiltes Layout: Detail erst nach Zeilenauswahl.
+
+''' + UI20_HOW_DESKS_DE,
+            'app.ui20'      : '''# Listen & Desks (UI 2.0)
+
+Operator-Chrome für Listen und Desks (ADR-050 / PDR-034). Vorlagen: **Aufgaben** (`/domains/core/Task`) und **Einkauf** (`/scm/buyers`).
+
+''' + UI20_HOW_DESKS_DE + '''
+
+## Einspaltig vs. geteilt
+
+| Muster | Wann | Detail |
+|--------|------|--------|
+| **Single** | Vertrieb, Einkauf, Delivery, AfterSales, Assets, Strategie, Development | Volle Liste; Ansehen/Bearbeiten in Modals |
+| **Split** | Shopfloor, Digital, Finance, CRM, Pricing, HR, Capability, Agents | Detail nur nach Zeilenauswahl |
+
+**Siehe auch:** Hilfeschublade an jedem Desk · Einkaufs-Desk · Aufgabenliste''',
             'app.dashboard' : '''# CEO-Dashboard
 
 Cockpit für offene Arbeit und Prozessgesundheit.
@@ -1963,7 +2237,9 @@ Physische Anlagen, Fahrzeuge und Werkzeuge (AssetBasics-Register).
 - **Finanzielle Abschreibung** — wenn aktiv, können Finanz-Agenten das Asset aufgreifen und Abschreibungswerte in einer Finanzperiode buchen
 - **Asset erfordert Wartung** — wenn aktiv, ist physische Wartung vorgesehen; Hersteller-Wartungsplan (XLSX oder PDF) am Datensatz über Object Companion anhängen. Später können Agenten Shopfloor- oder Wartungsaktivitäten anlegen, um die Nutzungsdauer zu verlängern
 
-Die Flags sind Basics-Absichtsmarker; automatische Abschreibungsbuchung und Wartungsaufträge vertiefen später.''',
+Die Flags sind Basics-Absichtsmarker; automatische Abschreibungsbuchung und Wartungsaufträge vertiefen später.
+
+''' + UI20_HOW_DESKS_DE,
     ].asImmutable()
 
     private static final Map FEATURE_BODIES_ES = [
@@ -2005,7 +2281,101 @@ Venta operativa:
 2. **Oferta** → enviar → aceptar/rechazar
 3. **Pedido** → confirmar (puede generar factura borrador)
 
-Los datos maestros de ventas siguen disponibles para listas Admin.''',
+Los datos maestros de ventas siguen disponibles para listas Admin.
+
+''' + UI20_HOW_DESKS_ES,
+            'scm.desk'      : '''# Escritorio de compradores
+
+**Proveedores · productos · servicios · pedidos de compra**
+
+Proveedor → OC → enviar → confirmar → recibir.
+
+El taller es un escritorio **aparte** (`/scm/shopfloor`). Esta es la **plantilla UI 2.0** (`layout=single` + modales).
+
+''' + UI20_HOW_DESKS_ES,
+            'scm.shopfloor' : '''# Control de taller
+
+**Órdenes de producción · calidad / lotes · inventario**
+
+Layout **split**: el detalle solo al seleccionar una fila.
+
+''' + UI20_HOW_DESKS_ES,
+            'delivery.desk' : '''# Escritorio de entrega
+
+Servicios y recursos → órdenes de servicio → programar → asignar → iniciar → completar.
+
+''' + UI20_HOW_DESKS_ES,
+            'aftersales.desk': '''# Escritorio posventa
+
+Consultas, garantías, reclamaciones, RMAs. Las reclamaciones pueden crear borradores de abono en Finance.
+
+''' + UI20_HOW_DESKS_ES,
+            'hr.desk'       : '''# Escritorio de RR. HH.
+
+Candidatos → contratación · expedientes · tiempo · nómina · objetivos.
+
+Layout **split**: el detalle solo al seleccionar una fila.
+
+''' + UI20_HOW_DESKS_ES,
+            'digital.desk'  : '''# Escritorio digital
+
+Sistemas, activos de datos, soluciones, cambios de TI, CIs, tickets internos.
+
+Layout **split**: el detalle solo al seleccionar una fila.
+
+''' + UI20_HOW_DESKS_ES,
+            'strategy.desk' : '''# Escritorio de estrategia
+
+**Competidores** y **temas de estrategia** — lista de una columna con modal Ver/Editar.
+
+''' + UI20_HOW_DESKS_ES,
+            'development.desk': '''# Escritorio de desarrollo
+
+**Proyectos de desarrollo** (NPD / revisiones) — escritorio de una columna con modal Ver/Editar.
+
+''' + UI20_HOW_DESKS_ES,
+            'capability.hub': '''# Hub de capacidades
+
+Proyectos, procesos, calidad, cambios, conocimiento — pestañas de sección.
+
+Layout **split**: el detalle solo al seleccionar una fila.
+
+''' + UI20_HOW_DESKS_ES,
+            'agents.hub'    : '''# Hub de IA / agentes
+
+**Agents**, **Hives**, **HITL**, **Memory**. Closed beta: solo Agent Basics.
+
+Layout **split**: el detalle solo al seleccionar una fila.
+
+''' + UI20_HOW_DESKS_ES,
+            'finance.treasury': '''# Tesorería
+
+Posiciones, pagos, presupuestos, impuestos, nómina stub — pestañas de este hub.
+
+''' + UI20_HOW_DESKS_ES,
+            'finance.invoices': '''# Facturas
+
+1. Crear borrador  
+2. **Emitir**  
+3. **Liquidar** al pagar  
+
+Layout **split**: el detalle solo al seleccionar una fila.
+
+''' + UI20_HOW_DESKS_ES,
+            'app.ui20'      : '''# Listas y escritorios (UI 2.0)
+
+Chrome de operador para listas y escritorios (ADR-050 / PDR-034). Plantillas: **Tareas** (`/domains/core/Task`) y **Compradores** (`/scm/buyers`).
+
+''' + UI20_HOW_DESKS_ES + '''
+
+## Una columna vs. split
+
+| Patrón | Cuándo | Detalle |
+|--------|--------|---------|
+| **Single** | Ventas, Compradores, Entrega, Posventa, Activos, Estrategia, Desarrollo | Lista completa; Ver/Editar en modales |
+| **Split** | Taller, Digital, Finance, CRM, Pricing, RR. HH., Capability, Agents | Detalle solo tras seleccionar una fila |
+
+**Ver también:** cajón de ayuda en cada escritorio · Compradores · lista de tareas''',
             'app.dashboard' : '''# Panel CEO
 
 Cabina de mando para trabajo abierto y salud de procesos.
@@ -2242,7 +2612,9 @@ Planta física, vehículos y herramientas (registro AssetBasics).
 - **Depreciación financiera** — si está marcado, los agentes de Finanzas pueden tomar el activo y contabilizar depreciación en un periodo financiero
 - **El activo requiere mantenimiento** — si está marcado, se espera mantenimiento físico; adjunte el plan del fabricante (XLSX o PDF) en el registro con Object Companion. Más adelante los agentes podrán crear actividades de taller o mantenimiento para alargar la vida del activo
 
-Los flags son marcadores de intención Basics; la contabilización automática de depreciación y las órdenes de mantenimiento se profundizan más adelante.''',
+Los flags son marcadores de intención Basics; la contabilización automática de depreciación y las órdenes de mantenimiento se profundizan más adelante.
+
+''' + UI20_HOW_DESKS_ES,
     ].asImmutable()
 
     private static String humanize(String resource) {
