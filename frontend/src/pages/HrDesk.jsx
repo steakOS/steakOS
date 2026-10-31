@@ -44,6 +44,7 @@ import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import RowActionSlots from '../components/RowActionSlots'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -231,6 +232,138 @@ export default function HrDesk() {
   const [goalPage, setGoalPage] = useState({ max: 25, offset: 0, total: 0 })
   const [policyPage, setPolicyPage] = useState({ max: 25, offset: 0, total: 0 })
   const [partyPage, setPartyPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [filesSort, setFilesSort] = useState('id')
+  const [filesOrder, setFilesOrder] = useState('desc')
+  const [candSort, setCandSort] = useState('id')
+  const [candOrder, setCandOrder] = useState('desc')
+  const [timeSort, setTimeSort] = useState('id')
+  const [timeOrder, setTimeOrder] = useState('desc')
+  const [paySort, setPaySort] = useState('id')
+  const [payOrder, setPayOrder] = useState('desc')
+  const [planSort, setPlanSort] = useState('id')
+  const [planOrder, setPlanOrder] = useState('desc')
+  const [goalSort, setGoalSort] = useState('id')
+  const [goalOrder, setGoalOrder] = useState('desc')
+  const [policySort, setPolicySort] = useState('name')
+  const [policyOrder, setPolicyOrder] = useState('asc')
+  const [partySort, setPartySort] = useState('id')
+  const [partyOrder, setPartyOrder] = useState('desc')
+
+  const FILE_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'username', label: 'User' },
+      { value: 'employmentStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'employmentKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const CAND_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'roleLabel', label: t('wb.role', { ns: 'common' }) },
+      { value: 'stage', label: t('hr.stage') },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const TIME_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'hours', label: t('wb.hours', { ns: 'common' }) },
+      { value: 'timeKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const PAY_SORT_MENU = useMemo(
+    () => [
+      { value: 'period', label: t('wb.period', { ns: 'common' }) },
+      { value: 'totalEur', label: 'EUR' },
+      { value: 'payrollStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const PLAN_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'plannedCount', label: t('hr.count') },
+      { value: 'roleLabel', label: t('wb.role', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const GOAL_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'progress', label: '%' },
+      { value: 'goalStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const POLICY_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'code', label: t('wb.code', { ns: 'common' }) },
+      { value: 'policyKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const PARTY_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'partyKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'username', label: 'User' },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+
+  const onFilesSortChange = useCallback(({ sort: s, order: o }) => {
+    setFilesSort(s || 'id')
+    setFilesOrder(o === 'asc' ? 'asc' : 'desc')
+    setFilesPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onCandSortChange = useCallback(({ sort: s, order: o }) => {
+    setCandSort(s || 'id')
+    setCandOrder(o === 'asc' ? 'asc' : 'desc')
+    setCandPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onTimeSortChange = useCallback(({ sort: s, order: o }) => {
+    setTimeSort(s || 'id')
+    setTimeOrder(o === 'asc' ? 'asc' : 'desc')
+    setTimePage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onPaySortChange = useCallback(({ sort: s, order: o }) => {
+    setPaySort(s || 'id')
+    setPayOrder(o === 'asc' ? 'asc' : 'desc')
+    setPayPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onPlanSortChange = useCallback(({ sort: s, order: o }) => {
+    setPlanSort(s || 'id')
+    setPlanOrder(o === 'asc' ? 'asc' : 'desc')
+    setPlanPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onGoalSortChange = useCallback(({ sort: s, order: o }) => {
+    setGoalSort(s || 'id')
+    setGoalOrder(o === 'asc' ? 'asc' : 'desc')
+    setGoalPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onPolicySortChange = useCallback(({ sort: s, order: o }) => {
+    setPolicySort(s || 'name')
+    setPolicyOrder(o === 'asc' ? 'asc' : 'desc')
+    setPolicyPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onPartySortChange = useCallback(({ sort: s, order: o }) => {
+    setPartySort(s || 'id')
+    setPartyOrder(o === 'asc' ? 'asc' : 'desc')
+    setPartyPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+
   const [candContentMap, setCandContentMap] = useState({})
   const [fileContentMap, setFileContentMap] = useState({})
   const [pendingCandContent, setPendingCandContent] = useState([])
@@ -278,15 +411,15 @@ export default function HrDesk() {
 
   const loadAll = useCallback(async () => {
     const [f, fPick, c, t, p, pl, g, po, pa] = await Promise.all([
-      hrApi.files.list({ max: filesPage.max, offset: filesPage.offset }),
+      hrApi.files.list({ max: filesPage.max, offset: filesPage.offset, sort: filesSort, order: filesOrder }),
       hrApi.files.list({ max: 100, offset: 0 }),
-      hrApi.candidates.list({ max: candPage.max, offset: candPage.offset }),
-      hrApi.time.list({ max: timePage.max, offset: timePage.offset }),
-      hrApi.payrolls.list({ max: payPage.max, offset: payPage.offset }),
-      hrApi.plans.list({ max: planPage.max, offset: planPage.offset }),
-      hrApi.goals.list({ max: goalPage.max, offset: goalPage.offset }),
-      hrApi.policies.list({ max: policyPage.max, offset: policyPage.offset }),
-      hrApi.parties.list({ max: partyPage.max, offset: partyPage.offset }),
+      hrApi.candidates.list({ max: candPage.max, offset: candPage.offset, sort: candSort, order: candOrder }),
+      hrApi.time.list({ max: timePage.max, offset: timePage.offset, sort: timeSort, order: timeOrder }),
+      hrApi.payrolls.list({ max: payPage.max, offset: payPage.offset, sort: paySort, order: payOrder }),
+      hrApi.plans.list({ max: planPage.max, offset: planPage.offset, sort: planSort, order: planOrder }),
+      hrApi.goals.list({ max: goalPage.max, offset: goalPage.offset, sort: goalSort, order: goalOrder }),
+      hrApi.policies.list({ max: policyPage.max, offset: policyPage.offset, sort: policySort, order: policyOrder }),
+      hrApi.parties.list({ max: partyPage.max, offset: partyPage.offset, sort: partySort, order: partyOrder }),
     ])
     const filesItems = f.items || []
     const candItems = c.items || []
@@ -356,20 +489,36 @@ export default function HrDesk() {
   }, [
     filesPage.max,
     filesPage.offset,
+    filesSort,
+    filesOrder,
     candPage.max,
     candPage.offset,
+    candSort,
+    candOrder,
     timePage.max,
     timePage.offset,
+    timeSort,
+    timeOrder,
     payPage.max,
     payPage.offset,
+    paySort,
+    payOrder,
     planPage.max,
     planPage.offset,
+    planSort,
+    planOrder,
     goalPage.max,
     goalPage.offset,
+    goalSort,
+    goalOrder,
     policyPage.max,
     policyPage.offset,
+    policySort,
+    policyOrder,
     partyPage.max,
     partyPage.offset,
+    partySort,
+    partyOrder,
   ])
   loadAllRef.current = loadAll
 
@@ -1266,6 +1415,10 @@ export default function HrDesk() {
         items={files}
         empty="—"
         loading={loading}
+        sortFields={FILE_SORT_MENU}
+        sort={filesSort}
+        order={filesOrder}
+        onSortChange={onFilesSortChange}
         fields={[
           { id: 'name', primary: true, render: (f) => f.name },
           {
@@ -1301,11 +1454,44 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>User</th>
-                <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={filesSort}
+                  order={filesOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onFilesSortChange}
+                />
+                <ListSortHeader
+                  field="username"
+                  label="User"
+                  sort={filesSort}
+                  order={filesOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onFilesSortChange}
+                />
+                <ListSortHeader
+                  field="employmentKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={filesSort}
+                  order={filesOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onFilesSortChange}
+                  className="col-priority-low"
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="employmentStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={filesSort}
+                  order={filesOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onFilesSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1354,6 +1540,10 @@ export default function HrDesk() {
         items={candidates}
         empty="—"
         loading={loading}
+        sortFields={CAND_SORT_MENU}
+        sort={candSort}
+        order={candOrder}
+        onSortChange={onCandSortChange}
         selectedKey={selectedCandidate?.id}
         onSelect={(c) => setSelectedId(String(c.id))}
         fields={[
@@ -1375,10 +1565,34 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('wb.role', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={candSort}
+                  order={candOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onCandSortChange}
+                />
+                <ListSortHeader
+                  field="roleLabel"
+                  label={t('wb.role', { ns: 'common' })}
+                  sort={candSort}
+                  order={candOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onCandSortChange}
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('hr.stage')}</th>
+                <ListSortHeader
+                  field="stage"
+                  label={t('hr.stage')}
+                  sort={candSort}
+                  order={candOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onCandSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1424,6 +1638,10 @@ export default function HrDesk() {
         items={timeEntries}
         empty="—"
         loading={loading}
+        sortFields={TIME_SORT_MENU}
+        sort={timeSort}
+        order={timeOrder}
+        onSortChange={onTimeSortChange}
         fields={[
           {
             id: 'name',
@@ -1447,9 +1665,34 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('wb.hours', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={timeSort}
+                  order={timeOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onTimeSortChange}
+                />
+                <ListSortHeader
+                  field="hours"
+                  label={t('wb.hours', { ns: 'common' })}
+                  sort={timeSort}
+                  order={timeOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onTimeSortChange}
+                />
+                <ListSortHeader
+                  field="timeKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={timeSort}
+                  order={timeOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onTimeSortChange}
+                  className="col-priority-low"
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1485,6 +1728,10 @@ export default function HrDesk() {
         items={payrolls}
         empty="—"
         loading={loading}
+        sortFields={PAY_SORT_MENU}
+        sort={paySort}
+        order={payOrder}
+        onSortChange={onPaySortChange}
         selectedKey={selectedPayroll?.id}
         onSelect={(p) => setSelectedId(String(p.id))}
         fields={[
@@ -1512,9 +1759,33 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.period', { ns: 'common' })}</th>
-                <th>EUR</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="period"
+                  label={t('wb.period', { ns: 'common' })}
+                  sort={paySort}
+                  order={payOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPaySortChange}
+                />
+                <ListSortHeader
+                  field="totalEur"
+                  label="EUR"
+                  sort={paySort}
+                  order={payOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPaySortChange}
+                />
+                <ListSortHeader
+                  field="payrollStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={paySort}
+                  order={payOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPaySortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1557,6 +1828,10 @@ export default function HrDesk() {
         items={plans}
         empty="—"
         loading={loading}
+        sortFields={PLAN_SORT_MENU}
+        sort={planSort}
+        order={planOrder}
+        onSortChange={onPlanSortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           {
@@ -1576,9 +1851,34 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('hr.count')}</th>
-                <th className="col-priority-low">{t('wb.role', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={planSort}
+                  order={planOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPlanSortChange}
+                />
+                <ListSortHeader
+                  field="plannedCount"
+                  label={t('hr.count')}
+                  sort={planSort}
+                  order={planOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPlanSortChange}
+                />
+                <ListSortHeader
+                  field="roleLabel"
+                  label={t('wb.role', { ns: 'common' })}
+                  sort={planSort}
+                  order={planOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPlanSortChange}
+                  className="col-priority-low"
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1614,6 +1914,10 @@ export default function HrDesk() {
         items={goals}
         empty="—"
         loading={loading}
+        sortFields={GOAL_SORT_MENU}
+        sort={goalSort}
+        order={goalOrder}
+        onSortChange={onGoalSortChange}
         fields={[
           { id: 'name', primary: true, render: (g) => g.name },
           {
@@ -1638,10 +1942,35 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={goalSort}
+                  order={goalOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onGoalSortChange}
+                />
                 <th className="col-priority-low">{t('hr.owner')}</th>
-                <th className="col-priority-low">%</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="progress"
+                  label="%"
+                  sort={goalSort}
+                  order={goalOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onGoalSortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="goalStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={goalSort}
+                  order={goalOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onGoalSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1680,6 +2009,10 @@ export default function HrDesk() {
         items={policies}
         empty="—"
         loading={loading}
+        sortFields={POLICY_SORT_MENU}
+        sort={policySort}
+        order={policyOrder}
+        onSortChange={onPolicySortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           {
@@ -1699,9 +2032,34 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
-                <th>{t('wb.kind', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={policySort}
+                  order={policyOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onPolicySortChange}
+                />
+                <ListSortHeader
+                  field="code"
+                  label={t('wb.code', { ns: 'common' })}
+                  sort={policySort}
+                  order={policyOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onPolicySortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="policyKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={policySort}
+                  order={policyOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onPolicySortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1737,6 +2095,10 @@ export default function HrDesk() {
         items={parties}
         empty="—"
         loading={loading}
+        sortFields={PARTY_SORT_MENU}
+        sort={partySort}
+        order={partyOrder}
+        onSortChange={onPartySortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           {
@@ -1765,9 +2127,34 @@ export default function HrDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
-                <th>User</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={partySort}
+                  order={partyOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPartySortChange}
+                />
+                <ListSortHeader
+                  field="partyKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={partySort}
+                  order={partyOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPartySortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="username"
+                  label="User"
+                  sort={partySort}
+                  order={partyOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onPartySortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>

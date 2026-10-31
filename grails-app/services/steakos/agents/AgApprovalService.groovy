@@ -80,20 +80,27 @@ class AgApprovalService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List APPROVAL_SORT_FIELDS = [
+            'id', 'name', 'status', 'code',
+            'decision', 'riskLevel', 'targetFamily', 'decidedAt'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String decision = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String decision = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (decision) {
-            return [
-                    items: Approval.findAllByNpubOwnerAndDecision(npub, decision, opts),
-                    total: Approval.countByNpubOwnerAndDecision(npub, decision) as int
-            ]
-        }
-        return [
-                items: Approval.findAllByNpubOwner(npub, opts),
-                total: Approval.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', APPROVAL_SORT_FIELDS)
+        List items = Approval.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (decision) eq('decision', decision)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Approval.createCriteria().count {
+            eq('npubOwner', npub)
+            if (decision) eq('decision', decision)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

@@ -45,14 +45,15 @@ class CapabilityApiController {
         wrap { String npub ->
             String kind = params.kind ?: params.processKind
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
+            Map listOpts = [sort: params.sort, order: params.order]
             Map result = capProcessService.listProcessesPage(
-                    npub, params.status as String, kind as String, page.max as int, page.offset as int)
+                    npub, params.status as String, kind as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capProcessService.toProcessMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -138,13 +139,14 @@ class CapabilityApiController {
         wrap { String npub ->
             Long pid = params.processId ? params.long('processId') : null
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capProcessService.listProceduresPage(npub, pid, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capProcessService.listProceduresPage(npub, pid, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capProcessService.toProcedureMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -159,13 +161,14 @@ class CapabilityApiController {
     def portfolioList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capPortfolioService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capPortfolioService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capPortfolioService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -190,13 +193,14 @@ class CapabilityApiController {
     def programList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capProjectService.listProgramsPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capProjectService.listProgramsPage(npub, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capProjectService.toProgramMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -211,13 +215,14 @@ class CapabilityApiController {
     def projectList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capProjectService.listProjectsPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capProjectService.listProjectsPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capProjectService.toProjectMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -273,13 +278,14 @@ class CapabilityApiController {
     def qualityList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capQualityService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capQualityService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capQualityService.toQualityMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -324,13 +330,14 @@ class CapabilityApiController {
     def changeList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capChangeService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capChangeService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capChangeService.toChangeMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -387,13 +394,14 @@ class CapabilityApiController {
         wrap { String npub ->
             boolean activeOnly = params.activeOnly == 'true'
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capKnowledgeService.listPage(npub, activeOnly, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capKnowledgeService.listPage(npub, activeOnly, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capKnowledgeService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc']
             )
         }
     }
@@ -418,13 +426,14 @@ class CapabilityApiController {
     def standardList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = capStandardService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = capStandardService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { capStandardService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }

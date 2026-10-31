@@ -23,6 +23,7 @@ import useRecordView from '../hooks/useRecordView'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
@@ -129,6 +130,21 @@ export default function AssetDesk() {
   const [busy, setBusy] = useState(null)
   const [assetForm, setAssetForm] = useState(() => assetMasterSpec.empty())
   const [assetPage, setAssetPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [assetSort, setAssetSort] = useState('id')
+  const [assetOrder, setAssetOrder] = useState('desc')
+  const onAssetSortChange = useCallback(({ sort: s, order: o }) => {
+    setAssetSort(s || 'id')
+    setAssetOrder(o === 'asc' ? 'asc' : 'desc')
+    setAssetPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const ASSET_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'status', label: 'Status' },
+    ],
+    [],
+  )
 
   const onMasterField = (e) => {
     const { name, value, type, checked } = e.target
@@ -147,8 +163,8 @@ export default function AssetDesk() {
     const res = await domainsApi.list(PKG, RESOURCE, {
       max: assetPage.max,
       offset: assetPage.offset,
-      sort: 'id',
-      order: 'desc',
+      sort: assetSort,
+      order: assetOrder,
     })
     const items = res.items || res || []
     setAssets(Array.isArray(items) ? items : [])
@@ -158,7 +174,7 @@ export default function AssetDesk() {
       offset: res.offset ?? pg.offset,
       total: res.total ?? (Array.isArray(items) ? items.length : 0),
     }))
-  }, [assetPage.max, assetPage.offset])
+  }, [assetPage.max, assetPage.offset, assetSort, assetOrder])
 
   loadAllRef.current = loadAll
 
@@ -387,6 +403,10 @@ export default function AssetDesk() {
         items={assets}
         empty="—"
         onSelect={(a) => openView(PKG, RESOURCE, a)}
+        sortFields={ASSET_SORT_MENU}
+        sort={assetSort}
+        order={assetOrder}
+        onSortChange={onAssetSortChange}
         fields={[
           { id: 'name', primary: true, render: (a) => a.name },
           { id: 'assetTag', secondary: true, render: (a) => a.assetTag || '—' },
@@ -398,10 +418,22 @@ export default function AssetDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={assetSort}
+                  order={assetOrder}
+                  onSortChange={onAssetSortChange}
+                />
                 <th>{t('wb.tag', { ns: 'common', defaultValue: 'Tag' })}</th>
                 <th>{t('wb.location', { ns: 'common', defaultValue: 'Location' })}</th>
-                <th>{t('wb.status', { ns: 'common', defaultValue: 'Status' })}</th>
+                <ListSortHeader
+                  field="status"
+                  label={t('wb.status', { ns: 'common', defaultValue: 'Status' })}
+                  sort={assetSort}
+                  order={assetOrder}
+                  onSortChange={onAssetSortChange}
+                />
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>

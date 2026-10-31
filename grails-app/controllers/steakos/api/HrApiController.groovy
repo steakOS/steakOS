@@ -45,13 +45,14 @@ class HrApiController {
     def fileList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = hrFileService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrFileService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrFileService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -82,13 +83,14 @@ class HrApiController {
     def candidateList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = hrRecruitService.listPage(npub, params.stage as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrRecruitService.listPage(npub, params.stage as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrRecruitService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -127,13 +129,14 @@ class HrApiController {
         wrap { String npub ->
             Long fid = params.hrFileId ? params.long('hrFileId') : null
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = hrTimeService.listPage(npub, fid, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrTimeService.listPage(npub, fid, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrTimeService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -148,13 +151,14 @@ class HrApiController {
     def payrollList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = hrPayrollService.listPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrPayrollService.listPage(npub, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrPayrollService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -198,13 +202,14 @@ class HrApiController {
     def planList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = hrPlanService.listPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrPlanService.listPage(npub, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrPlanService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -219,13 +224,14 @@ class HrApiController {
     def goalList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = hrGoalService.listPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrGoalService.listPage(npub, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrGoalService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -254,13 +260,14 @@ class HrApiController {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
             boolean activeOnly = params.activeOnly != 'false'
-            Map result = hrPolicyService.listPage(npub, activeOnly, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrPolicyService.listPage(npub, activeOnly, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrPolicyService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc']
             )
         }
     }
@@ -275,13 +282,14 @@ class HrApiController {
     def partyList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = hrPartyService.listPage(npub, params.partyKind as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = hrPartyService.listPage(npub, params.partyKind as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { hrPartyService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }

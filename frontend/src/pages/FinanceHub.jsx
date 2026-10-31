@@ -37,6 +37,7 @@ import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import StubBadge from '../components/StubBadge'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
@@ -227,18 +228,115 @@ export default function FinanceHub() {
 
   const [positions, setPositions] = useState([])
   const [treasuryPage, setTreasuryPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [treasurySort, setTreasurySort] = useState('accountKind')
+  const [treasuryOrder, setTreasuryOrder] = useState('asc')
   const [payables, setPayables] = useState([])
   const [payablePage, setPayablePage] = useState({ max: 25, offset: 0, total: 0 })
+  const [payableSort, setPayableSort] = useState('id')
+  const [payableOrder, setPayableOrder] = useState('desc')
   const [budgets, setBudgets] = useState([])
   const [budgetPage, setBudgetPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [budgetSort, setBudgetSort] = useState('period')
+  const [budgetOrder, setBudgetOrder] = useState('desc')
   const [variance, setVariance] = useState(null)
   const [taxes, setTaxes] = useState([])
   const [taxPage, setTaxPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [taxSort, setTaxSort] = useState('period')
+  const [taxOrder, setTaxOrder] = useState('desc')
   const [payroll, setPayroll] = useState([])
   const [payrollPage, setPayrollPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [payrollSort, setPayrollSort] = useState('id')
+  const [payrollOrder, setPayrollOrder] = useState('desc')
   const [audit, setAudit] = useState([])
   const [auditPage, setAuditPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [auditSort, setAuditSort] = useState('id')
+  const [auditOrder, setAuditOrder] = useState('desc')
   const [periodClosed, setPeriodClosed] = useState(false)
+
+  const TREASURY_SORT_MENU = useMemo(
+    () => [
+      { value: 'accountKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'balanceEur', label: t('finance.bookBalance') },
+    ],
+    [t],
+  )
+  const PAYABLE_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'vendorName', label: t('wb.vendor', { ns: 'common' }) },
+      { value: 'amountEur', label: 'EUR' },
+      { value: 'payableStatus', label: t('wb.status', { ns: 'common' }) },
+    ],
+    [t],
+  )
+  const BUDGET_SORT_MENU = useMemo(
+    () => [
+      { value: 'period', label: t('wb.period', { ns: 'common' }) },
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'amountEur', label: 'EUR' },
+    ],
+    [t],
+  )
+  const TAX_SORT_MENU = useMemo(
+    () => [
+      { value: 'period', label: t('wb.period', { ns: 'common' }) },
+      { value: 'jurisdiction', label: t('finance.jurisdiction') },
+      { value: 'amountEur', label: t('wb.amount', { ns: 'common' }) },
+      { value: 'taxStatus', label: t('wb.status', { ns: 'common' }) },
+    ],
+    [t],
+  )
+  const PAYROLL_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'personRef', label: t('finance.personRef') },
+      { value: 'period', label: t('wb.period', { ns: 'common' }) },
+      { value: 'amountEur', label: 'EUR' },
+      { value: 'payrollStatus', label: t('wb.status', { ns: 'common' }) },
+    ],
+    [t],
+  )
+  const AUDIT_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'period', label: t('wb.period', { ns: 'common' }) },
+      { value: 'sourceType', label: t('finance.source') },
+    ],
+    [t],
+  )
+
+  const onTreasurySortChange = useCallback(({ sort: s, order: o }) => {
+    setTreasurySort(s || 'accountKind')
+    setTreasuryOrder(o === 'desc' ? 'desc' : 'asc')
+    setTreasuryPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onPayableSortChange = useCallback(({ sort: s, order: o }) => {
+    setPayableSort(s || 'id')
+    setPayableOrder(o === 'asc' ? 'asc' : 'desc')
+    setPayablePage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onBudgetSortChange = useCallback(({ sort: s, order: o }) => {
+    setBudgetSort(s || 'period')
+    setBudgetOrder(o === 'asc' ? 'asc' : 'desc')
+    setBudgetPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onTaxSortChange = useCallback(({ sort: s, order: o }) => {
+    setTaxSort(s || 'period')
+    setTaxOrder(o === 'asc' ? 'asc' : 'desc')
+    setTaxPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onPayrollSortChange = useCallback(({ sort: s, order: o }) => {
+    setPayrollSort(s || 'id')
+    setPayrollOrder(o === 'asc' ? 'asc' : 'desc')
+    setPayrollPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onAuditSortChange = useCallback(({ sort: s, order: o }) => {
+    setAuditSort(s || 'id')
+    setAuditOrder(o === 'asc' ? 'asc' : 'desc')
+    setAuditPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
 
   const applyPage = (setPage, d) => {
     setPage((pg) => ({
@@ -274,6 +372,8 @@ export default function FinanceHub() {
         const d = await financeOpsApi.treasuryList({
           max: treasuryPage.max,
           offset: treasuryPage.offset,
+          sort: treasurySort,
+          order: treasuryOrder,
         })
         setPositions(d.items || [])
         applyPage(setTreasuryPage, d)
@@ -281,6 +381,8 @@ export default function FinanceHub() {
         const d = await financeOpsApi.payableList({
           max: payablePage.max,
           offset: payablePage.offset,
+          sort: payableSort,
+          order: payableOrder,
         })
         setPayables(d.items || [])
         applyPage(setPayablePage, d)
@@ -288,6 +390,8 @@ export default function FinanceHub() {
         const d = await financeOpsApi.budgetList({
           max: budgetPage.max,
           offset: budgetPage.offset,
+          sort: budgetSort,
+          order: budgetOrder,
         })
         setBudgets(d.items || [])
         applyPage(setBudgetPage, d)
@@ -297,6 +401,8 @@ export default function FinanceHub() {
         const d = await financeOpsApi.taxList({
           max: taxPage.max,
           offset: taxPage.offset,
+          sort: taxSort,
+          order: taxOrder,
         })
         setTaxes(d.items || [])
         applyPage(setTaxPage, d)
@@ -304,6 +410,8 @@ export default function FinanceHub() {
         const d = await financeOpsApi.payrollList({
           max: payrollPage.max,
           offset: payrollPage.offset,
+          sort: payrollSort,
+          order: payrollOrder,
         })
         setPayroll(d.items || [])
         applyPage(setPayrollPage, d)
@@ -311,6 +419,8 @@ export default function FinanceHub() {
         const a = await financeOpsApi.controlAudit({
           max: auditPage.max,
           offset: auditPage.offset,
+          sort: auditSort,
+          order: auditOrder,
         })
         setAudit(a.items || [])
         applyPage(setAuditPage, a)
@@ -325,16 +435,28 @@ export default function FinanceHub() {
     period,
     treasuryPage.max,
     treasuryPage.offset,
+    treasurySort,
+    treasuryOrder,
     payablePage.max,
     payablePage.offset,
+    payableSort,
+    payableOrder,
     budgetPage.max,
     budgetPage.offset,
+    budgetSort,
+    budgetOrder,
     taxPage.max,
     taxPage.offset,
+    taxSort,
+    taxOrder,
     payrollPage.max,
     payrollPage.offset,
+    payrollSort,
+    payrollOrder,
     auditPage.max,
     auditPage.offset,
+    auditSort,
+    auditOrder,
   ])
 
   loadTabRef.current = loadTab
@@ -684,6 +806,12 @@ export default function FinanceHub() {
           empty={t('finance.seedPositionsEmpty')}
           selectedKey={selected?.id}
           onSelect={(p) => setSelectedId(String(p.id))}
+          sortFields={TREASURY_SORT_MENU}
+          sort={treasurySort}
+          order={treasuryOrder}
+          defaultSort="accountKind"
+          defaultOrder="asc"
+          onSortChange={onTreasurySortChange}
           fields={[
             { id: 'name', primary: true, render: (p) => p.name },
             {
@@ -704,9 +832,34 @@ export default function FinanceHub() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>{t('wb.name', { ns: 'common' })}</th>
-                  <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
-                  <th>{t('finance.bookBalance')}</th>
+                  <ListSortHeader
+                    field="name"
+                    label={t('wb.name', { ns: 'common' })}
+                    sort={treasurySort}
+                    order={treasuryOrder}
+                    defaultSort="accountKind"
+                    defaultOrder="asc"
+                    onSortChange={onTreasurySortChange}
+                  />
+                  <ListSortHeader
+                    field="accountKind"
+                    label={t('wb.kind', { ns: 'common' })}
+                    sort={treasurySort}
+                    order={treasuryOrder}
+                    defaultSort="accountKind"
+                    defaultOrder="asc"
+                    onSortChange={onTreasurySortChange}
+                    className="col-priority-low"
+                  />
+                  <ListSortHeader
+                    field="balanceEur"
+                    label={t('finance.bookBalance')}
+                    sort={treasurySort}
+                    order={treasuryOrder}
+                    defaultSort="accountKind"
+                    defaultOrder="asc"
+                    onSortChange={onTreasurySortChange}
+                  />
                   <th className="col-priority-low">{t('finance.sats')}</th>
                   <th className="col-priority-low">{t('finance.coa')}</th>
                   <th>{ACTION_TH(t)}</th>
@@ -763,6 +916,10 @@ export default function FinanceHub() {
           empty="—"
           selectedKey={selected?.id}
           onSelect={(p) => setSelectedId(String(p.id))}
+          sortFields={PAYABLE_SORT_MENU}
+          sort={payableSort}
+          order={payableOrder}
+          onSortChange={onPayableSortChange}
           fields={[
             {
               id: 'vendor',
@@ -786,9 +943,27 @@ export default function FinanceHub() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>{t('wb.vendor', { ns: 'common' })}</th>
-                  <th>EUR</th>
-                  <th>{t('wb.status', { ns: 'common' })}</th>
+                  <ListSortHeader
+                    field="vendorName"
+                    label={t('wb.vendor', { ns: 'common' })}
+                    sort={payableSort}
+                    order={payableOrder}
+                    onSortChange={onPayableSortChange}
+                  />
+                  <ListSortHeader
+                    field="amountEur"
+                    label="EUR"
+                    sort={payableSort}
+                    order={payableOrder}
+                    onSortChange={onPayableSortChange}
+                  />
+                  <ListSortHeader
+                    field="payableStatus"
+                    label={t('wb.status', { ns: 'common' })}
+                    sort={payableSort}
+                    order={payableOrder}
+                    onSortChange={onPayableSortChange}
+                  />
                   <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
@@ -830,6 +1005,12 @@ export default function FinanceHub() {
           empty="—"
           selectedKey={selected?.id}
           onSelect={(b) => setSelectedId(String(b.id))}
+          sortFields={BUDGET_SORT_MENU}
+          sort={budgetSort}
+          order={budgetOrder}
+          defaultSort="period"
+          defaultOrder="desc"
+          onSortChange={onBudgetSortChange}
           fields={[
             {
               id: 'name',
@@ -853,9 +1034,33 @@ export default function FinanceHub() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>{t('wb.period', { ns: 'common' })}</th>
-                  <th>{t('wb.name', { ns: 'common' })}</th>
-                  <th>EUR</th>
+                  <ListSortHeader
+                    field="period"
+                    label={t('wb.period', { ns: 'common' })}
+                    sort={budgetSort}
+                    order={budgetOrder}
+                    defaultSort="period"
+                    defaultOrder="desc"
+                    onSortChange={onBudgetSortChange}
+                  />
+                  <ListSortHeader
+                    field="name"
+                    label={t('wb.name', { ns: 'common' })}
+                    sort={budgetSort}
+                    order={budgetOrder}
+                    defaultSort="period"
+                    defaultOrder="desc"
+                    onSortChange={onBudgetSortChange}
+                  />
+                  <ListSortHeader
+                    field="amountEur"
+                    label="EUR"
+                    sort={budgetSort}
+                    order={budgetOrder}
+                    defaultSort="period"
+                    defaultOrder="desc"
+                    onSortChange={onBudgetSortChange}
+                  />
                   <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
@@ -897,6 +1102,12 @@ export default function FinanceHub() {
           empty="—"
           selectedKey={selected?.id}
           onSelect={(taxRow) => setSelectedId(String(taxRow.id))}
+          sortFields={TAX_SORT_MENU}
+          sort={taxSort}
+          order={taxOrder}
+          defaultSort="period"
+          defaultOrder="desc"
+          onSortChange={onTaxSortChange}
           fields={[
             {
               id: 'period',
@@ -926,10 +1137,43 @@ export default function FinanceHub() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>{t('wb.period', { ns: 'common' })}</th>
-                  <th className="col-priority-low">{t('finance.jurisdiction')}</th>
-                  <th>{t('wb.amount', { ns: 'common' })}</th>
-                  <th>{t('wb.status', { ns: 'common' })}</th>
+                  <ListSortHeader
+                    field="period"
+                    label={t('wb.period', { ns: 'common' })}
+                    sort={taxSort}
+                    order={taxOrder}
+                    defaultSort="period"
+                    defaultOrder="desc"
+                    onSortChange={onTaxSortChange}
+                  />
+                  <ListSortHeader
+                    field="jurisdiction"
+                    label={t('finance.jurisdiction')}
+                    sort={taxSort}
+                    order={taxOrder}
+                    defaultSort="period"
+                    defaultOrder="desc"
+                    onSortChange={onTaxSortChange}
+                    className="col-priority-low"
+                  />
+                  <ListSortHeader
+                    field="amountEur"
+                    label={t('wb.amount', { ns: 'common' })}
+                    sort={taxSort}
+                    order={taxOrder}
+                    defaultSort="period"
+                    defaultOrder="desc"
+                    onSortChange={onTaxSortChange}
+                  />
+                  <ListSortHeader
+                    field="taxStatus"
+                    label={t('wb.status', { ns: 'common' })}
+                    sort={taxSort}
+                    order={taxOrder}
+                    defaultSort="period"
+                    defaultOrder="desc"
+                    onSortChange={onTaxSortChange}
+                  />
                   <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
@@ -972,6 +1216,10 @@ export default function FinanceHub() {
           empty="—"
           selectedKey={selected?.id}
           onSelect={(p) => setSelectedId(String(p.id))}
+          sortFields={PAYROLL_SORT_MENU}
+          sort={payrollSort}
+          order={payrollOrder}
+          onSortChange={onPayrollSortChange}
           fields={[
             {
               id: 'person',
@@ -995,10 +1243,34 @@ export default function FinanceHub() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>{t('finance.personRef')}</th>
-                  <th>{t('wb.period', { ns: 'common' })}</th>
-                  <th>EUR</th>
-                  <th>{t('wb.status', { ns: 'common' })}</th>
+                  <ListSortHeader
+                    field="personRef"
+                    label={t('finance.personRef')}
+                    sort={payrollSort}
+                    order={payrollOrder}
+                    onSortChange={onPayrollSortChange}
+                  />
+                  <ListSortHeader
+                    field="period"
+                    label={t('wb.period', { ns: 'common' })}
+                    sort={payrollSort}
+                    order={payrollOrder}
+                    onSortChange={onPayrollSortChange}
+                  />
+                  <ListSortHeader
+                    field="amountEur"
+                    label="EUR"
+                    sort={payrollSort}
+                    order={payrollOrder}
+                    onSortChange={onPayrollSortChange}
+                  />
+                  <ListSortHeader
+                    field="payrollStatus"
+                    label={t('wb.status', { ns: 'common' })}
+                    sort={payrollSort}
+                    order={payrollOrder}
+                    onSortChange={onPayrollSortChange}
+                  />
                   <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>
@@ -1044,6 +1316,10 @@ export default function FinanceHub() {
           empty="—"
           selectedKey={selected?.id}
           onSelect={(a) => setSelectedId(String(a.id))}
+          sortFields={AUDIT_SORT_MENU}
+          sort={auditSort}
+          order={auditOrder}
+          onSortChange={onAuditSortChange}
           fields={[
             {
               id: 'name',
@@ -1074,9 +1350,28 @@ export default function FinanceHub() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>{t('wb.name', { ns: 'common' })}</th>
-                  <th>{t('wb.period', { ns: 'common' })}</th>
-                  <th className="col-priority-low">{t('finance.source')}</th>
+                  <ListSortHeader
+                    field="name"
+                    label={t('wb.name', { ns: 'common' })}
+                    sort={auditSort}
+                    order={auditOrder}
+                    onSortChange={onAuditSortChange}
+                  />
+                  <ListSortHeader
+                    field="period"
+                    label={t('wb.period', { ns: 'common' })}
+                    sort={auditSort}
+                    order={auditOrder}
+                    onSortChange={onAuditSortChange}
+                  />
+                  <ListSortHeader
+                    field="sourceType"
+                    label={t('finance.source')}
+                    sort={auditSort}
+                    order={auditOrder}
+                    onSortChange={onAuditSortChange}
+                    className="col-priority-low"
+                  />
                   <th>{ACTION_TH(t)}</th>
                 </tr>
               </thead>

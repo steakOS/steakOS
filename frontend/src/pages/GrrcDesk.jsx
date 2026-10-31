@@ -27,6 +27,7 @@ import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+import ListSortHeader from '../components/ListSortHeader'
 
 const SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 const LIKELIHOODS = ['LOW', 'MEDIUM', 'HIGH']
@@ -139,6 +140,19 @@ export default function GrrcDesk() {
   const [info, setInfo] = useState(null)
   const [silverGate, setSilverGate] = useState(false)
   const [closeNote, setCloseNote] = useState('')
+  const [riskSort, setRiskSort] = useState('id')
+  const [riskOrder, setRiskOrder] = useState('desc')
+  const [compSort, setCompSort] = useState('id')
+  const [compOrder, setCompOrder] = useState('desc')
+
+  const onRiskSortChange = useCallback(({ sort: s, order: o }) => {
+    setRiskSort(s || 'id')
+    setRiskOrder(o === 'asc' ? 'asc' : 'desc')
+  }, [])
+  const onCompSortChange = useCallback(({ sort: s, order: o }) => {
+    setCompSort(s || 'id')
+    setCompOrder(o === 'asc' ? 'asc' : 'desc')
+  }, [])
 
   const tabs = useMemo(
     () => [
@@ -153,8 +167,8 @@ export default function GrrcDesk() {
     setError(null)
     try {
       const [r, c] = await Promise.all([
-        grrcApi.risks.list({ max: 50, offset: 0 }),
-        grrcApi.compliance.list({ max: 50, offset: 0 }),
+        grrcApi.risks.list({ max: 50, offset: 0, sort: riskSort, order: riskOrder }),
+        grrcApi.compliance.list({ max: 50, offset: 0, sort: compSort, order: compOrder }),
       ])
       setRisks(r?.items || [])
       setRiskTotal(r?.total ?? (r?.items || []).length)
@@ -176,7 +190,7 @@ export default function GrrcDesk() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [riskSort, riskOrder, compSort, compOrder])
 
   useEffect(() => {
     load()
@@ -585,7 +599,7 @@ export default function GrrcDesk() {
       </form>
     )
 
-  const listTable = (cols, emptyKey, emptyDefault, actionKind) =>
+  const listTable = (cols, emptyKey, emptyDefault, actionKind, sortProps = null) =>
     items.length === 0 ? (
       <p className="muted">{t(emptyKey, { defaultValue: emptyDefault })}</p>
     ) : (
@@ -593,9 +607,20 @@ export default function GrrcDesk() {
         <table className="data">
           <thead>
             <tr>
-              {cols.map((c) => (
-                <th key={c.key}>{c.label}</th>
-              ))}
+              {cols.map((c) =>
+                sortProps && c.sortField ? (
+                  <ListSortHeader
+                    key={c.key}
+                    field={c.sortField}
+                    label={c.label}
+                    sort={sortProps.sort}
+                    order={sortProps.order}
+                    onSortChange={sortProps.onSortChange}
+                  />
+                ) : (
+                  <th key={c.key}>{c.label}</th>
+                ),
+              )}
               <th>{ACTION_TH(t)}</th>
             </tr>
           </thead>
@@ -630,16 +655,19 @@ export default function GrrcDesk() {
             [
               {
                 key: 'name',
+                sortField: 'name',
                 label: t('grrc.colName', { defaultValue: 'Name' }),
                 render: (r) => entityDisplayLabel(r),
               },
               {
                 key: 'status',
+                sortField: 'status',
                 label: t('grrc.colStatus', { defaultValue: 'Status' }),
                 render: (r) => <span className={statusClass(r.status)}>{r.status || '—'}</span>,
               },
               {
                 key: 'sev',
+                sortField: 'severity',
                 label: t('grrc.colSeverity', { defaultValue: 'Severity' }),
                 render: (r) => r.severity || '—',
               },
@@ -647,6 +675,7 @@ export default function GrrcDesk() {
             'grrc.emptyRisks',
             'No risks yet. Add one with New to start the register.',
             'risks',
+            { sort: riskSort, order: riskOrder, onSortChange: onRiskSortChange },
           )
         )}
       </>
@@ -659,16 +688,19 @@ export default function GrrcDesk() {
             [
               {
                 key: 'name',
+                sortField: 'name',
                 label: t('grrc.colName', { defaultValue: 'Name' }),
                 render: (r) => entityDisplayLabel(r),
               },
               {
                 key: 'status',
+                sortField: 'status',
                 label: t('grrc.colStatus', { defaultValue: 'Status' }),
                 render: (r) => <span className={statusClass(r.status)}>{r.status || '—'}</span>,
               },
               {
                 key: 'kind',
+                sortField: 'itemKind',
                 label: t('grrc.colKind', { defaultValue: 'Kind' }),
                 render: (r) => r.itemKind || '—',
               },
@@ -676,6 +708,7 @@ export default function GrrcDesk() {
             'grrc.emptyCompliance',
             'No compliance items yet. Register a policy or control with New.',
             'compliance',
+            { sort: compSort, order: compOrder, onSortChange: onCompSortChange },
           )
         )}
       </>

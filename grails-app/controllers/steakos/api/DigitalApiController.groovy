@@ -44,13 +44,14 @@ class DigitalApiController {
         wrap { String npub ->
             boolean activeOnly = params.activeOnly == 'true'
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = digSystemService.listPage(npub, activeOnly, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = digSystemService.listPage(npub, activeOnly, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { digSystemService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc']
             )
         }
     }
@@ -75,13 +76,14 @@ class DigitalApiController {
     def dataList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = digDataService.listPage(npub, params.dataClass as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = digDataService.listPage(npub, params.dataClass as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { digDataService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc']
             )
         }
     }
@@ -100,13 +102,14 @@ class DigitalApiController {
     def solutionList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = digSolutionService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = digSolutionService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { digSolutionService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -137,13 +140,14 @@ class DigitalApiController {
     def changeList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = digChangeService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = digChangeService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { digChangeService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -183,13 +187,14 @@ class DigitalApiController {
         wrap { String npub ->
             Long sid = params.systemId ? params.long('systemId') : null
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = digCmdbService.listPage(npub, sid, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = digCmdbService.listPage(npub, sid, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { digCmdbService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc']
             )
         }
     }
@@ -208,13 +213,14 @@ class DigitalApiController {
     def ticketList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = digSupportService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = digSupportService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { digSupportService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }

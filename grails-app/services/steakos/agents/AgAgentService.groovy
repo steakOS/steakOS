@@ -231,22 +231,30 @@ Coordination: may work with Conductor and other BCR lane agents; distribute slic
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List AGENT_SORT_FIELDS = [
+            'id', 'name', 'status', 'code',
+            'agentStatus', 'agentKey', 'runtimeKind', 'versionLabel'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String agentStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String agentStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', AGENT_SORT_FIELDS)
         boolean hideCoder = !developmentModeService?.isEnabled()
         // Over-fetch slightly when hiding Coder so page size stays stable
         int fetchMax = hideCoder ? Math.min(max + 5, 500) : max
-        Map opts = [sort: 'name', order: 'asc', max: fetchMax, offset: offset]
-        List<Agent> items
-        int total
-        if (agentStatus) {
-            items = Agent.findAllByNpubOwnerAndAgentStatus(npub, agentStatus, opts) as List<Agent>
-            total = Agent.countByNpubOwnerAndAgentStatus(npub, agentStatus) as int
-        } else {
-            items = Agent.findAllByNpubOwner(npub, opts) as List<Agent>
-            total = Agent.countByNpubOwner(npub) as int
-        }
+        List<Agent> items = Agent.createCriteria().list(max: fetchMax, offset: offset) {
+            eq('npubOwner', npub)
+            if (agentStatus) eq('agentStatus', agentStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List<Agent>
+        Number totalN = Agent.createCriteria().count {
+            eq('npubOwner', npub)
+            if (agentStatus) eq('agentStatus', agentStatus)
+        } as Number
+        int total = totalN?.intValue() ?: 0
         if (hideCoder) {
             int before = items.size()
             items = items.findAll { !isCoderAgent(it) }
@@ -254,7 +262,7 @@ Coordination: may work with Conductor and other BCR lane agents; distribute slic
             if (removed > 0) total = Math.max(0, total - removed)
             if (items.size() > max) items = items.take(max)
         }
-        return [items: items, total: total]
+        return [items: items, total: total, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

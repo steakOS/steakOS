@@ -74,20 +74,26 @@ class CapKnowledgeService {
         listPage(npubOwner, activeOnly, 500, 0).items as List<KnowledgeArea>
     }
 
+    static final List KNOWLEDGE_SORT_FIELDS = [
+            'id', 'name', 'areaCode', 'areaStatus', 'status'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, boolean activeOnly = false, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, boolean activeOnly = false, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'name', order: 'asc', max: max, offset: offset]
-        if (activeOnly) {
-            return [
-                    items: KnowledgeArea.findAllByNpubOwnerAndAreaStatus(npub, 'ACTIVE', opts),
-                    total: KnowledgeArea.countByNpubOwnerAndAreaStatus(npub, 'ACTIVE') as int
-            ]
-        }
-        return [
-                items: KnowledgeArea.findAllByNpubOwner(npub, opts),
-                total: KnowledgeArea.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', KNOWLEDGE_SORT_FIELDS)
+        List items = KnowledgeArea.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('areaStatus', 'ACTIVE')
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = KnowledgeArea.createCriteria().count {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('areaStatus', 'ACTIVE')
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

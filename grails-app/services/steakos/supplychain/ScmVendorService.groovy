@@ -84,13 +84,19 @@ class ScmVendorService {
         listVendorsPage(npubOwner, activeOnly, 500, 0).items as List<Vendor>
     }
 
+    static final List VENDOR_SORT_FIELDS = [
+            'id', 'name', 'email', 'contactName', 'active', 'taxId', 'currencyCode'
+    ].asImmutable()
+
     /** Paged vendors — optional free-text `q` (name/email/contact/taxId). */
     @Transactional(readOnly = true)
     Map listVendorsPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0,
-                        String q = null) {
+                        String q = null, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        String term = q?.trim() ? "%${q.trim()}%" : null
-        List items = Vendor.createCriteria().list(max: max, offset: offset, sort: 'name', order: 'asc') {
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', VENDOR_SORT_FIELDS)
+        String term = steakos.api.ListPaging.likeContains(q)
+        List items = Vendor.createCriteria().list(max: max, offset: offset) {
             eq('npubOwner', npub)
             if (activeOnly) eq('active', Boolean.TRUE)
             if (term) {
@@ -101,6 +107,7 @@ class ScmVendorService {
                     ilike('taxId', term)
                 }
             }
+            steakos.api.ListPaging.applyOrders(delegate, so)
         } as List
         Number total = Vendor.createCriteria().count {
             eq('npubOwner', npub)
@@ -114,7 +121,7 @@ class ScmVendorService {
                 }
             }
         } as Number
-        [items: items, total: total?.intValue() ?: 0]
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(Vendor v) {

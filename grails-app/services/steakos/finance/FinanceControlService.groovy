@@ -55,13 +55,24 @@ class FinanceControlService {
         listAuditTrailPage(npubOwner, max, 0).items as List
     }
 
+    static final List AUDIT_SORT_FIELDS = [
+            'id', 'name', 'period', 'sourceType', 'sourceId', 'eventId',
+            'postedAt', 'entryDate', 'status', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /** Paged audit trail of posted journal headers (LIST-PAGINATION). */
     @Transactional(readOnly = true)
-    Map listAuditTrailPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listAuditTrailPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = npubOwner?.trim()
         if (!npub) throw new IllegalArgumentException('npubOwner is required')
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        List items = JournalEntry.findAllByNpubOwnerAndPosted(npub, Boolean.TRUE, opts).collect { JournalEntry e ->
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', AUDIT_SORT_FIELDS)
+        List entries = JournalEntry.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            eq('posted', Boolean.TRUE)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        List items = entries.collect { JournalEntry e ->
             [
                     id        : e.id,
                     name      : e.name,
@@ -73,9 +84,10 @@ class FinanceControlService {
                     status    : e.status
             ]
         }
-        [
-                items: items,
-                total: JournalEntry.countByNpubOwnerAndPosted(npub, Boolean.TRUE) as int
-        ]
+        Number total = JournalEntry.createCriteria().count {
+            eq('npubOwner', npub)
+            eq('posted', Boolean.TRUE)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 }

@@ -81,14 +81,24 @@ class AgLinkService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). Optional for links. */
+    static final List LINK_SORT_FIELDS = [
+            'id', 'name', 'status', 'code',
+            'linkKind', 'active', 'humanNpub'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        return [
-                items: AgentHumanLink.findAllByNpubOwner(npub, opts),
-                total: AgentHumanLink.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', LINK_SORT_FIELDS)
+        List items = AgentHumanLink.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = AgentHumanLink.createCriteria().count {
+            eq('npubOwner', npub)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(AgentHumanLink l) {

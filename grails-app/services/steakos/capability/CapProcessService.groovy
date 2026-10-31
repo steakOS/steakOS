@@ -255,13 +255,25 @@ class CapProcessService {
      * Tenant processes for {@code npub}, plus shared SYSTEM catalogue rows (any owner).
      * Fixes empty process browser when active company npub ≠ the seed tenant (user:admin).
      */
+    static final List PROCESS_SORT_FIELDS = [
+            'id', 'name', 'processCode', 'processStatus', 'processKind', 'status',
+            'versionLabel', 'ownerRef'
+    ].asImmutable()
+
+    static final List PROCEDURE_SORT_FIELDS = [
+            'id', 'name', 'status', 'processId'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listProcessesPage(String npubOwner, String processStatus = null, String processKind = null, int max = 25, int offset = 0) {
+    Map listProcessesPage(String npubOwner, String processStatus = null, String processKind = null,
+                          int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
         String kind = processKind?.trim()
         boolean tenantOnly = kind && kind != 'SYSTEM'
         boolean systemOnly = kind == 'SYSTEM'
-        def list = steakos.capability.Process.createCriteria().list(max: max, offset: offset, sort: 'id', order: 'desc') {
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PROCESS_SORT_FIELDS)
+        def list = steakos.capability.Process.createCriteria().list(max: max, offset: offset) {
             if (tenantOnly) {
                 eq 'npubOwner', npub
             } else if (!systemOnly) {
@@ -277,6 +289,7 @@ class CapProcessService {
             if (kind) {
                 eq 'processKind', kind
             }
+            steakos.api.ListPaging.applyOrders(delegate, so)
         }
         int total = steakos.capability.Process.createCriteria().count {
             if (tenantOnly) {
@@ -294,7 +307,7 @@ class CapProcessService {
                 eq 'processKind', kind
             }
         } as int
-        [items: list, total: total]
+        [items: list, total: total, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)
@@ -310,19 +323,21 @@ class CapProcessService {
     }
 
     @Transactional(readOnly = true)
-    Map listProceduresPage(String npubOwner, Long processId = null, int max = 25, int offset = 0) {
+    Map listProceduresPage(String npubOwner, Long processId = null, int max = 25, int offset = 0,
+                           Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (processId) {
-            return [
-                    items: Procedure.findAllByNpubOwnerAndProcessId(npub, processId, opts),
-                    total: Procedure.countByNpubOwnerAndProcessId(npub, processId) as int
-            ]
-        }
-        return [
-                items: Procedure.findAllByNpubOwner(npub, opts),
-                total: Procedure.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PROCEDURE_SORT_FIELDS)
+        List items = Procedure.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (processId) eq('processId', processId)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Procedure.createCriteria().count {
+            eq('npubOwner', npub)
+            if (processId) eq('processId', processId)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     /** Mermaid flowchart LR from ordered steps (D6). */

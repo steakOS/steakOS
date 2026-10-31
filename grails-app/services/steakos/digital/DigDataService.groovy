@@ -66,20 +66,27 @@ class DigDataService {
         listPage(npubOwner, dataClass, 500, 0).items as List<Data>
     }
 
+    static final List DATA_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'dataClass', 'dataStatus', 'retentionDays'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String dataClass = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String dataClass = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'name', order: 'asc', max: max, offset: offset]
-        if (dataClass) {
-            return [
-                    items: Data.findAllByNpubOwnerAndDataClass(npub, dataClass, opts),
-                    total: Data.countByNpubOwnerAndDataClass(npub, dataClass) as int
-            ]
-        }
-        return [
-                items: Data.findAllByNpubOwner(npub, opts),
-                total: Data.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', DATA_SORT_FIELDS)
+        List items = Data.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (dataClass) eq('dataClass', dataClass)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Data.createCriteria().count {
+            eq('npubOwner', npub)
+            if (dataClass) eq('dataClass', dataClass)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(Data d) {

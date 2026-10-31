@@ -233,6 +233,12 @@ export default function ScmDesk({ desk = 'buyers' }) {
   const [productOptions, setProductOptions] = useState([])
   const [poSort, setPoSort] = useState('id')
   const [poOrder, setPoOrder] = useState('desc')
+  const [vendorSort, setVendorSort] = useState('name')
+  const [vendorOrder, setVendorOrder] = useState('asc')
+  const [prodSort, setProdSort] = useState('id')
+  const [prodOrder, setProdOrder] = useState('desc')
+  const [lotSort, setLotSort] = useState('id')
+  const [lotOrder, setLotOrder] = useState('desc')
 
   selectedPoRef.current = selectedPo
   poWarningsRef.current = poWarnings
@@ -290,9 +296,59 @@ export default function ScmDesk({ desk = 'buyers' }) {
     setPoPage((pg) => ({ ...pg, offset: 0 }))
   }, [])
 
+  const onVendorSortChange = useCallback(({ sort: s, order: o }) => {
+    setVendorSort(s || 'name')
+    setVendorOrder(o === 'asc' ? 'asc' : 'desc')
+    setVendorPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+
+  const onProdSortChange = useCallback(({ sort: s, order: o }) => {
+    setProdSort(s || 'id')
+    setProdOrder(o === 'asc' ? 'asc' : 'desc')
+    setProdPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+
+  const onLotSortChange = useCallback(({ sort: s, order: o }) => {
+    setLotSort(s || 'id')
+    setLotOrder(o === 'asc' ? 'asc' : 'desc')
+    setLotPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+
+  const VENDOR_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: 'Name' },
+      { value: 'email', label: 'Email' },
+      { value: 'id', label: 'Id' },
+    ],
+    [],
+  )
+  const PROD_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'orderNumber', label: 'Number' },
+      { value: 'quantity', label: 'Qty' },
+      { value: 'prodStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const LOT_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'lotCode', label: 'Code' },
+      { value: 'quantity', label: 'Qty' },
+      { value: 'lotStatus', label: 'Status' },
+    ],
+    [],
+  )
+
   const loadAll = useCallback(async () => {
     const [v, vPick, p, pPick, svc, po, pr, l, oh] = await Promise.all([
-      scmApi.vendors.list({ max: vendorPage.max, offset: vendorPage.offset }),
+      scmApi.vendors.list({
+        max: vendorPage.max,
+        offset: vendorPage.offset,
+        sort: vendorSort,
+        order: vendorOrder,
+      }),
       scmApi.vendors.list({ max: 100, offset: 0 }),
       catalogueApi.list({
         nature: 'GOODS',
@@ -313,8 +369,18 @@ export default function ScmDesk({ desk = 'buyers' }) {
         sort: poSort,
         order: poOrder,
       }),
-      scmApi.production.list({ max: prodPage.max, offset: prodPage.offset }),
-      scmApi.lots.list({ max: lotPage.max, offset: lotPage.offset }),
+      scmApi.production.list({
+        max: prodPage.max,
+        offset: prodPage.offset,
+        sort: prodSort,
+        order: prodOrder,
+      }),
+      scmApi.lots.list({
+        max: lotPage.max,
+        offset: lotPage.offset,
+        sort: lotSort,
+        order: lotOrder,
+      }),
       scmApi.inventory.onHand(),
     ])
     const posItems = po.items || []
@@ -381,6 +447,12 @@ export default function ScmDesk({ desk = 'buyers' }) {
     poPage.offset,
     poSort,
     poOrder,
+    vendorSort,
+    vendorOrder,
+    prodSort,
+    prodOrder,
+    lotSort,
+    lotOrder,
     prodPage.max,
     prodPage.offset,
     lotPage.max,
@@ -1481,6 +1553,12 @@ export default function ScmDesk({ desk = 'buyers' }) {
         items={vendors}
         empty="—"
         onSelect={isBuyers ? (v) => openView('procurement', 'Vendor', v) : undefined}
+        sortFields={VENDOR_SORT_MENU}
+        sort={vendorSort}
+        order={vendorOrder}
+        onSortChange={onVendorSortChange}
+        defaultSort="name"
+        defaultOrder="asc"
         fields={[
           { id: 'name', primary: true, render: (v) => v.name },
           { id: 'email', secondary: true, render: (v) => v.email || '—' },
@@ -1495,9 +1573,34 @@ export default function ScmDesk({ desk = 'buyers' }) {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('wb.email', { ns: 'common' })}</th>
-                <th className="col-priority-low">CCY</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={vendorSort}
+                  order={vendorOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onVendorSortChange}
+                />
+                <ListSortHeader
+                  field="email"
+                  label={t('wb.email', { ns: 'common' })}
+                  sort={vendorSort}
+                  order={vendorOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onVendorSortChange}
+                />
+                <ListSortHeader
+                  className="col-priority-low"
+                  field="currencyCode"
+                  label="CCY"
+                  sort={vendorSort}
+                  order={vendorOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onVendorSortChange}
+                />
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -1796,6 +1899,10 @@ export default function ScmDesk({ desk = 'buyers' }) {
         empty="—"
         selectedKey={selectedProd?.id}
         onSelect={(o) => setSelectedId(String(o.id))}
+        sortFields={PROD_SORT_MENU}
+        sort={prodSort}
+        order={prodOrder}
+        onSortChange={onProdSortChange}
         fields={[
           {
             id: 'number',
@@ -1818,11 +1925,29 @@ export default function ScmDesk({ desk = 'buyers' }) {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.number', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="orderNumber"
+                  label={t('wb.number', { ns: 'common' })}
+                  sort={prodSort}
+                  order={prodOrder}
+                  onSortChange={onProdSortChange}
+                />
                 <th>{t('wb.product', { ns: 'common' })}</th>
-                <th>{t('wb.qty', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="quantity"
+                  label={t('wb.qty', { ns: 'common' })}
+                  sort={prodSort}
+                  order={prodOrder}
+                  onSortChange={onProdSortChange}
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="prodStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={prodSort}
+                  order={prodOrder}
+                  onSortChange={onProdSortChange}
+                />
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -1871,6 +1996,10 @@ export default function ScmDesk({ desk = 'buyers' }) {
       <ResponsiveDataList
         items={lots}
         empty={t('scm.emptyLots')}
+        sortFields={LOT_SORT_MENU}
+        sort={lotSort}
+        order={lotOrder}
+        onSortChange={onLotSortChange}
         fields={[
           {
             id: 'code',
@@ -1891,10 +2020,28 @@ export default function ScmDesk({ desk = 'buyers' }) {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.code', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="lotCode"
+                  label={t('wb.code', { ns: 'common' })}
+                  sort={lotSort}
+                  order={lotOrder}
+                  onSortChange={onLotSortChange}
+                />
                 <th>{t('wb.product', { ns: 'common' })}</th>
-                <th>{t('wb.qty', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="quantity"
+                  label={t('wb.qty', { ns: 'common' })}
+                  sort={lotSort}
+                  order={lotOrder}
+                  onSortChange={onLotSortChange}
+                />
+                <ListSortHeader
+                  field="lotStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={lotSort}
+                  order={lotOrder}
+                  onSortChange={onLotSortChange}
+                />
                 <th>{t('scm.checks')}</th>
               </tr>
             </thead>

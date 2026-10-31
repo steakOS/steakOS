@@ -97,26 +97,28 @@ class StakeholderBasicsService {
         loadParty(id, npubOwner)
     }
 
+    static final List PARTY_SORT_FIELDS = [
+            'id', 'name', 'status', 'partyKind', 'contactName', 'contactEmail'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPartiesPage(String npubOwner, String status = null, String partyKind = null, int max = 25, int offset = 0) {
+    Map listPartiesPage(String npubOwner, String status = null, String partyKind = null,
+                        int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        List<StakeholderParty> items
-        int total
-        if (status && partyKind) {
-            items = StakeholderParty.findAllByNpubOwnerAndStatusAndPartyKind(npub, status, partyKind, opts)
-            total = StakeholderParty.countByNpubOwnerAndStatusAndPartyKind(npub, status, partyKind) as int
-        } else if (status) {
-            items = StakeholderParty.findAllByNpubOwnerAndStatus(npub, status, opts)
-            total = StakeholderParty.countByNpubOwnerAndStatus(npub, status) as int
-        } else if (partyKind) {
-            items = StakeholderParty.findAllByNpubOwnerAndPartyKind(npub, partyKind, opts)
-            total = StakeholderParty.countByNpubOwnerAndPartyKind(npub, partyKind) as int
-        } else {
-            items = StakeholderParty.findAllByNpubOwner(npub, opts)
-            total = StakeholderParty.countByNpubOwner(npub) as int
-        }
-        [items: items, total: total]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PARTY_SORT_FIELDS)
+        List items = StakeholderParty.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('status', status)
+            if (partyKind) eq('partyKind', partyKind)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = StakeholderParty.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('status', status)
+            if (partyKind) eq('partyKind', partyKind)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional

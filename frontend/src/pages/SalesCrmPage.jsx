@@ -19,6 +19,8 @@ import { useTranslation } from 'react-i18next'
 import { ContactRound, Plus, RefreshCw, Ban, Check } from 'lucide-react'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListFilterBar from '../components/ListFilterBar'
+import ListSortHeader from '../components/ListSortHeader'
+import useServerListSort from '../hooks/useServerListSort'
 import { salesApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrencySelect from '../components/CurrencySelect'
@@ -133,6 +135,18 @@ export default function SalesCrmPage() {
 
   const [openOnly, setOpenOnly] = useState(true)
   const [listQ, setListQ] = useState('')
+  const { sort, order, onSortChange } = useServerListSort('id', 'desc')
+  const OPP_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'stage', label: 'Stage' },
+      { value: 'contactName', label: 'Contact' },
+      { value: 'expectedAmountEur', label: 'Amount' },
+      { value: 'expectedCloseDate', label: 'Close date' },
+    ],
+    [],
+  )
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
   const [selected, setSelected] = useState(null)
@@ -149,7 +163,7 @@ export default function SalesCrmPage() {
     setLoading(true)
     setError(null)
     try {
-      const params = { max: 50, offset: 0 }
+      const params = { max: 50, offset: 0, sort, order }
       if (openOnly) params.open = true
       if (listQ.trim()) params.q = listQ.trim()
       const data = await salesApi.crm.listOpportunities(params)
@@ -162,7 +176,7 @@ export default function SalesCrmPage() {
     } finally {
       setLoading(false)
     }
-  }, [openOnly, listQ, t])
+  }, [openOnly, listQ, sort, order, t])
 
   useEffect(() => {
     load()
@@ -558,6 +572,10 @@ export default function SalesCrmPage() {
         loading={loading}
         selectedKey={selected?.id}
         onSelect={(row) => setSelectedId(String(row.id))}
+        sortFields={OPP_SORT_MENU}
+        sort={sort}
+        order={order}
+        onSortChange={onSortChange}
         fields={[
           {
             id: 'name',
@@ -590,10 +608,34 @@ export default function SalesCrmPage() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('crm.colName', { defaultValue: 'Name' })}</th>
-                <th>{t('crm.colStage', { defaultValue: 'Stage' })}</th>
-                <th>{t('crm.colCustomer', { defaultValue: 'Customer' })}</th>
-                <th>{t('crm.colAmount', { defaultValue: 'Amount' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('crm.colName', { defaultValue: 'Name' })}
+                  sort={sort}
+                  order={order}
+                  onSortChange={onSortChange}
+                />
+                <ListSortHeader
+                  field="stage"
+                  label={t('crm.colStage', { defaultValue: 'Stage' })}
+                  sort={sort}
+                  order={order}
+                  onSortChange={onSortChange}
+                />
+                <ListSortHeader
+                  field="contactName"
+                  label={t('crm.colCustomer', { defaultValue: 'Customer' })}
+                  sort={sort}
+                  order={order}
+                  onSortChange={onSortChange}
+                />
+                <ListSortHeader
+                  field="expectedAmountEur"
+                  label={t('crm.colAmount', { defaultValue: 'Amount' })}
+                  sort={sort}
+                  order={order}
+                  onSortChange={onSortChange}
+                />
               </tr>
             </thead>
             <tbody>

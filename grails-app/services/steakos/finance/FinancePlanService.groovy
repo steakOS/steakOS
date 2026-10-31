@@ -69,21 +69,29 @@ class FinancePlanService {
         listBudgetsPage(npubOwner, period, 200, 0).items as List<Budget>
     }
 
+    static final List BUDGET_SORT_FIELDS = [
+            'id', 'name', 'period', 'amountEur', 'accountCode', 'currencyCode',
+            'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /** Paged budgets (LIST-PAGINATION). Optional period filter. */
     @Transactional(readOnly = true)
-    Map listBudgetsPage(String npubOwner, String period = null, int max = 25, int offset = 0) {
+    Map listBudgetsPage(String npubOwner, String period = null, int max = 25, int offset = 0,
+                        Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: period ? 'id' : 'period', order: 'desc', max: max, offset: offset]
-        if (period) {
-            return [
-                    items: Budget.findAllByNpubOwnerAndPeriod(npub, period, opts),
-                    total: Budget.countByNpubOwnerAndPeriod(npub, period) as int
-            ]
-        }
-        return [
-                items: Budget.findAllByNpubOwner(npub, opts),
-                total: Budget.countByNpubOwner(npub) as int
-        ]
+        String defaultSort = period ? 'id' : 'period'
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], defaultSort, 'desc', BUDGET_SORT_FIELDS)
+        List items = Budget.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (period) eq('period', period)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Budget.createCriteria().count {
+            eq('npubOwner', npub)
+            if (period) eq('period', period)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     /**

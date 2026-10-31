@@ -63,20 +63,27 @@ class HrPartyService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List PARTY_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'partyKind', 'username', 'active'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String partyKind = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String partyKind = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (partyKind) {
-            return [
-                    items: PartyAccess.findAllByNpubOwnerAndPartyKind(npub, partyKind, opts),
-                    total: PartyAccess.countByNpubOwnerAndPartyKind(npub, partyKind) as int
-            ]
-        }
-        return [
-                items: PartyAccess.findAllByNpubOwner(npub, opts),
-                total: PartyAccess.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PARTY_SORT_FIELDS)
+        List items = PartyAccess.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (partyKind) eq('partyKind', partyKind)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = PartyAccess.createCriteria().count {
+            eq('npubOwner', npub)
+            if (partyKind) eq('partyKind', partyKind)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

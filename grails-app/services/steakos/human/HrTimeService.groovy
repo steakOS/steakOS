@@ -64,21 +64,28 @@ class HrTimeService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List TIME_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'timeKind', 'timeStatus', 'hours', 'startedAt', 'endedAt'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, Long hrFileId = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, Long hrFileId = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (hrFileId) {
-            HRFile f = hrFileService.get(hrFileId, npub)
-            return [
-                    items: TimeTrack.findAllByNpubOwnerAndHrFile(npub, f, opts),
-                    total: TimeTrack.countByNpubOwnerAndHrFile(npub, f) as int
-            ]
-        }
-        return [
-                items: TimeTrack.findAllByNpubOwner(npub, opts),
-                total: TimeTrack.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', TIME_SORT_FIELDS)
+        HRFile file = hrFileId ? hrFileService.get(hrFileId, npub) : null
+        List items = TimeTrack.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (file) eq('hrFile', file)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = TimeTrack.createCriteria().count {
+            eq('npubOwner', npub)
+            if (file) eq('hrFile', file)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

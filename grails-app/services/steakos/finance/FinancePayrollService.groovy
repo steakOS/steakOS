@@ -220,15 +220,25 @@ class FinancePayrollService {
         listLinesPage(npubOwner, 200, 0).items as List<PayrollItem>
     }
 
+    static final List PAYROLL_SORT_FIELDS = [
+            'id', 'name', 'period', 'personRef', 'amountEur', 'payrollStatus',
+            'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /** Paged payroll lines (LIST-PAGINATION). */
     @Transactional(readOnly = true)
-    Map listLinesPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listLinesPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        [
-                items: PayrollItem.findAllByNpubOwner(npub, opts),
-                total: PayrollItem.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PAYROLL_SORT_FIELDS)
+        List items = PayrollItem.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = PayrollItem.createCriteria().count {
+            eq('npubOwner', npub)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(PayrollItem i) {

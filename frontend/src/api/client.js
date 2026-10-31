@@ -447,6 +447,8 @@ export const financeLedgerApi = {
     if (params.activeOnly === false) q.set('activeOnly', 'false')
     if (params.max != null) q.set('max', String(params.max))
     if (params.offset != null) q.set('offset', String(params.offset))
+    if (params.sort) q.set('sort', params.sort)
+    if (params.order) q.set('order', params.order)
     const qs = q.toString()
     return api(`/api/finance/ledger/accounts${qs ? `?${qs}` : ''}`)
   },
@@ -530,6 +532,8 @@ function financeListQs(params = {}) {
   if (params.period) q.set('period', params.period)
   if (params.max != null) q.set('max', String(params.max))
   if (params.offset != null) q.set('offset', String(params.offset))
+  if (params.sort) q.set('sort', params.sort)
+  if (params.order) q.set('order', params.order)
   if (params.npubOwner) q.set('npubOwner', params.npubOwner)
   const qs = q.toString()
   return qs ? `?${qs}` : ''
@@ -773,6 +777,8 @@ export const salesApi = {
       const q = new URLSearchParams()
       if (params.max != null) q.set('max', String(params.max))
       if (params.offset != null) q.set('offset', String(params.offset))
+      if (params.sort) q.set('sort', params.sort)
+      if (params.order) q.set('order', params.order)
       if (params.q) q.set('q', params.q)
       if (params.stage) q.set('stage', params.stage)
       if (params.customerId != null) q.set('customerId', String(params.customerId))

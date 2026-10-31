@@ -22,6 +22,7 @@ import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
@@ -135,6 +136,36 @@ export default function StrategyDesk() {
   const [topicForm, setTopicForm] = useState(() => strategyItemMasterSpec.empty())
   const [competitorPage, setCompetitorPage] = useState({ max: 25, offset: 0, total: 0 })
   const [topicPage, setTopicPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [competitorSort, setCompetitorSort] = useState('id')
+  const [competitorOrder, setCompetitorOrder] = useState('desc')
+  const [topicSort, setTopicSort] = useState('id')
+  const [topicOrder, setTopicOrder] = useState('desc')
+  const onCompetitorSortChange = useCallback(({ sort: s, order: o }) => {
+    setCompetitorSort(s || 'id')
+    setCompetitorOrder(o === 'asc' ? 'asc' : 'desc')
+    setCompetitorPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onTopicSortChange = useCallback(({ sort: s, order: o }) => {
+    setTopicSort(s || 'id')
+    setTopicOrder(o === 'asc' ? 'asc' : 'desc')
+    setTopicPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const COMPETITOR_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'status', label: 'Status' },
+    ],
+    [],
+  )
+  const TOPIC_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'status', label: 'Status' },
+    ],
+    [],
+  )
 
   const onMasterField =
     (setter) =>
@@ -156,10 +187,14 @@ export default function StrategyDesk() {
       domainsApi.list('strategy', 'Competitor', {
         max: competitorPage.max,
         offset: competitorPage.offset,
+        sort: competitorSort,
+        order: competitorOrder,
       }),
       domainsApi.list('strategy', 'StrategyItem', {
         max: topicPage.max,
         offset: topicPage.offset,
+        sort: topicSort,
+        order: topicOrder,
       }),
     ])
     setCompetitors(c.items || [])
@@ -181,6 +216,10 @@ export default function StrategyDesk() {
     competitorPage.offset,
     topicPage.max,
     topicPage.offset,
+    competitorSort,
+    competitorOrder,
+    topicSort,
+    topicOrder,
   ])
 
   loadAllRef.current = loadAll
@@ -464,6 +503,10 @@ export default function StrategyDesk() {
         items={competitors}
         empty="—"
         onSelect={(v) => openView('strategy', 'Competitor', v)}
+        sortFields={COMPETITOR_SORT_MENU}
+        sort={competitorSort}
+        order={competitorOrder}
+        onSortChange={onCompetitorSortChange}
         fields={[
           { id: 'name', primary: true, render: (v) => v.name },
           { id: 'status', secondary: true, render: (v) => v.status || '—' },
@@ -474,8 +517,20 @@ export default function StrategyDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={competitorSort}
+                  order={competitorOrder}
+                  onSortChange={onCompetitorSortChange}
+                />
+                <ListSortHeader
+                  field="status"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={competitorSort}
+                  order={competitorOrder}
+                  onSortChange={onCompetitorSortChange}
+                />
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -516,6 +571,10 @@ export default function StrategyDesk() {
         items={topics}
         empty="—"
         onSelect={(v) => openView('strategy', 'StrategyItem', v)}
+        sortFields={TOPIC_SORT_MENU}
+        sort={topicSort}
+        order={topicOrder}
+        onSortChange={onTopicSortChange}
         fields={[
           { id: 'name', primary: true, render: (v) => v.name },
           { id: 'itemKind', secondary: true, render: (v) => v.itemKind || '—' },
@@ -527,9 +586,21 @@ export default function StrategyDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={topicSort}
+                  order={topicOrder}
+                  onSortChange={onTopicSortChange}
+                />
                 <th>{t('wb.kind', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="status"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={topicSort}
+                  order={topicOrder}
+                  onSortChange={onTopicSortChange}
+                />
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>

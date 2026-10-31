@@ -70,32 +70,29 @@ class AgMemoryService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List MEMORY_SORT_FIELDS = [
+            'id', 'name', 'status', 'code',
+            'memoryKind', 'memoryStatus', 'score'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String memoryKind = null, boolean includeArchived = false, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String memoryKind = null, boolean includeArchived = false, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (memoryKind && !includeArchived) {
-            return [
-                    items: Memory.findAllByNpubOwnerAndMemoryKindAndMemoryStatus(npub, memoryKind, 'ACTIVE', opts),
-                    total: Memory.countByNpubOwnerAndMemoryKindAndMemoryStatus(npub, memoryKind, 'ACTIVE') as int
-            ]
-        }
-        if (memoryKind) {
-            return [
-                    items: Memory.findAllByNpubOwnerAndMemoryKind(npub, memoryKind, opts),
-                    total: Memory.countByNpubOwnerAndMemoryKind(npub, memoryKind) as int
-            ]
-        }
-        if (!includeArchived) {
-            return [
-                    items: Memory.findAllByNpubOwnerAndMemoryStatus(npub, 'ACTIVE', opts),
-                    total: Memory.countByNpubOwnerAndMemoryStatus(npub, 'ACTIVE') as int
-            ]
-        }
-        return [
-                items: Memory.findAllByNpubOwner(npub, opts),
-                total: Memory.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', MEMORY_SORT_FIELDS)
+        List items = Memory.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (memoryKind) eq('memoryKind', memoryKind)
+            if (!includeArchived) eq('memoryStatus', 'ACTIVE')
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Memory.createCriteria().count {
+            eq('npubOwner', npub)
+            if (memoryKind) eq('memoryKind', memoryKind)
+            if (!includeArchived) eq('memoryStatus', 'ACTIVE')
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

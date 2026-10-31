@@ -21,6 +21,7 @@ import { financeLedgerApi, meApi } from '../api/client'
 import useRecordView from '../hooks/useRecordView'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -128,6 +129,8 @@ export default function FinanceTransactions() {
   const [accounts, setAccounts] = useState([])
   const [formAccounts, setFormAccounts] = useState([])
   const [coaPage, setCoaPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [coaSort, setCoaSort] = useState('code')
+  const [coaOrder, setCoaOrder] = useState('asc')
   const [tb, setTb] = useState(null)
   const [lastEntry, setLastEntry] = useState(null)
   const [error, setError] = useState(null)
@@ -138,10 +141,30 @@ export default function FinanceTransactions() {
   const [entryName, setEntryName] = useState('')
   const [lines, setLines] = useState(DEFAULT_LINES)
 
+  const COA_SORT_MENU = useMemo(
+    () => [
+      { value: 'code', label: t('wb.code', { ns: 'common' }) },
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'accountType', label: t('wb.type', { ns: 'common' }) },
+    ],
+    [t],
+  )
+
+  const onCoaSortChange = useCallback(({ sort: s, order: o }) => {
+    setCoaSort(s || 'code')
+    setCoaOrder(o === 'desc' ? 'desc' : 'asc')
+    setCoaPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+
   const loadAccounts = useCallback(async () => {
     const [listData, formData] = await Promise.all([
-      financeLedgerApi.accounts({ max: coaPage.max, offset: coaPage.offset }),
-      financeLedgerApi.accounts({ max: 100, offset: 0 }),
+      financeLedgerApi.accounts({
+        max: coaPage.max,
+        offset: coaPage.offset,
+        sort: coaSort,
+        order: coaOrder,
+      }),
+      financeLedgerApi.accounts({ max: 100, offset: 0, sort: 'code', order: 'asc' }),
     ])
     setAccounts(listData.items || [])
     setCoaPage((pg) => ({
@@ -152,7 +175,7 @@ export default function FinanceTransactions() {
     }))
     setFormAccounts(formData.items || [])
     return listData.items || []
-  }, [coaPage.max, coaPage.offset])
+  }, [coaPage.max, coaPage.offset, coaSort, coaOrder])
 
   const loadTb = useCallback(async () => {
     const data = await financeLedgerApi.trialBalance(period)
@@ -497,6 +520,12 @@ export default function FinanceTransactions() {
         empty={t('finance.emptyCoa')}
         selectedKey={selected?.id}
         onSelect={(a) => setSelectedId(String(a.id))}
+        sortFields={COA_SORT_MENU}
+        sort={coaSort}
+        order={coaOrder}
+        defaultSort="code"
+        defaultOrder="asc"
+        onSortChange={onCoaSortChange}
         fields={[
           {
             id: 'code',
@@ -519,9 +548,34 @@ export default function FinanceTransactions() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.code', { ns: 'common' })}</th>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.type', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="code"
+                  label={t('wb.code', { ns: 'common' })}
+                  sort={coaSort}
+                  order={coaOrder}
+                  defaultSort="code"
+                  defaultOrder="asc"
+                  onSortChange={onCoaSortChange}
+                />
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={coaSort}
+                  order={coaOrder}
+                  defaultSort="code"
+                  defaultOrder="asc"
+                  onSortChange={onCoaSortChange}
+                />
+                <ListSortHeader
+                  field="accountType"
+                  label={t('wb.type', { ns: 'common' })}
+                  sort={coaSort}
+                  order={coaOrder}
+                  defaultSort="code"
+                  defaultOrder="asc"
+                  onSortChange={onCoaSortChange}
+                  className="col-priority-low"
+                />
                 <th />
               </tr>
             </thead>

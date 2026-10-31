@@ -152,20 +152,27 @@ class FinancePayableService {
         listPayablesPage(npubOwner, status, 200, 0).items as List<Payable>
     }
 
+    static final List PAYABLE_SORT_FIELDS = [
+            'id', 'name', 'vendorName', 'amountEur', 'payableStatus',
+            'issueDate', 'dueDate', 'paidAt', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPayablesPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listPayablesPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                         Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status) {
-            return [
-                    items: Payable.findAllByNpubOwnerAndPayableStatus(npub, status, opts),
-                    total: Payable.countByNpubOwnerAndPayableStatus(npub, status) as int
-            ]
-        }
-        return [
-                items: Payable.findAllByNpubOwner(npub, opts),
-                total: Payable.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PAYABLE_SORT_FIELDS)
+        List items = Payable.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('payableStatus', status)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Payable.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('payableStatus', status)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

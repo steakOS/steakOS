@@ -82,14 +82,24 @@ class HrGoalService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List GOAL_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'goalStatus', 'progress', 'dueDate'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        return [
-                items: Goal.findAllByNpubOwner(npub, opts),
-                total: Goal.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', GOAL_SORT_FIELDS)
+        List items = Goal.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Goal.createCriteria().count {
+            eq('npubOwner', npub)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

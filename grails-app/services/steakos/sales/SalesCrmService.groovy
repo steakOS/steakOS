@@ -214,12 +214,19 @@ class SalesCrmService {
         loadOpportunity(id, npubOwner)
     }
 
+    static final List OPP_SORT_FIELDS = [
+            'id', 'name', 'stage', 'contactName', 'expectedAmountEur',
+            'expectedCloseDate', 'ownerName', 'source', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
     Map listOpportunitiesPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0,
                               String q = null, String stage = null, Long customerId = null,
-                              boolean openOnly = false) {
+                              boolean openOnly = false, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        List items = Opportunity.createCriteria().list(max: max, offset: offset, sort: 'id', order: 'desc') {
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', OPP_SORT_FIELDS)
+        List items = Opportunity.createCriteria().list(max: max, offset: offset) {
             eq('npubOwner', npub)
             if (activeOnly) eq('active', Boolean.TRUE)
             if (stage?.trim()) eq('stage', stage.trim().toUpperCase())
@@ -234,6 +241,7 @@ class SalesCrmService {
                     ilike('ownerName', like)
                 }
             }
+            steakos.api.ListPaging.applyOrders(delegate, so)
         } as List
 
         Number total = Opportunity.createCriteria().count {
@@ -253,7 +261,7 @@ class SalesCrmService {
             }
         } as Number
 
-        [items: items, total: total as int]
+        [items: items, total: total as int, sort: so.sort, order: so.order]
     }
 
     // -------------------------------------------------------------------------

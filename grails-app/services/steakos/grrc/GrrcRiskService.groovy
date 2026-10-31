@@ -82,21 +82,27 @@ class GrrcRiskService {
     @Transactional(readOnly = true)
     RiskItem get(Long id, String npubOwner) { load(id, npubOwner) }
 
+    static final List RISK_SORT_FIELDS = [
+            'id', 'name', 'status', 'severity', 'likelihood', 'ownerName'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status?.trim()) {
-            String st = status.trim().toUpperCase()
-            return [
-                    items: RiskItem.findAllByNpubOwnerAndStatus(npub, st, opts),
-                    total: RiskItem.countByNpubOwnerAndStatus(npub, st) as int
-            ]
-        }
-        return [
-                items: RiskItem.findAllByNpubOwner(npub, opts),
-                total: RiskItem.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', RISK_SORT_FIELDS)
+        String st = status?.trim() ? status.trim().toUpperCase() : null
+        List items = RiskItem.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (st) eq('status', st)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = RiskItem.createCriteria().count {
+            eq('npubOwner', npub)
+            if (st) eq('status', st)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(RiskItem r) {

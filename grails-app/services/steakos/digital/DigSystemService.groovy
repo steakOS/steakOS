@@ -66,20 +66,27 @@ class DigSystemService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List SYSTEM_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'systemKey', 'environment', 'active'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, boolean activeOnly = false, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, boolean activeOnly = false, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'name', order: 'asc', max: max, offset: offset]
-        if (activeOnly) {
-            return [
-                    items: steakos.digital.System.findAllByNpubOwnerAndActive(npub, Boolean.TRUE, opts),
-                    total: steakos.digital.System.countByNpubOwnerAndActive(npub, Boolean.TRUE) as int
-            ]
-        }
-        return [
-                items: steakos.digital.System.findAllByNpubOwner(npub, opts),
-                total: steakos.digital.System.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', SYSTEM_SORT_FIELDS)
+        List items = steakos.digital.System.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = steakos.digital.System.createCriteria().count {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

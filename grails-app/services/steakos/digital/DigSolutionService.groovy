@@ -90,20 +90,27 @@ class DigSolutionService {
         listPage(npubOwner, lifecycleStatus, 500, 0).items as List<Solution>
     }
 
+    static final List SOLUTION_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'lifecycleStatus', 'integrationType', 'versionLabel'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String lifecycleStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String lifecycleStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (lifecycleStatus) {
-            return [
-                    items: Solution.findAllByNpubOwnerAndLifecycleStatus(npub, lifecycleStatus, opts),
-                    total: Solution.countByNpubOwnerAndLifecycleStatus(npub, lifecycleStatus) as int
-            ]
-        }
-        return [
-                items: Solution.findAllByNpubOwner(npub, opts),
-                total: Solution.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', SOLUTION_SORT_FIELDS)
+        List items = Solution.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (lifecycleStatus) eq('lifecycleStatus', lifecycleStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Solution.createCriteria().count {
+            eq('npubOwner', npub)
+            if (lifecycleStatus) eq('lifecycleStatus', lifecycleStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(Solution s) {

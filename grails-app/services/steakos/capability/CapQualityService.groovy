@@ -88,20 +88,26 @@ class CapQualityService {
         listPage(npubOwner, qualityStatus, 500, 0).items as List<Quality>
     }
 
+    static final List QUALITY_SORT_FIELDS = [
+            'id', 'name', 'qualityCode', 'qualityStatus', 'status'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String qualityStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String qualityStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (qualityStatus) {
-            return [
-                    items: Quality.findAllByNpubOwnerAndQualityStatus(npub, qualityStatus, opts),
-                    total: Quality.countByNpubOwnerAndQualityStatus(npub, qualityStatus) as int
-            ]
-        }
-        return [
-                items: Quality.findAllByNpubOwner(npub, opts),
-                total: Quality.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', QUALITY_SORT_FIELDS)
+        List items = Quality.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (qualityStatus) eq('qualityStatus', qualityStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Quality.createCriteria().count {
+            eq('npubOwner', npub)
+            if (qualityStatus) eq('qualityStatus', qualityStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

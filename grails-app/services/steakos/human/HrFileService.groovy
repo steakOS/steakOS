@@ -88,20 +88,27 @@ class HrFileService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List FILE_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'employmentStatus', 'employmentKind', 'username'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String employmentStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String employmentStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (employmentStatus) {
-            return [
-                    items: HRFile.findAllByNpubOwnerAndEmploymentStatus(npub, employmentStatus, opts),
-                    total: HRFile.countByNpubOwnerAndEmploymentStatus(npub, employmentStatus) as int
-            ]
-        }
-        return [
-                items: HRFile.findAllByNpubOwner(npub, opts),
-                total: HRFile.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', FILE_SORT_FIELDS)
+        List items = HRFile.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (employmentStatus) eq('employmentStatus', employmentStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = HRFile.createCriteria().count {
+            eq('npubOwner', npub)
+            if (employmentStatus) eq('employmentStatus', employmentStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

@@ -118,20 +118,27 @@ class HrRecruitService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List CANDIDATE_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'stage', 'roleLabel', 'email', 'appliedAt'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String stage = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String stage = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (stage) {
-            return [
-                    items: Candidate.findAllByNpubOwnerAndStage(npub, stage, opts),
-                    total: Candidate.countByNpubOwnerAndStage(npub, stage) as int
-            ]
-        }
-        return [
-                items: Candidate.findAllByNpubOwner(npub, opts),
-                total: Candidate.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', CANDIDATE_SORT_FIELDS)
+        List items = Candidate.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (stage) eq('stage', stage)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Candidate.createCriteria().count {
+            eq('npubOwner', npub)
+            if (stage) eq('stage', stage)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

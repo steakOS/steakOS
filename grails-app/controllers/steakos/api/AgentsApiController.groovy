@@ -42,13 +42,14 @@ class AgentsApiController {
     def agentList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = agAgentService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = agAgentService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { agAgentService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc']
             )
         }
     }
@@ -97,13 +98,14 @@ class AgentsApiController {
     def hiveList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = agHiveService.listPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = agHiveService.listPage(npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { agHiveService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -156,13 +158,14 @@ class AgentsApiController {
     def approvalList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = agApprovalService.listPage(npub, params.decision as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = agApprovalService.listPage(npub, params.decision as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { agApprovalService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -206,13 +209,14 @@ class AgentsApiController {
         wrap { String npub ->
             boolean archived = params.includeArchived == 'true'
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = agMemoryService.listPage(npub, params.kind as String, archived, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = agMemoryService.listPage(npub, params.kind as String, archived, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { agMemoryService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -243,13 +247,14 @@ class AgentsApiController {
     def linkList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = agLinkService.listPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = agLinkService.listPage(npub, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { agLinkService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }

@@ -68,20 +68,26 @@ class CapPortfolioService {
         listPage(npubOwner, portfolioStatus, 500, 0).items as List<Portfolio>
     }
 
+    static final List PORTFOLIO_SORT_FIELDS = [
+            'id', 'name', 'portfolioStatus', 'status', 'ownerRef'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String portfolioStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String portfolioStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (portfolioStatus) {
-            return [
-                    items: Portfolio.findAllByNpubOwnerAndPortfolioStatus(npub, portfolioStatus, opts),
-                    total: Portfolio.countByNpubOwnerAndPortfolioStatus(npub, portfolioStatus) as int
-            ]
-        }
-        return [
-                items: Portfolio.findAllByNpubOwner(npub, opts),
-                total: Portfolio.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PORTFOLIO_SORT_FIELDS)
+        List items = Portfolio.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (portfolioStatus) eq('portfolioStatus', portfolioStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Portfolio.createCriteria().count {
+            eq('npubOwner', npub)
+            if (portfolioStatus) eq('portfolioStatus', portfolioStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(Portfolio p) {

@@ -112,21 +112,28 @@ class FinanceLedgerService {
         listAccountsPage(npubOwner, activeOnly, 500, 0).items as List<Account>
     }
 
+    static final List ACCOUNT_SORT_FIELDS = [
+            'id', 'code', 'name', 'accountType', 'accountSubType',
+            'currencyCode', 'active', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /** Paged chart of accounts (LIST-PAGINATION). */
     @Transactional(readOnly = true)
-    Map listAccountsPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0) {
+    Map listAccountsPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0,
+                         Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'code', order: 'asc', max: max, offset: offset]
-        if (activeOnly) {
-            return [
-                    items: Account.findAllByNpubOwnerAndActive(npub, Boolean.TRUE, opts),
-                    total: Account.countByNpubOwnerAndActive(npub, Boolean.TRUE) as int
-            ]
-        }
-        return [
-                items: Account.findAllByNpubOwner(npub, opts),
-                total: Account.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'code', 'asc', ACCOUNT_SORT_FIELDS)
+        List items = Account.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Account.createCriteria().count {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional

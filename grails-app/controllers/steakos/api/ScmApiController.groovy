@@ -43,14 +43,15 @@ class ScmApiController {
     def vendorList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
+            Map listOpts = [sort: params.sort, order: params.order]
             Map result = scmVendorService.listVendorsPage(
-                    npub, true, page.max as int, page.offset as int, params.q as String)
+                    npub, true, page.max as int, page.offset as int, params.q as String, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { scmVendorService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'name', order: 'asc', q: params.q]
+                    [npubOwner: npub, sort: result.sort ?: 'name', order: result.order ?: 'asc', q: params.q]
             )
         }
     }
@@ -221,13 +222,15 @@ class ScmApiController {
     def prodList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = scmProductionService.listOrdersPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = scmProductionService.listOrdersPage(
+                    npub, params.status as String, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { scmProductionService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -281,13 +284,14 @@ class ScmApiController {
     def lotList() {
         wrap { String npub ->
             Map page = ListPaging.pageParams(params, ListPaging.DEFAULT_MAX, ListPaging.HARD_MAX)
-            Map result = scmQualityService.listLotsPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = scmQualityService.listLotsPage(npub, page.max as int, page.offset as int, listOpts)
             ListPaging.envelope(
                     (result.items as List).collect { scmQualityService.lotToMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }

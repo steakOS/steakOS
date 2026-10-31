@@ -67,20 +67,26 @@ class CapStandardService {
         listPage(npubOwner, standardStatus, 500, 0).items as List<Standard>
     }
 
+    static final List STANDARD_SORT_FIELDS = [
+            'id', 'name', 'metricCode', 'standardStatus', 'status', 'unit'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String standardStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String standardStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (standardStatus) {
-            return [
-                    items: Standard.findAllByNpubOwnerAndStandardStatus(npub, standardStatus, opts),
-                    total: Standard.countByNpubOwnerAndStandardStatus(npub, standardStatus) as int
-            ]
-        }
-        return [
-                items: Standard.findAllByNpubOwner(npub, opts),
-                total: Standard.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', STANDARD_SORT_FIELDS)
+        List items = Standard.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (standardStatus) eq('standardStatus', standardStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Standard.createCriteria().count {
+            eq('npubOwner', npub)
+            if (standardStatus) eq('standardStatus', standardStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(Standard s) {

@@ -121,20 +121,27 @@ class AgHiveService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List HIVE_SORT_FIELDS = [
+            'id', 'name', 'status', 'code',
+            'hiveStatus', 'apqcAreaCode', 'maxAgents'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String hiveStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String hiveStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (hiveStatus) {
-            return [
-                    items: Hive.findAllByNpubOwnerAndHiveStatus(npub, hiveStatus, opts),
-                    total: Hive.countByNpubOwnerAndHiveStatus(npub, hiveStatus) as int
-            ]
-        }
-        return [
-                items: Hive.findAllByNpubOwner(npub, opts),
-                total: Hive.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', HIVE_SORT_FIELDS)
+        List items = Hive.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (hiveStatus) eq('hiveStatus', hiveStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Hive.createCriteria().count {
+            eq('npubOwner', npub)
+            if (hiveStatus) eq('hiveStatus', hiveStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

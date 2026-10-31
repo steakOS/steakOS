@@ -59,20 +59,27 @@ class HrPolicyService {
     }
 
     /** Paged list — full-dataset count + page (LIST-PAGINATION-CONCEPT). */
+    static final List POLICY_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'policyKind', 'active', 'effectiveFrom'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, boolean activeOnly = true, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'name', order: 'asc', max: max, offset: offset]
-        if (activeOnly) {
-            return [
-                    items: Policy.findAllByNpubOwnerAndActive(npub, Boolean.TRUE, opts),
-                    total: Policy.countByNpubOwnerAndActive(npub, Boolean.TRUE) as int
-            ]
-        }
-        return [
-                items: Policy.findAllByNpubOwner(npub, opts),
-                total: Policy.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', POLICY_SORT_FIELDS)
+        List items = Policy.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Policy.createCriteria().count {
+            eq('npubOwner', npub)
+            if (activeOnly) eq('active', Boolean.TRUE)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

@@ -27,6 +27,7 @@ import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel, labelFromList } from '../utils/entityDisplayLabel'
+import ListSortHeader from '../components/ListSortHeader'
 
 const PARTY_KINDS = [
   'REGULATOR',
@@ -147,6 +148,13 @@ export default function StakeholderDesk() {
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
   const [silverGate, setSilverGate] = useState(false)
+  const [partySort, setPartySort] = useState('id')
+  const [partyOrder, setPartyOrder] = useState('desc')
+
+  const onPartySortChange = useCallback(({ sort: s, order: o }) => {
+    setPartySort(s || 'id')
+    setPartyOrder(o === 'asc' ? 'asc' : 'desc')
+  }, [])
 
   const tabs = useMemo(
     () => [
@@ -161,7 +169,12 @@ export default function StakeholderDesk() {
     setError(null)
     try {
       const [p, c] = await Promise.all([
-        stakeholderApi.parties.list({ max: 100, offset: 0 }),
+        stakeholderApi.parties.list({
+          max: 100,
+          offset: 0,
+          sort: partySort,
+          order: partyOrder,
+        }),
         stakeholderApi.comms.list({ max: 50, offset: 0 }),
       ])
       setParties(p?.items || [])
@@ -184,7 +197,7 @@ export default function StakeholderDesk() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [partySort, partyOrder])
 
   useEffect(() => {
     load()
@@ -650,7 +663,7 @@ export default function StakeholderDesk() {
       </form>
     )
 
-  const listTable = (cols, emptyKey, emptyDefault, actionKind) =>
+  const listTable = (cols, emptyKey, emptyDefault, actionKind, sortProps = null) =>
     items.length === 0 ? (
       <p className="muted">{t(emptyKey, { defaultValue: emptyDefault })}</p>
     ) : (
@@ -658,9 +671,20 @@ export default function StakeholderDesk() {
         <table className="data">
           <thead>
             <tr>
-              {cols.map((c) => (
-                <th key={c.key}>{c.label}</th>
-              ))}
+              {cols.map((c) =>
+                sortProps && c.sortField ? (
+                  <ListSortHeader
+                    key={c.key}
+                    field={c.sortField}
+                    label={c.label}
+                    sort={sortProps.sort}
+                    order={sortProps.order}
+                    onSortChange={sortProps.onSortChange}
+                  />
+                ) : (
+                  <th key={c.key}>{c.label}</th>
+                ),
+              )}
               <th>{ACTION_TH(t)}</th>
             </tr>
           </thead>
@@ -695,16 +719,19 @@ export default function StakeholderDesk() {
             [
               {
                 key: 'name',
+                sortField: 'name',
                 label: t('stakeholder.colName', { defaultValue: 'Name / subject' }),
                 render: (r) => entityDisplayLabel(r),
               },
               {
                 key: 'status',
+                sortField: 'status',
                 label: t('stakeholder.colStatus', { defaultValue: 'Status' }),
                 render: (r) => <span className={statusClass(r.status)}>{r.status || '—'}</span>,
               },
               {
                 key: 'kind',
+                sortField: 'partyKind',
                 label: t('stakeholder.colKind', { defaultValue: 'Kind' }),
                 render: (r) => r.partyKind || '—',
               },
@@ -712,6 +739,7 @@ export default function StakeholderDesk() {
             'stakeholder.emptyParties',
             'No parties yet. Register a stakeholder with New.',
             'parties',
+            { sort: partySort, order: partyOrder, onSortChange: onPartySortChange },
           )
         )}
       </>

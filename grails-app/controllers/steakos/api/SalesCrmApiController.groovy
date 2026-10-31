@@ -57,6 +57,7 @@ class SalesCrmApiController {
             boolean activeOnly = params.active == null || params.boolean('active')
             boolean openOnly = params.boolean('open')
             Long customerId = params.customerId ? params.long('customerId') : null
+            Map listOpts = [sort: params.sort, order: params.order]
             Map result = salesCrmService.listOpportunitiesPage(
                     npub,
                     activeOnly,
@@ -65,14 +66,16 @@ class SalesCrmApiController {
                     params.q as String,
                     params.stage as String,
                     customerId,
-                    openOnly
+                    openOnly,
+                    listOpts
             )
             ListPaging.envelope(
                     (result.items as List).collect { salesCrmService.toMap(it as Opportunity, false) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc', q: params.q, stage: params.stage]
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc',
+                     q: params.q, stage: params.stage]
             )
         }
     }

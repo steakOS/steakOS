@@ -97,20 +97,27 @@ class DigChangeService {
         listPage(npubOwner, changeStatus, 300, 0).items as List<ITChange>
     }
 
+    static final List CHANGE_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'changeStatus', 'changeKind', 'riskLevel'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String changeStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String changeStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (changeStatus) {
-            return [
-                    items: ITChange.findAllByNpubOwnerAndChangeStatus(npub, changeStatus, opts),
-                    total: ITChange.countByNpubOwnerAndChangeStatus(npub, changeStatus) as int
-            ]
-        }
-        return [
-                items: ITChange.findAllByNpubOwner(npub, opts),
-                total: ITChange.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', CHANGE_SORT_FIELDS)
+        List items = ITChange.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (changeStatus) eq('changeStatus', changeStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = ITChange.createCriteria().count {
+            eq('npubOwner', npub)
+            if (changeStatus) eq('changeStatus', changeStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

@@ -120,15 +120,27 @@ class FinanceTreasuryService {
         listPositionsPage(npubOwner, 200, 0).items as List<Treasury>
     }
 
+    static final List TREASURY_SORT_FIELDS = [
+            'id', 'name', 'accountKind', 'balanceEur', 'balanceSats',
+            'currencyCode', 'lastReconciledAt', 'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /** Paged treasury positions (LIST-PAGINATION). */
     @Transactional(readOnly = true)
-    Map listPositionsPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listPositionsPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'accountKind', order: 'asc', max: max, offset: offset]
-        [
-                items: Treasury.findAllByNpubOwnerAndActive(npub, Boolean.TRUE, opts),
-                total: Treasury.countByNpubOwnerAndActive(npub, Boolean.TRUE) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'accountKind', 'asc', TREASURY_SORT_FIELDS)
+        List items = Treasury.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            eq('active', Boolean.TRUE)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Treasury.createCriteria().count {
+            eq('npubOwner', npub)
+            eq('active', Boolean.TRUE)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     /**

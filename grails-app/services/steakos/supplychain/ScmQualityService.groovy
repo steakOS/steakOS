@@ -137,14 +137,23 @@ class ScmQualityService {
         listLotsPage(npubOwner, 200, 0).items as List<Lot>
     }
 
+    static final List LOT_SORT_FIELDS = [
+            'id', 'name', 'lotCode', 'lotStatus', 'status', 'quantity', 'manufacturedOn'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listLotsPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listLotsPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        [
-                items: Lot.findAllByNpubOwner(npub, opts),
-                total: Lot.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', LOT_SORT_FIELDS)
+        List items = Lot.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Lot.createCriteria().count {
+            eq('npubOwner', npub)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

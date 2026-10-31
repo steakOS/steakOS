@@ -23,6 +23,7 @@ import useRecordView from '../hooks/useRecordView'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
@@ -124,6 +125,21 @@ export default function DevelopmentDesk() {
   const [busy, setBusy] = useState(null)
   const [projectForm, setProjectForm] = useState(() => projectMasterSpec.empty())
   const [projectPage, setProjectPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [projectSort, setProjectSort] = useState('id')
+  const [projectOrder, setProjectOrder] = useState('desc')
+  const onProjectSortChange = useCallback(({ sort: s, order: o }) => {
+    setProjectSort(s || 'id')
+    setProjectOrder(o === 'asc' ? 'asc' : 'desc')
+    setProjectPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const PROJECT_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'status', label: 'Status' },
+    ],
+    [],
+  )
 
   const onMasterField = (e) => {
     const { name, value, type, checked } = e.target
@@ -142,8 +158,8 @@ export default function DevelopmentDesk() {
     const res = await domainsApi.list(PKG, RESOURCE, {
       max: projectPage.max,
       offset: projectPage.offset,
-      sort: 'id',
-      order: 'desc',
+      sort: projectSort,
+      order: projectOrder,
     })
     const items = res.items || res || []
     setProjects(Array.isArray(items) ? items : [])
@@ -153,7 +169,7 @@ export default function DevelopmentDesk() {
       offset: res.offset ?? pg.offset,
       total: res.total ?? (Array.isArray(items) ? items.length : 0),
     }))
-  }, [projectPage.max, projectPage.offset])
+  }, [projectPage.max, projectPage.offset, projectSort, projectOrder])
 
   loadAllRef.current = loadAll
 
@@ -382,6 +398,10 @@ export default function DevelopmentDesk() {
         items={projects}
         empty="—"
         onSelect={(p) => openView(PKG, RESOURCE, p)}
+        sortFields={PROJECT_SORT_MENU}
+        sort={projectSort}
+        order={projectOrder}
+        onSortChange={onProjectSortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           { id: 'kind', secondary: true, render: (p) => p.projectKind || '—' },
@@ -393,9 +413,21 @@ export default function DevelopmentDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={projectSort}
+                  order={projectOrder}
+                  onSortChange={onProjectSortChange}
+                />
                 <th>{t('wb.kind', { ns: 'common', defaultValue: 'Kind' })}</th>
-                <th>{t('wb.status', { ns: 'common', defaultValue: 'Status' })}</th>
+                <ListSortHeader
+                  field="status"
+                  label={t('wb.status', { ns: 'common', defaultValue: 'Status' })}
+                  sort={projectSort}
+                  order={projectOrder}
+                  onSortChange={onProjectSortChange}
+                />
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>

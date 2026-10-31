@@ -32,6 +32,7 @@ import { digitalApi, meApi } from '../api/client'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import useRecordView from '../hooks/useRecordView'
 import PendingContentComposer, {
   attachPendingContent,
@@ -171,6 +172,105 @@ export default function DigitalDesk() {
   const [chgPage, setChgPage] = useState({ max: 25, offset: 0, total: 0 })
   const [ciPage, setCiPage] = useState({ max: 25, offset: 0, total: 0 })
   const [tixPage, setTixPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [sysSort, setSysSort] = useState('name')
+  const [sysOrder, setSysOrder] = useState('asc')
+  const [dataSort, setDataSort] = useState('name')
+  const [dataOrder, setDataOrder] = useState('asc')
+  const [solSort, setSolSort] = useState('id')
+  const [solOrder, setSolOrder] = useState('desc')
+  const [chgSort, setChgSort] = useState('id')
+  const [chgOrder, setChgOrder] = useState('desc')
+  const [ciSort, setCiSort] = useState('name')
+  const [ciOrder, setCiOrder] = useState('asc')
+  const [tixSort, setTixSort] = useState('id')
+  const [tixOrder, setTixOrder] = useState('desc')
+
+  const SYS_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'systemKey', label: t('digital.key') },
+      { value: 'environment', label: t('digital.env') },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const DATA_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'dataClass', label: t('wb.class', { ns: 'common', defaultValue: 'Class' }) },
+      { value: 'retentionDays', label: 'Retention' },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const SOL_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'integrationType', label: t('wb.type', { ns: 'common' }) },
+      { value: 'lifecycleStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const CHG_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'changeKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'changeStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const CI_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'ciKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'hostname', label: t('digital.host') },
+      { value: 'ciStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const TIX_SORT_MENU = useMemo(
+    () => [
+      { value: 'ticketNumber', label: t('wb.number', { ns: 'common' }) },
+      { value: 'name', label: t('wb.subject', { ns: 'common' }) },
+      { value: 'ticketStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+
+  const onSysSortChange = useCallback(({ sort: s, order: o }) => {
+    setSysSort(s || 'name')
+    setSysOrder(o === 'asc' ? 'asc' : 'desc')
+    setSysPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onDataSortChange = useCallback(({ sort: s, order: o }) => {
+    setDataSort(s || 'name')
+    setDataOrder(o === 'asc' ? 'asc' : 'desc')
+    setDataPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onSolSortChange = useCallback(({ sort: s, order: o }) => {
+    setSolSort(s || 'id')
+    setSolOrder(o === 'asc' ? 'asc' : 'desc')
+    setSolPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onChgSortChange = useCallback(({ sort: s, order: o }) => {
+    setChgSort(s || 'id')
+    setChgOrder(o === 'asc' ? 'asc' : 'desc')
+    setChgPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onCiSortChange = useCallback(({ sort: s, order: o }) => {
+    setCiSort(s || 'name')
+    setCiOrder(o === 'asc' ? 'asc' : 'desc')
+    setCiPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onTixSortChange = useCallback(({ sort: s, order: o }) => {
+    setTixSort(s || 'id')
+    setTixOrder(o === 'asc' ? 'asc' : 'desc')
+    setTixPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
 
   const [sysForm, setSysForm] = useState({
     name: '',
@@ -211,12 +311,12 @@ export default function DigitalDesk() {
 
   const loadAll = useCallback(async () => {
     const results = await Promise.allSettled([
-      digitalApi.systems.list({ max: sysPage.max, offset: sysPage.offset }),
-      digitalApi.data.list({ max: dataPage.max, offset: dataPage.offset }),
-      digitalApi.solutions.list({ max: solPage.max, offset: solPage.offset }),
-      digitalApi.changes.list({ max: chgPage.max, offset: chgPage.offset }),
-      digitalApi.cis.list({ max: ciPage.max, offset: ciPage.offset }),
-      digitalApi.tickets.list({ max: tixPage.max, offset: tixPage.offset }),
+      digitalApi.systems.list({ max: sysPage.max, offset: sysPage.offset, sort: sysSort, order: sysOrder }),
+      digitalApi.data.list({ max: dataPage.max, offset: dataPage.offset, sort: dataSort, order: dataOrder }),
+      digitalApi.solutions.list({ max: solPage.max, offset: solPage.offset, sort: solSort, order: solOrder }),
+      digitalApi.changes.list({ max: chgPage.max, offset: chgPage.offset, sort: chgSort, order: chgOrder }),
+      digitalApi.cis.list({ max: ciPage.max, offset: ciPage.offset, sort: ciSort, order: ciOrder }),
+      digitalApi.tickets.list({ max: tixPage.max, offset: tixPage.offset, sort: tixSort, order: tixOrder }),
       digitalApi.systems.list({ max: 100, offset: 0 }),
       digitalApi.solutions.list({ max: 100, offset: 0 }),
       digitalApi.cis.list({ max: 100, offset: 0 }),
@@ -308,16 +408,28 @@ export default function DigitalDesk() {
   }, [
     sysPage.max,
     sysPage.offset,
+    sysSort,
+    sysOrder,
     dataPage.max,
     dataPage.offset,
+    dataSort,
+    dataOrder,
     solPage.max,
     solPage.offset,
+    solSort,
+    solOrder,
     chgPage.max,
     chgPage.offset,
+    chgSort,
+    chgOrder,
     ciPage.max,
     ciPage.offset,
+    ciSort,
+    ciOrder,
     tixPage.max,
     tixPage.offset,
+    tixSort,
+    tixOrder,
   ])
 
   // Resolve selection from loaded lists (digital changes/tickets have no GET-by-id).
@@ -1053,6 +1165,10 @@ export default function DigitalDesk() {
       <ResponsiveDataList
         items={systems}
         empty="—"
+        sortFields={SYS_SORT_MENU}
+        sort={sysSort}
+        order={sysOrder}
+        onSortChange={onSysSortChange}
         fields={[
           { id: 'name', primary: true, render: (s) => s.name },
           {
@@ -1072,9 +1188,34 @@ export default function DigitalDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('digital.key')}</th>
-                <th>{t('digital.env')}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={sysSort}
+                  order={sysOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onSysSortChange}
+                />
+                <ListSortHeader
+                  field="systemKey"
+                  label={t('digital.key')}
+                  sort={sysSort}
+                  order={sysOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onSysSortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="environment"
+                  label={t('digital.env')}
+                  sort={sysSort}
+                  order={sysOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onSysSortChange}
+                />
                 <th />
               </tr>
             </thead>
@@ -1112,6 +1253,10 @@ export default function DigitalDesk() {
       <ResponsiveDataList
         items={dataItems}
         empty="—"
+        sortFields={DATA_SORT_MENU}
+        sort={dataSort}
+        order={dataOrder}
+        onSortChange={onDataSortChange}
         fields={[
           { id: 'name', primary: true, render: (d) => d.name },
           {
@@ -1131,9 +1276,34 @@ export default function DigitalDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('wb.class', { ns: 'common', defaultValue: 'Class' })}</th>
-                <th className="col-priority-low">Retention</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={dataSort}
+                  order={dataOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onDataSortChange}
+                />
+                <ListSortHeader
+                  field="dataClass"
+                  label={t('wb.class', { ns: 'common', defaultValue: 'Class' })}
+                  sort={dataSort}
+                  order={dataOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onDataSortChange}
+                />
+                <ListSortHeader
+                  field="retentionDays"
+                  label="Retention"
+                  sort={dataSort}
+                  order={dataOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onDataSortChange}
+                  className="col-priority-low"
+                />
                 <th />
               </tr>
             </thead>
@@ -1178,6 +1348,10 @@ export default function DigitalDesk() {
       <ResponsiveDataList
         items={solutions}
         empty="—"
+        sortFields={SOL_SORT_MENU}
+        sort={solSort}
+        order={solOrder}
+        onSortChange={onSolSortChange}
         fields={[
           { id: 'name', primary: true, render: (s) => s.name },
           {
@@ -1233,9 +1407,34 @@ export default function DigitalDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.type', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={solSort}
+                  order={solOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onSolSortChange}
+                />
+                <ListSortHeader
+                  field="integrationType"
+                  label={t('wb.type', { ns: 'common' })}
+                  sort={solSort}
+                  order={solOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onSolSortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="lifecycleStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={solSort}
+                  order={solOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onSolSortChange}
+                />
                 <th />
               </tr>
             </thead>
@@ -1305,6 +1504,10 @@ export default function DigitalDesk() {
       <ResponsiveDataList
         items={changes}
         empty="—"
+        sortFields={CHG_SORT_MENU}
+        sort={chgSort}
+        order={chgOrder}
+        onSortChange={onChgSortChange}
         selectedKey={selectedChange?.id}
         onSelect={(c) => setSelectedId(String(c.id))}
         fields={[
@@ -1328,10 +1531,35 @@ export default function DigitalDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={chgSort}
+                  order={chgOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onChgSortChange}
+                />
+                <ListSortHeader
+                  field="changeKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={chgSort}
+                  order={chgOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onChgSortChange}
+                  className="col-priority-low"
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="changeStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={chgSort}
+                  order={chgOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onChgSortChange}
+                />
                 <th />
               </tr>
             </thead>
@@ -1379,6 +1607,10 @@ export default function DigitalDesk() {
       <ResponsiveDataList
         items={cis}
         empty="—"
+        sortFields={CI_SORT_MENU}
+        sort={ciSort}
+        order={ciOrder}
+        onSortChange={onCiSortChange}
         fields={[
           { id: 'name', primary: true, render: (c) => c.name },
           {
@@ -1403,10 +1635,44 @@ export default function DigitalDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.kind', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('digital.host')}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={ciSort}
+                  order={ciOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onCiSortChange}
+                />
+                <ListSortHeader
+                  field="ciKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={ciSort}
+                  order={ciOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onCiSortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="hostname"
+                  label={t('digital.host')}
+                  sort={ciSort}
+                  order={ciOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onCiSortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="ciStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={ciSort}
+                  order={ciOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onCiSortChange}
+                />
                 <th />
               </tr>
             </thead>
@@ -1447,6 +1713,10 @@ export default function DigitalDesk() {
       <ResponsiveDataList
         items={tickets}
         empty="—"
+        sortFields={TIX_SORT_MENU}
+        sort={tixSort}
+        order={tixOrder}
+        onSortChange={onTixSortChange}
         selectedKey={selectedTicket?.id}
         onSelect={(row) => setSelectedId(String(row.id))}
         fields={[
@@ -1472,10 +1742,34 @@ export default function DigitalDesk() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.number', { ns: 'common' })}</th>
-                <th>{t('wb.subject', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="ticketNumber"
+                  label={t('wb.number', { ns: 'common' })}
+                  sort={tixSort}
+                  order={tixOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onTixSortChange}
+                />
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.subject', { ns: 'common' })}
+                  sort={tixSort}
+                  order={tixOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onTixSortChange}
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="ticketStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={tixSort}
+                  order={tixOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onTixSortChange}
+                />
                 <th />
               </tr>
             </thead>

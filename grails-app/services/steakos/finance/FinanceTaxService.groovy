@@ -120,15 +120,25 @@ class FinanceTaxService {
         listTaxPeriodsPage(npubOwner, 200, 0).items as List<Tax>
     }
 
+    static final List TAX_SORT_FIELDS = [
+            'id', 'name', 'period', 'jurisdiction', 'amountEur', 'taxStatus',
+            'dateCreated', 'lastUpdated'
+    ].asImmutable()
+
     /** Paged tax period estimates (LIST-PAGINATION). */
     @Transactional(readOnly = true)
-    Map listTaxPeriodsPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listTaxPeriodsPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'period', order: 'desc', max: max, offset: offset]
-        [
-                items: Tax.findAllByNpubOwner(npub, opts),
-                total: Tax.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'period', 'desc', TAX_SORT_FIELDS)
+        List items = Tax.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Tax.createCriteria().count {
+            eq('npubOwner', npub)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(Tax t) {

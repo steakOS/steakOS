@@ -137,20 +137,30 @@ class CapProjectService {
         listProjectsPage(npubOwner, projectStatus, 500, 0).items as List<Project>
     }
 
+    static final List PROJECT_SORT_FIELDS = [
+            'id', 'name', 'projectStatus', 'status', 'startDate', 'endDate'
+    ].asImmutable()
+
+    static final List PROGRAM_SORT_FIELDS = [
+            'id', 'name', 'programStatus', 'status'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listProjectsPage(String npubOwner, String projectStatus = null, int max = 25, int offset = 0) {
+    Map listProjectsPage(String npubOwner, String projectStatus = null, int max = 25, int offset = 0,
+                         Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (projectStatus) {
-            return [
-                    items: Project.findAllByNpubOwnerAndProjectStatus(npub, projectStatus, opts),
-                    total: Project.countByNpubOwnerAndProjectStatus(npub, projectStatus) as int
-            ]
-        }
-        return [
-                items: Project.findAllByNpubOwner(npub, opts),
-                total: Project.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PROJECT_SORT_FIELDS)
+        List items = Project.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (projectStatus) eq('projectStatus', projectStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Project.createCriteria().count {
+            eq('npubOwner', npub)
+            if (projectStatus) eq('projectStatus', projectStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)
@@ -166,13 +176,18 @@ class CapProjectService {
     }
 
     @Transactional(readOnly = true)
-    Map listProgramsPage(String npubOwner, int max = 25, int offset = 0) {
+    Map listProgramsPage(String npubOwner, int max = 25, int offset = 0, Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        [
-                items: Program.findAllByNpubOwner(npub, opts),
-                total: Program.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PROGRAM_SORT_FIELDS)
+        List items = Program.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Program.createCriteria().count {
+            eq('npubOwner', npub)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

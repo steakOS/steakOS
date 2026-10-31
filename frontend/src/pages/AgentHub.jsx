@@ -45,6 +45,7 @@ import { labelFromList } from '../utils/entityDisplayLabel'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import RowActionSlots from '../components/RowActionSlots'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -164,6 +165,73 @@ export default function AgentHub() {
   const [hivePage, setHivePage] = useState({ max: 25, offset: 0, total: 0 })
   const [approvalPage, setApprovalPage] = useState({ max: 25, offset: 0, total: 0 })
   const [memoryPage, setMemoryPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [agentSort, setAgentSort] = useState('name')
+  const [agentOrder, setAgentOrder] = useState('asc')
+  const [hiveSort, setHiveSort] = useState('id')
+  const [hiveOrder, setHiveOrder] = useState('desc')
+  const [approvalSort, setApprovalSort] = useState('id')
+  const [approvalOrder, setApprovalOrder] = useState('desc')
+  const [memorySort, setMemorySort] = useState('id')
+  const [memoryOrder, setMemoryOrder] = useState('desc')
+
+  const AGENT_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'agentKey', label: t('wb.code', { ns: 'common' }) },
+      { value: 'runtimeKind', label: t('agents.runtime') },
+      { value: 'agentStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const HIVE_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.name', { ns: 'common' }) },
+      { value: 'apqcAreaCode', label: t('agents.area') },
+      { value: 'hiveStatus', label: t('wb.status', { ns: 'common' }) },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const APPROVAL_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.title', { ns: 'common' }) },
+      { value: 'riskLevel', label: t('agents.risk') },
+      { value: 'decision', label: t('agents.decision') },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+  const MEMORY_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: t('wb.title', { ns: 'common' }) },
+      { value: 'memoryKind', label: t('wb.kind', { ns: 'common' }) },
+      { value: 'score', label: t('agents.score') },
+      { value: 'id', label: 'Id' },
+    ],
+    [t],
+  )
+
+  const onAgentSortChange = useCallback(({ sort: s, order: o }) => {
+    setAgentSort(s || 'name')
+    setAgentOrder(o === 'asc' ? 'asc' : 'desc')
+    setAgentPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onHiveSortChange = useCallback(({ sort: s, order: o }) => {
+    setHiveSort(s || 'id')
+    setHiveOrder(o === 'asc' ? 'asc' : 'desc')
+    setHivePage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onApprovalSortChange = useCallback(({ sort: s, order: o }) => {
+    setApprovalSort(s || 'id')
+    setApprovalOrder(o === 'asc' ? 'asc' : 'desc')
+    setApprovalPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onMemorySortChange = useCallback(({ sort: s, order: o }) => {
+    setMemorySort(s || 'id')
+    setMemoryOrder(o === 'asc' ? 'asc' : 'desc')
+    setMemoryPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
 
   const [agentForm, setAgentForm] = useState({
     name: '',
@@ -247,7 +315,7 @@ export default function AgentHub() {
     try {
       if (tab === 'agents') {
         const [a, aPick, l] = await Promise.all([
-          agentsApi.agents.list({ max: agentPage.max, offset: agentPage.offset }),
+          agentsApi.agents.list({ max: agentPage.max, offset: agentPage.offset, sort: agentSort, order: agentOrder }),
           agentsApi.agents.list({ max: 100, offset: 0 }),
           agentsApi.links.list({ max: 100, offset: 0 }),
         ])
@@ -264,7 +332,7 @@ export default function AgentHub() {
         setAgentContentMap(await fetchContentMap('agents', 'Agent', ag))
       } else if (tab === 'hives') {
         const [h, aPick] = await Promise.all([
-          agentsApi.hives.list({ max: hivePage.max, offset: hivePage.offset }),
+          agentsApi.hives.list({ max: hivePage.max, offset: hivePage.offset, sort: hiveSort, order: hiveOrder }),
           agentsApi.agents.list({ max: 100, offset: 0 }),
         ])
         const hv = h.items || []
@@ -282,6 +350,8 @@ export default function AgentHub() {
             max: approvalPage.max,
             offset: approvalPage.offset,
             decision: 'PENDING',
+            sort: approvalSort,
+            order: approvalOrder,
           }),
           agentsApi.agents.list({ max: 100, offset: 0 }),
         ])
@@ -296,7 +366,7 @@ export default function AgentHub() {
         }))
       } else if (tab === 'memory') {
         const [m, aPick] = await Promise.all([
-          agentsApi.memories.list({ max: memoryPage.max, offset: memoryPage.offset }),
+          agentsApi.memories.list({ max: memoryPage.max, offset: memoryPage.offset, sort: memorySort, order: memoryOrder }),
           agentsApi.agents.list({ max: 100, offset: 0 }),
         ])
         const items = m.items || []
@@ -316,12 +386,20 @@ export default function AgentHub() {
     tab,
     agentPage.max,
     agentPage.offset,
+    agentSort,
+    agentOrder,
     hivePage.max,
     hivePage.offset,
+    hiveSort,
+    hiveOrder,
     approvalPage.max,
     approvalPage.offset,
+    approvalSort,
+    approvalOrder,
     memoryPage.max,
     memoryPage.offset,
+    memorySort,
+    memoryOrder,
   ])
   loadAllRef.current = loadSection
 
@@ -1093,6 +1171,10 @@ export default function AgentHub() {
       <ResponsiveDataList
         items={agents}
         empty="—"
+        sortFields={AGENT_SORT_MENU}
+        sort={agentSort}
+        order={agentOrder}
+        onSortChange={onAgentSortChange}
         loading={loading}
         selectedKey={selectedAgent?.id}
         onSelect={(a) => selectAgent(a)}
@@ -1138,11 +1220,45 @@ export default function AgentHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('agents.runtime')}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={agentSort}
+                  order={agentOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onAgentSortChange}
+                />
+                <ListSortHeader
+                  field="agentKey"
+                  label={t('wb.code', { ns: 'common' })}
+                  sort={agentSort}
+                  order={agentOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onAgentSortChange}
+                  className="col-priority-low"
+                />
+                <ListSortHeader
+                  field="runtimeKind"
+                  label={t('agents.runtime')}
+                  sort={agentSort}
+                  order={agentOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onAgentSortChange}
+                  className="col-priority-low"
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="agentStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={agentSort}
+                  order={agentOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onAgentSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1208,6 +1324,10 @@ export default function AgentHub() {
       <ResponsiveDataList
         items={hives}
         empty="—"
+        sortFields={HIVE_SORT_MENU}
+        sort={hiveSort}
+        order={hiveOrder}
+        onSortChange={onHiveSortChange}
         loading={loading}
         selectedKey={selectedHive?.id}
         onSelect={(h) => selectHive(h)}
@@ -1235,10 +1355,34 @@ export default function AgentHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('agents.area')}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={hiveSort}
+                  order={hiveOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onHiveSortChange}
+                />
+                <ListSortHeader
+                  field="apqcAreaCode"
+                  label={t('agents.area')}
+                  sort={hiveSort}
+                  order={hiveOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onHiveSortChange}
+                />
                 <th className="col-priority-low">{t('agents.master')}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="hiveStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={hiveSort}
+                  order={hiveOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onHiveSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1284,6 +1428,10 @@ export default function AgentHub() {
       <ResponsiveDataList
         items={approvals}
         empty="—"
+        sortFields={APPROVAL_SORT_MENU}
+        sort={approvalSort}
+        order={approvalOrder}
+        onSortChange={onApprovalSortChange}
         loading={loading}
         selectedKey={selectedApproval?.id}
         onSelect={(a) => selectApproval(a)}
@@ -1315,9 +1463,33 @@ export default function AgentHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.title', { ns: 'common' })}</th>
-                <th>{t('agents.risk')}</th>
-                <th>{t('agents.decision')}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.title', { ns: 'common' })}
+                  sort={approvalSort}
+                  order={approvalOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onApprovalSortChange}
+                />
+                <ListSortHeader
+                  field="riskLevel"
+                  label={t('agents.risk')}
+                  sort={approvalSort}
+                  order={approvalOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onApprovalSortChange}
+                />
+                <ListSortHeader
+                  field="decision"
+                  label={t('agents.decision')}
+                  sort={approvalSort}
+                  order={approvalOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onApprovalSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1369,6 +1541,10 @@ export default function AgentHub() {
       <ResponsiveDataList
         items={memories}
         empty="—"
+        sortFields={MEMORY_SORT_MENU}
+        sort={memorySort}
+        order={memoryOrder}
+        onSortChange={onMemorySortChange}
         loading={loading}
         selectedKey={selectedMemory?.id}
         onSelect={(m) => selectMemory(m)}
@@ -1392,9 +1568,33 @@ export default function AgentHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.title', { ns: 'common' })}</th>
-                <th>{t('wb.kind', { ns: 'common' })}</th>
-                <th>{t('agents.score')}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.title', { ns: 'common' })}
+                  sort={memorySort}
+                  order={memoryOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onMemorySortChange}
+                />
+                <ListSortHeader
+                  field="memoryKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={memorySort}
+                  order={memoryOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onMemorySortChange}
+                />
+                <ListSortHeader
+                  field="score"
+                  label={t('agents.score')}
+                  sort={memorySort}
+                  order={memoryOrder}
+                  defaultSort="id"
+                  defaultOrder="desc"
+                  onSortChange={onMemorySortChange}
+                />
                 <th className="col-priority-low">{t('agents.tabs.agents')}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>

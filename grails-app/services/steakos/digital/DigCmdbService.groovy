@@ -87,20 +87,27 @@ class DigCmdbService {
         listPage(npubOwner, systemId, 500, 0).items as List<ConfigItem>
     }
 
+    static final List CI_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'ciStatus', 'ciKind', 'hostname'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, Long systemId = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, Long systemId = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'name', order: 'asc', max: max, offset: offset]
-        if (systemId) {
-            return [
-                    items: ConfigItem.findAllByNpubOwnerAndSystemId(npub, systemId, opts),
-                    total: ConfigItem.countByNpubOwnerAndSystemId(npub, systemId) as int
-            ]
-        }
-        return [
-                items: ConfigItem.findAllByNpubOwner(npub, opts),
-                total: ConfigItem.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'name', 'asc', CI_SORT_FIELDS)
+        List items = ConfigItem.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (systemId) eq('systemId', systemId)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = ConfigItem.createCriteria().count {
+            eq('npubOwner', npub)
+            if (systemId) eq('systemId', systemId)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     Map toMap(ConfigItem ci) {

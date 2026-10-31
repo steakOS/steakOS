@@ -35,6 +35,7 @@ import { capabilityApi } from '../api/client'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import ListPager from '../components/ListPager'
+import ListSortHeader from '../components/ListSortHeader'
 import ProcessDiagram from '../components/ProcessDiagram'
 import { hasMasterFormSpec } from '../forms/masterFormSpecs'
 import useRecordView from '../hooks/useRecordView'
@@ -187,6 +188,133 @@ export default function CapabilityHub() {
   const [chgPage, setChgPage] = useState({ max: 25, offset: 0, total: 0 })
   const [knowPage, setKnowPage] = useState({ max: 25, offset: 0, total: 0 })
   const [stdPage, setStdPage] = useState({ max: 25, offset: 0, total: 0 })
+  const [portSort, setPortSort] = useState('id')
+  const [portOrder, setPortOrder] = useState('desc')
+  const [progSort, setProgSort] = useState('id')
+  const [progOrder, setProgOrder] = useState('desc')
+  const [projSort, setProjSort] = useState('id')
+  const [projOrder, setProjOrder] = useState('desc')
+  const [procSort, setProcSort] = useState('id')
+  const [procOrder, setProcOrder] = useState('desc')
+  const [qualSort, setQualSort] = useState('id')
+  const [qualOrder, setQualOrder] = useState('desc')
+  const [chgSort, setChgSort] = useState('id')
+  const [chgOrder, setChgOrder] = useState('desc')
+  const [knowSort, setKnowSort] = useState('name')
+  const [knowOrder, setKnowOrder] = useState('asc')
+  const [stdSort, setStdSort] = useState('id')
+  const [stdOrder, setStdOrder] = useState('desc')
+
+  const onPortSortChange = useCallback(({ sort: s, order: o }) => {
+    setPortSort(s || 'id')
+    setPortOrder(o === 'asc' ? 'asc' : 'desc')
+    setPortPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onProgSortChange = useCallback(({ sort: s, order: o }) => {
+    setProgSort(s || 'id')
+    setProgOrder(o === 'asc' ? 'asc' : 'desc')
+    setProgPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onProjSortChange = useCallback(({ sort: s, order: o }) => {
+    setProjSort(s || 'id')
+    setProjOrder(o === 'asc' ? 'asc' : 'desc')
+    setProjPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onProcSortChange = useCallback(({ sort: s, order: o }) => {
+    setProcSort(s || 'id')
+    setProcOrder(o === 'asc' ? 'asc' : 'desc')
+    setProcPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onQualSortChange = useCallback(({ sort: s, order: o }) => {
+    setQualSort(s || 'id')
+    setQualOrder(o === 'asc' ? 'asc' : 'desc')
+    setQualPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onChgSortChange = useCallback(({ sort: s, order: o }) => {
+    setChgSort(s || 'id')
+    setChgOrder(o === 'asc' ? 'asc' : 'desc')
+    setChgPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onKnowSortChange = useCallback(({ sort: s, order: o }) => {
+    setKnowSort(s || 'name')
+    setKnowOrder(o === 'asc' ? 'asc' : 'desc')
+    setKnowPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+  const onStdSortChange = useCallback(({ sort: s, order: o }) => {
+    setStdSort(s || 'id')
+    setStdOrder(o === 'asc' ? 'asc' : 'desc')
+    setStdPage((pg) => ({ ...pg, offset: 0 }))
+  }, [])
+
+  const PORT_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'portfolioStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const PROG_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'programStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const PROJ_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'projectStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const PROC_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'processCode', label: 'Code' },
+      { value: 'processKind', label: 'Kind' },
+      { value: 'processStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const QUAL_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'qualityCode', label: 'Code' },
+      { value: 'qualityStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const CHG_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'changeStatus', label: 'Status' },
+    ],
+    [],
+  )
+  const KNOW_SORT_MENU = useMemo(
+    () => [
+      { value: 'name', label: 'Name' },
+      { value: 'areaCode', label: 'Code' },
+      { value: 'areaStatus', label: 'Status' },
+      { value: 'id', label: 'Id' },
+    ],
+    [],
+  )
+  const STD_SORT_MENU = useMemo(
+    () => [
+      { value: 'id', label: 'Id' },
+      { value: 'name', label: 'Name' },
+      { value: 'metricCode', label: 'Metric' },
+      { value: 'standardStatus', label: 'Status' },
+    ],
+    [],
+  )
 
   const [portForm, setPortForm] = useState({ name: '', ownerRef: '' })
   const [progForm, setProgForm] = useState({ name: '', portfolioId: '' })
@@ -244,6 +372,8 @@ export default function CapabilityHub() {
         const port = await capabilityApi.portfolios.list({
           max: portPage.max,
           offset: portPage.offset,
+          sort: portSort,
+          order: portOrder,
         })
         const items = port.items || []
         setPortfolios(items)
@@ -256,7 +386,12 @@ export default function CapabilityHub() {
         }))
       } else if (tab === 'programs') {
         const [prog, portPick] = await Promise.all([
-          capabilityApi.programs.list({ max: progPage.max, offset: progPage.offset }),
+          capabilityApi.programs.list({
+            max: progPage.max,
+            offset: progPage.offset,
+            sort: progSort,
+            order: progOrder,
+          }),
           capabilityApi.portfolios.list({ max: 100, offset: 0 }),
         ])
         const items = prog.items || []
@@ -272,7 +407,12 @@ export default function CapabilityHub() {
         const [portPick, progPick, proj] = await Promise.all([
           capabilityApi.portfolios.list({ max: 100, offset: 0 }),
           capabilityApi.programs.list({ max: 100, offset: 0 }),
-          capabilityApi.projects.list({ max: projPage.max, offset: projPage.offset }),
+          capabilityApi.projects.list({
+            max: projPage.max,
+            offset: projPage.offset,
+            sort: projSort,
+            order: projOrder,
+          }),
         ])
         const pj = proj.items || []
         setPortfolios(portPick.items || [])
@@ -291,6 +431,8 @@ export default function CapabilityHub() {
         const processParams = {
           max: procPage.max,
           offset: procPage.offset,
+          sort: procSort,
+          order: procOrder,
           ...(kindFilter !== 'ALL' ? { kind: kindFilter } : {}),
         }
         const [procs, proceduresRes, procPick] = await Promise.all([
@@ -323,6 +465,8 @@ export default function CapabilityHub() {
         const q = await capabilityApi.qualities.list({
           max: qualPage.max,
           offset: qualPage.offset,
+          sort: qualSort,
+          order: qualOrder,
         })
         setQualities(q.items || [])
         setQualPage((pg) => ({
@@ -335,6 +479,8 @@ export default function CapabilityHub() {
         const c = await capabilityApi.changes.list({
           max: chgPage.max,
           offset: chgPage.offset,
+          sort: chgSort,
+          order: chgOrder,
         })
         const ch = c.items || []
         setChanges(ch)
@@ -347,8 +493,18 @@ export default function CapabilityHub() {
         setChangeContentMap(await fetchContentMap('capability', 'Change', ch))
       } else if (tab === 'knowledge') {
         const [k, s] = await Promise.all([
-          capabilityApi.knowledge.list({ max: knowPage.max, offset: knowPage.offset }),
-          capabilityApi.standards.list({ max: stdPage.max, offset: stdPage.offset }),
+          capabilityApi.knowledge.list({
+            max: knowPage.max,
+            offset: knowPage.offset,
+            sort: knowSort,
+            order: knowOrder,
+          }),
+          capabilityApi.standards.list({
+            max: stdPage.max,
+            offset: stdPage.offset,
+            sort: stdSort,
+            order: stdOrder,
+          }),
         ])
         setKnowledge(k.items || [])
         setStandards(s.items || [])
@@ -389,6 +545,22 @@ export default function CapabilityHub() {
     knowPage.offset,
     stdPage.max,
     stdPage.offset,
+    portSort,
+    portOrder,
+    progSort,
+    progOrder,
+    projSort,
+    projOrder,
+    procSort,
+    procOrder,
+    qualSort,
+    qualOrder,
+    chgSort,
+    chgOrder,
+    knowSort,
+    knowOrder,
+    stdSort,
+    stdOrder,
   ])
   loadAllRef.current = loadSection
 
@@ -1404,6 +1576,10 @@ export default function CapabilityHub() {
         empty={t('capability.emptyPortfolios', { defaultValue: 'No portfolios yet' })}
         selectedKey={selectedPortfolio?.id}
         onSelect={(p) => selectPortfolio(p)}
+        sortFields={PORT_SORT_MENU}
+        sort={portSort}
+        order={portOrder}
+        onSortChange={onPortSortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           {
@@ -1451,9 +1627,21 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={portSort}
+                  order={portOrder}
+                  onSortChange={onPortSortChange}
+                />
                 <th className="col-priority-low">Owner</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="portfolioStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={portSort}
+                  order={portOrder}
+                  onSortChange={onPortSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1537,6 +1725,10 @@ export default function CapabilityHub() {
         empty={t('capability.emptyPrograms', { defaultValue: 'No programs yet' })}
         selectedKey={selectedProgram?.id}
         onSelect={(p) => selectProgram(p)}
+        sortFields={PROG_SORT_MENU}
+        sort={progSort}
+        order={progOrder}
+        onSortChange={onProgSortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           {
@@ -1558,11 +1750,23 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={progSort}
+                  order={progOrder}
+                  onSortChange={onProgSortChange}
+                />
                 <th className="col-priority-low">
                   {t('labels.portfolio', { ns: 'common' })}
                 </th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="programStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={progSort}
+                  order={progOrder}
+                  onSortChange={onProgSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1623,6 +1827,10 @@ export default function CapabilityHub() {
         empty="No projects yet"
         selectedKey={selectedProject?.id}
         onSelect={(p) => selectProject(p)}
+        sortFields={PROJ_SORT_MENU}
+        sort={projSort}
+        order={projOrder}
+        onSortChange={onProjSortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
           {
@@ -1688,9 +1896,21 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={projSort}
+                  order={projOrder}
+                  onSortChange={onProjSortChange}
+                />
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="projectStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={projSort}
+                  order={projOrder}
+                  onSortChange={onProjSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1806,6 +2026,10 @@ export default function CapabilityHub() {
         empty={t('capability.emptyProcesses')}
         selectedKey={selectedProcess?.id}
         onSelect={(p) => selectProcess(p)}
+        sortFields={PROC_SORT_MENU}
+        sort={procSort}
+        order={procOrder}
+        onSortChange={onProcSortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => processDisplayName(p) },
           {
@@ -1878,10 +2102,35 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
-                <th>{t('wb.kind', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={procSort}
+                  order={procOrder}
+                  onSortChange={onProcSortChange}
+                />
+                <ListSortHeader
+                  className="col-priority-low"
+                  field="processCode"
+                  label={t('wb.code', { ns: 'common' })}
+                  sort={procSort}
+                  order={procOrder}
+                  onSortChange={onProcSortChange}
+                />
+                <ListSortHeader
+                  field="processKind"
+                  label={t('wb.kind', { ns: 'common' })}
+                  sort={procSort}
+                  order={procOrder}
+                  onSortChange={onProcSortChange}
+                />
+                <ListSortHeader
+                  field="processStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={procSort}
+                  order={procOrder}
+                  onSortChange={onProcSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2003,6 +2252,10 @@ export default function CapabilityHub() {
         empty="—"
         selectedKey={selectedQuality?.id}
         onSelect={(q) => selectQuality(q)}
+        sortFields={QUAL_SORT_MENU}
+        sort={qualSort}
+        order={qualOrder}
+        onSortChange={onQualSortChange}
         fields={[
           { id: 'name', primary: true, render: (q) => q.name },
           {
@@ -2043,9 +2296,28 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={qualSort}
+                  order={qualOrder}
+                  onSortChange={onQualSortChange}
+                />
+                <ListSortHeader
+                  className="col-priority-low"
+                  field="qualityCode"
+                  label={t('wb.code', { ns: 'common' })}
+                  sort={qualSort}
+                  order={qualOrder}
+                  onSortChange={onQualSortChange}
+                />
+                <ListSortHeader
+                  field="qualityStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={qualSort}
+                  order={qualOrder}
+                  onSortChange={onQualSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2111,6 +2383,10 @@ export default function CapabilityHub() {
         empty="—"
         selectedKey={selectedChange?.id}
         onSelect={(c) => selectChange(c)}
+        sortFields={CHG_SORT_MENU}
+        sort={chgSort}
+        order={chgOrder}
+        onSortChange={onChgSortChange}
         fields={[
           { id: 'name', primary: true, render: (c) => c.name },
           {
@@ -2176,8 +2452,20 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={chgSort}
+                  order={chgOrder}
+                  onSortChange={onChgSortChange}
+                />
+                <ListSortHeader
+                  field="changeStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={chgSort}
+                  order={chgOrder}
+                  onSortChange={onChgSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
@@ -2272,6 +2560,12 @@ export default function CapabilityHub() {
       </h2>
       <ResponsiveDataList
         items={knowledge}
+        sortFields={KNOW_SORT_MENU}
+        sort={knowSort}
+        order={knowOrder}
+        onSortChange={onKnowSortChange}
+        defaultSort="name"
+        defaultOrder="asc"
         empty="—"
         fields={[
           { id: 'name', primary: true, render: (k) => k.name },
@@ -2297,10 +2591,35 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th className="col-priority-low">{t('wb.code', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={knowSort}
+                  order={knowOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onKnowSortChange}
+                />
+                <ListSortHeader
+                  className="col-priority-low"
+                  field="areaCode"
+                  label={t('wb.code', { ns: 'common' })}
+                  sort={knowSort}
+                  order={knowOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onKnowSortChange}
+                />
                 <th className="col-priority-low">{t('capability.parent')}</th>
-                <th>{t('wb.status', { ns: 'common' })}</th>
+                <ListSortHeader
+                  field="areaStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={knowSort}
+                  order={knowOrder}
+                  defaultSort="name"
+                  defaultOrder="asc"
+                  onSortChange={onKnowSortChange}
+                />
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2334,6 +2653,10 @@ export default function CapabilityHub() {
       <h2 className="section-label">Standards ({stdPage.total || standards.length})</h2>
       <ResponsiveDataList
         items={standards}
+        sortFields={STD_SORT_MENU}
+        sort={stdSort}
+        order={stdOrder}
+        onSortChange={onStdSortChange}
         empty="—"
         fields={[
           { id: 'name', primary: true, render: (s) => s.name },
@@ -2359,8 +2682,20 @@ export default function CapabilityHub() {
           <table className="data">
             <thead>
               <tr>
-                <th>{t('wb.name', { ns: 'common' })}</th>
-                <th>{t('capability.metric')}</th>
+                <ListSortHeader
+                  field="name"
+                  label={t('wb.name', { ns: 'common' })}
+                  sort={stdSort}
+                  order={stdOrder}
+                  onSortChange={onStdSortChange}
+                />
+                <ListSortHeader
+                  field="metricCode"
+                  label={t('capability.metric')}
+                  sort={stdSort}
+                  order={stdOrder}
+                  onSortChange={onStdSortChange}
+                />
                 <th>{t('capability.target')}</th>
                 <th className="col-priority-low">{t('wb.unit', { ns: 'common' })}</th>
                 <th>{ACTION_TH(t)}</th>

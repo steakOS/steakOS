@@ -193,20 +193,27 @@ class ScmProductionService {
         listOrdersPage(npubOwner, status, 200, 0).items as List<ProductionOrder>
     }
 
+    static final List PROD_SORT_FIELDS = [
+            'id', 'name', 'orderNumber', 'prodStatus', 'status', 'quantity',
+            'scheduledStart', 'scheduledEnd', 'completedAt'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listOrdersPage(String npubOwner, String status = null, int max = 25, int offset = 0) {
+    Map listOrdersPage(String npubOwner, String status = null, int max = 25, int offset = 0,
+                       Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (status) {
-            return [
-                    items: ProductionOrder.findAllByNpubOwnerAndProdStatus(npub, status, opts),
-                    total: ProductionOrder.countByNpubOwnerAndProdStatus(npub, status) as int
-            ]
-        }
-        return [
-                items: ProductionOrder.findAllByNpubOwner(npub, opts),
-                total: ProductionOrder.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', PROD_SORT_FIELDS)
+        List items = ProductionOrder.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (status) eq('prodStatus', status)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = ProductionOrder.createCriteria().count {
+            eq('npubOwner', npub)
+            if (status) eq('prodStatus', status)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

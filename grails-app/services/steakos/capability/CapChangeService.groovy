@@ -120,20 +120,26 @@ class CapChangeService {
         listPage(npubOwner, changeStatus, 300, 0).items as List<Change>
     }
 
+    static final List CHANGE_SORT_FIELDS = [
+            'id', 'name', 'changeStatus', 'status', 'plannedStart', 'plannedEnd'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String changeStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String changeStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (changeStatus) {
-            return [
-                    items: Change.findAllByNpubOwnerAndChangeStatus(npub, changeStatus, opts),
-                    total: Change.countByNpubOwnerAndChangeStatus(npub, changeStatus) as int
-            ]
-        }
-        return [
-                items: Change.findAllByNpubOwner(npub, opts),
-                total: Change.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', CHANGE_SORT_FIELDS)
+        List items = Change.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (changeStatus) eq('changeStatus', changeStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = Change.createCriteria().count {
+            eq('npubOwner', npub)
+            if (changeStatus) eq('changeStatus', changeStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)

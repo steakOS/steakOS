@@ -82,13 +82,15 @@ class FinanceLedgerApiController {
             String npub = resolveNpub(params)
             boolean activeOnly = params.activeOnly != 'false'
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financeLedgerService.listAccountsPage(npub, activeOnly, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = financeLedgerService.listAccountsPage(
+                    npub, activeOnly, page.max as int, page.offset as int, listOpts)
             render(steakos.api.ListPaging.envelope(
                     (result.items as List).collect { financeLedgerService.accountToMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'code', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'code', order: result.order ?: 'asc']
             ) as JSON)
         } catch (IllegalArgumentException e) {
             render(status: 400, text: ([error: e.message] as JSON))

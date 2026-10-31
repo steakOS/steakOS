@@ -60,13 +60,15 @@ class FinanceOpsApiController {
     def treasuryList() {
         wrap { String npub ->
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financeTreasuryService.listPositionsPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = financeTreasuryService.listPositionsPage(
+                    npub, page.max as int, page.offset as int, listOpts)
             steakos.api.ListPaging.envelope(
                     (result.items as List).collect { financeTreasuryService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'accountKind', order: 'asc']
+                    [npubOwner: npub, sort: result.sort ?: 'accountKind', order: result.order ?: 'asc']
             )
         }
     }
@@ -195,13 +197,15 @@ class FinanceOpsApiController {
     def payableList() {
         wrap { String npub ->
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financePayableService.listPayablesPage(npub, params.status as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = financePayableService.listPayablesPage(
+                    npub, params.status as String, page.max as int, page.offset as int, listOpts)
             steakos.api.ListPaging.envelope(
                     (result.items as List).collect { financePayableService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -229,13 +233,15 @@ class FinanceOpsApiController {
     def budgetList() {
         wrap { String npub ->
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financePlanService.listBudgetsPage(npub, params.period as String, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = financePlanService.listBudgetsPage(
+                    npub, params.period as String, page.max as int, page.offset as int, listOpts)
             steakos.api.ListPaging.envelope(
                     (result.items as List).collect { financePlanService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'period', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'period', order: result.order ?: 'desc']
             )
         }
     }
@@ -258,13 +264,15 @@ class FinanceOpsApiController {
     def taxList() {
         wrap { String npub ->
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financeTaxService.listTaxPeriodsPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = financeTaxService.listTaxPeriodsPage(
+                    npub, page.max as int, page.offset as int, listOpts)
             steakos.api.ListPaging.envelope(
                     (result.items as List).collect { financeTaxService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'period', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'period', order: result.order ?: 'desc']
             )
         }
     }
@@ -281,13 +289,15 @@ class FinanceOpsApiController {
     def payrollList() {
         wrap { String npub ->
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financePayrollService.listLinesPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = financePayrollService.listLinesPage(
+                    npub, page.max as int, page.offset as int, listOpts)
             steakos.api.ListPaging.envelope(
                     (result.items as List).collect { financePayrollService.toMap(it) },
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }
@@ -317,13 +327,15 @@ class FinanceOpsApiController {
     def controlAudit() {
         wrap { String npub ->
             Map page = steakos.api.ListPaging.pageParams(params, steakos.api.ListPaging.DEFAULT_MAX, steakos.api.ListPaging.HARD_MAX)
-            Map result = financeControlService.listAuditTrailPage(npub, page.max as int, page.offset as int)
+            Map listOpts = [sort: params.sort, order: params.order]
+            Map result = financeControlService.listAuditTrailPage(
+                    npub, page.max as int, page.offset as int, listOpts)
             steakos.api.ListPaging.envelope(
                     result.items as List,
                     result.total as int,
                     page.max as int,
                     page.offset as int,
-                    [npubOwner: npub, sort: 'id', order: 'desc']
+                    [npubOwner: npub, sort: result.sort ?: 'id', order: result.order ?: 'desc']
             )
         }
     }

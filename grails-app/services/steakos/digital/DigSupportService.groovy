@@ -107,20 +107,27 @@ class DigSupportService {
         listPage(npubOwner, ticketStatus, 300, 0).items as List<ItTicket>
     }
 
+    static final List TICKET_SORT_FIELDS = [
+            'id', 'name', 'status', 'code', 'dateCreated', 'lastUpdated',
+            'ticketStatus', 'ticketNumber', 'ticketKind', 'priority', 'openedAt'
+    ].asImmutable()
+
     @Transactional(readOnly = true)
-    Map listPage(String npubOwner, String ticketStatus = null, int max = 25, int offset = 0) {
+    Map listPage(String npubOwner, String ticketStatus = null, int max = 25, int offset = 0,
+                 Map listOpts = [:]) {
         String npub = requireNpub(npubOwner)
-        Map opts = [sort: 'id', order: 'desc', max: max, offset: offset]
-        if (ticketStatus) {
-            return [
-                    items: ItTicket.findAllByNpubOwnerAndTicketStatus(npub, ticketStatus, opts),
-                    total: ItTicket.countByNpubOwnerAndTicketStatus(npub, ticketStatus) as int
-            ]
-        }
-        return [
-                items: ItTicket.findAllByNpubOwner(npub, opts),
-                total: ItTicket.countByNpubOwner(npub) as int
-        ]
+        Map so = steakos.api.ListPaging.requireSortParams(
+                listOpts ?: [:], 'id', 'desc', TICKET_SORT_FIELDS)
+        List items = ItTicket.createCriteria().list(max: max, offset: offset) {
+            eq('npubOwner', npub)
+            if (ticketStatus) eq('ticketStatus', ticketStatus)
+            steakos.api.ListPaging.applyOrders(delegate, so)
+        } as List
+        Number total = ItTicket.createCriteria().count {
+            eq('npubOwner', npub)
+            if (ticketStatus) eq('ticketStatus', ticketStatus)
+        } as Number
+        [items: items, total: total?.intValue() ?: 0, sort: so.sort, order: so.order]
     }
 
     @Transactional(readOnly = true)
