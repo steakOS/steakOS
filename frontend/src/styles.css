@@ -869,7 +869,7 @@ table.data td:last-child {
   right: 0;
   z-index: 1;
   box-shadow: -1px 0 0 var(--steak-border);
-  text-align: right;
+  text-align: center; /* Action label + row action icons */
   white-space: nowrap;
   background: #fff;
 }
