@@ -225,21 +225,35 @@ You can ignore shop floor, after-sales, and deep governance until those problems
 
 ## Get the software (download / clone)
 
-steakOS source is meant to be easy to find on **public code mirrors** when published. Builders on the private office network use a **home forge** as the master copy; public mirrors are loudspeakers, not the boss.
+**Public source and releases:** [GitHub `steakOS/steakOS`](https://github.com/steakOS/steakOS)  
+Project home: **[steakos.org](https://steakos.org)** · optional paid help: **[steakOS.ai](https://steakOS.ai)**
 
 ```bash
-# When public mirrors are published, clone from the mirror closest to you:
-git clone https://<public-mirror>/steakOS.git
+git clone https://github.com/steakOS/steakOS.git
 cd steakOS
 ```
 
-**Packaged one-line install** (when a release server publishes an installer):
+### One-line install (recommended)
+
+Paste one command. It installs the free **Java** engine and **PostgreSQL** database if they are missing, creates the empty filing cabinets steakOS needs, downloads the packaged app from the official GitHub Release, and starts it. Your computer may ask for an admin password once if system software must be installed.
+
+**Linux / macOS** (Ubuntu, Linux Mint, or macOS):
 
 ```bash
-curl -fsSL https://<release-host>/install.sh | bash -s -- --base-url https://<release-host>
+curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.sh | bash
 ```
 
-Or install from a downloaded zip:
+**Windows 11** (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
+```
+
+Prefer to read the script first? Open the same URLs in a browser, save the file, then run it locally. Package files (zip + checksum) live under [GitHub Releases](https://github.com/steakOS/steakOS/releases) — base URL for the package installer: `https://github.com/steakOS/steakOS/releases/latest/download`.
+
+Install troubleshooting: companion doc `docs/installation/TROUBLESHOOTING-INSTALL.md` (and [Getting started](https://steakos.org/getting-started.html) on the public site).
+
+Or install from a downloaded zip (no network fetch of the package):
 
 ```bash
 ./scripts/install/install.sh --offline /path/to/steakOS-….zip
@@ -251,9 +265,11 @@ Or install from a downloaded zip:
 
 You do **not** need a data-centre rack. steakOS is built to run on a normal founder laptop.
 
-**Comfortable recommendation:** a **16 GB memory** laptop (any recent mainstream processor), SSD storage, and a stable network connection when you install software updates.
+**Comfortable recommendation:** a **16 GB memory** laptop (any recent mainstream processor), **SSD** storage, and a **stable network** for the first install (the one-liner downloads Java / PostgreSQL packages and the steakOS zip — a few GB).
 
-**Proven on modest hardware:** day-to-day development of this project runs on an older office laptop with about **8 GB** of memory, a dual-core processor with four threads, an SSD, and a mainstream Linux desktop. That is enough for the server plus the browser screens, though it can feel tight.
+**Disk free space:** plan **20+ GB** free for evaluation (OS updates + JDK + PostgreSQL data + one steakOS install). For a small team server that keeps backups on the same disk, start at **50+ GB** SSD.
+
+**Proven on modest hardware:** day-to-day development of this project runs on an older office laptop with about **8 GB** of memory, a dual-core processor with four threads, an SSD, and a mainstream Linux desktop. That is enough for the server plus the browser screens, though it can feel tight. If memory is scarce, lower `JAVA_OPTS` / close extra browsers (see install troubleshooting).
 
 If **8 GB works**, **16 GB** gives you headroom for a browser full of tabs, video calls, and the database without swapping to disk. For a small team server, start with **4 CPU cores**, **16 GB memory**, and **50+ GB** SSD for data + backups.
 
@@ -265,23 +281,23 @@ Phone and tablet are for **checking in and light work** (see responsive section 
 
 | Layer | What we use and test | What else can work |
 |-------|----------------------|--------------------|
-| **Operating system** | Mainstream **Linux** desktop/server in daily use | Other common desktop and server systems can run the same Java server and browser screens. Install steps differ slightly; a technical friend can adapt them. |
-| **Database** | **PostgreSQL** 14+ (recommended filing cabinet) | Other standard business databases can be wired through the same Java database layer with operator help. They are **not** polished equally today — PostgreSQL is the path we document and smoke-test. |
+| **One-line install targets** | **Windows 11**, **macOS**, **Ubuntu / Linux Mint** | Other systems can run the same Java server; use manual Java 21 + PostgreSQL 16, then the package installer. |
+| **Database** | **PostgreSQL** 14+ (16 preferred) — the filing cabinet we document and smoke-test | Other databases are **not** polished equally today. |
 | **Browser** | Any current major web browser | Use an up-to-date browser; the screens are a normal web app. |
 
-Create the empty PostgreSQL filing cabinets once:
+The one-liner creates the empty PostgreSQL filing cabinets for you when local admin access works. Manual recovery:
 
 ```bash
 sudo -u postgres psql -f db/setup-postgresql.sql
 ```
 
-Software pieces on the machine (or your helper’s checklist):
+Software pieces on the machine:
 
 | Piece | Why, in plain words |
 |-------|---------------------|
-| A modern **Java** runtime (17 or newer) | Runs the steakOS server (the “kitchen engine”). |
-| **Node.js** (20 or newer) | Runs the screens you click in the browser (during development). |
-| **PostgreSQL** (14 or newer) | Default filing cabinet for customers, orders, and invoices. |
+| **Java** 21 (Temurin / OpenJDK) | Runs the steakOS server (the “kitchen engine”). The one-liner installs this if you do not already have Java **21+** on `PATH`. |
+| **PostgreSQL** 14+ (16 preferred) | Filing cabinet for customers, orders, and invoices. The one-liner installs and starts this when needed. |
+| **Node.js** (20 or newer) | **Only for builders** who compile the screens from source. Packaged installs do **not** need Node. |
 | About **2 GB** free memory for the app itself | On top of what the operating system and browser already use — hence the 16 GB laptop recommendation. |
 
 ---
