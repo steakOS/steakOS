@@ -893,7 +893,8 @@ table.data tbody tr.row-selected td:last-child {
   justify-content: space-between;
   gap: 0.65rem 1rem;
   margin-top: 0.75rem;
-  padding-top: 0.65rem;
+  /* Match first column label inset: .table-wrap 1px border + th padding-left 0.9rem */
+  padding: 0.65rem 0 0 calc(0.9rem + 1px);
   border-top: 1px solid var(--steak-border, #e7e5e4);
   font-size: 0.9rem;
 }
