@@ -118,8 +118,7 @@ export default function EisenhowerMini({ cells = [], size = 132 }) {
                 role="group"
                 aria-label={`${label}${n ? ` — ${n}` : ''}`}
               >
-                {/* Native fallback + assistive tech */}
-                <title>{label}</title>
+                {/* No SVG <title> — native browser tip stacks on the custom .eisenhower-mini-tip (Task 7673). */}
 
                 <rect
                   x={ci * cell + pad}
