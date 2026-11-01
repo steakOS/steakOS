@@ -1485,8 +1485,11 @@ table.data tbody tr.row-selected td:last-child {
 
 .error-dialog-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.5rem;
+  row-gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--steak-border);
 }
@@ -1555,10 +1558,32 @@ table.data tbody tr.row-selected td:last-child {
 
 .content-view-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.5rem;
+  row-gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--steak-border, #e7e5e4);
+}
+
+/* Modal footer pills: one standardized height; wrap to a second row instead of
+   letting long labels spill into multi-line buttons (ADR-048 / ADR-050). */
+.content-view-footer > .btn,
+.content-view-footer > a.btn,
+.error-dialog-footer > .btn,
+.error-dialog-footer > a.btn {
+  white-space: nowrap;
+  flex: 0 0 auto;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+}
+
+/* Detail toolbars (split desks) share the same no-spill rule for .btn pills. */
+.toolbar > .btn,
+.toolbar > a.btn {
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 /* Record view chrome (breadcrumb | show-all + close; title + status) */
@@ -2837,12 +2862,21 @@ table.data tbody tr.row-selected td:last-child {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  row-gap: 0.5rem;
   align-items: center;
   padding: 0.75rem 0 0.15rem;
   margin-top: 0.5rem;
   background: color-mix(in srgb, var(--steak-card, #fff) 88%, transparent);
   backdrop-filter: blur(6px);
   border-top: 1px solid var(--steak-border);
+}
+
+.desk-detail-footer > .btn,
+.desk-detail-footer > a.btn {
+  white-space: nowrap;
+  flex: 0 0 auto;
+  min-height: 2.25rem;
+  box-sizing: border-box;
 }
 
 .desk-shell-process {

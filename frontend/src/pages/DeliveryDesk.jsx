@@ -1531,8 +1531,11 @@ export default function DeliveryDesk() {
           href={deliveryApi.orders.pdfUrl(order.id)}
           target="_blank"
           rel="noreferrer"
+          title={t('delivery.downloadPdfTitle', {
+            defaultValue: 'Download delivery PDF',
+          })}
         >
-          <FileText size={16} /> Download delivery PDF
+          <FileText size={16} /> {t('actions.pdf', { ns: 'common', defaultValue: 'PDF' })}
         </a>
       </>
     )

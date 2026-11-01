@@ -675,6 +675,9 @@ export default function FinanceInvoices() {
               href={financeRevenueApi.pdfUrl(selected.id)}
               target="_blank"
               rel="noreferrer"
+              title={t('finance.downloadInvoicePdfTitle', {
+                defaultValue: 'Download invoice PDF',
+              })}
             >
               <FileText size={16} /> {t('finance.downloadInvoicePdf')}
             </a>

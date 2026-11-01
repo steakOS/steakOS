@@ -75,7 +75,8 @@
     "detail": "Detalle de la oferta",
     "selectHint": "Seleccione una oferta de la lista",
     "noCustomer": "Sin cliente",
-    "acceptToOrder": "Aceptar → pedido",
+    "acceptToOrder": "Aceptar",
+    "acceptToOrderTitle": "Aceptar → pedido",
     "openOrder": "Abrir pedido",
     "lines": "Líneas",
     "noLines": "Sin líneas",
@@ -122,7 +123,8 @@
       "amount": "Importe",
       "content": "Contenido"
     },
-    "confirmFinance": "Confirmar → factura BORRADOR de Finance",
+    "confirmFinance": "Confirmar",
+    "confirmFinanceTitle": "Confirmar → factura BORRADOR de Finance",
     "currency": "Moneda del documento"
   },
   "status": {

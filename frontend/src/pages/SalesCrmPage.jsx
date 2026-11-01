@@ -940,25 +940,29 @@ export default function SalesCrmPage() {
           className="btn"
           disabled={isBusy}
           onClick={() => onUpdateStageRef.current()}
+          title={t('crm.updateStageTitle', { defaultValue: 'Update stage' })}
         >
-          {t('crm.updateStage', { defaultValue: 'Update stage' })}
+          {t('crm.updateStage', { defaultValue: 'Update' })}
         </button>
         <button
           type="button"
           className="btn"
           disabled={isBusy}
           onClick={() => onMarkLostRef.current()}
+          title={t('crm.markLostTitle', { defaultValue: 'Mark lost' })}
         >
-          <Ban size={16} /> {t('crm.markLost', { defaultValue: 'Mark lost' })}
+          <Ban size={16} /> {t('crm.markLost', { defaultValue: 'Lost' })}
         </button>
         <button
           type="button"
           className="btn btn-primary"
           onClick={() => onConvertRef.current()}
           disabled={isBusy}
+          title={t('crm.convertTitle', {
+            defaultValue: 'Convert to customer / quote',
+          })}
         >
-          <Check size={16} />{' '}
-          {t('crm.convert', { defaultValue: 'Convert to customer / quote' })}
+          <Check size={16} /> {t('crm.convert', { defaultValue: 'Convert' })}
         </button>
       </>
     )

@@ -1301,8 +1301,12 @@ export default function ScmDesk({ desk = 'buyers' }) {
             className="btn"
             onClick={() => runPoRef.current('receive')}
             disabled={isBusy}
+            title={t('scm.receiveStockTitle', {
+              defaultValue: 'Receive → stock',
+            })}
           >
-            <Truck size={16} /> Receive → stock
+            <Truck size={16} />{' '}
+            {t('actions.receive', { ns: 'common', defaultValue: 'Receive' })}
           </button>
         )}
         {['DRAFT', 'SENT'].includes(po.poStatus) && (
@@ -1311,13 +1315,20 @@ export default function ScmDesk({ desk = 'buyers' }) {
             className="btn btn-primary"
             onClick={() => runPoRef.current('confirm')}
             disabled={isBusy}
+            title={t('scm.confirmPayableTitle', {
+              defaultValue: 'Confirm → payable',
+            })}
           >
-            <Check size={16} /> Confirm → payable
+            <Check size={16} /> {t('actions.confirm', { ns: 'common', defaultValue: 'Confirm' })}
           </button>
         )}
         {po.financePayableId && (
-          <Link className="btn btn-secondary" to="/finance/payables">
-            Payable →
+          <Link
+            className="btn btn-secondary"
+            to="/finance/payables"
+            title={t('scm.openPayable', { defaultValue: 'Open payable' })}
+          >
+            {t('scm.payableShort', { defaultValue: 'Payable →' })}
           </Link>
         )}
         <a
@@ -1325,8 +1336,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
           href={scmApi.purchaseOrders.pdfUrl(po.id)}
           target="_blank"
           rel="noreferrer"
+          title={t('scm.downloadPoPdfTitle', {
+            defaultValue: 'Download purchase order PDF',
+          })}
         >
-          <FileText size={16} /> Download purchase order PDF
+          <FileText size={16} /> {t('actions.pdf', { ns: 'common', defaultValue: 'PDF' })}
         </a>
       </>
     )
@@ -2198,13 +2212,26 @@ export default function ScmDesk({ desk = 'buyers' }) {
             </button>
           )}
           {['CONFIRMED', 'PART_RECEIVED', 'SENT'].includes(selectedPo.poStatus) && (
-            <button type="button" className="btn" onClick={() => runPo('receive')} disabled={!!busy}>
-              <Truck size={16} /> Receive → stock
+            <button
+              type="button"
+              className="btn"
+              onClick={() => runPo('receive')}
+              disabled={!!busy}
+              title={t('scm.receiveStockTitle', {
+                defaultValue: 'Receive → stock',
+              })}
+            >
+              <Truck size={16} />{' '}
+              {t('actions.receive', { ns: 'common', defaultValue: 'Receive' })}
             </button>
           )}
           {selectedPo.financePayableId && (
-            <Link className="btn btn-secondary" to="/finance/payables">
-              Payable →
+            <Link
+              className="btn btn-secondary"
+              to="/finance/payables"
+              title={t('scm.openPayable', { defaultValue: 'Open payable' })}
+            >
+              {t('scm.payableShort', { defaultValue: 'Payable →' })}
             </Link>
           )}
           <a
@@ -2212,8 +2239,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
             href={scmApi.purchaseOrders.pdfUrl(selectedPo.id)}
             target="_blank"
             rel="noreferrer"
+            title={t('scm.downloadPoPdfTitle', {
+              defaultValue: 'Download purchase order PDF',
+            })}
           >
-            <FileText size={16} /> Download purchase order PDF
+            <FileText size={16} /> {t('actions.pdf', { ns: 'common', defaultValue: 'PDF' })}
           </a>
         </div>
         <h3 className="section-label">{t('wb.lines', { ns: 'common' })}</h3>
@@ -2253,8 +2283,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
           className="btn btn-primary"
           onClick={() => runPo('confirm')}
           disabled={!!busy}
+          title={t('scm.confirmPayableTitle', {
+            defaultValue: 'Confirm → payable',
+          })}
         >
-          <Check size={16} /> Confirm → payable
+          <Check size={16} /> {t('actions.confirm', { ns: 'common', defaultValue: 'Confirm' })}
         </button>
       )
     }
@@ -2297,8 +2330,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
             href={scmApi.production.pdfUrl(selectedProd.id)}
             target="_blank"
             rel="noreferrer"
+            title={t('scm.downloadProdPdfTitle', {
+              defaultValue: 'Download production order PDF',
+            })}
           >
-            <FileText size={16} /> Download production order PDF
+            <FileText size={16} /> {t('actions.pdf', { ns: 'common', defaultValue: 'PDF' })}
           </a>
         </div>
         {collapsedContentRail('production', 'ProductionOrder', selectedProd.id, async () =>

@@ -2355,8 +2355,11 @@ export default function HrDesk() {
             className="btn btn-primary"
             disabled={!!busy}
             onClick={() => runPay('submit')}
+            title={t('hr.submitFinanceTitle', {
+              defaultValue: 'Submit → Finance',
+            })}
           >
-            Submit → Finance
+            {t('hr.submitFinance', { defaultValue: 'Submit' })}
           </button>
         )}
         {selectedPayroll.payrollStatus !== 'CLOSED' && (

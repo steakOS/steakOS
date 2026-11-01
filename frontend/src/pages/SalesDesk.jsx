@@ -2040,6 +2040,7 @@ export default function SalesDesk() {
               className={q.quoteStatus === 'SENT' ? 'btn btn-primary' : 'btn btn-ghost'}
               onClick={() => onAcceptQuoteRef.current()}
               disabled={isBusy}
+              title={t('quote.acceptToOrderTitle', { defaultValue: 'Accept → order' })}
             >
               <Check size={16} />{' '}
               {busyRef.current === 'accept' ? '…' : t('quote.acceptToOrder')}
@@ -2076,8 +2077,11 @@ export default function SalesDesk() {
             href={salesApi.quotes.pdfUrl(q.id)}
             target="_blank"
             rel="noreferrer"
+            title={t('quote.downloadPdfTitle', {
+              defaultValue: 'Download quote PDF',
+            })}
           >
-            <FileText size={16} /> Download quote PDF
+            <FileText size={16} /> {t('actions.pdf', { ns: 'common', defaultValue: 'PDF' })}
           </a>
         </>
       )
@@ -2093,6 +2097,9 @@ export default function SalesDesk() {
               className="btn btn-primary"
               onClick={() => onConfirmOrderRef.current()}
               disabled={isBusy}
+              title={t('order.confirmFinanceTitle', {
+                defaultValue: 'Confirm → Finance DRAFT invoice',
+              })}
             >
               <Check size={16} />{' '}
               {busyRef.current === 'confirm' ? '…' : t('order.confirmFinance')}
@@ -2109,8 +2116,14 @@ export default function SalesDesk() {
             </button>
           )}
           {o.financeInvoiceId && (
-            <Link className="btn btn-secondary" to="/finance/invoices">
-              Finance invoice →
+            <Link
+              className="btn btn-secondary"
+              to="/finance/invoices"
+              title={t('order.openFinanceInvoice', {
+                defaultValue: 'Open finance invoice',
+              })}
+            >
+              {t('order.financeInvoiceShort', { defaultValue: 'Invoice →' })}
             </Link>
           )}
           {o.sourceQuoteId && (
@@ -2134,8 +2147,11 @@ export default function SalesDesk() {
             href={salesApi.orders.pdfUrl(o.id)}
             target="_blank"
             rel="noreferrer"
+            title={t('order.downloadPdfTitle', {
+              defaultValue: 'Download sales order PDF',
+            })}
           >
-            <FileText size={16} /> Download sales order PDF
+            <FileText size={16} /> {t('actions.pdf', { ns: 'common', defaultValue: 'PDF' })}
           </a>
         </>
       )

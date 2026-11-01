@@ -75,7 +75,8 @@
     "detail": "Quote detail",
     "selectHint": "Select a quote from the list",
     "noCustomer": "No customer",
-    "acceptToOrder": "Accept → order",
+    "acceptToOrder": "Accept",
+    "acceptToOrderTitle": "Accept → order",
     "openOrder": "Open order",
     "lines": "Lines",
     "noLines": "No lines",
@@ -122,7 +123,8 @@
       "amount": "Amount",
       "content": "Content"
     },
-    "confirmFinance": "Confirm → Finance DRAFT invoice",
+    "confirmFinance": "Confirm",
+    "confirmFinanceTitle": "Confirm → Finance DRAFT invoice",
     "currency": "Document currency"
   },
   "status": {

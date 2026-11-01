@@ -75,7 +75,8 @@
     "detail": "Angebotsdetail",
     "selectHint": "Angebot aus der Liste wählen",
     "noCustomer": "Kein Kunde",
-    "acceptToOrder": "Annehmen → Auftrag",
+    "acceptToOrder": "Annehmen",
+    "acceptToOrderTitle": "Annehmen → Auftrag",
     "openOrder": "Auftrag öffnen",
     "lines": "Positionen",
     "noLines": "Keine Positionen",
@@ -122,7 +123,8 @@
       "amount": "Betrag",
       "content": "Inhalt"
     },
-    "confirmFinance": "Bestätigen → Finance-Entwurfsrechnung",
+    "confirmFinance": "Bestätigen",
+    "confirmFinanceTitle": "Bestätigen → Finance-Entwurfsrechnung",
     "currency": "Belegwährung"
   },
   "status": {

@@ -1452,7 +1452,8 @@ export default function AfterSalesDesk() {
                 onChange={setPendingClaimContent}
               />
               <button type="submit" className="btn btn-primary" disabled={!!busy}>
-                <Plus size={16} /> Receive claim
+                <Plus size={16} />{' '}
+                {t('aftersales.receiveClaim', { defaultValue: 'Receive' })}
               </button>
             </form>
   )
@@ -2224,6 +2225,9 @@ export default function AfterSalesDesk() {
               className="btn btn-primary"
               onClick={() => runClaimRef.current('approve')}
               disabled={isBusy}
+              title={t('aftersales.approveFinanceTitle', {
+                defaultValue: 'Approve → Finance',
+              })}
             >
               <Check size={16} /> {t('aftersales.approveFinance')}
             </button>
@@ -2262,6 +2266,9 @@ export default function AfterSalesDesk() {
               className="btn btn-primary"
               onClick={() => runRmaRef.current('confirm')}
               disabled={isBusy}
+              title={t('aftersales.confirmScmStockTitle', {
+                defaultValue: 'Confirm → SCM stock',
+              })}
             >
               <Check size={16} /> {t('aftersales.confirmScmStock')}
             </button>
@@ -2291,8 +2298,11 @@ export default function AfterSalesDesk() {
             href={aftersalesApi.rmas.pdfUrl(rma.id)}
             target="_blank"
             rel="noreferrer"
+            title={t('aftersales.downloadRmaPdfTitle', {
+              defaultValue: 'Download RMA PDF',
+            })}
           >
-            <FileText size={16} /> Download RMA PDF
+            <FileText size={16} /> {t('actions.pdf', { ns: 'common', defaultValue: 'PDF' })}
           </a>
         </>
       )
