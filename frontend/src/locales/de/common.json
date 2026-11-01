@@ -140,7 +140,6 @@
     "parentDoc": "übergeordnetes Dokument",
     "classLine": "Positionszeile",
     "classProcess": "Prozessdokument",
-    "createViaDesk": "Neue Datensätze im {{desk}} anlegen — Stammdaten dienen Liste, Ansicht und Bearbeitung.",
     "parentOnly": "Positionszeilen werden unter einem {{parent}} angelegt (Mehrzeilen-Editor im Prozess-Desk), nicht als eigenständige Stammdaten.",
     "createBlocked": "Eigenständiges Anlegen ist für diese Ressource noch nicht verfügbar.",
     "openDesk": "Anlegen im {{desk}}",

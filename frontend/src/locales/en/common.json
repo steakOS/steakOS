@@ -140,7 +140,6 @@
     "parentDoc": "parent document",
     "classLine": "Line item",
     "classProcess": "Process document",
-    "createViaDesk": "Create new records on the {{desk}} — master data is for list, view, and edit support.",
     "parentOnly": "Line items are created under a {{parent}} (multi-line editor on the process desk), not as standalone master data.",
     "createBlocked": "Standalone create is not available for this resource yet.",
     "openDesk": "Create on {{desk}}",

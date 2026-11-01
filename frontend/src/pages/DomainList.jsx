@@ -673,25 +673,6 @@ export default function DomainList() {
         </>
       )}
 
-      {(preferDesk || createMode === 'deskRedirect') && deskPath && (
-        <div className="banner-info" style={{ marginBottom: '0.75rem' }}>
-          {t('masterData.createViaDesk', {
-            ns: 'common',
-            desk: deskLabel,
-            defaultValue:
-              'Create new records on the {{desk}} — master data is for list, view, and edit support.',
-          })}{' '}
-          {preferDesk && (
-            <Link to={deskTabHref} className="btn btn-secondary" style={{ marginLeft: 8 }}>
-              {t('masterData.openDesk', {
-                ns: 'common',
-                desk: deskLabel,
-                defaultValue: 'Open {{desk}}',
-              })}
-            </Link>
-          )}
-        </div>
-      )}
       {createMode === 'parentOnly' && (
         <div className="banner-info" style={{ marginBottom: '0.75rem' }}>
           {t('masterData.parentOnly', {

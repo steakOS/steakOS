@@ -140,7 +140,6 @@
     "parentDoc": "documento padre",
     "classLine": "Línea de pedido",
     "classProcess": "Documento de proceso",
-    "createViaDesk": "Cree nuevos registros en {{desk}}: los datos maestros sirven para enumerar, ver y editar.",
     "parentOnly": "Las líneas de pedido se crean bajo un {{parent}} (editor de varias líneas en la mesa de procesos), no como datos maestros independientes.",
     "createBlocked": "La creación independiente aún no está disponible para este recurso.",
     "openDesk": "Crear en {{desk}}",
