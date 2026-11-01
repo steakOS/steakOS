@@ -13,25 +13,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ContactRound, Plus, RefreshCw, Ban, Check } from 'lucide-react'
+import {
+  ContactRound,
+  Plus,
+  RefreshCw,
+  Ban,
+  Check,
+  Eye,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListFilterBar from '../components/ListFilterBar'
 import ListSortHeader from '../components/ListSortHeader'
 import useServerListSort from '../hooks/useServerListSort'
-import { salesApi } from '../api/client'
+import { salesApi, domainsApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrencySelect from '../components/CurrencySelect'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
-import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import RowActionSlots from '../components/RowActionSlots'
+import useRecordView from '../hooks/useRecordView'
+import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
-import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+
+const PKG = 'sales'
+const RESOURCE = 'Opportunity'
+const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
 
 const STAGES = ['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST']
 const OPEN = new Set(['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'])
@@ -91,12 +105,25 @@ function oppBody(src) {
 }
 
 /**
- * SalesAdvanced Opportunities desk (OI-S08) — DeskShell master–detail (ADR-047).
+ * SalesAdvanced Opportunities desk (OI-S08) — Buyers UI 2.0 (ADR-050):
+ * single-column list + modal view/edit; CRM workspace via getBelowFields / getFooterExtra.
  * Route: /sales/opportunities (legacy /sales/crm redirects).
  */
 export default function SalesCrmPage() {
   const { t } = useTranslation(['desks', 'common', 'sales'])
-  const narrow = useNarrowViewport()
+  const loadRef = useRef(async () => {})
+  const getBelowFieldsRef = useRef(null)
+  const getFooterExtraRef = useRef(null)
+  const deepLinkOpened = useRef(null)
+  const selectedRef = useRef(null)
+  const activitiesRef = useRef([])
+  const busyRef = useRef(null)
+  const stageDraftRef = useRef('LEAD')
+  const actFormRef = useRef({ kind: 'NOTE', description: '', dueDate: '' })
+  const onUpdateStageRef = useRef(async () => {})
+  const onMarkLostRef = useRef(async () => {})
+  const onConvertRef = useRef(async () => {})
+  const onAddActivityRef = useRef(async () => {})
 
   const [tab] = useState('opportunities')
   const [selectedId, setSelectedId] = useState(() => {
@@ -159,6 +186,31 @@ export default function SalesCrmPage() {
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
 
+  selectedRef.current = selected
+  activitiesRef.current = activities
+  busyRef.current = busy
+  stageDraftRef.current = stageDraft
+  actFormRef.current = actForm
+
+  const {
+    viewModal,
+    openView,
+    openEdit,
+    updateViewingRecord,
+  } = useRecordView({
+    modalEdit: true,
+    canModalEdit: () => true,
+    onSaved: (updated) => {
+      loadRef.current().catch(() => {})
+      if (!updated?.id) return
+      setSelected((prev) =>
+        prev && String(prev.id) === String(updated.id) ? { ...prev, ...updated } : prev,
+      )
+    },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
+    getFooterExtra: (ctx) => getFooterExtraRef.current?.(ctx) ?? null,
+  })
+
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -178,50 +230,77 @@ export default function SalesCrmPage() {
     }
   }, [openOnly, listQ, sort, order, t])
 
+  loadRef.current = load
+
   useEffect(() => {
     load()
   }, [load])
 
-  const selectOpp = useCallback(
+  const hydrateOpp = useCallback(
     async (id) => {
       if (!id) {
         setSelected(null)
         setActivities([])
-        return
+        return null
       }
+      const full = await salesApi.crm.getOpportunity(id)
+      setSelected(full)
+      setStageDraft(full.stage || 'LEAD')
+      setActivities(full.activities || [])
+      try {
+        const acts = await salesApi.crm.listActivities(id)
+        setActivities(acts?.items || full.activities || [])
+      } catch {
+        /* keep embedded */
+      }
+      return full
+    },
+    [],
+  )
+
+  const openOppView = useCallback(
+    async (row) => {
+      if (!row?.id && row?.id !== 0) return
       setBusy('select')
       setError(null)
       try {
-        const full = await salesApi.crm.getOpportunity(id)
-        setSelected(full)
-        setStageDraft(full.stage || 'LEAD')
-        setActivities(full.activities || [])
-        try {
-          const acts = await salesApi.crm.listActivities(id)
-          setActivities(acts?.items || full.activities || [])
-        } catch {
-          /* keep embedded */
-        }
+        const full = await hydrateOpp(row.id)
+        if (!full) return
+        deepLinkOpened.current = String(full.id)
+        setSelectedId(String(full.id))
+        openView(PKG, RESOURCE, full)
       } catch (e) {
         setError(friendlyErr(e, t))
       } finally {
         setBusy(null)
       }
     },
-    [t],
+    [hydrateOpp, openView, t],
   )
 
   useEffect(() => {
-    selectOpp(selectedId)
-  }, [selectedId, selectOpp])
-
-  useEffect(() => {
-    if (!selectedId) return
-    const id = window.requestAnimationFrame(() => {
-      scrollSelectedIntoView('.desk-shell-list')
-    })
-    return () => window.cancelAnimationFrame(id)
-  }, [selectedId, selected?.id])
+    let cancelled = false
+    const run = async () => {
+      if (!selectedId) return
+      if (deepLinkOpened.current === String(selectedId)) return
+      setBusy('select')
+      setError(null)
+      try {
+        const full = await hydrateOpp(selectedId)
+        if (cancelled || !full) return
+        openView(PKG, RESOURCE, full)
+        deepLinkOpened.current = String(selectedId)
+      } catch (e) {
+        if (!cancelled) setError(friendlyErr(e, t))
+      } finally {
+        if (!cancelled) setBusy(null)
+      }
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedId, hydrateOpp, openView, t])
 
   const resetCreateForms = useCallback(() => {
     setForm(emptyOpp())
@@ -293,7 +372,10 @@ export default function SalesCrmPage() {
       resetCreateForms()
       setNewExpanded(false)
       await load()
+      const full = await hydrateOpp(opp.id)
+      deepLinkOpened.current = String(opp.id)
       setSelectedId(String(opp.id))
+      openView(PKG, RESOURCE, full || opp)
     } catch (err) {
       setError(friendlyErr(err, t))
     } finally {
@@ -301,16 +383,100 @@ export default function SalesCrmPage() {
     }
   }
 
+  const onDelete = useCallback(
+    async (record) => {
+      const label =
+        record?.name || t('view.untitled', { ns: 'common', defaultValue: 'this record' })
+      if (!window.confirm(t('actions.confirmDelete', { ns: 'common', label }))) return
+      setError(null)
+      try {
+        await domainsApi.remove(PKG, RESOURCE, record.id)
+        setInfo(
+          t('toast.namedDeleted', {
+            ns: 'common',
+            name: label,
+            defaultValue: `Deleted ${label}`,
+          }),
+        )
+        if (String(selectedId) === String(record.id)) {
+          setSelectedId(null)
+          deepLinkOpened.current = null
+          setSelected(null)
+          setActivities([])
+        }
+        await loadRef.current()
+      } catch (err) {
+        setError(friendlyErr(err, t))
+      }
+    },
+    [selectedId, t],
+  )
+
+  const renderRowActions = useCallback(
+    (record) => {
+      if (!record?.id && record?.id !== 0) return null
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openOppView(record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.edit', { ns: 'common' })}
+              aria-label={t('actions.edit', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openEdit(PKG, RESOURCE, record)
+              }}
+            >
+              <Pencil size={14} />
+            </button>
+          }
+          delete={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.delete', { ns: 'common' })}
+              aria-label={t('actions.delete', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(record)
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          }
+        />
+      )
+    },
+    [onDelete, openEdit, openOppView, t],
+  )
+
   const runAction = async (label, fn, okMsg) => {
-    if (!selected?.id) return
+    const cur = selectedRef.current
+    if (!cur?.id) return
     setBusy(label)
     setError(null)
     setInfo(null)
     try {
-      await fn()
+      await fn(cur)
       if (okMsg) setInfo(okMsg)
       await load()
-      await selectOpp(selected.id)
+      const full = await hydrateOpp(cur.id)
+      if (full) updateViewingRecord(full)
     } catch (err) {
       setError(friendlyErr(err, t))
     } finally {
@@ -318,9 +484,27 @@ export default function SalesCrmPage() {
     }
   }
 
+  const onUpdateStage = async () => {
+    const draft = stageDraftRef.current
+    await runAction(
+      'stage',
+      (cur) => salesApi.crm.updateOpportunity(cur.id, { stage: draft }),
+      t('crm.stageUpdated', { defaultValue: 'Stage updated.' }),
+    )
+  }
+
+  const onMarkLost = async () => {
+    await runAction(
+      'lost',
+      (cur) => salesApi.crm.markLost(cur.id, {}),
+      t('crm.markedLost', { defaultValue: 'Opportunity marked lost.' }),
+    )
+  }
+
   const onConvert = async () => {
-    if (!selected?.id) return
-    if (!selected.customerId) {
+    const cur = selectedRef.current
+    if (!cur?.id) return
+    if (!cur.customerId) {
       setError(
         t('crm.convertNeedsCustomer', {
           defaultValue: 'Link a customer before converting to a quote.',
@@ -332,7 +516,7 @@ export default function SalesCrmPage() {
     setError(null)
     setInfo(null)
     try {
-      const result = await salesApi.crm.convert(selected.id, {})
+      const result = await salesApi.crm.convert(cur.id, {})
       const qLabel = result?.quote?.quoteNumber || '—'
       setInfo(
         result?.alreadyConverted
@@ -346,7 +530,8 @@ export default function SalesCrmPage() {
             }),
       )
       await load()
-      await selectOpp(selected.id)
+      const full = await hydrateOpp(cur.id)
+      if (full) updateViewingRecord(full)
     } catch (err) {
       setError(friendlyErr(err, t))
     } finally {
@@ -355,20 +540,23 @@ export default function SalesCrmPage() {
   }
 
   const onAddActivity = async (e) => {
-    e.preventDefault()
-    if (!selected?.id || !actForm.description.trim()) return
+    e?.preventDefault?.()
+    const cur = selectedRef.current
+    const af = actFormRef.current
+    if (!cur?.id || !af.description.trim()) return
     setBusy('act')
     setError(null)
     setInfo(null)
     try {
-      await salesApi.crm.createActivity(selected.id, {
-        kind: actForm.kind || 'NOTE',
-        description: actForm.description.trim(),
-        dueDate: actForm.dueDate || undefined,
+      await salesApi.crm.createActivity(cur.id, {
+        kind: af.kind || 'NOTE',
+        description: af.description.trim(),
+        dueDate: af.dueDate || undefined,
       })
       setActForm({ kind: 'NOTE', description: '', dueDate: '' })
       setInfo(t('crm.activityAdded', { defaultValue: 'Activity added.' }))
-      await selectOpp(selected.id)
+      const full = await hydrateOpp(cur.id)
+      if (full) updateViewingRecord(full)
     } catch (err) {
       setError(friendlyErr(err, t))
     } finally {
@@ -376,8 +564,10 @@ export default function SalesCrmPage() {
     }
   }
 
-  const isTerminal = selected?.stage === 'WON' || selected?.stage === 'LOST'
-  const hasSelection = Boolean(selected?.id)
+  onUpdateStageRef.current = onUpdateStage
+  onMarkLostRef.current = onMarkLost
+  onConvertRef.current = onConvert
+  onAddActivityRef.current = onAddActivity
 
   const helpContext = useMemo(() => {
     const base = { desk: 'sales-crm', tab: 'opportunities' }
@@ -570,8 +760,8 @@ export default function SalesCrmPage() {
               })
         }
         loading={loading}
-        selectedKey={selected?.id}
-        onSelect={(row) => setSelectedId(String(row.id))}
+        selectedKey={selectedId}
+        onSelect={(row) => openOppView(row)}
         sortFields={OPP_SORT_MENU}
         sort={sort}
         order={order}
@@ -603,6 +793,7 @@ export default function SalesCrmPage() {
                 : '—',
           },
         ]}
+        actions={(row) => renderRowActions(row)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -636,12 +827,13 @@ export default function SalesCrmPage() {
                   order={order}
                   onSortChange={onSortChange}
                 />
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     {openOnly
                       ? t('crm.empty', {
                           defaultValue: 'No open opportunities. Create one with New.',
@@ -655,9 +847,11 @@ export default function SalesCrmPage() {
               {items.map((row) => (
                 <tr
                   key={row.id}
-                  data-selected={selected?.id === row.id ? 'true' : undefined}
-                  className={selected?.id === row.id ? 'row-selected' : 'row-click'}
-                  onClick={() => setSelectedId(String(row.id))}
+                  data-selected={String(selectedId) === String(row.id) ? 'true' : undefined}
+                  className={
+                    String(selectedId) === String(row.id) ? 'row-selected' : 'row-click'
+                  }
+                  onClick={() => openOppView(row)}
                 >
                   <td>{entityDisplayLabel(row, { fallback: '—' })}</td>
                   <td>
@@ -669,6 +863,7 @@ export default function SalesCrmPage() {
                       ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
                       : '—'}
                   </td>
+                  <td onClick={(e) => e.stopPropagation()}>{renderRowActions(row)}</td>
                 </tr>
               ))}
             </tbody>
@@ -678,97 +873,18 @@ export default function SalesCrmPage() {
     </>
   )
 
-  let detail = null
-  if (selected) {
-    detail = (
-      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
-        <div className="inv-detail-hero">
-          <div>
-            <div className="about-display" style={{ fontSize: '1.25rem' }}>
-              {selected.name}
-            </div>
-            <div className="muted">
-              <span className={stageBadge(selected.stage)}>{selected.stage}</span>
-              {selected.contactName ? ` · ${selected.contactName}` : ''}
-              {selected.contactEmail ? ` · ${selected.contactEmail}` : ''}
-              {selected.ownerName ? ` · ${selected.ownerName}` : ''}
-              {selected.expectedCloseDate
-                ? ` · ${t('crm.closes', { defaultValue: 'closes' })} ${toDateInput(selected.expectedCloseDate)}`
-                : ''}
-              {selected.resultingQuoteId
-                ? ` · ${t('crm.quoteId', { defaultValue: 'quote' })}`
-                : ''}
-            </div>
-          </div>
-        </div>
-        {selected.description && <p>{selected.description}</p>}
-
-        {!isTerminal && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              flexWrap: 'wrap',
-              alignItems: 'end',
-              marginBottom: '1rem',
-            }}
-          >
-            <label style={{ margin: 0 }}>
-              {t('crm.fieldStage', { defaultValue: 'Stage' })}
-              <select
-                value={stageDraft}
-                disabled={!!busy}
-                onChange={(e) => setStageDraft(e.target.value)}
-              >
-                {STAGES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="btn"
-              disabled={!!busy}
-              onClick={() =>
-                runAction(
-                  'stage',
-                  () => salesApi.crm.updateOpportunity(selected.id, { stage: stageDraft }),
-                  t('crm.stageUpdated', { defaultValue: 'Stage updated.' }),
-                )
-              }
-            >
-              {t('crm.updateStage', { defaultValue: 'Update stage' })}
-            </button>
-            <button
-              type="button"
-              className="btn"
-              disabled={!!busy}
-              onClick={() =>
-                runAction(
-                  'lost',
-                  () => salesApi.crm.markLost(selected.id, {}),
-                  t('crm.markedLost', { defaultValue: 'Opportunity marked lost.' }),
-                )
-              }
-            >
-              <Ban size={16} /> {t('crm.markLost', { defaultValue: 'Mark lost' })}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={onConvert}
-              disabled={!!busy}
-            >
-              <Check size={16} />{' '}
-              {t('crm.convert', { defaultValue: 'Convert to customer / quote' })}
-            </button>
-          </div>
-        )}
-
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (!record || resource !== RESOURCE) return null
+    const live = selectedRef.current
+    const opp = live?.id === record.id ? live : record
+    const acts = live?.id === record.id ? activitiesRef.current : opp.activities || []
+    const isTerminal = opp.stage === 'WON' || opp.stage === 'LOST'
+    const isBusy = !!busyRef.current
+    const af = actFormRef.current
+    return (
+      <>
         <h3 className="section-label">{t('crm.activities', { defaultValue: 'Activities' })}</h3>
-        {activities.length === 0 ? (
+        {acts.length === 0 ? (
           <p className="muted">
             {t('crm.activitiesEmpty', { defaultValue: 'No activities yet. Add a note below.' })}
           </p>
@@ -783,7 +899,7 @@ export default function SalesCrmPage() {
                 </tr>
               </thead>
               <tbody>
-                {activities.map((a) => (
+                {acts.map((a) => (
                   <tr key={a.id}>
                     <td>{a.kind || '—'}</td>
                     <td>{a.description || a.name || '—'}</td>
@@ -796,13 +912,20 @@ export default function SalesCrmPage() {
         )}
 
         {!isTerminal && (
-          <form className="form-grid" style={{ marginTop: '0.75rem' }} onSubmit={onAddActivity}>
+          <form
+            className="form-grid"
+            style={{ marginTop: '0.75rem' }}
+            onSubmit={(e) => {
+              e.preventDefault()
+              onAddActivityRef.current(e)
+            }}
+          >
             <div className="form-row-2">
               <label>
                 {t('crm.fieldActKind', { defaultValue: 'Kind' })}
                 <select
-                  value={actForm.kind}
-                  disabled={!!busy}
+                  value={af.kind}
+                  disabled={isBusy}
                   onChange={(e) => setActForm((f) => ({ ...f, kind: e.target.value }))}
                 >
                   {ACT_KINDS.map((k) => (
@@ -816,8 +939,8 @@ export default function SalesCrmPage() {
                 {t('crm.fieldDueDate', { defaultValue: 'Due date' })}
                 <input
                   type="date"
-                  value={actForm.dueDate}
-                  disabled={!!busy}
+                  value={af.dueDate}
+                  disabled={isBusy}
                   onChange={(e) => setActForm((f) => ({ ...f, dueDate: e.target.value }))}
                 />
               </label>
@@ -827,17 +950,70 @@ export default function SalesCrmPage() {
               <textarea
                 required
                 rows={2}
-                value={actForm.description}
-                disabled={!!busy}
+                value={af.description}
+                disabled={isBusy}
                 onChange={(e) => setActForm((f) => ({ ...f, description: e.target.value }))}
               />
             </label>
-            <button type="submit" className="btn btn-primary" disabled={!!busy}>
+            <button type="submit" className="btn btn-primary" disabled={isBusy}>
               <Plus size={16} /> {t('crm.addActivity', { defaultValue: 'Add activity' })}
             </button>
           </form>
         )}
-      </div>
+      </>
+    )
+  }
+
+  getFooterExtraRef.current = ({ resource, record }) => {
+    if (!record || resource !== RESOURCE) return null
+    const live = selectedRef.current
+    const opp = live?.id === record.id ? live : record
+    const isTerminal = opp.stage === 'WON' || opp.stage === 'LOST'
+    if (isTerminal) return null
+    const isBusy = !!busyRef.current
+    const draft = stageDraftRef.current
+    return (
+      <>
+        <label style={{ margin: 0 }}>
+          {t('crm.fieldStage', { defaultValue: 'Stage' })}
+          <select
+            value={draft}
+            disabled={isBusy}
+            onChange={(e) => setStageDraft(e.target.value)}
+          >
+            {STAGES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="btn"
+          disabled={isBusy}
+          onClick={() => onUpdateStageRef.current()}
+        >
+          {t('crm.updateStage', { defaultValue: 'Update stage' })}
+        </button>
+        <button
+          type="button"
+          className="btn"
+          disabled={isBusy}
+          onClick={() => onMarkLostRef.current()}
+        >
+          <Ban size={16} /> {t('crm.markLost', { defaultValue: 'Mark lost' })}
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => onConvertRef.current()}
+          disabled={isBusy}
+        >
+          <Check size={16} />{' '}
+          {t('crm.convert', { defaultValue: 'Convert to customer / quote' })}
+        </button>
+      </>
     )
   }
 
@@ -845,6 +1021,7 @@ export default function SalesCrmPage() {
     <div className="page">
       {error && <div className="banner-error">{error}</div>}
       {info && <div className="banner-info">{info}</div>}
+      {viewModal}
 
       <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
         <button type="button" className="btn" onClick={load} disabled={loading || !!busy}>
@@ -856,33 +1033,24 @@ export default function SalesCrmPage() {
       </div>
 
       <DeskShell
-        // ADR-050 Wave C: keep split — stage/activities/convert workspace stays with selection.
-        layout="split"
+        layout="single"
         title={
           <>
             <ContactRound size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
             {t('crm.title', { defaultValue: 'Opportunities' })}
           </>
         }
-        subtitle={t('crm.subtitle', {
-          defaultValue: 'Pipeline of opportunities and activities. Silver pack / Iron eval.',
-        })}
+        subtitle={null}
         newLabel={t('crm.newOpp', { defaultValue: 'New opportunity' })}
         newExpanded={newExpanded}
         onToggleNew={requestToggleNew}
         newPanel={newPanel}
         toolbar={toolbar}
         list={list}
-        hasSelection={hasSelection}
-        emptyTitle={t('wb.selectItem', { ns: 'common', defaultValue: 'Select an item' })}
-        emptyBody={t('desk.emptyBody', {
-          ns: 'common',
-          defaultValue: 'Choose a row from the list to see details.',
-        })}
-        detail={detail}
+        hasSelection={false}
+        detail={null}
         helpContext={helpContext}
-        narrowSheetOpen={narrow && hasSelection}
-        onCloseSheet={() => setSelectedId(null)}
+        narrowSheetOpen={false}
       />
 
       <DeskNewFab

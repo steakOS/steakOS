@@ -68,6 +68,8 @@ class DomainRegistryService {
             // sales S-S0
             'customerKind', 'email', 'phone', 'contactName', 'customerNpub', 'taxId',
             'quoteNumber', 'quoteStatus', 'orderNumber', 'orderStatus', 'productRefType',
+            // sales Advanced price lists (OI-S04)
+            'listKind',
             // scm SC-S0
             'vendorNpub', 'poNumber', 'poStatus', 'receiptNumber', 'receiptStatus',
             'sku', 'unit', 'bomStatus', 'prodStatus', 'lotCode', 'lotStatus',
@@ -91,7 +93,8 @@ class DomainRegistryService {
             'latitude', 'longitude',
             'debitEur', 'creditEur', 'amountEur', 'exchangeRate', 'balanceEur',
             'quantity', 'unitPriceEur', 'lineTotalEur', 'quantityReceived', 'qtyDelta',
-            'defaultDuration', 'listPriceEur', 'capacityHours'
+            'defaultDuration', 'listPriceEur', 'capacityHours',
+            'defaultDiscountPercent'
     ].asImmutable()
 
     private static final List LONG_FIELDS = [
@@ -150,7 +153,7 @@ class DomainRegistryService {
     private static final List DATE_FIELDS = [
             'entryDate', 'postedAt', 'issueDate', 'dueDate', 'settledAt',
             'receivedAt', 'paidAt', 'lastReconciledAt',
-            'validUntil', 'orderDate', 'confirmedAt',
+            'validUntil', 'validFrom', 'validTo', 'orderDate', 'confirmedAt',
             'receivedDate', 'scheduledStart', 'scheduledEnd', 'completedAt',
             'manufacturedOn', 'checkedOn', 'movedAt',
             'scheduledAt', 'startedAt',

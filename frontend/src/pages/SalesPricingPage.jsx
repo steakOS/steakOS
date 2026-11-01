@@ -13,23 +13,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Tags, Plus, RefreshCw, Save } from 'lucide-react'
+import { Tags, Plus, RefreshCw, Save, Eye, Pencil, Trash2 } from 'lucide-react'
 import ResponsiveDataList from '../components/ResponsiveDataList'
-import { salesApi } from '../api/client'
+import { domainsApi, salesApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
 import CurrencySelect from '../components/CurrencySelect'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
-import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
+import RowActionSlots from '../components/RowActionSlots'
+import useRecordView from '../hooks/useRecordView'
+import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
-import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+
+const PKG = 'sales'
+const RESOURCE = 'PriceList'
+const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
 
 const LIST_KINDS = ['STANDARD', 'CUSTOMER', 'VOLUME']
 const emptyForm = () => ({
@@ -45,13 +50,6 @@ const emptyForm = () => ({
   defaultDiscountPercent: '',
 })
 const emptyLine = () => ({ catalogueItemId: '', name: '', unitPrice: '', minQty: '1' })
-
-function toDateInput(v) {
-  if (v == null || v === '') return ''
-  if (typeof v === 'number') return new Date(v).toISOString().slice(0, 10)
-  const s = String(v)
-  return s.length >= 10 ? s.slice(0, 10) : s
-}
 
 function friendlyErr(e, t) {
   if (e?.status === 403 || e?.code === 'ADVANCED_REQUIRES_SILVER') {
@@ -78,12 +76,26 @@ function headerBody(src) {
   return body
 }
 
+function linesFromFull(full) {
+  return (full?.lines || []).map((ln) => ({
+    catalogueItemId: ln.catalogueItemId != null ? String(ln.catalogueItemId) : '',
+    name: ln.name || ln.itemCode || '',
+    unitPrice: ln.unitPrice != null ? String(ln.unitPrice) : '',
+    minQty: ln.minQuantity != null ? String(ln.minQuantity) : '1',
+  }))
+}
+
 /**
- * SalesAdvanced price lists desk (OI-S04) — DeskShell master–detail (ADR-047).
+ * SalesAdvanced price lists desk (OI-S04) — Buyers UI 2.0 (ADR-050): single-column + modal.
  */
 export default function SalesPricingPage() {
   const { t } = useTranslation(['desks', 'common', 'sales'])
-  const narrow = useNarrowViewport()
+  const loadRef = useRef(async () => {})
+  const deepLinkOpened = useRef(null)
+  const getBelowFieldsRef = useRef(null)
+  const selectedRef = useRef(null)
+  const linesRef = useRef([])
+  const busyRef = useRef(null)
 
   const [tab] = useState('lists')
   const [selectedId, setSelectedId] = useState(() => {
@@ -123,7 +135,6 @@ export default function SalesPricingPage() {
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
   const [selected, setSelected] = useState(null)
-  const [editForm, setEditForm] = useState(emptyForm())
   const [lines, setLines] = useState([])
   const [lineDraft, setLineDraft] = useState(emptyLine())
   const [form, setForm] = useState(emptyForm())
@@ -131,6 +142,29 @@ export default function SalesPricingPage() {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
+
+  selectedRef.current = selected
+  linesRef.current = lines
+  busyRef.current = busy
+
+  const {
+    viewModal,
+    openView,
+    openEdit,
+    updateViewingRecord,
+  } = useRecordView({
+    modalEdit: true,
+    canModalEdit: () => true,
+    onSaved: (updated) => {
+      loadRef.current().catch(() => {})
+      if (updated?.id != null) {
+        setSelected((prev) =>
+          prev && String(prev.id) === String(updated.id) ? { ...prev, ...updated } : prev,
+        )
+      }
+    },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
+  })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -148,64 +182,62 @@ export default function SalesPricingPage() {
     }
   }, [t])
 
+  loadRef.current = load
+
   useEffect(() => {
     load()
   }, [load])
 
-  const selectList = useCallback(
-    async (id) => {
-      if (!id) {
-        setSelected(null)
-        setLines([])
-        return
-      }
+  const hydrateFromFull = useCallback((full) => {
+    setSelected(full)
+    setLines(linesFromFull(full))
+    setLineDraft(emptyLine())
+  }, [])
+
+  const openPriceListView = useCallback(
+    async (rowOrId) => {
+      const id = typeof rowOrId === 'object' ? rowOrId?.id : rowOrId
+      if (id == null || id === '') return
       setBusy('select')
       setError(null)
       try {
         const full = await salesApi.pricelists.get(id)
-        setSelected(full)
-        setEditForm({
-          name: full.name || '',
-          code: full.code || '',
-          listKind: full.listKind || 'STANDARD',
-          currencyCode: full.currencyCode || 'EUR',
-          active: full.active !== false,
-          validFrom: toDateInput(full.validFrom),
-          validTo: toDateInput(full.validTo),
-          customerId: full.customerId != null ? String(full.customerId) : '',
-          description: full.description || '',
-          defaultDiscountPercent:
-            full.defaultDiscountPercent != null ? String(full.defaultDiscountPercent) : '',
-        })
-        setLines(
-          (full.lines || []).map((ln) => ({
-            catalogueItemId: ln.catalogueItemId != null ? String(ln.catalogueItemId) : '',
-            name: ln.name || ln.itemCode || '',
-            unitPrice: ln.unitPrice != null ? String(ln.unitPrice) : '',
-            minQty: ln.minQuantity != null ? String(ln.minQuantity) : '1',
-          })),
-        )
-        setLineDraft(emptyLine())
+        hydrateFromFull(full)
+        // Seed without lines so the field grid does not dump the array as JSON.
+        const { lines: _lines, ...seed } = full
+        openView(PKG, RESOURCE, seed)
+        deepLinkOpened.current = String(id)
+        setSelectedId(String(id))
       } catch (e) {
         setError(friendlyErr(e, t))
       } finally {
         setBusy(null)
       }
     },
-    [t],
+    [hydrateFromFull, openView, t],
   )
 
   useEffect(() => {
-    selectList(selectedId)
-  }, [selectedId, selectList])
-
-  useEffect(() => {
-    if (!selectedId) return
-    const id = window.requestAnimationFrame(() => {
-      scrollSelectedIntoView('.desk-shell-list')
-    })
-    return () => window.cancelAnimationFrame(id)
-  }, [selectedId, selected?.id])
+    let cancelled = false
+    const run = async () => {
+      if (!selectedId) return
+      if (deepLinkOpened.current === String(selectedId)) return
+      try {
+        const full = await salesApi.pricelists.get(selectedId)
+        if (cancelled || !full) return
+        hydrateFromFull(full)
+        const { lines: _lines, ...seed } = full
+        openView(PKG, RESOURCE, seed)
+        deepLinkOpened.current = String(selectedId)
+      } catch (e) {
+        if (!cancelled) setError(friendlyErr(e, t))
+      }
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedId, hydrateFromFull, openView, t])
 
   const resetCreateForms = useCallback(() => {
     setForm(emptyForm())
@@ -248,7 +280,12 @@ export default function SalesPricingPage() {
     enabled: !newExpanded,
     itemIds: keyboardIds,
     selectedId,
-    setSelectedId,
+    setSelectedId: (id) => {
+      setSelectedId(id)
+      if (id) {
+        deepLinkOpened.current = null
+      }
+    },
     onToggleNew: requestToggleNew,
   })
 
@@ -288,6 +325,11 @@ export default function SalesPricingPage() {
       resetCreateForms()
       setNewExpanded(false)
       await load()
+      const full = await salesApi.pricelists.get(pl.id)
+      hydrateFromFull(full)
+      const { lines: _lines, ...seed } = full
+      openView(PKG, RESOURCE, seed)
+      deepLinkOpened.current = String(pl.id)
       setSelectedId(String(pl.id))
     } catch (err) {
       setError(friendlyErr(err, t))
@@ -296,31 +338,9 @@ export default function SalesPricingPage() {
     }
   }
 
-  const onSaveHeader = async (e) => {
-    e.preventDefault()
-    if (!selected?.id) return
-    const miss = needCustomer(editForm)
-    if (miss) {
-      setError(miss)
-      return
-    }
-    setBusy('save')
-    setError(null)
-    setInfo(null)
-    try {
-      const pl = await salesApi.pricelists.update(selected.id, headerBody(editForm))
-      setInfo(t('pricing.saved', { defaultValue: 'Price list saved.' }))
-      await load()
-      await selectList(pl.id)
-    } catch (err) {
-      setError(friendlyErr(err, t))
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  const addLineDraft = () => {
-    if (!lineDraft.name.trim() || lineDraft.unitPrice === '') {
+  const addLineDraft = useCallback(() => {
+    const draft = lineDraft
+    if (!draft.name.trim() || draft.unitPrice === '') {
       setError(
         t('pricing.lineNeedNamePrice', {
           defaultValue: 'Each line needs a name and a unit price.',
@@ -328,18 +348,19 @@ export default function SalesPricingPage() {
       )
       return
     }
-    setLines((prev) => [...prev, { ...lineDraft, name: lineDraft.name.trim() }])
+    setLines((prev) => [...prev, { ...draft, name: draft.name.trim() }])
     setLineDraft(emptyLine())
     setError(null)
-  }
+  }, [lineDraft, t])
 
-  const onSaveLines = async () => {
-    if (!selected?.id) return
+  const onSaveLines = useCallback(async () => {
+    const pl = selectedRef.current
+    if (!pl?.id) return
     setBusy('lines')
     setError(null)
     setInfo(null)
     try {
-      const payload = lines.map((ln) => {
+      const payload = linesRef.current.map((ln) => {
         const row = {
           name: ln.name,
           unitPrice: Number(ln.unitPrice),
@@ -348,16 +369,101 @@ export default function SalesPricingPage() {
         if (ln.catalogueItemId) row.catalogueItemId = Number(ln.catalogueItemId)
         return row
       })
-      const pl = await salesApi.pricelists.setLines(selected.id, payload)
+      const updated = await salesApi.pricelists.setLines(pl.id, payload)
       setInfo(t('pricing.linesSaved', { defaultValue: 'Lines saved.' }))
-      await load()
-      await selectList(pl.id)
+      hydrateFromFull(updated)
+      updateViewingRecord({ ...updated, lines: undefined })
+      await loadRef.current()
     } catch (err) {
       setError(friendlyErr(err, t))
     } finally {
       setBusy(null)
     }
-  }
+  }, [hydrateFromFull, t, updateViewingRecord])
+
+  const onDelete = useCallback(
+    async (record) => {
+      const label =
+        record?.name || t('view.untitled', { ns: 'common', defaultValue: 'this record' })
+      if (!window.confirm(t('actions.confirmDelete', { ns: 'common', label }))) return
+      setError(null)
+      try {
+        await domainsApi.remove(PKG, RESOURCE, record.id)
+        setInfo(
+          t('toast.namedDeleted', {
+            ns: 'common',
+            name: label,
+            defaultValue: `Deleted ${label}`,
+          }),
+        )
+        if (selectedRef.current && String(selectedRef.current.id) === String(record.id)) {
+          setSelected(null)
+          setLines([])
+        }
+        if (String(selectedId) === String(record.id)) {
+          setSelectedId(null)
+          deepLinkOpened.current = null
+        }
+        await loadRef.current()
+      } catch (err) {
+        setError(err.message || String(err))
+      }
+    },
+    [selectedId, t],
+  )
+
+  const renderRowActions = useCallback(
+    (record) => {
+      if (!record?.id && record?.id !== 0) return null
+      return (
+        <RowActionSlots
+          view={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('view.open', { ns: 'common' })}
+              aria-label={t('view.open', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openPriceListView(record)
+              }}
+            >
+              <Eye size={14} />
+            </button>
+          }
+          edit={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.edit', { ns: 'common' })}
+              aria-label={t('actions.edit', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                openEdit(PKG, RESOURCE, record)
+              }}
+            >
+              <Pencil size={14} />
+            </button>
+          }
+          delete={
+            <button
+              type="button"
+              className={ROW_ACTION_CLASS}
+              title={t('actions.delete', { ns: 'common' })}
+              aria-label={t('actions.delete', { ns: 'common' })}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(record)
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          }
+        />
+      )
+    },
+    [onDelete, openEdit, openPriceListView, t],
+  )
 
   const fields = (src, setSrc, prefix) => (
     <>
@@ -469,7 +575,125 @@ export default function SalesPricingPage() {
     </>
   )
 
-  const hasSelection = Boolean(selected?.id)
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (resource !== RESOURCE || !record) return null
+    const live = selectedRef.current
+    const pl = live && String(live.id) === String(record.id) ? live : record
+    const currentLines = live && String(live.id) === String(record.id) ? lines : linesFromFull(pl)
+    const isBusy = !!busyRef.current
+    return (
+      <>
+        <h3 className="section-label" style={{ marginTop: '0.5rem' }}>
+          {t('pricing.lines', { defaultValue: 'Lines' })}
+        </h3>
+        {currentLines.length === 0 ? (
+          <p className="muted">
+            {t('pricing.linesEmpty', {
+              defaultValue: 'No lines yet. Add catalogue items or named prices below.',
+            })}
+          </p>
+        ) : (
+          <div className="table-wrap">
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>{t('pricing.colLineName', { defaultValue: 'Name' })}</th>
+                  <th>{t('pricing.colUnitPrice', { defaultValue: 'Unit price' })}</th>
+                  <th>{t('pricing.colMinQty', { defaultValue: 'Min qty' })}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {currentLines.map((ln, i) => (
+                  <tr key={`${ln.name}-${i}`}>
+                    <td>{ln.name || ln.sku || '—'}</td>
+                    <td>{ln.unitPrice}</td>
+                    <td>{ln.minQty}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={isBusy}
+                        onClick={() => setLines((prev) => prev.filter((_, j) => j !== i))}
+                      >
+                        {t('actions.remove', { ns: 'common', defaultValue: 'Remove' })}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="form-grid" style={{ marginTop: '0.75rem' }}>
+          <label>
+            {t('pricing.fieldCatalogueItem', { defaultValue: 'Catalogue item' })}
+            <CatalogueItemSelect
+              id="pl-line-item"
+              nature="GOODS"
+              forChannel="sale"
+              value={lineDraft.catalogueItemId}
+              disabled={isBusy}
+              onChange={(id, item) =>
+                setLineDraft((d) => ({
+                  ...d,
+                  catalogueItemId: id || '',
+                  name: item?.name || (id ? d.name : ''),
+                  unitPrice: item?.listPrice != null ? String(item.listPrice) : id ? d.unitPrice : '',
+                }))
+              }
+            />
+          </label>
+          <div className="form-row-2">
+            <label>
+              {t('pricing.fieldLineName', { defaultValue: 'Line name' })} *
+              <input
+                value={lineDraft.name}
+                disabled={isBusy}
+                onChange={(e) => setLineDraft((d) => ({ ...d, name: e.target.value }))}
+              />
+            </label>
+            <label>
+              {t('pricing.fieldUnitPrice', { defaultValue: 'Unit price' })} *
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={lineDraft.unitPrice}
+                disabled={isBusy}
+                onChange={(e) => setLineDraft((d) => ({ ...d, unitPrice: e.target.value }))}
+              />
+            </label>
+          </div>
+          <label>
+            {t('pricing.fieldMinQty', { defaultValue: 'Min quantity' })}
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={lineDraft.minQty}
+              disabled={isBusy}
+              onChange={(e) => setLineDraft((d) => ({ ...d, minQty: e.target.value }))}
+            />
+          </label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" className="btn" onClick={addLineDraft} disabled={isBusy}>
+              <Plus size={16} /> {t('pricing.addLine', { defaultValue: 'Add line' })}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onSaveLines}
+              disabled={isBusy}
+            >
+              <Save size={16} /> {t('pricing.saveLines', { defaultValue: 'Save lines' })}
+            </button>
+          </div>
+        </div>
+      </>
+    )
+  }
 
   const helpContext = useMemo(() => {
     const base = { desk: 'sales-pricing', tab: 'lists' }
@@ -512,8 +736,7 @@ export default function SalesPricingPage() {
           defaultValue: 'No price lists yet. Create one with New.',
         })}
         loading={loading}
-        selectedKey={selected?.id}
-        onSelect={(row) => setSelectedId(String(row.id))}
+        onSelect={(row) => openPriceListView(row)}
         fields={[
           {
             id: 'name',
@@ -539,6 +762,7 @@ export default function SalesPricingPage() {
             render: (row) => row.lineCount ?? '—',
           },
         ]}
+        actions={(row) => renderRowActions(row)}
       >
         <div className="table-wrap">
           <table className="data">
@@ -548,12 +772,13 @@ export default function SalesPricingPage() {
                 <th>{t('pricing.colKind', { defaultValue: 'Kind' })}</th>
                 <th>{t('pricing.colActive', { defaultValue: 'Active' })}</th>
                 <th>{t('pricing.colLines', { defaultValue: 'Lines' })}</th>
+                <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     {t('pricing.empty', {
                       defaultValue: 'No price lists yet. Create one with New.',
                     })}
@@ -563,9 +788,8 @@ export default function SalesPricingPage() {
               {items.map((row) => (
                 <tr
                   key={row.id}
-                  data-selected={selected?.id === row.id ? 'true' : undefined}
-                  className={selected?.id === row.id ? 'row-selected' : 'row-click'}
-                  onClick={() => setSelectedId(String(row.id))}
+                  className="row-click"
+                  onClick={() => openPriceListView(row)}
                 >
                   <td>{entityDisplayLabel(row, { fallback: '—' })}</td>
                   <td>{row.listKind || '—'}</td>
@@ -575,6 +799,7 @@ export default function SalesPricingPage() {
                       : t('pricing.yes', { defaultValue: 'yes' })}
                   </td>
                   <td>{row.lineCount ?? '—'}</td>
+                  <td onClick={(e) => e.stopPropagation()}>{renderRowActions(row)}</td>
                 </tr>
               ))}
             </tbody>
@@ -584,140 +809,13 @@ export default function SalesPricingPage() {
     </>
   )
 
-  let detail = null
-  if (selected) {
-    detail = (
-      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
-        <h2 className="section-label" style={{ marginTop: 0 }}>
-          {t('pricing.detail', { defaultValue: 'Selected list' })} — {selected.name}
-        </h2>
-        <form className="form-grid" onSubmit={onSaveHeader}>
-          {fields(editForm, setEditForm, 'edit')}
-          <button type="submit" className="btn btn-primary" disabled={!!busy}>
-            <Save size={16} /> {t('actions.save', { ns: 'common', defaultValue: 'Save' })}
-          </button>
-        </form>
-
-        <h3 className="section-label" style={{ marginTop: '1.25rem' }}>
-          {t('pricing.lines', { defaultValue: 'Lines' })}
-        </h3>
-        {lines.length === 0 ? (
-          <p className="muted">
-            {t('pricing.linesEmpty', {
-              defaultValue: 'No lines yet. Add catalogue items or named prices below.',
-            })}
-          </p>
-        ) : (
-          <div className="table-wrap">
-            <table className="data">
-              <thead>
-                <tr>
-                  <th>{t('pricing.colLineName', { defaultValue: 'Name' })}</th>
-                  <th>{t('pricing.colUnitPrice', { defaultValue: 'Unit price' })}</th>
-                  <th>{t('pricing.colMinQty', { defaultValue: 'Min qty' })}</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {lines.map((ln, i) => (
-                  <tr key={`${ln.name}-${i}`}>
-                    <td>
-                      {ln.name || ln.sku || '—'}
-                    </td>
-                    <td>{ln.unitPrice}</td>
-                    <td>{ln.minQty}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        disabled={!!busy}
-                        onClick={() => setLines((prev) => prev.filter((_, j) => j !== i))}
-                      >
-                        {t('actions.remove', { ns: 'common', defaultValue: 'Remove' })}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="form-grid" style={{ marginTop: '0.75rem' }}>
-          <label>
-            {t('pricing.fieldCatalogueItem', { defaultValue: 'Catalogue item' })}
-            <CatalogueItemSelect
-              id="pl-line-item"
-              nature="GOODS"
-              forChannel="sale"
-              value={lineDraft.catalogueItemId}
-              disabled={!!busy}
-              onChange={(id, item) =>
-                setLineDraft((d) => ({
-                  ...d,
-                  catalogueItemId: id || '',
-                  name: item?.name || (id ? d.name : ''),
-                  unitPrice: item?.listPrice != null ? String(item.listPrice) : id ? d.unitPrice : '',
-                }))
-              }
-            />
-          </label>
-          <div className="form-row-2">
-            <label>
-              {t('pricing.fieldLineName', { defaultValue: 'Line name' })} *
-              <input
-                value={lineDraft.name}
-                disabled={!!busy}
-                onChange={(e) => setLineDraft((d) => ({ ...d, name: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('pricing.fieldUnitPrice', { defaultValue: 'Unit price' })} *
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={lineDraft.unitPrice}
-                disabled={!!busy}
-                onChange={(e) => setLineDraft((d) => ({ ...d, unitPrice: e.target.value }))}
-              />
-            </label>
-          </div>
-          <label>
-            {t('pricing.fieldMinQty', { defaultValue: 'Min quantity' })}
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={lineDraft.minQty}
-              disabled={!!busy}
-              onChange={(e) => setLineDraft((d) => ({ ...d, minQty: e.target.value }))}
-            />
-          </label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" className="btn" onClick={addLineDraft} disabled={!!busy}>
-              <Plus size={16} /> {t('pricing.addLine', { defaultValue: 'Add line' })}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={onSaveLines}
-              disabled={!!busy}
-            >
-              <Save size={16} /> {t('pricing.saveLines', { defaultValue: 'Save lines' })}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="page">
       {error && <div className="banner-error">{error}</div>}
       {info && <div className="banner-info">{info}</div>}
+      {viewModal}
 
-      <div className="toolbar" style={{ marginBottom: '0.75rem' }}>
+      <div className="toolbar" style={{ marginBottom: '1.5rem' }}>
         <button type="button" className="btn" onClick={load} disabled={loading || !!busy}>
           <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common', defaultValue: 'Refresh' })}
         </button>
@@ -727,32 +825,23 @@ export default function SalesPricingPage() {
       </div>
 
       <DeskShell
-        // ADR-050 Wave C: keep split — header + lines editor is the persistent detail workspace.
-        layout="split"
+        layout="single"
         title={
           <>
             <Tags size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
             {t('pricing.title', { defaultValue: 'Price lists' })}
           </>
         }
-        subtitle={t('pricing.subtitle', {
-          defaultValue: 'SalesAdvanced mid-market pricing lists. Silver pack / Iron eval.',
-        })}
+        subtitle={null}
         newLabel={t('pricing.newList', { defaultValue: 'New price list' })}
         newExpanded={newExpanded}
         onToggleNew={requestToggleNew}
         newPanel={newPanel}
         list={list}
-        hasSelection={hasSelection}
-        emptyTitle={t('wb.selectItem', { ns: 'common', defaultValue: 'Select an item' })}
-        emptyBody={t('desk.emptyBody', {
-          ns: 'common',
-          defaultValue: 'Choose a row from the list to see details.',
-        })}
-        detail={detail}
+        hasSelection={false}
+        detail={null}
         helpContext={helpContext}
-        narrowSheetOpen={narrow && hasSelection}
-        onCloseSheet={() => setSelectedId(null)}
+        narrowSheetOpen={false}
       />
 
       <DeskNewFab

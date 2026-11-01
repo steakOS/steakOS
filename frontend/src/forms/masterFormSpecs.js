@@ -34,6 +34,7 @@ export const MASTER_FORM_KEYS = [
   'PurchaseOrder',
   'CustomerQuote',
   'SalesOrder',
+  'PriceList',
   'Competitor',
   'StrategyItem',
   'DevelopmentProject',
@@ -1212,6 +1213,99 @@ const rmaSpec = {
   listColumns: [{ key: 'rmaStatus', label: 'Status' }],
 }
 
+/** Price list header — lines edited in RecordView belowFields (SalesAdvanced). */
+const priceListSpec = {
+  resource: 'PriceList',
+  packages: ['sales'],
+  empty: () => ({
+    name: '',
+    code: '',
+    listKind: 'STANDARD',
+    currencyCode: 'EUR',
+    active: true,
+    validFrom: '',
+    validTo: '',
+    customerId: '',
+    description: '',
+    defaultDiscountPercent: '',
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'code', label: 'Code', type: 'text' },
+    {
+      name: 'listKind',
+      label: 'Kind',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'STANDARD', label: 'STANDARD' },
+        { value: 'CUSTOMER', label: 'CUSTOMER' },
+        { value: 'VOLUME', label: 'VOLUME' },
+      ],
+    },
+    { name: 'currencyCode', label: 'Currency', type: 'currency', required: true },
+    { name: 'active', label: 'Active', type: 'checkbox' },
+    { name: 'customerId', label: 'Customer id', type: 'number', inputMode: 'numeric' },
+    { name: 'validFrom', label: 'Valid from', type: 'date' },
+    { name: 'validTo', label: 'Valid to', type: 'date' },
+    {
+      name: 'defaultDiscountPercent',
+      label: 'Default discount %',
+      type: 'number',
+      inputMode: 'decimal',
+    },
+    { name: 'description', label: 'Description', type: 'textarea' },
+  ],
+  toBody: (f) => {
+    const body = {
+      name: (f.name || '').trim(),
+      code: (f.code || '').trim() || null,
+      listKind: f.listKind || 'STANDARD',
+      currencyCode: f.currencyCode || 'EUR',
+      active: f.active !== false,
+      description: (f.description || '').trim() || null,
+      validFrom: f.validFrom || null,
+      validTo: f.validTo || null,
+    }
+    if (f.defaultDiscountPercent !== '' && f.defaultDiscountPercent != null) {
+      body.defaultDiscountPercent = Number(f.defaultDiscountPercent)
+    } else {
+      body.defaultDiscountPercent = null
+    }
+    if (f.listKind === 'CUSTOMER' || f.customerId) {
+      body.customerId = f.customerId ? Number(f.customerId) : null
+    }
+    return body
+  },
+  fromRow: (row, empty) => {
+    const toDate = (v) => {
+      if (v == null || v === '') return ''
+      if (typeof v === 'number') return new Date(v).toISOString().slice(0, 10)
+      const s = String(v)
+      return s.length >= 10 ? s.slice(0, 10) : s
+    }
+    return {
+      ...empty,
+      name: row.name || '',
+      code: row.code || '',
+      listKind: row.listKind || 'STANDARD',
+      currencyCode: row.currencyCode || 'EUR',
+      active: row.active !== false,
+      validFrom: toDate(row.validFrom),
+      validTo: toDate(row.validTo),
+      customerId: row.customerId != null ? String(row.customerId) : '',
+      description: row.description || '',
+      defaultDiscountPercent:
+        row.defaultDiscountPercent != null ? String(row.defaultDiscountPercent) : '',
+    }
+  },
+  listColumns: [
+    { key: 'listKind', label: 'Kind' },
+    { key: 'currencyCode', label: 'Ccy', mono: true },
+    { key: 'active', label: 'Active' },
+  ],
+}
+
 const SPECS = {
   Customer: customerSpec,
   Vendor: vendorSpec,
@@ -1225,6 +1319,7 @@ const SPECS = {
   PurchaseOrder: purchaseOrderSpec,
   CustomerQuote: customerQuoteSpec,
   SalesOrder: salesOrderSpec,
+  PriceList: priceListSpec,
   Competitor: competitorSpec,
   StrategyItem: strategyItemSpec,
   DevelopmentProject: developmentProjectSpec,

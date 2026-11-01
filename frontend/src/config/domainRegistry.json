@@ -89,6 +89,14 @@
         {
           "name": "SalesPlan",
           "path": "/domains/sales/SalesPlan"
+        },
+        {
+          "name": "PriceList",
+          "path": "/domains/sales/PriceList"
+        },
+        {
+          "name": "PriceListLine",
+          "path": "/domains/sales/PriceListLine"
         }
       ],
       "navRole": "work",
