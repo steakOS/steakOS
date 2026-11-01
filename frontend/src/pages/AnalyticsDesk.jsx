@@ -267,10 +267,6 @@ function DetailPanel({ detail, loading, error }) {
           <dd>{detail.formula || '—'}</dd>
         </div>
         <div>
-          <dt>{t('analytics.maturity', { defaultValue: 'Maturity' })}</dt>
-          <dd>{detail.maturity || '—'}</dd>
-        </div>
-        <div>
           <dt>{t('analytics.unit', { defaultValue: 'Unit' })}</dt>
           <dd>{detail.unit || '—'}</dd>
         </div>
