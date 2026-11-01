@@ -5,12 +5,12 @@
 # Ensures Java 21 (Temurin) + PostgreSQL 16 + DB roles, then runs install.ps1.
 #
 # Usage (Admin PowerShell only when deps are missing):
-#   irm http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.ps1 | iex
+#   irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
 #   .\bootstrap.ps1 -Yes
-#   .\bootstrap.ps1 -SkipDeps -BaseUrl http://umbrel.local:8101/hermesbro/steakOS/releases/latest/download
+#   .\bootstrap.ps1 -SkipDeps -BaseUrl https://github.com/steakOS/steakOS/releases/latest/download
 #
-# Environment: STEAKOS_HUB_HOST, STEAKOS_BASE_URL, STEAKOS_RAW_BASE, STEAKOS_PREFIX, STEAKOS_ASSUME_YES
-# Future public GitHub: set STEAKOS_BASE_URL / STEAKOS_RAW_BASE accordingly.
+# Environment: STEAKOS_CHANNEL (github|forgejo), STEAKOS_BASE_URL, STEAKOS_RAW_BASE,
+#   STEAKOS_PREFIX, STEAKOS_ASSUME_YES, STEAKOS_HUB_* (Forgejo override)
 
 [CmdletBinding()]
 param(
@@ -25,18 +25,28 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-# Default: Forgejo hub on the office LAN (public GitHub mirror deferred).
+# Default install channel: https://github.com/steakOS/steakOS
+$Org = if ($env:STEAKOS_GITHUB_ORG) { $env:STEAKOS_GITHUB_ORG } else { 'steakOS' }
+$Repo = if ($env:STEAKOS_GITHUB_REPO) { $env:STEAKOS_GITHUB_REPO } else { 'steakOS' }
+$Channel = if ($env:STEAKOS_CHANNEL) { $env:STEAKOS_CHANNEL } else { 'github' }
 $HubHost = if ($env:STEAKOS_HUB_HOST) { $env:STEAKOS_HUB_HOST } else { 'http://umbrel.local:8101' }
 $HubOwner = if ($env:STEAKOS_HUB_OWNER) { $env:STEAKOS_HUB_OWNER } else { 'hermesbro' }
 $HubRepo = if ($env:STEAKOS_HUB_REPO) { $env:STEAKOS_HUB_REPO } else { 'steakOS' }
-$Org = if ($env:STEAKOS_GITHUB_ORG) { $env:STEAKOS_GITHUB_ORG } else { 'steakOS' }
-$Repo = if ($env:STEAKOS_GITHUB_REPO) { $env:STEAKOS_GITHUB_REPO } else { 'steakOS' }
-$RawBase = if ($env:STEAKOS_RAW_BASE) { $env:STEAKOS_RAW_BASE } else { "$HubHost/$HubOwner/$HubRepo/raw/branch/main" }
+if ($env:STEAKOS_RAW_BASE) {
+    $RawBase = $env:STEAKOS_RAW_BASE
+} elseif ($Channel -eq 'forgejo') {
+    $RawBase = "$HubHost/$HubOwner/$HubRepo/raw/branch/main"
+} else {
+    $RawBase = "https://raw.githubusercontent.com/$Org/$Repo/main"
+}
 if ($env:STEAKOS_ASSUME_YES -eq '1') { $Yes = $true }
 
 function Resolve-ReleaseBase {
     if ($env:STEAKOS_BASE_URL) { return $env:STEAKOS_BASE_URL.TrimEnd('/') }
     if ($BaseUrl) { return $BaseUrl.TrimEnd('/') }
+    if ($Channel -ne 'forgejo') {
+        return "https://github.com/$Org/$Repo/releases/latest/download"
+    }
     $meta = Invoke-RestMethod -UseBasicParsing -Uri "$HubHost/api/v1/repos/$HubOwner/$HubRepo/releases/latest"
     if (-not $meta.tag_name) { Die 'latest release has no tag_name' }
     return "$HubHost/$HubOwner/$HubRepo/releases/download/$($meta.tag_name)"
@@ -178,7 +188,7 @@ $here = $PSScriptRoot
 if (-not $here) { $here = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $installer = Join-Path $here 'install.ps1'
 if (-not (Test-Path $installer)) {
-    Write-Info 'Fetching install.ps1 from hub'
+    Write-Info "Fetching install.ps1 from $RawBase"
     $installer = Join-Path $env:TEMP 'steakos-install.ps1'
     Invoke-WebRequest -UseBasicParsing "$RawBase/scripts/install/install.ps1" -OutFile $installer
 }

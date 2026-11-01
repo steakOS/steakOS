@@ -225,34 +225,41 @@ You can ignore shop floor, after-sales, and deep governance until those problems
 
 ## Get the software (download / clone)
 
-**Source of truth today:** the project Forgejo hub on the office LAN  
-(`http://umbrel.local:8101/hermesbro/steakOS`). A **public GitHub mirror** (`steakOS/steakOS`) is planned; it is not the install host yet.
+**Public install channel:** [github.com/steakOS/steakOS](https://github.com/steakOS/steakOS)  
+(raw bootstrap + GitHub Releases). Builders still push to the office Forgejo hub; use `STEAKOS_CHANNEL=forgejo` on the LAN when you need the hub Release instead of GitHub.
 
 Project home: **[steakos.org](https://steakos.org)** · optional paid help: **[steakOS.ai](https://steakOS.ai)**
 
 ```bash
-git clone http://umbrel.local:8101/hermesbro/steakOS.git
+git clone https://github.com/steakOS/steakOS.git
 cd steakOS
 ```
 
-### One-line install (office network)
+Office LAN clone (builders): `git clone http://umbrel.local:8101/hermesbro/steakOS.git`
 
-Paste one command **while on the same network as the hub**. It installs the free **Java** engine and **PostgreSQL** database if they are missing, creates the empty filing cabinets steakOS needs, downloads the packaged app from the hub Release, and starts it. Your computer may ask for an admin password once if system software must be installed.
+### One-line install
+
+Paste one command. It installs the free **Java** engine and **PostgreSQL** database if they are missing, creates the empty filing cabinets steakOS needs, downloads the packaged app from the latest GitHub Release, and starts it. Your computer may ask for an admin password once if system software must be installed.
 
 **Linux / macOS** (Ubuntu, Linux Mint, or macOS):
 
 ```bash
-curl -fsSL http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.sh | bash
 ```
 
 **Windows 11** (PowerShell — elevate only if Java/PostgreSQL still need installing):
 
 ```powershell
-irm http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.ps1 | iex
+irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
 ```
 
-Prefer to read the script first? Open the same URL in a browser, save the file, then run it locally. Package files (zip + checksum) are hub **Releases** assets (e.g. tag `v0.2.3`). The bootstrap script asks the hub API for the latest tag, then downloads from  
-`http://umbrel.local:8101/hermesbro/steakOS/releases/download/<tag>/`.
+**Office LAN override** (hub Release instead of GitHub):
+
+```bash
+STEAKOS_CHANNEL=forgejo curl -fsSL http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.sh | bash
+```
+
+Prefer to read the script first? Open the same URL in a browser, save the file, then run it locally. Package files (zip + checksum) come from GitHub **Releases** (`https://github.com/steakOS/steakOS/releases/latest/download/`). With `STEAKOS_CHANNEL=forgejo`, the script resolves the latest hub tag via the Forgejo API, then downloads from `http://umbrel.local:8101/hermesbro/steakOS/releases/download/<tag>/`.
 
 Install troubleshooting: companion doc `docs/installation/TROUBLESHOOTING-INSTALL.md` (and [Getting started](https://steakos.org/getting-started.html) when the public site mirrors this story).
 

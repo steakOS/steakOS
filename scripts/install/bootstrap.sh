@@ -18,28 +18,36 @@
 # Ensures Java 21 + PostgreSQL 16 + DB roles, then runs the package installer.
 #
 # Usage:
-#   curl -fsSL http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.sh | bash
 #   ./bootstrap.sh --yes
-#   ./bootstrap.sh --skip-deps --base-url http://umbrel.local:8101/hermesbro/steakOS/releases/latest/download
+#   ./bootstrap.sh --skip-deps --base-url https://github.com/steakOS/steakOS/releases/latest/download
 #   ./bootstrap.sh --offline /path/to/steakOS-….zip
 #
 # Environment:
-#   STEAKOS_HUB_HOST / STEAKOS_HUB_OWNER / STEAKOS_HUB_REPO  (Forgejo defaults)
-#   STEAKOS_BASE_URL     package host (default: hub releases/latest/download)
+#   STEAKOS_CHANNEL      github (default) | forgejo — install host family
+#   STEAKOS_GITHUB_ORG / STEAKOS_GITHUB_REPO  (default steakOS / steakOS)
+#   STEAKOS_BASE_URL     package host (default: GitHub releases/latest/download)
 #   STEAKOS_RAW_BASE     raw file base for fetching install.sh when not local
+#   STEAKOS_HUB_HOST / STEAKOS_HUB_OWNER / STEAKOS_HUB_REPO  (Forgejo override when CHANNEL=forgejo)
 #   STEAKOS_PREFIX       install dir (default: $HOME/steakOS)
 #   STEAKOS_ASSUME_YES   1 = non-interactive yes
-#   Future public GitHub: set STEAKOS_BASE_URL / STEAKOS_RAW_BASE to github.com/steakOS/steakOS
 set -euo pipefail
 
-# Default host: Forgejo hub on the office LAN (GitHub public mirror deferred).
-# Override with STEAKOS_BASE_URL / STEAKOS_RAW_BASE when the public GitHub mirror is live.
+# Default install channel: public GitHub repo https://github.com/steakOS/steakOS
+# Office Forgejo: STEAKOS_CHANNEL=forgejo (optional LAN override).
+ORG="${STEAKOS_GITHUB_ORG:-steakOS}"
+REPO="${STEAKOS_GITHUB_REPO:-steakOS}"
+CHANNEL="${STEAKOS_CHANNEL:-github}"
 HUB_HOST="${STEAKOS_HUB_HOST:-http://umbrel.local:8101}"
 HUB_OWNER="${STEAKOS_HUB_OWNER:-hermesbro}"
 HUB_REPO="${STEAKOS_HUB_REPO:-steakOS}"
-ORG="${STEAKOS_GITHUB_ORG:-steakOS}"
-REPO="${STEAKOS_GITHUB_REPO:-steakOS}"
-RAW_BASE="${STEAKOS_RAW_BASE:-${HUB_HOST}/${HUB_OWNER}/${HUB_REPO}/raw/branch/main}"
+if [[ -n "${STEAKOS_RAW_BASE:-}" ]]; then
+  RAW_BASE="${STEAKOS_RAW_BASE}"
+elif [[ "$CHANNEL" == "forgejo" ]]; then
+  RAW_BASE="${HUB_HOST}/${HUB_OWNER}/${HUB_REPO}/raw/branch/main"
+else
+  RAW_BASE="https://raw.githubusercontent.com/${ORG}/${REPO}/main"
+fi
 BASE_URL="${STEAKOS_BASE_URL:-}"
 PREFIX="${STEAKOS_PREFIX:-${HOME}/steakOS}"
 OFFLINE_ZIP=""
@@ -55,10 +63,15 @@ die() { echo "error: $*" >&2; exit 1; }
 info() { echo "==> $*"; }
 warn() { echo "warn: $*" >&2; }
 
-# Forgejo/Gitea has no GitHub-style …/releases/latest/download/ folder — resolve tag via API.
+# GitHub: …/releases/latest/download works as a CDN redirect for release assets.
+# Forgejo/Gitea: resolve tag via API, then …/releases/download/<tag>.
 resolve_release_base() {
   if [[ -n "${STEAKOS_BASE_URL:-}" ]]; then
     echo "${STEAKOS_BASE_URL%/}"
+    return
+  fi
+  if [[ "$CHANNEL" != "forgejo" ]]; then
+    echo "https://github.com/${ORG}/${REPO}/releases/latest/download"
     return
   fi
   need_cmd curl
@@ -295,7 +308,7 @@ trap cleanup EXIT
 
 INSTALLER="$SCRIPT_DIR/install.sh"
 if [[ ! -f "$INSTALLER" ]]; then
-  info "Fetching package installer from hub"
+  info "Fetching package installer from ${RAW_BASE}"
   need_cmd curl
   curl -fsSL "${RAW_BASE}/scripts/install/install.sh" -o "$TMP/install.sh"
   chmod +x "$TMP/install.sh"
