@@ -17,6 +17,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { salesApi } from '../api/client'
 import AsyncEntitySelect, { PICKER_MAX } from './AsyncEntitySelect'
+import { formatReferenceDisplay } from '../utils/referenceDisplay'
 
 /**
  * Typeahead customer picker (LIST-PAGINATION P4) — server `q` on /api/sales/customers.
@@ -39,8 +40,8 @@ export default function CustomerSelect({
 
   const getLabel = useCallback((c) => {
     if (!c) return ''
-    const kind = c.customerKind ? ` (${c.customerKind})` : ''
-    return `${c.name}${kind}`
+    const kind = c.customerKind ? ` · ${c.customerKind}` : ''
+    return formatReferenceDisplay(`${c.name || ''}${kind}`, c.id)
   }, [])
 
   return (

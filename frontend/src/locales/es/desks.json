@@ -65,7 +65,8 @@
     "vendorsCount": "Vendedores ({{count}})",
     "productsCount": "Productos ({{count}})",
     "servicesCount": "Servicios ({{count}})",
-    "sku": "SKU"
+    "sku": "SKU",
+    "viewReferenceHint": "Seleccione un PO — relacionados como Nombre (ID único)"
   },
   "delivery": {
     "title": "mostrador de entrega",

@@ -1099,7 +1099,13 @@
     "showEmptyFields": "Alle Felder anzeigen",
     "hiddenEmptyHint": "{{count}} leere Feld(er) ausgeblendet",
     "allFieldsEmpty": "Keine befüllten Felder — „Alle Felder anzeigen“ aktivieren, um Lücken zu sehen.",
-    "showAllFields": "Alle Felder anzeigen"
+    "showAllFields": "Alle Felder anzeigen",
+    "uniqueId": "Eindeutige ID",
+    "uniqueIdHint": "Systemkennung dieses Datensatzes. Beim Bearbeiten schreibgeschützt.",
+    "referenceHint": "Verknüpfte Datensätze erscheinen als Name (Eindeutige ID).",
+    "fieldLabels": {
+      "uniqueId": "Eindeutige ID"
+    }
   },
   "domainForm": {
     "postalAddress": "Postadresse",
@@ -1223,7 +1229,7 @@
   },
   "schemaForm": {
     "noEditableFields": "Keine bearbeitbaren Felder im Schema — Domain-Constraints prüfen.",
-    "enterRelatedId": "ID des verknüpften Datensatzes eingeben",
+    "enterRelatedId": "Verknüpfter Datensatz — bevorzugt Picker; gespeichert als Eindeutige ID",
     "preferredCurrency": "Bevorzugte Währung",
     "priceCurrency": "Preiswährung"
   },

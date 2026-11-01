@@ -1099,7 +1099,13 @@
     "showEmptyFields": "Show all fields",
     "hiddenEmptyHint": "{{count}} empty field(s) hidden",
     "allFieldsEmpty": "No filled fields — enable “Show all fields” to see blanks.",
-    "showAllFields": "Show all fields"
+    "showAllFields": "Show all fields",
+    "uniqueId": "Unique ID",
+    "uniqueIdHint": "System identifier for this record. Read-only when editing.",
+    "referenceHint": "Related records show as Name (Unique ID).",
+    "fieldLabels": {
+      "uniqueId": "Unique ID"
+    }
   },
   "domainForm": {
     "postalAddress": "postal address",
@@ -1223,7 +1229,7 @@
   },
   "schemaForm": {
     "noEditableFields": "No editable fields in schema — check domain constraints.",
-    "enterRelatedId": "Enter related record id",
+    "enterRelatedId": "Related record — use a picker when available; stored as Unique ID",
     "preferredCurrency": "Preferred currency",
     "priceCurrency": "Price currency"
   },

@@ -17,6 +17,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { scmApi } from '../api/client'
 import AsyncEntitySelect, { PICKER_MAX } from './AsyncEntitySelect'
+import { formatReferenceDisplay } from '../utils/referenceDisplay'
 
 /**
  * Typeahead vendor picker (LIST-PAGINATION P4) — server `q` on /api/scm/vendors.
@@ -44,7 +45,7 @@ export default function VendorSelect({
       onChange={onChange}
       search={search}
       resolveById={resolveById}
-      getLabel={(v) => v?.name || ''}
+      getLabel={(v) => formatReferenceDisplay(v?.name, v?.id)}
       disabled={disabled}
       placeholder={
         placeholder ||

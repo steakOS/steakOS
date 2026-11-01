@@ -17,6 +17,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { deliveryApi } from '../api/client'
 import AsyncEntitySelect, { PICKER_MAX } from './AsyncEntitySelect'
+import { formatReferenceDisplay } from '../utils/referenceDisplay'
 
 /**
  * Typeahead assignee picker — active employed humans from HR (synced to delivery resources).
@@ -50,9 +51,9 @@ export default function ResourceSelect({
       resolveById={resolveById}
       getLabel={(r) => {
         if (!r) return ''
-        const kind = r.hrFileId ? '' : r.resourceKind ? ` (${r.resourceKind})` : ''
+        const kind = r.hrFileId ? '' : r.resourceKind ? ` · ${r.resourceKind}` : ''
         const email = r.email ? ` · ${r.email}` : ''
-        return `${r.name}${kind}${email}`
+        return formatReferenceDisplay(`${r.name || ''}${kind}${email}`, r.id)
       }}
       disabled={disabled}
       placeholder={

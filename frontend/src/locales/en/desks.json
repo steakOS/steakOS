@@ -65,7 +65,8 @@
     "vendorsCount": "Vendors ({{count}})",
     "productsCount": "Products ({{count}})",
     "servicesCount": "Services ({{count}})",
-    "sku": "SKU"
+    "sku": "SKU",
+    "viewReferenceHint": "Select a PO — related fields show as Name (Unique ID)"
   },
   "delivery": {
     "title": "Delivery desk",

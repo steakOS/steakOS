@@ -44,6 +44,7 @@ export function chromeDuplicateKeys(pkg, resource) {
 
 /** Friendly labels for common keys (override humanize). */
 export const VIEW_FIELD_LABELS = {
+  uniqueId: 'Unique ID',
   npubOwner: 'Owner',
   assignee: 'Assignee',
   assigneeAgentId: 'Assignee',
@@ -59,6 +60,12 @@ export const VIEW_FIELD_LABELS = {
   nature: 'Kind',
   code: 'Code',
   listPrice: 'List price',
+  vendorId: 'Vendor',
+  customerId: 'Customer',
+  financePayableId: 'Finance payable',
+  financeInvoiceId: 'Finance invoice',
+  journalEntryId: 'Journal entry',
+  catalogueItemId: 'Catalogue item',
 }
 
 /** Friendly display for stored enum-ish values in the view modal. */
@@ -75,9 +82,16 @@ export function viewFieldDisplayValue(key, value) {
 export function viewFieldLabel(key, t) {
   const mapped = VIEW_FIELD_LABELS[key]
   if (mapped) {
-    return t ? t(`view.fields.${key}`, { defaultValue: mapped }) : mapped
+    // Prefer view.fieldLabels.* (object); fall back to view.uniqueId for the id row.
+    if (t) {
+      if (key === 'uniqueId') {
+        return t('view.uniqueId', { defaultValue: mapped })
+      }
+      return t(`view.fieldLabels.${key}`, { defaultValue: mapped })
+    }
+    return mapped
   }
-  // camelCase → words
+  // camelCase → words; strip trailing "Id" so vendorId → Vendor
   const human = String(key)
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/_/g, ' ')

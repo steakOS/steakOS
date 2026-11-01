@@ -18,5 +18,5 @@
   "ticketViewAll": "Alle Tickets anzeigen",
   "backToContext": "Zurück zur Seitenhilfe",
   "ui20Title": "Listen & Desks (UI 2.0)",
-  "ui20Hint": "Tabs, Aktions-Icons (Ansehen · Bearbeiten · Löschen) und Modals"
+  "ui20Hint": "Tabs, Aktions-Icons (Anzeigen · Bearbeiten · Löschen) und Modals. Verknüpfungen als Name (Eindeutige ID). Eindeutige ID zuerst und schreibgeschützt beim Bearbeiten."
 }

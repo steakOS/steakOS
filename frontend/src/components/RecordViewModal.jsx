@@ -22,6 +22,11 @@ import { statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 import {
+  buildReferenceAwareViewEntries,
+  formatReferenceDisplay,
+  pendingFkResolves,
+} from '../utils/referenceDisplay'
+import {
   filterViewEntries,
   isEmptyViewValue,
   readShowEmptyFieldsPref,
@@ -110,6 +115,8 @@ export default function RecordViewModal({
   const [error, setError] = useState(null)
   const [showAllFields, setShowAllFields] = useState(() => readShowEmptyFieldsPref())
   const [assigneeLabel, setAssigneeLabel] = useState(null)
+  /** `${fkKey}:${id}` → resolved display name for orphan FKs without companion *Name */
+  const [resolvedFkNames, setResolvedFkNames] = useState({})
 
   useEffect(() => {
     if (!open) return undefined
@@ -179,6 +186,40 @@ export default function RecordViewModal({
     }
   }, [open, record])
 
+  // Resolve orphan FK names (e.g. financePayableId without *Name on the row)
+  useEffect(() => {
+    if (!open || !record) {
+      setResolvedFkNames({})
+      return undefined
+    }
+    const pending = pendingFkResolves(record)
+    if (!pending.length) return undefined
+    let cancelled = false
+    Promise.all(
+      pending.map((p) =>
+        domainsApi
+          .get(p.package, p.resource, p.id)
+          .then((row) => ({
+            cacheKey: `${p.key}:${p.id}`,
+            name: entityDisplayLabel(row, { fallback: '' }) || null,
+          }))
+          .catch(() => ({ cacheKey: `${p.key}:${p.id}`, name: null })),
+      ),
+    ).then((results) => {
+      if (cancelled) return
+      setResolvedFkNames((prev) => {
+        const next = { ...prev }
+        for (const r of results) {
+          if (r.name) next[r.cacheKey] = r.name
+        }
+        return next
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [open, record])
+
   const recordForFields = useMemo(
     () => ensureKnownFields(record, pkg, resource, { showAll: showAllFields }),
     [record, pkg, resource, showAllFields],
@@ -189,9 +230,9 @@ export default function RecordViewModal({
     [recordForFields, pkg, resource],
   )
 
-  /** Build display rows: merge assignees into one friendly “Assignee” value. */
+  /** Build display rows: Unique ID first, FKs as Name (id), merge assignees. */
   const displayEntries = useMemo(() => {
-    const rows = []
+    const merged = []
     let assigneeEmitted = false
     const agentId = recordForFields?.assigneeAgentId
     const human = recordForFields?.assigneeHumanNpub
@@ -204,8 +245,8 @@ export default function RecordViewModal({
         assigneeEmitted = true
         let display = null
         if (hasAgent) {
-          if (assigneeLabel) display = assigneeLabel
-          else if (showAllFields) display = `Agent #${agentId}`
+          if (assigneeLabel) display = formatReferenceDisplay(assigneeLabel, agentId)
+          else if (showAllFields) display = formatReferenceDisplay(null, agentId)
           else continue // wait for name resolve
         } else if (hasHuman) {
           display = String(human).trim()
@@ -214,13 +255,16 @@ export default function RecordViewModal({
         } else {
           continue
         }
-        rows.push(['assignee', display])
+        merged.push(['assignee', display])
         continue
       }
-      rows.push([key, value])
+      merged.push([key, value])
     }
-    return rows
-  }, [rawEntries, recordForFields, assigneeLabel, showAllFields])
+
+    return buildReferenceAwareViewEntries(recordForFields, merged, {
+      resolvedNames: resolvedFkNames,
+    })
+  }, [rawEntries, recordForFields, assigneeLabel, showAllFields, resolvedFkNames])
 
   const entries = useMemo(
     () => filterViewEntries(displayEntries, { showEmpty: showAllFields }),

@@ -18,5 +18,5 @@
   "ticketViewAll": "View all tickets",
   "backToContext": "Back to page help",
   "ui20Title": "Lists & desks (UI 2.0)",
-  "ui20Hint": "Tabs, Action icons (View · Edit · Delete), and modals"
+  "ui20Hint": "Tabs, Action icons (View · Edit · Delete), and modals. Related fields show as Name (Unique ID). Unique ID is listed first and is read-only when editing."
 }

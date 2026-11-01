@@ -17,6 +17,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { catalogueApi } from '../api/client'
 import AsyncEntitySelect, { PICKER_MAX } from './AsyncEntitySelect'
+import { formatReferenceDisplay } from '../utils/referenceDisplay'
 
 /**
  * Unified goods+services typeahead for SO/PO/Quote lines (CATALOGUE-ITEM-CONCEPT + LIST-PAGINATION P4).
@@ -51,12 +52,12 @@ export default function CatalogueItemSelect({
   const getLabel = useCallback((it) => {
     if (!it) return ''
     const icon = it.nature === 'SERVICE' ? '🔧 ' : '📦 '
-    const code = it.code ? ` (${it.code})` : ''
+    const code = it.code ? ` · ${it.code}` : ''
     const price =
       it.listPrice != null
         ? ` · ${Number(it.listPrice).toFixed(2)} ${it.currency || ''}`
         : ''
-    return `${icon}${it.name}${code}${price}`
+    return formatReferenceDisplay(`${icon}${it.name || ''}${code}${price}`, it.id)
   }, [])
 
   return (

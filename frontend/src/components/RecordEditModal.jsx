@@ -444,6 +444,25 @@ export default function RecordEditModal({
 
               <div className="form-grid record-edit-fields">
                 <label>
+                  {t('view.uniqueId', {
+                    ns: 'common',
+                    defaultValue: 'Unique ID',
+                  })}
+                  <input
+                    type="text"
+                    className="mono"
+                    value={recordId != null ? String(recordId) : ''}
+                    readOnly
+                    disabled
+                    aria-readonly="true"
+                    title={t('view.uniqueIdHint', {
+                      ns: 'common',
+                      defaultValue: 'System identifier for this record. Read-only when editing.',
+                    })}
+                  />
+                </label>
+
+                <label>
                   {t('pages.work.status', { ns: 'common', defaultValue: 'Status' })}
                   <select
                     name="status"
@@ -619,6 +638,24 @@ export default function RecordEditModal({
               {error && <div className="banner-error">{error}</div>}
 
               <div className="form-grid record-edit-fields">
+                <label>
+                  {t('view.uniqueId', {
+                    ns: 'common',
+                    defaultValue: 'Unique ID',
+                  })}
+                  <input
+                    type="text"
+                    className="mono"
+                    value={recordId != null ? String(recordId) : ''}
+                    readOnly
+                    disabled
+                    aria-readonly="true"
+                    title={t('view.uniqueIdHint', {
+                      ns: 'common',
+                      defaultValue: 'System identifier for this record. Read-only when editing.',
+                    })}
+                  />
+                </label>
                 <MasterEntityFields
                   spec={fieldsSpecForRender}
                   form={form}

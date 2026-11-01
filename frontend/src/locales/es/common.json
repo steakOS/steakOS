@@ -1099,7 +1099,13 @@
     "showEmptyFields": "Mostrar todos los campos",
     "hiddenEmptyHint": "{{count}} campo(s) vacío(s) oculto(s)",
     "allFieldsEmpty": "No hay campos rellenos — active «Mostrar todos los campos» para ver los en blanco.",
-    "showAllFields": "Mostrar todos los campos"
+    "showAllFields": "Mostrar todos los campos",
+    "uniqueId": "ID único",
+    "uniqueIdHint": "Identificador de sistema de este registro. Solo lectura al editar.",
+    "referenceHint": "Los registros relacionados se muestran como Nombre (ID único).",
+    "fieldLabels": {
+      "uniqueId": "ID único"
+    }
   },
   "domainForm": {
     "postalAddress": "dirección postal",
@@ -1223,7 +1229,7 @@
   },
   "schemaForm": {
     "noEditableFields": "No hay campos editables en el esquema: verifique las restricciones del dominio.",
-    "enterRelatedId": "Ingrese la identificación del registro relacionado",
+    "enterRelatedId": "Registro relacionado — preferir un selector; se guarda como ID único",
     "preferredCurrency": "Moneda preferida",
     "priceCurrency": "Moneda de precio"
   },

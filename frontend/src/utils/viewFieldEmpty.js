@@ -35,7 +35,8 @@ export function isEmptyViewValue(value) {
  */
 export function filterViewEntries(entries, { showEmpty = false } = {}) {
   if (showEmpty || !Array.isArray(entries)) return entries || []
-  return entries.filter(([, value]) => !isEmptyViewValue(value))
+  // Unique ID stays visible even when other empty fields are hidden (ADR-048).
+  return entries.filter(([key, value]) => key === 'uniqueId' || !isEmptyViewValue(value))
 }
 
 export function readShowEmptyFieldsPref() {

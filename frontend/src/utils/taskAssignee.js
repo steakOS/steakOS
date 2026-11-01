@@ -86,9 +86,12 @@ export function buildAssigneeOptions({ humans = [], agents = [], meUsername, meL
       const npub = humanNpubForUsername(username)
       if (!npub) return null
       const { label, sortKey } = splitPersonName(h.name || username)
+      const base = label || npub
+      const withId =
+        h.id != null && h.id !== '' ? `${base} (${h.id})` : base
       return {
         value: `human:${npub}`,
-        label: label || npub,
+        label: withId,
         kind: 'human',
         sortKey,
       }
@@ -108,14 +111,19 @@ export function buildAssigneeOptions({ humans = [], agents = [], meUsername, meL
       const st = String(a.agentStatus || a.status || '').toUpperCase()
       return !st || st === 'ACTIVE'
     })
-    .map((a) => ({
-      value: `agent:${a.id}`,
-      label: `[agent] ${a.name || a.agentKey || a.displayName || 'Agent'}`,
-      kind: 'agent',
-      agentKey: a.agentKey || '',
-      developmentOnly: !!a.developmentOnly || a.agentKey === 'coder',
-      sortKey: String(a.name || a.agentKey || a.id).toLowerCase(),
-    }))
+    .map((a) => {
+      const base = a.name || a.agentKey || a.displayName || 'Agent'
+      const withId =
+        a.id != null && a.id !== '' ? `${base} (${a.id})` : base
+      return {
+        value: `agent:${a.id}`,
+        label: `[agent] ${withId}`,
+        kind: 'agent',
+        agentKey: a.agentKey || '',
+        developmentOnly: !!a.developmentOnly || a.agentKey === 'coder',
+        sortKey: String(a.name || a.agentKey || a.id).toLowerCase(),
+      }
+    })
     .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
 
   options.push(...agentOpts)

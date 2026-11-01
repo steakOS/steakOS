@@ -65,7 +65,8 @@
     "vendorsCount": "Lieferanten ({{count}})",
     "productsCount": "Produkte ({{count}})",
     "servicesCount": "Services ({{count}})",
-    "sku": "SKU"
+    "sku": "SKU",
+    "viewReferenceHint": "PO wählen — Verknüpfungen als Name (Eindeutige ID)"
   },
   "delivery": {
     "title": "Dashboard Auslieferung",

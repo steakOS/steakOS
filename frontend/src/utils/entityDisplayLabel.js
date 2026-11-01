@@ -2,8 +2,9 @@
 // Copyright 2026 The steakOS Authors
 //
 /**
- * Prefer business keys over raw Postgres primary keys in operator-facing chrome.
- * Keep numeric ids in URLs / route params / API calls — not in titles, lists, or toasts.
+ * Prefer business keys over raw Postgres primary keys in operator-facing chrome
+ * (titles, list columns, toasts). Related-record fields and Unique ID use
+ * `referenceDisplay.js` — Name (id) — per ADR-048.
  */
 
 const BUSINESS_KEYS = [

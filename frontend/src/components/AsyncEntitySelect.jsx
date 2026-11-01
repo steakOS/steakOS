@@ -38,7 +38,12 @@ export default function AsyncEntitySelect({
   value,
   onChange,
   search,
-  getLabel = (it) => it?.name || String(it?.id ?? ''),
+  getLabel = (it) =>
+    it?.name != null && String(it.name).trim() !== ''
+      ? `${String(it.name).trim()}${it.id != null && it.id !== '' ? ` (${it.id})` : ''}`
+      : it?.id != null && it.id !== ''
+        ? `(${it.id})`
+        : '',
   resolveById,
   placeholder,
   disabled = false,

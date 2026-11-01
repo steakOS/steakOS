@@ -982,6 +982,23 @@ export default function DomainForm() {
       />
 
       <form className="card form-grid domain-form" onSubmit={onSubmit}>
+        {!isNew && id ? (
+          <label>
+            {t('view.uniqueId', { ns: 'common', defaultValue: 'Unique ID' })}
+            <input
+              type="text"
+              className="mono"
+              value={String(id)}
+              readOnly
+              disabled
+              aria-readonly="true"
+              title={t('view.uniqueIdHint', {
+                ns: 'common',
+                defaultValue: 'System identifier for this record. Read-only when editing.',
+              })}
+            />
+          </label>
+        ) : null}
         {isMasterPack && (
           <>
             <MasterEntityFields spec={masterSpec} form={form} onChange={onChange} />
