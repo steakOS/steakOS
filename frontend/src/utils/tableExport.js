@@ -17,6 +17,75 @@
 export const EXPORT_PAGE_SIZE = 100
 
 /**
+ * Keys that are never useful in CSV/XLS dumps (GORM / React noise).
+ * Business fields such as protection, classification stay included.
+ */
+const DEFAULT_EXPORT_EXCLUDE = new Set(['metaClass', 'errors', 'attached', 'dirty', 'constraints'])
+
+/**
+ * @param {string} key
+ * @returns {string}
+ */
+export function exportColumnLabel(key) {
+  const s = String(key || '')
+  if (!s) return ''
+  const spaced = s
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/_/g, ' ')
+    .trim()
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}
+
+/**
+ * Build export columns from the union of keys on all records.
+ * Preferred columns (UI table order) come first when present; remaining keys
+ * follow alphabetically so every API field is exported, not only on-screen cols.
+ *
+ * @param {object[]} records
+ * @param {{ key: string, label?: string }[] | string[]} [preferred]
+ * @param {Iterable<string>} [exclude]
+ * @returns {{ key: string, label: string }[]}
+ */
+export function columnsFromRecords(records, preferred = [], exclude = DEFAULT_EXPORT_EXCLUDE) {
+  const excludeSet = exclude instanceof Set ? exclude : new Set(exclude)
+  const keySet = new Set()
+  for (const rec of records || []) {
+    if (!rec || typeof rec !== 'object' || Array.isArray(rec)) continue
+    for (const k of Object.keys(rec)) {
+      if (excludeSet.has(k)) continue
+      if (typeof rec[k] === 'function') continue
+      keySet.add(k)
+    }
+  }
+
+  const labelMap = new Map()
+  const preferredKeys = []
+  for (const c of preferred || []) {
+    const key = typeof c === 'string' ? c : c?.key
+    if (!key || excludeSet.has(key)) continue
+    if (!preferredKeys.includes(key)) preferredKeys.push(key)
+    if (typeof c === 'object' && c.label) labelMap.set(key, c.label)
+  }
+
+  const leading = preferredKeys.filter((k) => keySet.has(k))
+  // Prefer id first when present and not already leading
+  if (keySet.has('id') && !leading.includes('id')) {
+    leading.unshift('id')
+  }
+  const rest = [...keySet]
+    .filter((k) => !leading.includes(k))
+    .sort((a, b) => a.localeCompare(b))
+
+  // If no records yet, still return preferred so the menu can enable / dry-run labels
+  const keys = leading.length || rest.length ? [...leading, ...rest] : preferredKeys
+
+  return keys.map((key) => ({
+    key,
+    label: labelMap.get(key) || exportColumnLabel(key),
+  }))
+}
+
+/**
  * @param {unknown} value
  * @returns {string}
  */

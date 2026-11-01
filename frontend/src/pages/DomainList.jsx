@@ -615,8 +615,11 @@ export default function DomainList() {
     </>
   )
 
-  /** Columns match the DomainList table (plus Id) for CSV / Excel export. */
-  const exportColumns = useMemo(() => {
+  /**
+   * Preferred export column order/labels (UI table). ListExportMenu still exports
+   * the union of all fields on fetched records (ADR-050).
+   */
+  const exportPreferredColumns = useMemo(() => {
     const nameCol = {
       key: 'name',
       label: t('wb.name', { ns: 'common', defaultValue: 'Name' }),
@@ -718,7 +721,7 @@ export default function DomainList() {
       <ListExportMenu
         fetcher={fetcher}
         filters={filters}
-        columns={exportColumns}
+        columns={exportPreferredColumns}
         fileBase={`${pkg}-${resource}`.toLowerCase()}
         sheetName={resourceLabel || resource}
         disabled={loading}

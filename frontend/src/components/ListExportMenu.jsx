@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Download, ChevronDown } from 'lucide-react'
 import {
+  columnsFromRecords,
   downloadBlob,
   fetchAllListRows,
   rowsToCsv,
@@ -25,11 +26,13 @@ import {
 
 /**
  * Toolbar control: Download → CSV | Excel. Fetches all matching rows via `fetcher`.
+ * Export columns = **union of all fields on fetched records** (full API payload),
+ * not only the on-screen table. Optional `columns` preferred order + labels.
  *
  * @param {object} props
  * @param {(args: {max:number,offset:number}) => Promise<{items?: object[], total?: number}>} props.fetcher
  * @param {object} [props.filters] — sort/q forwarded to fetcher
- * @param {{ key: string, label: string }[]} props.columns
+ * @param {{ key: string, label: string }[]} [props.columns] — preferred order / labels (UI hints)
  * @param {string} [props.fileBase] — filename stem without extension
  * @param {string} [props.sheetName]
  * @param {boolean} [props.disabled]
@@ -38,7 +41,7 @@ import {
 export default function ListExportMenu({
   fetcher,
   filters = {},
-  columns,
+  columns = [],
   fileBase = 'export',
   sheetName = 'Export',
   disabled = false,
@@ -66,13 +69,17 @@ export default function ListExportMenu({
   }, [open])
 
   const runExport = async (format) => {
-    if (busy || !fetcher || !columns?.length) return
+    if (busy || !fetcher) return
     setBusy(true)
     setOpen(false)
     try {
       const records = await fetchAllListRows(fetcher, filters)
-      const headers = columns.map((c) => c.label)
-      const rows = records.map((rec) => columns.map((c) => rec?.[c.key]))
+      const exportCols = columnsFromRecords(records, columns)
+      if (!exportCols.length) {
+        throw new Error(t('actions.exportEmpty', { defaultValue: 'Nothing to export' }))
+      }
+      const headers = exportCols.map((c) => c.label)
+      const rows = records.map((rec) => exportCols.map((c) => rec?.[c.key]))
       const stamp = new Date().toISOString().slice(0, 10)
       const base = `${fileBase}-${stamp}`
       if (format === 'csv') {
@@ -97,10 +104,12 @@ export default function ListExportMenu({
       <button
         type="button"
         className="btn"
-        disabled={disabled || busy || !columns?.length}
+        disabled={disabled || busy || !fetcher}
         aria-haspopup="menu"
         aria-expanded={open}
-        title={t('actions.download', { defaultValue: 'Download' })}
+        title={t('actions.download', {
+          defaultValue: 'Download all fields (CSV / Excel)',
+        })}
         onClick={() => setOpen((v) => !v)}
       >
         <Download size={16} />{' '}
