@@ -133,7 +133,11 @@
     "genericCrud": "Generisches CRUD",
     "clickDetails": "· klicken für Details",
     "clear": "Leeren",
-    "new": "Neu"
+    "new": "Neu",
+    "download": "Herunterladen",
+    "exporting": "Exportiere…",
+    "downloadCsv": "CSV (.csv)",
+    "downloadExcel": "Excel (.xls)"
   },
   "masterData": {
     "deskDefault": "Prozess-Desk",

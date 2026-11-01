@@ -123,7 +123,11 @@
     "genericCrud": "CRUD genérico",
     "clickDetails": "· haga clic para más detalles",
     "clear": "Claro",
-    "new": "Nuevo"
+    "new": "Nuevo",
+    "download": "Descargar",
+    "exporting": "Exportando…",
+    "downloadCsv": "CSV (.csv)",
+    "downloadExcel": "Excel (.xls)"
   },
   "pager": {
     "nav": "Paginación",

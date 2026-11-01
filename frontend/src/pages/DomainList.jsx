@@ -18,6 +18,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw, Pencil, Trash2, Eye, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react'
 import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
+import ListExportMenu from '../components/ListExportMenu'
 import {
   deskHref,
   domainListReturnKey,
@@ -56,6 +57,9 @@ function taskLevelKey(n) {
   if (v === 1 || v === 2 || v === 3) return v
   return 2
 }
+
+/** Pilot: export button only on these DomainList resources (expand after Accept). */
+const LIST_EXPORT_PILOT = new Set(['strategy/Competitor'])
 
 const DOMAIN_SORT_FIELDS = new Set([
   'id',
@@ -614,6 +618,28 @@ export default function DomainList() {
     </>
   )
 
+  const exportEnabled = LIST_EXPORT_PILOT.has(`${pkg}/${resource}`)
+  const exportColumns = useMemo(() => {
+    if (!exportEnabled) return []
+    if (listColumns?.length) {
+      return [
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: t('wb.name', { ns: 'common', defaultValue: 'Name' }) },
+        ...listColumns.map((c) => ({ key: c.key, label: c.label || c.key })),
+      ]
+    }
+    // Default DomainList columns (Name · Description · Status) + Id
+    return [
+      { key: 'id', label: 'Id' },
+      { key: 'name', label: t('wb.name', { ns: 'common', defaultValue: 'Name' }) },
+      {
+        key: 'description',
+        label: t('wb.description', { ns: 'common', defaultValue: 'Description' }),
+      },
+      { key: 'status', label: t('wb.status', { ns: 'common', defaultValue: 'Status' }) },
+    ]
+  }, [exportEnabled, listColumns, t])
+
   const searchAndRefresh = (
     <>
       {!isTaskList && (
@@ -642,6 +668,16 @@ export default function DomainList() {
       <button type="button" className="btn" onClick={load} disabled={loading}>
         <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
       </button>
+      {exportEnabled && (
+        <ListExportMenu
+          fetcher={fetcher}
+          filters={filters}
+          columns={exportColumns}
+          fileBase={`${pkg}-${resource}`.toLowerCase()}
+          sheetName={resourceLabel || resource}
+          disabled={loading}
+        />
+      )}
     </>
   )
 
