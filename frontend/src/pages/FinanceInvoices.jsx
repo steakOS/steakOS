@@ -28,7 +28,7 @@ import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
-import ListFilterBar from '../components/ListFilterBar'
+
 import MoneyHint from '../components/MoneyHint'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
@@ -121,8 +121,6 @@ export default function FinanceInvoices() {
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
-  const [filter, setFilter] = useState('')
-  const [listQ, setListQ] = useState('')
   const [listSort, setListSort] = useState('id')
   const [listOrder, setListOrder] = useState('desc')
 
@@ -169,13 +167,12 @@ export default function FinanceInvoices() {
   }, [])
 
   const loadList = useCallback(async () => {
+    // Full list — no page search / status filter toolbar (ADR-050); use top-bar FTS.
     const data = await financeRevenueApi.list({
-      status: filter || undefined,
       max: page.max,
       offset: page.offset,
       sort: listSort,
       order: listOrder,
-      q: listQ.trim() || undefined,
     })
     const list = data.items || []
     setItems(list)
@@ -187,7 +184,7 @@ export default function FinanceInvoices() {
     }))
     setInvoiceContentMap(await fetchContentMap('finance', 'Invoice', list))
     return list
-  }, [filter, listQ, listSort, listOrder, page.max, page.offset])
+  }, [listSort, listOrder, page.max, page.offset])
 
   const selectInvoice = useCallback(
     async (id) => {
@@ -516,39 +513,10 @@ export default function FinanceInvoices() {
     </form>
   )
 
-  const toolbar = (
-    <>
-      <select
-        value={filter}
-        onChange={(e) => {
-          setFilter(e.target.value)
-          setPage((pg) => ({ ...pg, offset: 0 }))
-        }}
-        className="filter-select"
-      >
-        <option value="">{t('wb.filterAll', { ns: 'common' })}</option>
-        {['DRAFT', 'ISSUED', 'PART_PAID', 'PAID', 'VOID'].map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
-      <ListFilterBar
-        q={listQ}
-        onQChange={(next) => {
-          setListQ(next)
-          setPage((pg) => ({ ...pg, offset: 0 }))
-        }}
-        placeholder={t('masterData.search', { ns: 'common', defaultValue: 'Search…' })}
-      />
-    </>
-  )
+  const toolbar = null
 
   const list = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('finance.invoicesCount', { count: items.length })}
-      </h2>
       {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
       <ResponsiveDataList
         items={items}

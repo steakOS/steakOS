@@ -27,7 +27,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import ResponsiveDataList from '../components/ResponsiveDataList'
-import ListFilterBar from '../components/ListFilterBar'
 import ListSortHeader from '../components/ListSortHeader'
 import useServerListSort from '../hooks/useServerListSort'
 import { salesApi, domainsApi } from '../api/client'
@@ -160,8 +159,6 @@ export default function SalesCrmPage() {
     }
   }, [])
 
-  const [openOnly, setOpenOnly] = useState(true)
-  const [listQ, setListQ] = useState('')
   const { sort, order, onSortChange } = useServerListSort('id', 'desc')
   const OPP_SORT_MENU = useMemo(
     () => [
@@ -175,7 +172,6 @@ export default function SalesCrmPage() {
     [],
   )
   const [items, setItems] = useState([])
-  const [total, setTotal] = useState(0)
   const [selected, setSelected] = useState(null)
   const [activities, setActivities] = useState([])
   const [form, setForm] = useState(emptyOpp())
@@ -215,20 +211,16 @@ export default function SalesCrmPage() {
     setLoading(true)
     setError(null)
     try {
-      const params = { max: 50, offset: 0, sort, order }
-      if (openOnly) params.open = true
-      if (listQ.trim()) params.q = listQ.trim()
-      const data = await salesApi.crm.listOpportunities(params)
+      // Full list — no page search / Open·All chips (ADR-050); use top-bar FTS.
+      const data = await salesApi.crm.listOpportunities({ max: 50, offset: 0, sort, order })
       setItems(data?.items || [])
-      setTotal(data?.total ?? (data?.items || []).length)
     } catch (e) {
       setItems([])
-      setTotal(0)
       setError(friendlyErr(e, t))
     } finally {
       setLoading(false)
     }
-  }, [openOnly, listQ, sort, order, t])
+  }, [sort, order, t])
 
   loadRef.current = load
 
@@ -708,57 +700,16 @@ export default function SalesCrmPage() {
     </form>
   )
 
-  const toolbar = (
-    <>
-      <ListFilterBar
-        q={listQ}
-        onQChange={setListQ}
-        placeholder={t('crm.search', { defaultValue: 'Search opportunities…' })}
-        ariaLabel={t('actions.search', { ns: 'common', defaultValue: 'Search' })}
-      />
-      <button
-        type="button"
-        className={`btn ${openOnly ? 'btn-primary' : 'btn-ghost'} filter-select`}
-        onClick={() => setOpenOnly(true)}
-        disabled={!!busy}
-      >
-        {t('crm.filterOpen', { defaultValue: 'Open' })}
-      </button>
-      <button
-        type="button"
-        className={`btn ${!openOnly ? 'btn-primary' : 'btn-ghost'}`}
-        onClick={() => setOpenOnly(false)}
-        disabled={!!busy}
-      >
-        {t('crm.filterAll', { defaultValue: 'All' })}
-      </button>
-    </>
-  )
+  const toolbar = null
 
   const list = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {openOnly
-          ? t('crm.openOpps', { defaultValue: 'Open opportunities' })
-          : t('crm.allOpps', { defaultValue: 'All opportunities' })}
-        {!loading && (
-          <span className="muted" style={{ fontWeight: 400, marginLeft: 8 }}>
-            ({total})
-          </span>
-        )}
-      </h2>
       {loading && <p className="muted">{t('crm.loading', { defaultValue: 'Loading…' })}</p>}
       <ResponsiveDataList
         items={items}
-        empty={
-          openOnly
-            ? t('crm.empty', {
-                defaultValue: 'No open opportunities. Create one with New.',
-              })
-            : t('crm.emptyAll', {
-                defaultValue: 'No opportunities yet. Create one with New.',
-              })
-        }
+        empty={t('crm.emptyAll', {
+          defaultValue: 'No opportunities yet. Create one with New.',
+        })}
         loading={loading}
         selectedKey={selectedId}
         onSelect={(row) => openOppView(row)}
@@ -834,13 +785,9 @@ export default function SalesCrmPage() {
               {items.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted">
-                    {openOnly
-                      ? t('crm.empty', {
-                          defaultValue: 'No open opportunities. Create one with New.',
-                        })
-                      : t('crm.emptyAll', {
-                          defaultValue: 'No opportunities yet. Create one with New.',
-                        })}
+                    {t('crm.emptyAll', {
+                      defaultValue: 'No opportunities yet. Create one with New.',
+                    })}
                   </td>
                 </tr>
               )}

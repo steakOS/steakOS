@@ -133,7 +133,6 @@ export default function SalesPricingPage() {
   }, [])
 
   const [items, setItems] = useState([])
-  const [total, setTotal] = useState(0)
   const [selected, setSelected] = useState(null)
   const [lines, setLines] = useState([])
   const [lineDraft, setLineDraft] = useState(emptyLine())
@@ -172,10 +171,8 @@ export default function SalesPricingPage() {
     try {
       const data = await salesApi.pricelists.list({ max: 50, offset: 0 })
       setItems(data?.items || [])
-      setTotal(data?.total ?? (data?.items || []).length)
     } catch (e) {
       setItems([])
-      setTotal(0)
       setError(friendlyErr(e, t))
     } finally {
       setLoading(false)
@@ -719,14 +716,6 @@ export default function SalesPricingPage() {
 
   const list = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('pricing.list', { defaultValue: 'Lists' })}
-        {!loading && (
-          <span className="muted" style={{ fontWeight: 400, marginLeft: 8 }}>
-            ({total})
-          </span>
-        )}
-      </h2>
       {loading && (
         <p className="muted">{t('pricing.loading', { defaultValue: 'Loading…' })}</p>
       )}

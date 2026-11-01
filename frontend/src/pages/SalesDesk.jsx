@@ -57,7 +57,7 @@ import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
-import ListFilterBar from '../components/ListFilterBar'
+
 import CustomerSelect from '../components/CustomerSelect'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -220,10 +220,7 @@ export default function SalesDesk() {
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
-  const [quoteFilter, setQuoteFilter] = useState('')
-  const [orderFilter, setOrderFilter] = useState('')
-  const [quoteQ, setQuoteQ] = useState('')
-  const [orderQ, setOrderQ] = useState('')
+
   const [quoteSort, setQuoteSort] = useState('id')
   const [quoteOrder, setQuoteOrder] = useState('desc')
   const [orderSort, setOrderSort] = useState('id')
@@ -367,20 +364,16 @@ export default function SalesDesk() {
       salesApi.customers.list({ max: custPage.max, offset: custPage.offset }),
       salesApi.customers.list({ max: 100, offset: 0 }),
       salesApi.quotes.list({
-        status: quoteFilter || undefined,
         max: quotePage.max,
         offset: quotePage.offset,
         sort: quoteSort,
         order: quoteOrder,
-        q: quoteQ.trim() || undefined,
       }),
       salesApi.orders.list({
-        status: orderFilter || undefined,
         max: orderPage.max,
         offset: orderPage.offset,
         sort: orderSort,
         order: orderOrder,
-        q: orderQ.trim() || undefined,
       }),
       catalogueApi.list({
         nature: 'GOODS',
@@ -444,10 +437,6 @@ export default function SalesDesk() {
     setCustomerContentMap(cMap)
     return { customers: cust, quotes: qs, orders: os }
   }, [
-    quoteFilter,
-    orderFilter,
-    quoteQ,
-    orderQ,
     quoteSort,
     quoteOrder,
     orderSort,
@@ -1387,69 +1376,9 @@ export default function SalesDesk() {
               ? serviceCreatePanel
               : null
 
-  // —— toolbars ——
-  const quoteToolbar = (
-    <>
-      <select
-        value={quoteFilter}
-        onChange={(e) => {
-          setQuoteFilter(e.target.value)
-          setQuotePage((pg) => ({ ...pg, offset: 0 }))
-        }}
-        className="filter-select"
-      >
-        <option value="">{t('quote.filterAll')}</option>
-        {['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'].map((s) => (
-          <option key={s} value={s}>
-            {t(`status.${s}`, { defaultValue: s })}
-          </option>
-        ))}
-      </select>
-      <ListFilterBar
-        q={quoteQ}
-        onQChange={(next) => {
-          setQuoteQ(next)
-          setQuotePage((pg) => ({ ...pg, offset: 0 }))
-        }}
-        placeholder={t('masterData.search', { ns: 'common', defaultValue: 'Search…' })}
-      />
-    </>
-  )
-
-  const orderToolbar = (
-    <>
-      <select
-        value={orderFilter}
-        onChange={(e) => {
-          setOrderFilter(e.target.value)
-          setOrderPage((pg) => ({ ...pg, offset: 0 }))
-        }}
-        className="filter-select"
-      >
-        <option value="">{t('quote.filterAll')}</option>
-        {['DRAFT', 'CONFIRMED', 'CLOSED', 'CANCELLED'].map((s) => (
-          <option key={s} value={s}>
-            {t(`status.${s}`, { defaultValue: s })}
-          </option>
-        ))}
-      </select>
-      <ListFilterBar
-        q={orderQ}
-        onQChange={(next) => {
-          setOrderQ(next)
-          setOrderPage((pg) => ({ ...pg, offset: 0 }))
-        }}
-        placeholder={t('masterData.search', { ns: 'common', defaultValue: 'Search…' })}
-      />
-    </>
-  )
-
-  // —— lists ——
+  // —— lists —— (no page search / status filter toolbar — ADR-050; use top-bar FTS)
   const quotesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('quote.list')} ({quotes.length})
-      </h2>
       {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
       <ResponsiveDataList
         items={quotes}
@@ -1594,9 +1523,6 @@ export default function SalesDesk() {
 
   const ordersList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('order.list')} ({orders.length})
-      </h2>
       {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
       <ResponsiveDataList
         items={orders}
@@ -1735,9 +1661,6 @@ export default function SalesDesk() {
 
   const customersList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('customer.list')} ({customers.length})
-      </h2>
       {loading && <p className="muted">{t('actions.loading', { ns: 'common' })}</p>}
       <ResponsiveDataList
         items={customers}
@@ -1807,9 +1730,6 @@ export default function SalesDesk() {
 
   const productsList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('product.list')} ({prodPage.total || products.length})
-      </h2>
       <ResponsiveDataList
         items={products}
         empty={t('product.empty')}
@@ -1879,9 +1799,6 @@ export default function SalesDesk() {
 
   const servicesList = (
     <>
-      <h2 className="section-label" style={{ marginTop: 0 }}>
-        {t('service.list')} ({svcPage.total || services.length})
-      </h2>
       <ResponsiveDataList
         items={services}
         empty={t('service.empty')}
@@ -1972,8 +1889,7 @@ export default function SalesDesk() {
               ? servicesList
               : null
 
-  const toolbar =
-    tab === 'quotes' ? quoteToolbar : tab === 'orders' ? orderToolbar : null
+  const toolbar = null
 
   getBelowFieldsRef.current = ({ resource, record }) => {
     if (!record) return null
