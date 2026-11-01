@@ -33,6 +33,7 @@ import {
   viewFieldLabel,
   recordStatusValue,
   ensureKnownFields,
+  viewFieldDisplayValue,
 } from '../utils/viewFieldRules'
 
 const HIDDEN_KEYS = new Set([
@@ -317,7 +318,7 @@ export default function RecordViewModal({
               ) : null}
               <dl className="record-view-grid">
                 {entries.map(([key, value]) => {
-                  const display = formatValue(value)
+                  const display = formatValue(viewFieldDisplayValue(key, value))
                   const isJsonObject = value != null && typeof value === 'object'
                   const isMultilineText =
                     !isJsonObject &&

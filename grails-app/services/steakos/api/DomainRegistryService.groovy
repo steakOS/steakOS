@@ -70,6 +70,8 @@ class DomainRegistryService {
             'quoteNumber', 'quoteStatus', 'orderNumber', 'orderStatus', 'productRefType',
             // sales Advanced price lists (OI-S04)
             'listKind',
+            // catalogue CatalogueItem (GOODS | SERVICE)
+            'nature', 'currency', 'defaultTaxCode',
             // scm SC-S0
             'vendorNpub', 'poNumber', 'poStatus', 'receiptNumber', 'receiptStatus',
             'sku', 'unit', 'bomStatus', 'prodStatus', 'lotCode', 'lotStatus',
@@ -93,7 +95,7 @@ class DomainRegistryService {
             'latitude', 'longitude',
             'debitEur', 'creditEur', 'amountEur', 'exchangeRate', 'balanceEur',
             'quantity', 'unitPriceEur', 'lineTotalEur', 'quantityReceived', 'qtyDelta',
-            'defaultDuration', 'listPriceEur', 'capacityHours',
+            'defaultDuration', 'listPriceEur', 'listPrice', 'capacityHours',
             'defaultDiscountPercent'
     ].asImmutable()
 
@@ -164,7 +166,8 @@ class DomainRegistryService {
     private static final List BOOLEAN_FIELDS = [
             'enabled', 'active', 'systemAccount', 'posted', 'recurring',
             'isService', 'trackLots', 'itManaged',
-            'financialDepreciation', 'requiresMaintenance'
+            'financialDepreciation', 'requiresMaintenance',
+            'canBeSold', 'canBeBought'
     ].asImmutable()
 
     Class resolve(String pkg, String resource) {

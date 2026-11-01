@@ -56,6 +56,20 @@ export const VIEW_FIELD_LABELS = {
   description: 'Description',
   status: 'Status',
   name: 'Name',
+  nature: 'Kind',
+  code: 'Code',
+  listPrice: 'List price',
+}
+
+/** Friendly display for stored enum-ish values in the view modal. */
+export function viewFieldDisplayValue(key, value) {
+  if (value == null || value === '') return value
+  if (key === 'nature') {
+    const v = String(value)
+    if (v === 'GOODS') return 'Product'
+    if (v === 'SERVICE') return 'Service'
+  }
+  return value
 }
 
 export function viewFieldLabel(key, t) {
@@ -94,6 +108,19 @@ export const KNOWN_BUSINESS_FIELDS = {
     'importance',
     'assigneeAgentId',
     'assigneeHumanNpub',
+    'npubOwner',
+  ],
+  CatalogueItem: [
+    'code',
+    'nature',
+    'unit',
+    'listPrice',
+    'currency',
+    'description',
+    'active',
+    'canBeSold',
+    'canBeBought',
+    'defaultTaxCode',
     'npubOwner',
   ],
 }

@@ -528,11 +528,11 @@ const catalogueItemSpec = {
     { name: 'currency', label: 'Price currency', type: 'currency', required: true },
     {
       name: 'nature',
-      label: 'Nature',
+      label: 'Kind',
       type: 'select',
       required: true,
       options: [
-        { value: 'GOODS', label: 'Goods' },
+        { value: 'GOODS', label: 'Product' },
         { value: 'SERVICE', label: 'Service' },
       ],
     },
@@ -566,9 +566,15 @@ const catalogueItemSpec = {
     isService: row.nature === 'SERVICE' || !!row.isService,
     active: row.active !== false,
   }),
+  /** Domain stores GOODS|SERVICE; operators see Product|Service. */
   listColumns: [
     { key: 'code', label: 'Code', mono: true },
-    { key: 'nature', label: 'Nature' },
+    {
+      key: 'nature',
+      label: 'Kind',
+      format: (v) =>
+        v === 'SERVICE' ? 'Service' : v === 'GOODS' ? 'Product' : v || '—',
+    },
     { key: 'unit', label: 'Unit' },
   ],
 }
