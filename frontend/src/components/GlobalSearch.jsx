@@ -22,6 +22,14 @@ const TYPE_ORDER = [
   'purchaseOrder',
   'task',
   'legalEntity',
+  'iTChange',
+  'itTicket',
+  'system',
+  'solution',
+  'configItem',
+  'physicalAsset',
+  'project',
+  'inquiry',
 ]
 
 function isEditableTarget(el) {

@@ -18,6 +18,8 @@ package steakos.search
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.User
+import steakos.api.DomainRegistryService
+import steakos.api.ListPaging
 import steakos.catalogue.CatalogueItem
 import steakos.configuration.LegalEntity
 import steakos.core.Task
@@ -28,12 +30,13 @@ import steakos.sales.Customer
 import steakos.sales.CustomerQuote
 import steakos.sales.Opportunity
 import steakos.sales.SalesOrder
-import steakos.api.ListPaging
 import steakos.security.RoleProfileService
 
 /**
  * S0 fan-out global search (Task 7642) — SearchRegistry of type → fetcher.
- * Active-company tenancy; skip types the operator cannot See.
+ * Specialized desk types first; then DomainRegistry fan-out for remaining
+ * business objects. Active-company tenancy; skip types the operator cannot See.
+ * Excludes authentication / authorization / security / payroll data.
  */
 @Slf4j
 @Transactional(readOnly = true)
@@ -44,7 +47,77 @@ class SearchService {
     static final int GLOBAL_MAX = 40
     static final int MIN_QUERY_LEN = 2
 
+    /** String properties probed on generic domain rows (only if the class has them). */
+    private static final List<String> GENERIC_SEARCH_PROPS = [
+            'name', 'description', 'code', 'title', 'email', 'contactName', 'ownerName',
+            'customerName', 'vendorName', 'referenceText', 'memo', 'notes', 'cabNote',
+            'quoteNumber', 'orderNumber', 'invoiceNumber', 'poNumber', 'taxId', 'sku',
+            'assetTag', 'location', 'changeKind', 'ticketNumber', 'summary', 'subject',
+    ].asImmutable()
+
+    /** DomainRegistry resources never indexed (authz / security / payroll / secrets). */
+    private static final Set<String> EXCLUDE_RESOURCES = [
+            'Payroll', 'PayrollItem', 'PartyAccess',
+            'UserConfig', 'UserPreference', 'UserCompanyMembership', 'SetupState',
+            'RoleProfile', 'AgentApiToken', 'GlobalConfig',
+            'ContentBlob',
+    ].asImmutable() as Set
+
+    private static final Set<String> EXCLUDE_PACKAGES = [
+            'security',
+    ].asImmutable() as Set
+
+    private static final Set<String> EXCLUDE_CLASS_NAMES = [
+            'steakos.User', 'steakos.Role', 'steakos.UserRole',
+            'steakos.agent.AgentApiToken',
+            'steakos.security.RoleProfile',
+            'steakos.human.Payroll',
+            'steakos.finance.PayrollItem',
+            'steakos.human.PartyAccess',
+    ].asImmutable() as Set
+
+    /** Classes already covered by specialized fetchers (richer href / fields). */
+    private static final Set<String> SPECIALIZED_CLASS_NAMES = [
+            Customer.name, Opportunity.name, Vendor.name, CatalogueItem.name,
+            CustomerQuote.name, SalesOrder.name, Invoice.name, PurchaseOrder.name,
+            Task.name, LegalEntity.name,
+    ].asImmutable() as Set
+
+    /** package → nav family for RoleProfileService.canSeeDesk */
+    private static final Map<String, String> PACKAGE_FAMILY = [
+            core          : 'core',
+            strategy      : 'strategy',
+            development   : 'development',
+            sales         : 'sales',
+            procurement   : 'scm',
+            catalogue     : 'scm',
+            production    : 'scm',
+            supplychain   : 'scm',
+            delivery      : 'delivery',
+            service       : 'aftersales',
+            human         : 'human',
+            agents        : 'agents',
+            digital       : 'digital',
+            asset         : 'asset',
+            finance       : 'finance',
+            grrc          : 'grrc',
+            stakeholder   : 'stakeholder',
+            capability    : 'capability',
+            configuration : null,
+            generic       : null,
+            helper        : null,
+    ].asImmutable()
+
+    /** Lower weight = earlier in fan-out (after specialized). */
+    private static final Map<String, Integer> PACKAGE_WEIGHT = [
+            digital: 10, asset: 15, capability: 20, service: 25, delivery: 30,
+            human: 35, agents: 40, strategy: 45, development: 50, production: 55,
+            finance: 60, grrc: 65, stakeholder: 70, generic: 80, helper: 90,
+            configuration: 95,
+    ].asImmutable()
+
     RoleProfileService roleProfileService
+    DomainRegistryService domainRegistryService
 
     /**
      * @param q query (trimmed; empty / short → empty items)
@@ -120,7 +193,7 @@ class SearchService {
     }
 
     private List<Map> buildRegistry() {
-        [
+        List<Map> specialized = [
                 [
                         type    : 'customer',
                         family  : 'sales',
@@ -193,6 +266,186 @@ class SearchService {
                         }
                 ],
         ]
+
+        List<Map> generic = []
+        try {
+            List<Map> registry = domainRegistryService?.listRegistry() ?: []
+            for (Map entry : registry) {
+                String pkg = entry.package as String
+                String resource = entry.resource as String
+                Class clazz = domainRegistryService.resolve(pkg, resource)
+                if (!clazz) {
+                    continue
+                }
+                if (clazz.name in SPECIALIZED_CLASS_NAMES) {
+                    continue
+                }
+                if (isSearchExcluded(pkg, resource, clazz)) {
+                    continue
+                }
+                List<String> props = searchableProps(clazz)
+                if (!props) {
+                    continue
+                }
+                String family = PACKAGE_FAMILY.containsKey(pkg) ? PACKAGE_FAMILY[pkg] : pkg
+                String typeKey = typeKeyFor(resource)
+                // Bind locals for the closure (Groovy loop variable capture)
+                Class domainClass = clazz
+                String pkgKey = pkg
+                String resKey = resource
+                String famKey = family
+                String tKey = typeKey
+                List<String> propKeys = props
+                generic << [
+                        type  : typeKey,
+                        family: family,
+                        fetch : { String term, String npub, int max ->
+                            searchGeneric(domainClass, pkgKey, resKey, famKey, tKey, propKeys, term, npub, max)
+                        }
+                ]
+            }
+        } catch (Exception ex) {
+            log.warn('domain registry fan-out skipped: {}', ex.message)
+        }
+
+        generic.sort { Map a, Map b ->
+            int pa = PACKAGE_WEIGHT[a.family as String] ?: 50
+            int pb = PACKAGE_WEIGHT[b.family as String] ?: 50
+            pa <=> pb ?: (a.type as String) <=> (b.type as String)
+        }
+
+        specialized + generic
+    }
+
+    private static boolean isSearchExcluded(String pkg, String resource, Class clazz) {
+        if (!clazz) {
+            return true
+        }
+        if (pkg && pkg in EXCLUDE_PACKAGES) {
+            return true
+        }
+        if (resource && resource in EXCLUDE_RESOURCES) {
+            return true
+        }
+        if (clazz.name in EXCLUDE_CLASS_NAMES) {
+            return true
+        }
+        String n = clazz.name ?: ''
+        if (n.startsWith('steakos.security.')) {
+            return true
+        }
+        // Auth artefacts outside DomainRegistry allow-list
+        if (n in ['steakos.User', 'steakos.Role', 'steakos.UserRole']) {
+            return true
+        }
+        false
+    }
+
+    private static String typeKeyFor(String resource) {
+        if (!resource) {
+            return 'unknown'
+        }
+        // ITChange → itChange; keep readable camelCase for UI default labels
+        resource[0].toLowerCase() + resource.substring(1)
+    }
+
+    private static List<String> searchableProps(Class clazz) {
+        GENERIC_SEARCH_PROPS.findAll { String p -> domainHasProperty(clazz, p) }
+    }
+
+    private static boolean domainHasProperty(Class domainClass, String name) {
+        try {
+            return domainClass.metaClass.getMetaProperty(name) != null
+        } catch (ignored) {
+            return false
+        }
+    }
+
+    private List<Map> searchGeneric(Class clazz, String pkg, String resource, String family,
+                                    String typeKey, List<String> props, String term, String npub, int max) {
+        if (!clazz || !props) {
+            return []
+        }
+        List<String> tokens = tokenize(term)
+        if (!tokens) {
+            return []
+        }
+        boolean scoped = domainRegistryService.isTenantScoped(clazz) && npub
+        List rows
+        try {
+            rows = clazz.createCriteria().list(max: max, offset: 0, sort: 'id', order: 'desc') {
+                if (scoped) {
+                    eq('npubOwner', npub)
+                }
+                // Each token must match at least one searchable field (AND of ORs)
+                and {
+                    for (String tok : tokens) {
+                        String like = ListPaging.likeContains(tok)
+                        if (!like) {
+                            continue
+                        }
+                        or {
+                            for (String p : props) {
+                                ilike(p, like)
+                            }
+                        }
+                    }
+                }
+            } as List
+        } catch (Exception ex) {
+            log.debug('generic search {}/{} failed: {}', pkg, resource, ex.message)
+            return []
+        }
+        rows.collect { Object row ->
+            String title = titleOf(row, resource)
+            String subtitle = subtitleOf(row)
+            item(typeKey, row['id'], title, statusOf(row), subtitle,
+                    "/domains/${pkg}/${resource}/${row['id']}", family)
+        }
+    }
+
+    private static List<String> tokenize(String term) {
+        if (!term) {
+            return []
+        }
+        term.trim().split(/\s+/).findAll { String t -> t.length() >= 1 }
+    }
+
+    private static String titleOf(Object row, String resource) {
+        try {
+            if (row.hasProperty('name') && row['name']) {
+                return row['name'] as String
+            }
+            if (row.hasProperty('code') && row['code']) {
+                return row['code'] as String
+            }
+            if (row.hasProperty('title') && row['title']) {
+                return row['title'] as String
+            }
+            if (row.hasProperty('subject') && row['subject']) {
+                return row['subject'] as String
+            }
+        } catch (ignored) {
+        }
+        "${resource} #${row['id']}"
+    }
+
+    private static String subtitleOf(Object row) {
+        try {
+            List parts = []
+            if (row.hasProperty('code') && row['code'] && row.hasProperty('name') && row['name']) {
+                parts << (row['code'] as String)
+            }
+            if (row.hasProperty('changeKind') && row['changeKind']) {
+                parts << (row['changeKind'] as String)
+            }
+            if (row.hasProperty('email') && row['email']) {
+                parts << (row['email'] as String)
+            }
+            return parts ? parts.join(' · ') : null
+        } catch (ignored) {
+            return null
+        }
     }
 
     private List<Map> searchCustomer(String term, String npub, int max) {

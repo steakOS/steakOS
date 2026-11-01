@@ -38,7 +38,6 @@ import RowActionSlots from '../components/RowActionSlots'
 import DomainParentLines from '../components/DomainParentLines'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
-import ListFilterBar from '../components/ListFilterBar'
 import usePagedList from '../hooks/usePagedList'
 import { statusBadgeClass } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
@@ -220,17 +219,14 @@ export default function DomainList() {
     setErrorDetail({ ...payload, title })
   }
 
-  const [q, setQ] = useState('')
   const [sort, setSort] = useState('id')
   const [order, setOrder] = useState('desc')
   const returnOffsetApplied = useRef(false)
 
   const filters = useMemo(() => {
-    const f = { sort: sort || 'id', order: order === 'asc' ? 'asc' : 'desc' }
-    // Task list: no page-level search (use top-bar FTS); ignore leftover ?q=
-    if (!isTaskList && q.trim()) f.q = q.trim()
-    return f
-  }, [q, sort, order, isTaskList])
+    // No page-level search — operators use top-bar FTS (ADR-050)
+    return { sort: sort || 'id', order: order === 'asc' ? 'asc' : 'desc' }
+  }, [sort, order])
 
   const onSortChange = useCallback(({ sort: nextSort, order: nextOrder }) => {
     setSort(nextSort || 'id')
@@ -292,19 +288,27 @@ export default function DomainList() {
     const params = new URLSearchParams(
       typeof window !== 'undefined' ? window.location.search : '',
     )
-    setQ(isTaskList ? '' : params.get('q') || '')
+    // Drop legacy ?q= — local list search removed (header FTS only)
+    if (params.has('q') && typeof window !== 'undefined') {
+      params.delete('q')
+      const qs = params.toString()
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${qs ? `?${qs}` : ''}`,
+      )
+    }
     const urlSort = params.get('sort')
     const urlOrder = params.get('order')
     setSort(urlSort || 'id')
     setOrder(urlOrder === 'asc' ? 'asc' : 'desc')
   }, [pkg, resource, isTaskList])
 
-  // Optional URL sync for shareable filtered lists (F4-lite)
+  // Optional URL sync for shareable sorted/paged lists (F4-lite)
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
-    if (!isTaskList && q.trim()) params.set('q', q.trim())
-    else params.delete('q')
+    params.delete('q')
     if (sort && sort !== 'id') params.set('sort', sort)
     else params.delete('sort')
     if (order && order !== 'desc') params.set('order', order)
@@ -318,7 +322,7 @@ export default function DomainList() {
     if (next !== `${window.location.pathname}${window.location.search}`) {
       window.history.replaceState(null, '', next)
     }
-  }, [pkg, resource, q, sort, order, offset, max, isTaskList])
+  }, [pkg, resource, sort, order, offset, max, isTaskList])
 
   // Restore pager from ?offset=&max= once after list mounts / resource change
   useEffect(() => {
@@ -354,7 +358,6 @@ export default function DomainList() {
       sessionStorage.setItem(
         domainListReturnKey(pkg, resource),
         JSON.stringify({
-          q: isTaskList ? '' : q.trim(),
           sort,
           order,
           offset,
@@ -364,11 +367,10 @@ export default function DomainList() {
     } catch {
       /* ignore */
     }
-  }, [pkg, resource, q, sort, order, offset, max, isTaskList])
+  }, [pkg, resource, sort, order, offset, max])
 
   const listQuerySuffix = useMemo(() => {
     const href = listReturnHref(pkg, resource, {
-      q: isTaskList ? '' : q,
       offset,
       max,
       sort,
@@ -376,7 +378,7 @@ export default function DomainList() {
     })
     const i = href.indexOf('?')
     return i >= 0 ? href.slice(i) : ''
-  }, [pkg, resource, q, offset, max, sort, order, isTaskList])
+  }, [pkg, resource, offset, max, sort, order])
 
   const thSort = useCallback(
     (field, label, className) => {
@@ -405,9 +407,8 @@ export default function DomainList() {
         deskPath,
         defaultTab,
         id: rowId,
-        returnQ: q.trim() || undefined,
       }),
-    [deskPath, defaultTab, q],
+    [deskPath, defaultTab],
   )
 
   const deskNewHref = useMemo(
@@ -416,9 +417,8 @@ export default function DomainList() {
         deskPath,
         defaultTab,
         new: true,
-        returnQ: q.trim() || undefined,
       }),
-    [deskPath, defaultTab, q],
+    [deskPath, defaultTab],
   )
 
   const deskTabHref = useMemo(
@@ -692,17 +692,6 @@ export default function DomainList() {
 
   const searchAndRefresh = (
     <>
-      {!isTaskList && (
-        <ListFilterBar
-          q={q}
-          onQChange={setQ}
-          placeholder={t('masterData.search', {
-            ns: 'common',
-            defaultValue: 'Search…',
-          })}
-          ariaLabel={t('actions.search', { ns: 'common', defaultValue: 'Search' })}
-        />
-      )}
       {createMode === 'parentOnly' && createMeta.parentResource && (
         <Link
           className="btn btn-secondary"

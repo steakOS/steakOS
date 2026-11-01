@@ -21,7 +21,6 @@ import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
-import ListFilterBar from '../components/ListFilterBar'
 import usePagedList from '../hooks/usePagedList'
 import {
   buildAssigneeOptions,
@@ -83,7 +82,6 @@ export default function MyWork() {
   const [error, setError] = useState(null)
   // Server-side view filter (LIST-PAGINATION F1): open | overdue | mine | all
   const [filter, setFilter] = useState('open')
-  const [q, setQ] = useState('')
   const [sort, setSort] = useState('deadlineAt')
   const [order, setOrder] = useState('asc')
   const [assigneeOptions, setAssigneeOptions] = useState([])
@@ -146,14 +144,14 @@ export default function MyWork() {
   )
 
   const filters = useMemo(() => {
+    // Queue chips only — no page search (header FTS / ADR-050)
     const f = {
       sort: sort || 'deadlineAt',
       order: order === 'asc' ? 'asc' : 'desc',
     }
     if (filter && filter !== 'all') f.view = filter
-    if (q.trim()) f.q = q.trim()
     return f
-  }, [filter, q, sort, order])
+  }, [filter, sort, order])
 
   const fetcher = useCallback(
     ({ max, offset, ...rest }) =>
@@ -232,12 +230,6 @@ export default function MyWork() {
             {label}
           </button>
         ))}
-        <ListFilterBar
-          q={q}
-          onQChange={setQ}
-          placeholder={t('pages.work.search', { defaultValue: 'Search tasks…' })}
-          ariaLabel={t('actions.search', { defaultValue: 'Search' })}
-        />
       </div>
 
       <div className="section-label">
