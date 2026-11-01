@@ -137,7 +137,8 @@
     "download": "Herunterladen",
     "exporting": "Exportiere…",
     "downloadCsv": "CSV (.csv)",
-    "downloadExcel": "Excel (.xls)"
+    "downloadExcel": "Excel (.xls)",
+    "downloadFailed": "Download fehlgeschlagen"
   },
   "masterData": {
     "deskDefault": "Prozess-Desk",

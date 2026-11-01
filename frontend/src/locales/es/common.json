@@ -127,7 +127,8 @@
     "download": "Descargar",
     "exporting": "Exportando…",
     "downloadCsv": "CSV (.csv)",
-    "downloadExcel": "Excel (.xls)"
+    "downloadExcel": "Excel (.xls)",
+    "downloadFailed": "Error al descargar"
   },
   "pager": {
     "nav": "Paginación",

@@ -58,9 +58,6 @@ function taskLevelKey(n) {
   return 2
 }
 
-/** Pilot: export button only on these DomainList resources (expand after Accept). */
-const LIST_EXPORT_PILOT = new Set(['strategy/Competitor'])
-
 const DOMAIN_SORT_FIELDS = new Set([
   'id',
   'name',
@@ -618,27 +615,77 @@ export default function DomainList() {
     </>
   )
 
-  const exportEnabled = LIST_EXPORT_PILOT.has(`${pkg}/${resource}`)
+  /** Columns match the DomainList table (plus Id) for CSV / Excel export. */
   const exportColumns = useMemo(() => {
-    if (!exportEnabled) return []
+    const nameCol = {
+      key: 'name',
+      label: t('wb.name', { ns: 'common', defaultValue: 'Name' }),
+    }
+    const idCol = { key: 'id', label: 'Id' }
     if (listColumns?.length) {
       return [
-        { key: 'id', label: 'Id' },
-        { key: 'name', label: t('wb.name', { ns: 'common', defaultValue: 'Name' }) },
+        idCol,
+        nameCol,
         ...listColumns.map((c) => ({ key: c.key, label: c.label || c.key })),
       ]
     }
-    // Default DomainList columns (Name · Description · Status) + Id
+    if (resource === 'Address') {
+      return [
+        idCol,
+        nameCol,
+        { key: 'city', label: 'City' },
+        { key: 'countryCode', label: 'Country' },
+        { key: 'addressType', label: 'Type' },
+      ]
+    }
+    if (resource === 'Invoice') {
+      return [
+        idCol,
+        nameCol,
+        { key: 'invoiceNumber', label: 'Number' },
+        { key: 'amountEur', label: 'Amount' },
+        { key: 'invoiceStatus', label: t('wb.status', { ns: 'common', defaultValue: 'Status' }) },
+      ]
+    }
+    if (resource === 'Account') {
+      return [
+        idCol,
+        nameCol,
+        { key: 'code', label: 'Code' },
+        { key: 'accountType', label: 'Type' },
+        { key: 'currencyCode', label: 'Ccy' },
+      ]
+    }
+    if (resource === 'Treasury') {
+      return [
+        idCol,
+        nameCol,
+        { key: 'accountKind', label: 'Kind' },
+        { key: 'balanceEur', label: 'EUR' },
+        { key: 'balanceSats', label: 'Sats' },
+      ]
+    }
+    if (pkg === 'core' && resource === 'Task') {
+      return [
+        idCol,
+        nameCol,
+        { key: 'status', label: t('wb.status', { ns: 'common', defaultValue: 'Status' }) },
+        { key: 'deadlineAt', label: 'Deadline' },
+        { key: 'urgency', label: 'Urgency' },
+        { key: 'importance', label: 'Importance' },
+        { key: 'assigneeHumanNpub', label: 'Assignee' },
+      ]
+    }
     return [
-      { key: 'id', label: 'Id' },
-      { key: 'name', label: t('wb.name', { ns: 'common', defaultValue: 'Name' }) },
+      idCol,
+      nameCol,
       {
         key: 'description',
         label: t('wb.description', { ns: 'common', defaultValue: 'Description' }),
       },
       { key: 'status', label: t('wb.status', { ns: 'common', defaultValue: 'Status' }) },
     ]
-  }, [exportEnabled, listColumns, t])
+  }, [listColumns, pkg, resource, t])
 
   const searchAndRefresh = (
     <>
@@ -668,16 +715,17 @@ export default function DomainList() {
       <button type="button" className="btn" onClick={load} disabled={loading}>
         <RefreshCw size={16} /> {t('actions.refresh', { ns: 'common' })}
       </button>
-      {exportEnabled && (
-        <ListExportMenu
-          fetcher={fetcher}
-          filters={filters}
-          columns={exportColumns}
-          fileBase={`${pkg}-${resource}`.toLowerCase()}
-          sheetName={resourceLabel || resource}
-          disabled={loading}
-        />
-      )}
+      <ListExportMenu
+        fetcher={fetcher}
+        filters={filters}
+        columns={exportColumns}
+        fileBase={`${pkg}-${resource}`.toLowerCase()}
+        sheetName={resourceLabel || resource}
+        disabled={loading}
+        onError={(e) =>
+          showError(e, t('actions.downloadFailed', { ns: 'common', defaultValue: 'Download failed' }))
+        }
+      />
     </>
   )
 

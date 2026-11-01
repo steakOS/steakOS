@@ -127,7 +127,8 @@
     "genericCrud": "Generic CRUD",
     "clickDetails": "· click for details",
     "clear": "Clear",
-    "new": "New"
+    "new": "New",
+    "downloadFailed": "Download failed"
   },
   "pager": {
     "nav": "Pagination",

@@ -33,6 +33,7 @@ import {
  * @param {string} [props.fileBase] — filename stem without extension
  * @param {string} [props.sheetName]
  * @param {boolean} [props.disabled]
+ * @param {(err: Error) => void} [props.onError]
  */
 export default function ListExportMenu({
   fetcher,
@@ -41,6 +42,7 @@ export default function ListExportMenu({
   fileBase = 'export',
   sheetName = 'Export',
   disabled = false,
+  onError,
 }) {
   const { t } = useTranslation('common')
   const [open, setOpen] = useState(false)
@@ -83,8 +85,8 @@ export default function ListExportMenu({
         )
       }
     } catch (e) {
-      // Surface via alert — DomainList can replace with banner later on rollout
-      window.alert(e?.message || String(e))
+      if (typeof onError === 'function') onError(e instanceof Error ? e : new Error(String(e)))
+      else window.alert(e?.message || String(e))
     } finally {
       setBusy(false)
     }
