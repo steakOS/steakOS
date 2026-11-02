@@ -98,17 +98,10 @@ export default function DashboardCeo() {
     return (
       <div className={starting ? 'banner-warn' : 'banner-error'} role="status">
         {starting ? (
-          <>
-            <strong>
-              {t('errors.serverStarting.title', {
-                defaultValue: 'Server starting… please wait.',
-              })}
-            </strong>{' '}
-            {t('errors.serverStarting.body', {
-              defaultValue:
-                'Hold on — the application server may still be starting. Check that the UI URL uses port :9001.',
-            })}
-          </>
+          t('errors.serverStarting.title', {
+            defaultValue:
+              'Hold on — the application server may still be starting. Check the UI URL uses port :9001',
+          })
         ) : (
           <>
             {t('pages.dashboard.loadError', {

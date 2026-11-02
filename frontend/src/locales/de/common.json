@@ -295,8 +295,8 @@
       "action": "Verstanden"
     },
     "serverStarting": {
-      "title": "Server startet… bitte warten.",
-      "body": "Einen Moment — der Anwendungsserver startet möglicherweise noch. Prüfen Sie, dass die UI-URL Port :9001 nutzt.",
+      "title": "Einen Moment — der Anwendungsserver startet möglicherweise noch. Prüfen Sie, dass die UI-URL Port :9001 nutzt",
+      "body": "",
       "action": "Erneut versuchen"
     }
   },

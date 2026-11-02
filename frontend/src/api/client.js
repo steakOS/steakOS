@@ -32,7 +32,7 @@ export class ApiError extends Error {
 
 /** Operator-facing copy when the API / Vite proxy is still coming up (502/503/504). */
 export const SERVER_STARTING_MESSAGE =
-  'Server starting… please wait. Hold on — the application server may still be starting. Check the UI URL uses port :9001.'
+  'Hold on — the application server may still be starting. Check the UI URL uses port :9001'
 
 const GATEWAY_STATUSES = new Set([502, 503, 504])
 

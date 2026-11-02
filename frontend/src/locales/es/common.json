@@ -295,8 +295,8 @@
       "action": "Entendido"
     },
     "serverStarting": {
-      "title": "Servidor arrancando… espere.",
-      "body": "Un momento — el servidor de la aplicación puede estar arrancando. Compruebe que la URL de la UI usa el puerto :9001.",
+      "title": "Un momento — el servidor de la aplicación puede estar arrancando. Compruebe que la URL de la UI usa el puerto :9001",
+      "body": "",
       "action": "Reintentar"
     }
   },
