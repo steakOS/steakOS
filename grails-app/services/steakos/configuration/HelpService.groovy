@@ -102,7 +102,7 @@ Plantillas: lista de tareas `/domains/core/Task` · Compradores `/scm/buyers`.''
 
 **Tips**
 - Prefer status transitions over deleting work history
-- Use **My work** (`/work`) for list + Eisenhower board
+- Use **My work** (`/work`) for the Eisenhower **Action - NOW** board (and **Agentic Tasks** toggle)
 - Capability ProjectItem can link via optional taskId
 - Domain list **Action** column: **View (Eye) · Edit (Pencil) · Delete (Trash)** — View/Edit open **modals** (UI 2.0 template)''',
             'capability.Process'     : '''**Processes** are the catalogue of how work flows (APQC 13.1).
@@ -964,26 +964,40 @@ Draft PDFs follow the live partner setting. After you **send / confirm / issue**
             [key: 'help.work.actionNow', title: 'Action - NOW', route: '/work', family: 'core',
              body: '''# Action - NOW
 
-**Action - NOW** is the priority board for **open tasks**. It also appears as a mini board on the CEO dashboard.
+**My work** (`/work`) is the **Action - NOW** Eisenhower board for prioritising tasks (urgency × importance). A mini board also appears on the CEO dashboard.
+
+## Toolbar
+
+- **New task** — create a task (returns here afterward)
+- **Refresh** — reload the board
+- **Agentic Tasks** (violet toggle) — switch between the human open board and the agentic AI:* queue (see below)
+- **Task list** — open the full Task domain list when you need search, sort, or bulk browsing
 
 ## How to read the board
 
 - **Rows** = urgency (high → low)
 - **Columns** = importance (low → high)
-- Only **open** tasks appear (done / cancelled stay off the board)
+- Each cell groups tasks that share the same urgency × importance — open a task to edit urgency, importance, deadline, or assignee
 
-Each cell groups tasks that share the same urgency × importance. Open a task to change urgency, importance, deadline, or assignee.
+## Human board (toggle off)
 
-## Where to go
+Shows **open** human work (`OPEN` / `IN_PROGRESS`, plus in-flight AI:* that still counts as open). Done / cancelled stay off the board.
 
-- **My work** (`/work`) — full board + task list and filters
+## Agentic Tasks (toggle on)
+
+Shows tasks that still have an agentic AI: status (for example AI:waiting-go or AI:done) and that a human has **not** yet confirmed as **DONE**. Violet chips mark agentic statuses. Turn the toggle **off** to return to the human board.
+
+Hover the toggle for a short reminder of what on vs off means.
+
+## Where else
+
 - **Dashboard** — mini board + jump to My work
-- Task form — set **Urgency** and **Importance** (low / medium / high)
+- Task form / modal — set **Urgency** and **Importance** (low / medium / high)
 
 ## Honest limits
 
 - The board does not invent priorities — you set urgency and importance on each task
-- Overdue filters live on the task list; the board itself is urgency × importance only
+- Full list filters (overdue, assignee, …) live on the **Task** domain list, not on this board
 
 **Tip:** Open this drawer with **?** or **Ctrl+/** from My work or the dashboard.'''],
 
@@ -1267,7 +1281,7 @@ Fixed order **View · Edit · Delete**. Icons stay column-aligned because gated 
 
 **Tipps**
 - Status ändern statt Historie zu löschen
-- **Meine Arbeit** (`/work`) = Liste + Eisenhower 3×3
+- **Meine Arbeit** (`/work`) = Eisenhower **Aktivitäten - JETZT** (Schalter **Agentische Aufgaben** für AI:*)
 - ProjectItem kann optional taskId verknüpfen
 - Spalte **Aktion**: **Ansehen (Auge) · Bearbeiten (Stift) · Löschen (Papierkorb)** — Ansehen/Bearbeiten öffnen **Modals** (UI 2.0)''',
             'capability.Process': '''**Prozesse** sind der Katalog der Arbeitsflüsse (APQC 13.1).
@@ -1307,7 +1321,7 @@ Ablauf: anlegen → senden → bestätigen → Wareneingang. **Aktion**: Bearbei
 
 **Consejos**
 - Cambie el estado en lugar de borrar el historial
-- **Mi trabajo** (`/work`) = lista + Eisenhower 3×3
+- **Mi trabajo** (`/work`) = Eisenhower **Actividades - AHORA** (interruptor **Tareas agénticas** para AI:*)
 - ProjectItem puede vincular opcionalmente un taskId
 - Columna **Acción**: **Ver (Ojo) · Editar (Lápiz) · Eliminar (Papelera)** — Ver/Editar abren **modales** (UI 2.0)''',
             'capability.Process': '''Los **procesos** son el catálogo de flujos de trabajo (APQC 13.1).
@@ -1953,26 +1967,40 @@ Das ist **nicht** die Sprache ausgehender PDFs an Kunden/Lieferanten. Dafür gil
 **Siehe auch:** Partnersprache (Kommunikation) · Verwendete Währungen''',
             'help.work.actionNow': '''# Aktivitäten - JETZT
 
-**Aktivitäten - JETZT** ist das Prioritätsboard für **offene Aufgaben**. Auf dem CEO-Dashboard erscheint dieselbe Ansicht als Mini-Board.
+**Meine Arbeit** (`/work`) ist das Eisenhower-Board **Aktivitäten - JETZT** (Dringlichkeit × Wichtigkeit). Auf dem CEO-Dashboard gibt es dasselbe als Mini-Board.
+
+## Werkzeugleiste
+
+- **Neue Aufgabe** — Aufgabe anlegen (Rückkehr hierher)
+- **Aktualisieren** — Board neu laden
+- **Agentische Aufgaben** (violetter Schalter) — menschliches offenes Board ↔ agentische AI:*-Warteschlange
+- **Aufgabenliste** — vollständige Task-Domainliste (Suche, Sortierung, Überblick)
 
 ## Board lesen
 
 - **Zeilen** = Dringlichkeit (hoch → niedrig)
 - **Spalten** = Wichtigkeit (niedrig → hoch)
-- Nur **offene** Aufgaben erscheinen (erledigt / abgebrochen bleiben weg)
+- Jede Zelle gruppiert gleiche Dringlichkeit × Wichtigkeit — Aufgabe öffnen zum Bearbeiten
 
-Jede Zelle gruppiert Aufgaben mit derselben Dringlichkeit × Wichtigkeit. Aufgabe öffnen, um Dringlichkeit, Wichtigkeit, Frist oder Zuweisung zu ändern.
+## Menschliches Board (Schalter aus)
 
-## Wohin
+**Offene** menschliche Arbeit (`OPEN` / `IN_PROGRESS`, plus laufende AI:*-Status die noch als offen gelten). Erledigt / abgebrochen bleiben weg.
 
-- **Meine Arbeit** (`/work`) — volles Board + Aufgabenliste und Filter
+## Agentische Aufgaben (Schalter an)
+
+Aufgaben mit agentischem AI:-Status (z. B. AI:waiting-go oder AI:done), die ein Mensch noch **nicht** als **DONE** bestätigt hat. Violette Chips markieren agentische Status. Schalter **aus** = zurück zum menschlichen Board.
+
+Mauszeiger über den Schalter zeigt kurz, was an/aus bedeutet.
+
+## Wohin sonst
+
 - **Dashboard** — Mini-Board + Sprung zu Meine Arbeit
-- Aufgabenformular — **Dringlichkeit** und **Wichtigkeit** setzen (niedrig / mittel / hoch)
+- Aufgabenformular / Modal — **Dringlichkeit** und **Wichtigkeit** setzen
 
 ## Ehrliche Grenzen
 
-- Das Board erfindet keine Prioritäten — Sie setzen Dringlichkeit und Wichtigkeit an der Aufgabe
-- Überfällig-Filter liegen in der Aufgabenliste; das Board selbst ist nur Dringlichkeit × Wichtigkeit
+- Das Board erfindet keine Prioritäten — Sie setzen sie an der Aufgabe
+- Listenfilter (überfällig, Zuweisung, …) liegen in der **Task**-Domainliste, nicht auf diesem Board
 
 **Tipp:** Hilfeschublade mit **?** oder **Ctrl+/** von Meine Arbeit oder dem Dashboard.''',
             'help.partners.locale': '''# Partnersprache (Kommunikation)
@@ -2411,26 +2439,40 @@ Esto **no** es el idioma de los PDF salientes a clientes/proveedores. Eso es el 
 **Ver también:** Idioma de comunicación del socio · Monedas que usamos''',
             'help.work.actionNow': '''# Actividades - AHORA
 
-**Actividades - AHORA** es el tablero de prioridad para **tareas abiertas**. También aparece como mini tablero en el panel CEO.
+**Mi trabajo** (`/work`) es el tablero Eisenhower **Actividades - AHORA** (urgencia × importancia). En el panel CEO aparece el mismo mini tablero.
+
+## Barra de herramientas
+
+- **Nueva tarea** — crear una tarea (vuelve aquí)
+- **Actualizar** — recargar el tablero
+- **Tareas agénticas** (interruptor violeta) — tablero humano abierto ↔ cola AI:*
+- **Lista de tareas** — lista de dominio Task completa (búsqueda, orden, exploración)
 
 ## Cómo leer el tablero
 
 - **Filas** = urgencia (alta → baja)
 - **Columnas** = importancia (baja → alta)
-- Solo aparecen tareas **abiertas** (hechas / canceladas no salen)
+- Cada celda agrupa la misma urgencia × importancia — abra una tarea para editarla
 
-Cada celda agrupa tareas con la misma urgencia × importancia. Abra una tarea para cambiar urgencia, importancia, plazo o asignación.
+## Tablero humano (interruptor apagado)
 
-## Dónde ir
+Trabajo humano **abierto** (`OPEN` / `IN_PROGRESS`, más AI:* en curso que aún cuenta como abierto). Hechas / canceladas no salen.
 
-- **Mi trabajo** (`/work`) — tablero completo + lista y filtros
+## Tareas agénticas (interruptor encendido)
+
+Tareas con estado agéntico AI: (por ejemplo AI:waiting-go o AI:done) que un humano **aún no** ha confirmado como **DONE**. Chips violetas marcan estados agénticos. Apague el interruptor para volver al tablero humano.
+
+Pase el ratón por el interruptor para un recordatorio breve de encendido / apagado.
+
+## Dónde más
+
 - **Dashboard** — mini tablero + salto a Mi trabajo
-- Formulario de tarea — fijar **Urgencia** e **Importancia** (baja / media / alta)
+- Formulario / modal de tarea — fijar **Urgencia** e **Importancia**
 
 ## Límites honestos
 
-- El tablero no inventa prioridades — usted fija urgencia e importancia en cada tarea
-- Los filtros de atrasadas están en la lista; el tablero es solo urgencia × importancia
+- El tablero no inventa prioridades — usted las fija en cada tarea
+- Filtros de lista (atrasadas, asignado, …) viven en la lista de dominio **Task**, no en este tablero
 
 **Consejo:** abra este cajón con **?** o **Ctrl+/** desde Mi trabajo o el panel.''',
             'help.partners.locale': '''# Idioma de comunicación del socio

@@ -329,7 +329,7 @@
     "work": {
       "nav": "mi trabajo",
       "title": "mi trabajo",
-      "subtitle": "Tareas abiertas, plazos y el tablero Actividades - AHORA (urgencia × importancia).",
+      "subtitle": "Tablero Eisenhower Actividades - AHORA para trabajo abierto. Tareas agénticas = cola AI:*.",
       "list": "lista de tareas",
       "eisenhower": "Actividades - AHORA",
       "eisenhowerHint": "Priorice el trabajo abierto en un tablero de urgencia × importancia de 3×3.",
@@ -363,7 +363,9 @@
       "agenticTasks": "Tareas agénticas",
       "agenticToggleHint": "Mostrar tareas con estado AI:* que un humano aún no ha marcado como DONE. Desactivado = tablero humano abierto.",
       "subtitleAgentic": "Tareas agénticas (estados AI:*) pendientes de confirmación humana — tablero Eisenhower.",
-      "eisenhowerAgentic": "Agéntico — Action NOW"
+      "eisenhowerAgentic": "Agéntico — Action NOW",
+      "agenticToggleHintOff": "Mostrar tareas agénticas AI:* aún no confirmadas como DONE por un humano. Clic para cambiar el tablero.",
+      "agenticToggleHintOn": "Cola agéntica AI:* activa. Clic para volver al tablero humano abierto."
     },
     "help": {
       "title": "Centro de ayuda",
@@ -404,7 +406,7 @@
         "help.partners.locale": "Idioma de comunicación del socio"
       },
       "workTitle": "Actividades - AHORA",
-      "workBody": "Tablero de prioridad para tareas abiertas (urgencia × importancia). También en el mini tablero del panel.",
+      "workBody": "Tablero Eisenhower Actividades - AHORA en Mi trabajo. El interruptor Tareas agénticas muestra trabajo AI:* pendiente de DONE humano. Mini tablero en el panel CEO.",
       "workLoading": "Cargando ayuda de Actividades - AHORA…",
       "workTopics": {
         "help.work.actionNow": "Actividades - AHORA",

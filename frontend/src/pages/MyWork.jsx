@@ -137,10 +137,17 @@ export default function MyWork() {
           type="button"
           className={`btn btn-toggle btn-toggle-agentic${agenticMode ? ' is-on' : ''}`}
           aria-pressed={agenticMode}
-          title={t('pages.work.agenticToggleHint', {
-            defaultValue:
-              'Show tasks with AI:* status that a human has not yet marked DONE. Off returns to the human open board.',
-          })}
+          title={
+            agenticMode
+              ? t('pages.work.agenticToggleHintOn', {
+                  defaultValue:
+                    'Showing agentic AI:* queue. Click to return to the human open board.',
+                })
+              : t('pages.work.agenticToggleHintOff', {
+                  defaultValue:
+                    'Show agentic AI:* tasks not yet confirmed DONE by a human. Click to switch the board.',
+                })
+          }
           onClick={() => setAgenticMode((v) => !v)}
         >
           <Bot size={16} aria-hidden="true" />
