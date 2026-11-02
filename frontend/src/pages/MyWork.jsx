@@ -120,7 +120,7 @@ export default function MyWork() {
                 'Agentic tasks (AI:* statuses) awaiting human confirmation — Eisenhower board.',
             })
           : t('pages.work.subtitle', {
-              defaultValue: 'Open tasks, deadlines, and the Eisenhower board (urgency × importance).',
+              defaultValue: 'Your running tasks — Eisenhower board.',
             })}
       </p>
 
