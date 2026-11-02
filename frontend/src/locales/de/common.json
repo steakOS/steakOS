@@ -293,6 +293,11 @@
       "title": "Durch nachgelagertes Dokument gesperrt",
       "body": "Ein späteres Dokument in der Prozesskette ist festgeschrieben. Rollen Sie dieses zuerst zurück (stornieren, umkehren, Unmatch oder Wareneingang rückgängig), und bearbeiten Sie dann erneut.",
       "action": "Verstanden"
+    },
+    "serverStarting": {
+      "title": "Server startet… bitte warten.",
+      "body": "Einen Moment — der Anwendungsserver startet möglicherweise noch. Prüfen Sie, dass die UI-URL Port :9001 nutzt.",
+      "action": "Erneut versuchen"
     }
   },
   "pages": {
@@ -308,6 +313,8 @@
       "newTask": "Neue Aufgabe",
       "viewAll": "Alle anzeigen",
       "apqcPulse": "APQC-Puls",
+      "loadError": "Dashboard konnte nicht geladen werden.",
+      "loadErrorHint": "Wenn Sie abgemeldet sind, öffnen Sie",
       "totalRecords": "Datensätze gesamt",
       "actionByLabel": {
         "New Quote": "Neues Angebot",

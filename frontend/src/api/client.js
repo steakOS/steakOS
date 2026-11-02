@@ -30,6 +30,73 @@ export class ApiError extends Error {
   }
 }
 
+/** Operator-facing copy when the API / Vite proxy is still coming up (502/503/504). */
+export const SERVER_STARTING_MESSAGE =
+  'Server starting… please wait. Hold on — the application server may still be starting. Check the UI URL uses port :9001.'
+
+const GATEWAY_STATUSES = new Set([502, 503, 504])
+
+function isGatewayStatus(status) {
+  return GATEWAY_STATUSES.has(Number(status))
+}
+
+function looksLikeGatewayText(text) {
+  if (!text || typeof text !== 'string') return false
+  const t = text.toLowerCase()
+  return (
+    t.includes('bad gateway') ||
+    t.includes('service unavailable') ||
+    t.includes('gateway timeout') ||
+    t.includes('econnrefused') ||
+    t.includes('error occurred while trying to proxy')
+  )
+}
+
+/**
+ * Map raw fetch / HTTP failures to a friendly ApiError when the backend looks down.
+ * @param {number|null|undefined} status
+ * @param {string|null|undefined} statusText
+ * @param {string|null|undefined} bodyText
+ * @returns {ApiError|null}
+ */
+export function gatewayApiError(status, statusText, bodyText) {
+  if (isGatewayStatus(status) || looksLikeGatewayText(statusText) || looksLikeGatewayText(bodyText)) {
+    return new ApiError({
+      message: SERVER_STARTING_MESSAGE,
+      code: 'SERVER_STARTING',
+      status: status ?? 502,
+      detail: statusText || (bodyText ? String(bodyText).slice(0, 200) : null),
+    })
+  }
+  return null
+}
+
+/**
+ * Network / TypeError from fetch when proxy or API is unreachable.
+ * @param {unknown} err
+ * @returns {ApiError}
+ */
+export function networkApiError(err) {
+  const raw = err?.message || String(err || 'Network error')
+  if (
+    /failed to fetch|networkerror|load failed|econnrefused|network request failed/i.test(raw) ||
+    looksLikeGatewayText(raw)
+  ) {
+    return new ApiError({
+      message: SERVER_STARTING_MESSAGE,
+      code: 'SERVER_STARTING',
+      status: null,
+      detail: raw,
+    })
+  }
+  return new ApiError({
+    message: raw,
+    code: 'NETWORK_ERROR',
+    status: null,
+    detail: raw,
+  })
+}
+
 function isHtmlBody(text) {
   if (!text || typeof text !== 'string') return false
   const t = text.trimStart().slice(0, 32).toLowerCase()
@@ -85,7 +152,12 @@ export async function api(path, options = {}) {
     opts.body = JSON.stringify(opts.body)
   }
 
-  const res = await fetch(path.startsWith('/') ? path : `/${path}`, opts)
+  let res
+  try {
+    res = await fetch(path.startsWith('/') ? path : `/${path}`, opts)
+  } catch (err) {
+    throw networkApiError(err)
+  }
 
   if (
     res.type === 'opaqueredirect' ||
@@ -108,11 +180,21 @@ export async function api(path, options = {}) {
     return null
   }
 
+  const gatewayEarly = gatewayApiError(res.status, res.statusText, null)
+  if (gatewayEarly) {
+    // Still read body for detail, but always show the friendly message.
+    const peek = await res.text().catch(() => '')
+    gatewayEarly.detail = peek ? peek.slice(0, 200) : res.statusText || gatewayEarly.detail
+    throw gatewayEarly
+  }
+
   const text = await res.text()
 
   // Only treat HTML as session loss when it looks like a login page (or 403).
   // Server 500/error HTML must surface as a normal error — not a redirect loop.
   if (isHtmlBody(text)) {
+    const gatewayHtml = gatewayApiError(res.status, res.statusText, text)
+    if (gatewayHtml) throw gatewayHtml
     const authish = res.status === 403 || looksLikeLoginHtml(text)
     if (authish) {
       goLogin()
@@ -139,6 +221,12 @@ export async function api(path, options = {}) {
   }
 
   if (!res.ok) {
+    const gatewayJson = gatewayApiError(
+      res.status,
+      res.statusText,
+      data?.error || data?.message || text,
+    )
+    if (gatewayJson) throw gatewayJson
     if (res.status === 403 && data?.code === 'TOTP_REQUIRED') {
       const path = window.location.pathname || ''
       // Stay on setup wizard — redirecting to /totp abandons Finish with no feedback
@@ -235,13 +323,18 @@ export const contentApi = {
   addFile: async (pkg, resource, id, file) => {
     const fd = new FormData()
     fd.append('file', file)
-    const res = await fetch(`/api/content/on/${pkg}/${resource}/${id}/files`, {
-      method: 'POST',
-      credentials: 'include',
-      redirect: 'manual',
-      headers: { Accept: 'application/json' },
-      body: fd,
-    })
+    let res
+    try {
+      res = await fetch(`/api/content/on/${pkg}/${resource}/${id}/files`, {
+        method: 'POST',
+        credentials: 'include',
+        redirect: 'manual',
+        headers: { Accept: 'application/json' },
+        body: fd,
+      })
+    } catch (err) {
+      throw networkApiError(err)
+    }
     if (
       res.type === 'opaqueredirect' ||
       [301, 302, 303, 307, 308, 401].includes(res.status)
@@ -250,6 +343,8 @@ export const contentApi = {
       throw new ApiError({ message: 'Unauthorized', code: 'UNAUTHORIZED', status: res.status })
     }
     const text = await res.text()
+    const gatewayUp = gatewayApiError(res.status, res.statusText, text)
+    if (gatewayUp) throw gatewayUp
     if (isHtmlBody(text) && (res.status === 403 || looksLikeLoginHtml(text))) {
       goLogin()
       throw new ApiError({ message: 'Unauthorized', code: 'UNAUTHORIZED', status: res.status })

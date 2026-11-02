@@ -49,35 +49,78 @@ export default function DashboardCeo() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [retryTick, setRetryTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
+    let retryTimer = null
     setLoading(true)
+    setError(null)
     dashboardApi
       .ceo()
       .then((d) => {
-        if (!cancelled) setData(d)
+        if (!cancelled) {
+          setData(d)
+          setError(null)
+        }
       })
       .catch((e) => {
-        if (!cancelled) setError(e.message)
+        if (cancelled) return
+        const msg = e?.message || String(e)
+        setError(msg)
+        const starting =
+          e?.code === 'SERVER_STARTING' ||
+          /server starting|application server may still be starting|bad gateway/i.test(msg)
+        if (starting) {
+          retryTimer = window.setTimeout(() => {
+            if (!cancelled) setRetryTick((n) => n + 1)
+          }, 4000)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
+      if (retryTimer) window.clearTimeout(retryTimer)
     }
-  }, [])
+  }, [retryTick])
 
-  if (loading) {
+  if (loading && !error) {
     return <p className="muted">{t('actions.loading')}</p>
   }
 
-  if (error) {
+  if (error && !data) {
+    const starting =
+      /server starting|application server may still be starting|bad gateway|503|504/i.test(
+        String(error),
+      )
     return (
-      <div className="banner-error">
-        Could not load dashboard: {error}. Ensure you are logged in via{' '}
-        <a href="/login/auth">/login/auth</a> on this origin (port 9001 proxy).
+      <div className={starting ? 'banner-warn' : 'banner-error'} role="status">
+        {starting ? (
+          <>
+            <strong>
+              {t('errors.serverStarting.title', {
+                defaultValue: 'Server starting… please wait.',
+              })}
+            </strong>{' '}
+            {t('errors.serverStarting.body', {
+              defaultValue:
+                'Hold on — the application server may still be starting. Check that the UI URL uses port :9001.',
+            })}
+          </>
+        ) : (
+          <>
+            {t('pages.dashboard.loadError', {
+              defaultValue: 'Could not load dashboard.',
+            })}{' '}
+            {error}{' '}
+            {t('pages.dashboard.loadErrorHint', {
+              defaultValue: 'If you are signed out, open',
+            })}{' '}
+            <a href="/login/auth">/login/auth</a>.
+          </>
+        )}
       </div>
     )
   }

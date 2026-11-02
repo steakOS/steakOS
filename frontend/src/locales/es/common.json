@@ -293,6 +293,11 @@
       "title": "Bloqueado por un documento posterior",
       "body": "Un documento posterior de la cadena de proceso está confirmado. Revierta ese documento primero (anular, revertir, deshacer match o deshacer recepción) y luego edite de nuevo.",
       "action": "Entendido"
+    },
+    "serverStarting": {
+      "title": "Servidor arrancando… espere.",
+      "body": "Un momento — el servidor de la aplicación puede estar arrancando. Compruebe que la URL de la UI usa el puerto :9001.",
+      "action": "Reintentar"
     }
   },
   "pages": {
@@ -308,6 +313,8 @@
       "newTask": "Nueva tarea",
       "viewAll": "Ver todo",
       "apqcPulse": "Pulso APQC",
+      "loadError": "No se pudo cargar el panel.",
+      "loadErrorHint": "Si ha cerrado sesión, abra",
       "totalRecords": "Registros totales",
       "actionByLabel": {
         "New Quote": "Nueva cotización",

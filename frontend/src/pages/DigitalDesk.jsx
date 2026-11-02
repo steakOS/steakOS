@@ -400,7 +400,7 @@ export default function DigitalDesk() {
     setTicketContentMap(tm)
     if (failed.length) {
       setError(
-        `Could not load some Digital data (${failed.join('; ')}). Is the API up on :6060?`,
+        `Hold on — some Digital data could not load (${failed.join('; ')}). The application server may still be starting. Check the UI URL uses port :9001.`,
       )
     } else {
       setError(null)

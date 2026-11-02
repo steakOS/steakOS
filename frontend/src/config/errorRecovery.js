@@ -94,6 +94,16 @@ export const ERROR_RECOVERY = {
     bodyKey: 'errors.documentChainLocked.body',
     actions: [{ labelKey: 'errors.documentChainLocked.action', href: null }],
   },
+  SERVER_STARTING: {
+    titleKey: 'errors.serverStarting.title',
+    bodyKey: 'errors.serverStarting.body',
+    actions: [{ labelKey: 'errors.serverStarting.action', href: null }],
+  },
+  NETWORK_ERROR: {
+    titleKey: 'errors.serverStarting.title',
+    bodyKey: 'errors.serverStarting.body',
+    actions: [{ labelKey: 'errors.serverStarting.action', href: null }],
+  },
 }
 
 /**
@@ -102,13 +112,15 @@ export const ERROR_RECOVERY = {
  */
 export function resolveErrorRecovery(error) {
   if (!error) return null
+  const status = typeof error === 'object' ? error.status : null
   const code =
     (typeof error === 'string' && error) ||
     error.code ||
     error.errorCode ||
-    (error.status === 401 ? 'UNAUTHORIZED' : null) ||
-    (error.status === 404 ? 'NOT_FOUND' : null) ||
-    (error.status === 409 ? 'CONFLICT' : null)
+    (status === 401 ? 'UNAUTHORIZED' : null) ||
+    (status === 404 ? 'NOT_FOUND' : null) ||
+    (status === 409 ? 'CONFLICT' : null) ||
+    (status === 502 || status === 503 || status === 504 ? 'SERVER_STARTING' : null)
   if (!code) return null
   return ERROR_RECOVERY[code] || null
 }
