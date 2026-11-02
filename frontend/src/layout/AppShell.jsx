@@ -584,7 +584,7 @@ export default function AppShell() {
     versionApi
       .get()
       .then((v) => {
-        if (!cancelled) setVersionLabel(v.displayLabel)
+        if (!cancelled) setVersionLabel(v.V || v.displayLabel)
       })
       .catch(() => {
         /* non-fatal for shell */
@@ -864,16 +864,7 @@ export default function AppShell() {
               </button>
             )}
             <div className="topbar-meta">
-              <span className="topbar-meta-full" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                {!narrow && (
-                  <img
-                    src="/logo_nav.png"
-                    alt=""
-                    width={22}
-                    height={22}
-                    aria-hidden="true"
-                  />
-                )}
+              <span className="topbar-meta-full">
                 steakOS
                 {templateTier ? ` · ${formatTierLabel(templateTier)}` : ''}
                 {locale ? ` · ${locale}` : ''}
