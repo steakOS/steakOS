@@ -599,6 +599,46 @@ export function getInteraction(packageName, resourceName) {
   return 'domainFullPage'
 }
 
+/**
+ * Data-product masters that sit alone (no desk / process binding).
+ * Help shows an unbound warning; rows are reference / future-use only.
+ * Mirrors CREATE_META entityClass E + domainFullPage without deskPath,
+ * excluding admin catalogs (helper / configuration / generic) and desk-driven
+ * masters that still lack an explicit CREATE_META row (e.g. PriceList).
+ */
+const UNBOUND_DATA_PRODUCT_SKIP_PKG = new Set([
+  'helper',
+  'configuration',
+  'generic',
+  'core',
+  'catalogue',
+])
+
+const UNBOUND_DATA_PRODUCT_SKIP_RESOURCE = new Set([
+  'PriceList',
+  'PriceListLine',
+])
+
+/**
+ * @param {string} packageName
+ * @param {string} resourceName
+ * @returns {boolean}
+ */
+export function isUnboundDataProduct(packageName, resourceName) {
+  if (!packageName || !resourceName) return false
+  if (UNBOUND_DATA_PRODUCT_SKIP_PKG.has(String(packageName))) return false
+  if (UNBOUND_DATA_PRODUCT_SKIP_RESOURCE.has(String(resourceName))) return false
+  const meta = getCreateMeta(packageName, resourceName)
+  const interaction = getInteraction(packageName, resourceName)
+  if (interaction === 'deskShell' || interaction === 'capability') return false
+  if (meta.createMode === 'deskRedirect' || meta.createMode === 'parentOnly' || meta.createMode === 'blocked') {
+    return false
+  }
+  if (meta.deskPath) return false
+  // Config/helper-style masters that are not wired into desk business logic
+  return meta.entityClass === 'E' && interaction === 'domainFullPage'
+}
+
 const DEFAULT_META = {
   entityClass: 'E',
   createMode: 'domain',

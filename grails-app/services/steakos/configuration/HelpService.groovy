@@ -1253,6 +1253,7 @@ Fixed order **View · Edit · Delete**. Icons stay column-aligned because gated 
                 route           : ctx.path,
                 context         : ctx,
                 topic           : syntheticTopic,
+                unbound         : isUnboundDataProduct(pkg, res),
                 body            : [
                         id             : null,
                         title          : title,
@@ -1266,6 +1267,21 @@ Fixed order **View · Edit · Delete**. Icons stay column-aligned because gated 
                 language        : lang,
                 topics          : HelpTopic.list(sort: 'sortOrder', order: 'asc').collect { topicMap(it) }
         ]
+    }
+
+    /**
+     * Data products that sit alone (no desk / process binding) — reference / future use.
+     * Keep in sync with frontend isUnboundDataProduct (domainRegistry.js).
+     */
+    private static final Set UNBOUND_DATA_PRODUCTS = [
+            'sales.Market', 'sales.GoToMarket', 'sales.SalesPlan',
+            'procurement.Contract', 'procurement.SourcingCategory', 'procurement.SourcingPlan',
+            'service.Satisfaction',
+            'finance.PaymentOption',
+    ].asImmutable() as Set
+
+    private static boolean isUnboundDataProduct(String pkg, String res) {
+        pkg && res && ("${pkg}.${res}" in UNBOUND_DATA_PRODUCTS)
     }
 
     private static String domainBlurb(String key, String lang) {

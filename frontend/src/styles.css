@@ -3577,6 +3577,33 @@ table.data tbody tr.row-selected td:last-child {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+.help-unbound-banner {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+.help-unbound-banner svg {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: #d97706;
+}
+.help-unbound-banner strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+.help-unbound-banner p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #78350f;
+}
 .help-markdown h1 { font-size: 1.25rem; margin: 0 0 0.75rem; }
 .help-markdown h2 { font-size: 1.05rem; margin: 1rem 0 0.5rem; }
 .help-markdown p { margin: 0.5rem 0; color: var(--steak-ink); }

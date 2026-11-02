@@ -4,9 +4,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { X, ExternalLink, Ticket, Plus } from 'lucide-react'
+import { X, ExternalLink, Ticket, Plus, AlertTriangle } from 'lucide-react'
 import { digitalApi, helpApi } from '../api/client'
 import { markdownToHtml } from '../utils/markdown'
+import { isUnboundDataProduct } from '../config/domainRegistry'
 
 /**
  * Context-sensitive help drawer — domain master data, desks, and feature routes.
@@ -141,6 +142,9 @@ export default function HelpDrawer({
   const ctx = data?.context || {}
   const actions = data?.suggestedActions || []
   const related = data?.relatedTopics || []
+  const unboundDomain =
+    !!data?.unbound ||
+    (ctx.kind === 'domain' && isUnboundDataProduct(ctx.package, ctx.resource))
 
   const contextBits = []
   if (helpContext?.desk || helpContext?.tab || helpContext?.resource) {
@@ -234,6 +238,22 @@ export default function HelpDrawer({
         <div className="help-drawer-body">
           {loading && <p className="muted">{t('loading')}</p>}
           {error && <div className="setup-error">{error}</div>}
+          {!loading && unboundDomain && (
+            <div className="help-unbound-banner" role="status">
+              <AlertTriangle size={18} aria-hidden="true" />
+              <div>
+                <strong>
+                  {t('unboundTitle', { defaultValue: 'Unbound domain' })}
+                </strong>
+                <p>
+                  {t('unboundBody', {
+                    defaultValue:
+                      'This data product is for reference and future use only. It does not currently drive any business logic on desks or processes.',
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
           {!loading && body && (
             <div
               className="help-markdown"
