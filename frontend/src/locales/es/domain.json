@@ -3,6 +3,7 @@
     "Task": "Tarea"
   },
   "sales": {
+    "CatalogueItem": "Artículos del catálogo",
     "Customer": "Cliente",
     "CustomerQuote": "Cotización del cliente",
     "QuoteLine": "Línea de cotización",
@@ -13,6 +14,7 @@
     "SalesPlan": "plan de ventas"
   },
   "procurement": {
+    "CatalogueItem": "Artículos del catálogo",
     "Vendor": "Proveedor",
     "PurchaseOrder": "orden de compra",
     "PurchaseOrderLine": "línea de orden de compra",
@@ -25,7 +27,7 @@
   "production": {
     "Product": "Producto",
     "Component": "Componente",
-    "CatalogueItem": "Artículo del catálogo",
+    "CatalogueItem": "Artículos del catálogo",
     "BillOfMaterials": "lista de materiales",
     "BomItem": "artículo de lista de materiales",
     "ProductionOrder": "Orden de producción",
@@ -34,6 +36,7 @@
     "StockMove": "Movimiento de acciones"
   },
   "delivery": {
+    "CatalogueItem": "Artículos del catálogo",
     "Service": "Servicio",
     "Resource": "Recurso",
     "ServiceOrder": "orden de servicio",
@@ -144,13 +147,14 @@
     "StrategyItem": "Tema de estrategia"
   },
   "development": {
+    "CatalogueItem": "Artículos del catálogo",
     "DevelopmentProject": "Proyecto de desarrollo"
   },
   "asset": {
     "PhysicalAsset": "Activo físico"
   },
   "catalogue": {
-    "CatalogueItem": "Artículo del catálogo"
+    "CatalogueItem": "Artículos del catálogo"
   },
   "money": {
     "amountPrimary": "Cantidad (primaria)"

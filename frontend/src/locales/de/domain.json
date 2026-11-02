@@ -3,6 +3,7 @@
     "Task": "Aufgabe"
   },
   "sales": {
+    "CatalogueItem": "Katalogartikel",
     "Customer": "Kunde",
     "CustomerQuote": "Kundenangebot",
     "QuoteLine": "Angebotsposition",
@@ -13,6 +14,7 @@
     "SalesPlan": "Vertriebsplan"
   },
   "procurement": {
+    "CatalogueItem": "Katalogartikel",
     "Vendor": "Lieferant",
     "PurchaseOrder": "Bestellung",
     "PurchaseOrderLine": "Bestellposition",
@@ -34,6 +36,7 @@
     "StockMove": "Lagerbewegung"
   },
   "delivery": {
+    "CatalogueItem": "Katalogartikel",
     "Service": "Leistung",
     "Resource": "Ressource",
     "ServiceOrder": "Serviceauftrag",
@@ -144,6 +147,7 @@
     "StrategyItem": "Strategiethema"
   },
   "development": {
+    "CatalogueItem": "Katalogartikel",
     "DevelopmentProject": "Entwicklungsprojekt"
   },
   "asset": {

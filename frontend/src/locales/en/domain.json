@@ -3,6 +3,7 @@
     "Task": "Task"
   },
   "sales": {
+    "CatalogueItem": "Catalog Items",
     "Customer": "Customer",
     "CustomerQuote": "Customer quote",
     "QuoteLine": "Quote line",
@@ -13,6 +14,7 @@
     "SalesPlan": "Sales plan"
   },
   "procurement": {
+    "CatalogueItem": "Catalog Items",
     "Vendor": "Vendor",
     "PurchaseOrder": "Purchase order",
     "PurchaseOrderLine": "PO line",
@@ -25,7 +27,7 @@
   "production": {
     "Product": "Product",
     "Component": "Component",
-    "CatalogueItem": "Catalogue item",
+    "CatalogueItem": "Catalog Items",
     "BillOfMaterials": "Bill of materials",
     "BomItem": "BOM item",
     "ProductionOrder": "Production order",
@@ -34,6 +36,7 @@
     "StockMove": "Stock move"
   },
   "delivery": {
+    "CatalogueItem": "Catalog Items",
     "Service": "Service",
     "Resource": "Resource",
     "ServiceOrder": "Service order",
@@ -144,13 +147,14 @@
     "StrategyItem": "Strategy topic"
   },
   "development": {
+    "CatalogueItem": "Catalog Items",
     "DevelopmentProject": "Development project"
   },
   "asset": {
     "PhysicalAsset": "Physical asset"
   },
   "catalogue": {
-    "CatalogueItem": "Catalogue item"
+    "CatalogueItem": "Catalog Items"
   },
   "money": {
     "amountPrimary": "Amount (primary)"

@@ -762,8 +762,19 @@ export function getDeskCreatePath(pkg, resourceName) {
   return null
 }
 
+/** Package segment from a domain path (`/domains/catalogue/CatalogueItem` → catalogue). */
+function packageFromDomainPath(path) {
+  const m = String(path || '').match(/^\/domains\/([^/]+)\//)
+  return m ? m[1] : null
+}
+
 function enrichResource(pkg, res) {
-  const meta = getCreateMeta(pkg, res.name)
+  // Cross-listed resources (e.g. CatalogueItem under sales) keep CREATE_META from the
+  // owning package in the path so *Item masters are not inferred as parentOnly children.
+  const pathPkg = packageFromDomainPath(res.path)
+  const lookupPkg =
+    CREATE_META[`${pkg}/${res.name}`] || !pathPkg || pathPkg === pkg ? pkg : pathPkg
+  const meta = getCreateMeta(lookupPkg, res.name)
   return {
     ...res,
     entityClass: res.entityClass || meta.entityClass,

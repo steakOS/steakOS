@@ -49,7 +49,7 @@
     "configuration": "Configuration",
     "helper": "Reference data",
     "agent": "Agent",
-    "catalogue": "Catalogue",
+    "catalogue": "Catalog Items",
     "security": "Security",
     "supplychain": "Supply chain"
   },
@@ -499,7 +499,7 @@
       "system": "System",
       "inUseHint": "Used by desks or day-to-day configuration.",
       "reserveHint": "Seeded for later metals / not in current desk flows.",
-      "systemHint": "Shared system catalogue (global)."
+      "systemHint": "Shared system catalog (global)."
     },
     "company": {
       "title": "Company profile",
