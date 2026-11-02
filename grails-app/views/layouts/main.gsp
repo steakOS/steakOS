@@ -28,10 +28,10 @@
         text-decoration: none;
     }
     .steakos-brand-logo {
-        /* White-background wordmark (logo_login_white.png) — includes steakOS type */
-        height: 64px;
+        /* logo_small_white.png from artefacts/images/new */
+        height: 56px;
         width: auto;
-        max-width: min(220px, 42vw);
+        max-width: min(160px, 40vw);
         flex-shrink: 0;
         object-fit: contain;
         border-radius: 12px;
@@ -55,8 +55,8 @@
     }
     @media (max-width: 576px) {
         .steakos-brand-logo {
-            height: 52px;
-            max-width: 36vw;
+            height: 44px;
+            max-width: 32vw;
         }
         .steakos-brand-tagline {
             font-size: 0.62rem;
@@ -67,7 +67,7 @@
 <nav class="navbar navbar-expand-lg bg-body border-bottom shadow-sm">
     <div class="container-lg">
         <a class="navbar-brand steakos-brand m-0" href="${request.contextPath}/">
-            <asset:image class="steakos-brand-logo" src="logo_login_white.png" alt="steakOS"/>
+            <asset:image class="steakos-brand-logo" src="logo_small_white.png" alt="steakOS"/>
             <span class="steakos-brand-text">
                 <span class="steakos-brand-tagline">
                     <g:message code="steakos.brand.tagline"
