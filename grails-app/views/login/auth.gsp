@@ -12,7 +12,8 @@
 		}
 
 		#login .inner {
-			width: 340px;
+			width: 480px;
+			max-width: calc(100vw - 32px);
 			padding-bottom: 6px;
 			margin: 60px auto;
 			text-align: left;
@@ -37,7 +38,7 @@
 			clear: left;
 			margin: 0;
 			padding: 4px 0 3px 0;
-			padding-left: 105px;
+			padding-left: 168px;
 			margin-bottom: 20px;
 			height: 1%;
 		}
@@ -50,14 +51,15 @@
 			font-weight: bold;
 			float: left;
 			text-align: right;
-			margin-left: -105px;
-			width: 110px;
+			margin-left: -168px;
+			width: 158px;
 			padding-top: 3px;
 			padding-right: 10px;
+			white-space: nowrap;
 		}
 
 		#remember_me_holder {
-			padding-left: 120px;
+			padding-left: 168px;
 		}
 
 		#submit {
@@ -137,13 +139,13 @@
 		</form>
 
 		<div class="nostr-login" style="padding: 0 26px 18px 26px; border-top: 1px solid #ccd; margin-top: 8px;">
-			<p style="font-size: 12px; color: #667; margin: 14px 0 6px 0; text-transform: uppercase; letter-spacing: 0.04em;">
+			<p style="font-size: 12px; color: #667; margin: 14px 0 8px 0; text-transform: uppercase; letter-spacing: 0.04em;">
 				<g:message code='steakos.login.nostr.secondary' default="Or"/>
 			</p>
-			<p style="font-size: 13px; color: #445; margin: 0 0 8px 0;">
-				<g:message code='steakos.login.nostr.intro'/>
-			</p>
-			<button type="button" id="nostrSignInBtn" class="btn-secondary-login" style="width: 100%; padding: 8px; background: #f5f5f4; border: 1px solid #ccc; border-radius: 4px;">
+			<button type="button" id="nostrSignInBtn" class="btn-secondary-login"
+				title="${message(code: 'steakos.login.nostr.buttonTitle')}"
+				aria-label="${message(code: 'steakos.login.nostr.button')} — ${message(code: 'steakos.login.nostr.buttonTitle')}"
+				style="width: 100%; padding: 8px; background: #f5f5f4; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
 				<g:message code='steakos.login.nostr.button'/>
 			</button>
 			<p id="nostrLoginMsg" style="font-size: 12px; color: #c33; min-height: 1.2em; margin: 8px 0 0 0;"></p>
