@@ -131,11 +131,11 @@ export const CREATE_META = {
   // —— production ——
   'catalogue/CatalogueItem': {
     entityClass: 'A',
-    createMode: 'deskRedirect',
+    createMode: 'domain',
     interaction: 'deskShell',
     deskPath: '/scm/buyers',
     defaultTab: 'products',
-    deskLabel: 'Buyers Desk (goods/services) / Delivery (fulfilled services)',
+    deskLabel: 'Buyers Desk',
   },
   'production/Component': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
   'production/BillOfMaterials': { entityClass: 'A', createMode: 'domain', interaction: 'domainFullPage' },
