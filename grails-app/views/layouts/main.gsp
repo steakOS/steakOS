@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title><g:layoutTitle default="steakOS"/></title>
     <asset:link rel="icon" href="favicon.ico" type="image/x-ico"/>
+    <asset:link rel="icon" href="favicon-32.png" type="image/png"/>
+    <asset:link rel="apple-touch-icon" href="apple-touch-icon.png"/>
     <asset:stylesheet src="application.css"/>
     <g:layoutHead/>
 </head>
@@ -30,6 +32,7 @@
         height: 48px;
         flex-shrink: 0;
         object-fit: contain;
+        border-radius: 10px;
     }
     .steakos-brand-text {
         display: flex;
@@ -67,7 +70,7 @@
 <nav class="navbar navbar-expand-lg bg-body border-bottom shadow-sm">
     <div class="container-lg">
         <a class="navbar-brand steakos-brand m-0" href="${request.contextPath}/">
-            <asset:image class="steakos-brand-logo" src="steakos.svg" alt=""/>
+            <asset:image class="steakos-brand-logo" src="logo_nav.png" alt=""/>
             <span class="steakos-brand-text">
                 <span class="steakos-brand-title">steakOS</span>
                 <span class="steakos-brand-tagline">

@@ -681,7 +681,7 @@ export default function AppShell() {
       <aside className="sidebar" id="app-nav" aria-hidden={narrow && !navOpen ? true : undefined}>
         <NavLink to="/dashboard" className="sidebar-brand" onClick={() => setNavOpen(false)}>
           <img
-            src="/favicon-32.png"
+            src="/logo_nav.png"
             alt=""
             width={28}
             height={28}
@@ -855,7 +855,7 @@ export default function AppShell() {
                 onClick={() => setNavOpen((v) => !v)}
               >
                 <img
-                  src="/favicon-32.png"
+                  src="/logo_nav.png"
                   alt=""
                   width={28}
                   height={28}
@@ -867,7 +867,7 @@ export default function AppShell() {
               <span className="topbar-meta-full" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 {!narrow && (
                   <img
-                    src="/favicon-32.png"
+                    src="/logo_nav.png"
                     alt=""
                     width={22}
                     height={22}

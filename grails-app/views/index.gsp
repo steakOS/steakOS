@@ -54,7 +54,7 @@
                         <ul class="list-group list-group-flush small">
                             <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                                 <span class="d-inline-flex align-items-center text-body-secondary">
-                                    <asset:image src="steakos.svg" alt="steakOS" width="18" height="18" class="me-2"/>
+                                    <asset:image src="logo_nav.png" alt="steakOS" width="18" height="18" class="me-2"/>
                                     Grails
                                 </span>
                                 <g:meta name="info.app.grailsVersion"/>
