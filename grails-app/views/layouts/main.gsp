@@ -17,7 +17,7 @@
     .steakos-brand {
         display: flex;
         align-items: center;
-        gap: 0.85rem;
+        gap: 0.9rem;
         text-decoration: none;
         color: inherit;
         min-width: 0;
@@ -28,11 +28,15 @@
         text-decoration: none;
     }
     .steakos-brand-logo {
-        width: 48px;
-        height: 48px;
+        /* White-background wordmark (logo_login_white.png) — includes steakOS type */
+        height: 64px;
+        width: auto;
+        max-width: min(220px, 42vw);
         flex-shrink: 0;
         object-fit: contain;
-        border-radius: 10px;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 0 0 1px rgba(28, 25, 23, 0.06);
     }
     .steakos-brand-text {
         display: flex;
@@ -41,38 +45,30 @@
         min-width: 0;
         text-align: left;
     }
-    .steakos-brand-title {
-        margin: 0;
-        font-size: 1.45rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        line-height: 1.15;
-        color: #1c1917;
-    }
     .steakos-brand-tagline {
         margin: 0;
         font-size: 0.72rem;
         line-height: 1.35;
         color: #78716c;
         font-weight: 500;
-        max-width: 36rem;
+        max-width: 28rem;
     }
     @media (max-width: 576px) {
-        .steakos-brand-tagline {
-            font-size: 0.65rem;
-            max-width: 14rem;
+        .steakos-brand-logo {
+            height: 52px;
+            max-width: 36vw;
         }
-        .steakos-brand-title {
-            font-size: 1.25rem;
+        .steakos-brand-tagline {
+            font-size: 0.62rem;
+            max-width: 11rem;
         }
     }
 </style>
 <nav class="navbar navbar-expand-lg bg-body border-bottom shadow-sm">
     <div class="container-lg">
         <a class="navbar-brand steakos-brand m-0" href="${request.contextPath}/">
-            <asset:image class="steakos-brand-logo" src="logo_nav.png" alt=""/>
+            <asset:image class="steakos-brand-logo" src="logo_login_white.png" alt="steakOS"/>
             <span class="steakos-brand-text">
-                <span class="steakos-brand-title">steakOS</span>
                 <span class="steakos-brand-tagline">
                     <g:message code="steakos.brand.tagline"
                                default="A Sovereign Transactional Enterprise Automation Kernel &amp; Orchestration System."/>
