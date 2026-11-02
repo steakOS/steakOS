@@ -160,7 +160,7 @@
     },
     {
       "package": "catalogue",
-      "label": "Catalog Items",
+      "label": "Components/Products/Services",
       "order": 60,
       "apqc": null,
       "resources": [
