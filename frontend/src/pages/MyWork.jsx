@@ -17,18 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw } from 'lucide-react'
-import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
-import ResponsiveDataList from '../components/ResponsiveDataList'
-import ListPager from '../components/ListPager'
-import ListSortHeader from '../components/ListSortHeader'
-import usePagedList from '../hooks/usePagedList'
-import {
-  buildAssigneeOptions,
-  filterAssigneeOptionsForDevMode,
-  formatAssigneeDisplay,
-  humanNpubForUsername,
-  splitPersonName,
-} from '../utils/taskAssignee'
+import { domainsApi } from '../api/client'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 
 const LEVELS = [1, 2, 3]
@@ -46,21 +35,13 @@ const OPEN_STATUSES = new Set([
   'AI:fixing',
 ])
 
+/** Enough open tasks for a full Eisenhower board (list UI removed). */
+const BOARD_MAX = 500
+
 function levelKey(n) {
   const v = Number(n)
   if (v === 1 || v === 2 || v === 3) return v
   return 2
-}
-
-function formatDeadline(iso) {
-  if (!iso) return null
-  try {
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return null
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return null
-  }
 }
 
 function isOverdue(task) {
@@ -79,102 +60,27 @@ function isOpen(task) {
 
 export default function MyWork() {
   const { t } = useTranslation(['common', 'domain'])
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  // Server-side view filter (LIST-PAGINATION F1): open | overdue | mine | all
-  const [filter, setFilter] = useState('open')
-  const [sort, setSort] = useState('deadlineAt')
-  const [order, setOrder] = useState('asc')
-  const [assigneeOptions, setAssigneeOptions] = useState([])
-  const [meUsername, setMeUsername] = useState(null)
-
-  const TASK_SORT_MENU = useMemo(
-    () => [
-      { value: 'id', label: 'Id' },
-      { value: 'name', label: 'Name' },
-      { value: 'status', label: 'Status' },
-      { value: 'deadlineAt', label: 'Deadline' },
-      { value: 'urgency', label: 'Urgency' },
-      { value: 'importance', label: 'Importance' },
-      { value: 'assigneeHumanNpub', label: 'Assignee' },
-    ],
-    [],
-  )
-
-  const onSortChange = useCallback(({ sort: nextSort, order: nextOrder }) => {
-    setSort(nextSort || 'id')
-    setOrder(nextOrder === 'asc' ? 'asc' : 'desc')
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    Promise.all([
-      meApi.get().catch(() => null),
-      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
-      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
-    ]).then(([me, res, ag]) => {
-      if (cancelled) return
-      const username = me?.username || null
-      setMeUsername(username)
-      const humans = Array.isArray(res?.items) ? res.items : []
-      const agents = Array.isArray(ag?.items) ? ag.items : []
-      const meNpub = humanNpubForUsername(username)
-      const match = humans.find(
-        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
-      )
-      const meLabel = match?.name ? splitPersonName(match.name).label : username
-      setAssigneeOptions(
-        filterAssigneeOptionsForDevMode(
-          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
-          !!me?.developmentMode,
-        ),
-      )
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const assigneeLabel = useCallback(
-    (row) =>
-      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
-        options: assigneeOptions,
-        meUsername,
-      }),
-    [assigneeOptions, meUsername],
-  )
-
-  const filters = useMemo(() => {
-    // Queue chips only — no page search (header FTS / ADR-050)
-    const f = {
-      sort: sort || 'deadlineAt',
-      order: order === 'asc' ? 'asc' : 'desc',
-    }
-    if (filter && filter !== 'all') f.view = filter
-    return f
-  }, [filter, sort, order])
-
-  const fetcher = useCallback(
-    ({ max, offset, ...rest }) =>
-      domainsApi.list('core', 'Task', { max, offset, ...rest }),
-    [],
-  )
-  const {
-    items,
-    total,
-    max,
-    offset,
-    loading,
-    setOffset,
-    setMax,
-    reload,
-  } = usePagedList({ fetcher, filters })
 
   const load = useCallback(() => {
     setError(null)
-    reload().catch((e) => setError(e.message || String(e)))
-  }, [reload])
+    setLoading(true)
+    domainsApi
+      .list('core', 'Task', { max: BOARD_MAX, offset: 0, view: 'open', sort: 'deadlineAt', order: 'asc' })
+      .then((body) => {
+        const rows = Array.isArray(body?.items) ? body.items : Array.isArray(body) ? body : []
+        setItems(rows)
+      })
+      .catch((e) => setError(e.message || String(e)))
+      .finally(() => setLoading(false))
+  }, [])
 
-  // Board uses open tasks from current page (Eisenhower is a summary, not the paged list)
+  useEffect(() => {
+    load()
+  }, [load])
+
   const openForBoard = useMemo(() => items.filter(isOpen), [items])
 
   const cellMap = useMemo(() => {
@@ -214,206 +120,13 @@ export default function MyWork() {
         </Link>
       </div>
 
-      <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
-        {[
-          ['open', t('pages.work.filterOpen', { defaultValue: 'Open' })],
-          ['overdue', t('pages.work.filterOverdue', { defaultValue: 'Overdue' })],
-          ['mine', t('pages.work.filterAssigned', { defaultValue: 'Assigned' })],
-          ['all', t('pages.work.filterAll', { defaultValue: 'All' })],
-        ].map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            className={filter === key ? 'btn btn-primary' : 'btn'}
-            onClick={() => setFilter(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div className="section-label">
-        {t('pages.work.list', { defaultValue: 'Task list' })}
-        {total != null ? ` (${total})` : ''}
-      </div>
       {loading && items.length === 0 ? (
         <p className="muted">{t('actions.loading')}</p>
-      ) : (
-        <>
-        <ResponsiveDataList
-          items={items}
-          empty={t('pages.work.empty', { defaultValue: 'No tasks match this filter.' })}
-          loading={loading}
-          sortFields={TASK_SORT_MENU}
-          sort={sort}
-          order={order}
-          onSortChange={onSortChange}
-          defaultSort="deadlineAt"
-          defaultOrder="asc"
-          fields={[
-            {
-              id: 'name',
-              primary: true,
-              render: (row) => (
-                <Link to={`/domains/core/Task/${row.id}?returnTo=%2Fwork`}>
-                  {entityDisplayLabel(row, { fallback: 'Untitled task' })}
-                </Link>
-              ),
-            },
-            {
-              id: 'status',
-              secondary: true,
-              render: (row) => {
-                const due = formatDeadline(row.deadlineAt)
-                const late = isOverdue(row)
-                return (
-                  <>
-                    {row.status || 'OPEN'}
-                    {due ? (
-                      <>
-                        {' · '}
-                        <span className={late ? 'badge badge-warn' : undefined}>{due}</span>
-                      </>
-                    ) : null}
-                  </>
-                )
-              },
-            },
-            {
-              id: 'eisenhower',
-              meta: true,
-              render: (row) =>
-                `U ${LEVEL_LABEL[levelKey(row.urgency)]} · I ${LEVEL_LABEL[levelKey(row.importance)]}`,
-            },
-            {
-              id: 'assignee',
-              priority: 'low',
-              render: (row) => assigneeLabel(row),
-            },
-          ]}
-        >
-          <div className="table-wrap card" style={{ padding: 0 }}>
-            <table className="data">
-              <thead>
-                <tr>
-                  <ListSortHeader
-                    field="name"
-                    label={t('wb.name', { defaultValue: 'Name' })}
-                    sort={sort}
-                    order={order}
-                    defaultSort="deadlineAt"
-                    defaultOrder="asc"
-                    onSortChange={onSortChange}
-                  />
-                  <ListSortHeader
-                    field="status"
-                    label={t('wb.status', { defaultValue: 'Status' })}
-                    sort={sort}
-                    order={order}
-                    defaultSort="deadlineAt"
-                    defaultOrder="asc"
-                    onSortChange={onSortChange}
-                  />
-                  <ListSortHeader
-                    field="deadlineAt"
-                    label={t('pages.work.deadline', { defaultValue: 'Deadline' })}
-                    sort={sort}
-                    order={order}
-                    defaultSort="deadlineAt"
-                    defaultOrder="asc"
-                    onSortChange={onSortChange}
-                  />
-                  <ListSortHeader
-                    field="urgency"
-                    label={t('pages.work.urgency', { defaultValue: 'Urgency' })}
-                    sort={sort}
-                    order={order}
-                    defaultSort="deadlineAt"
-                    defaultOrder="asc"
-                    onSortChange={onSortChange}
-                    className="col-priority-low"
-                  />
-                  <ListSortHeader
-                    field="importance"
-                    label={t('pages.work.importance', { defaultValue: 'Importance' })}
-                    sort={sort}
-                    order={order}
-                    defaultSort="deadlineAt"
-                    defaultOrder="asc"
-                    onSortChange={onSortChange}
-                    className="col-priority-low"
-                  />
-                  <ListSortHeader
-                    field="assigneeHumanNpub"
-                    label={t('pages.work.assignee', { defaultValue: 'Assignee' })}
-                    sort={sort}
-                    order={order}
-                    defaultSort="deadlineAt"
-                    defaultOrder="asc"
-                    onSortChange={onSortChange}
-                    className="col-priority-low"
-                  />
-                </tr>
-              </thead>
-              <tbody>
-                {items.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="muted">
-                      {t('pages.work.empty', { defaultValue: 'No tasks match this filter.' })}
-                    </td>
-                  </tr>
-                )}
-                {items.map((row) => {
-                  const due = formatDeadline(row.deadlineAt)
-                  const late = isOverdue(row)
-                  return (
-                    <tr key={row.id}>
-                      <td>
-                        <Link to={`/domains/core/Task/${row.id}?returnTo=%2Fwork`}>
-                          {entityDisplayLabel(row, { fallback: 'Untitled task' })}
-                        </Link>
-                      </td>
-                      <td>{row.status || 'OPEN'}</td>
-                      <td>
-                        {due ? (
-                          <span className={late ? 'badge badge-warn' : undefined}>{due}</span>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className="col-priority-low">{LEVEL_LABEL[levelKey(row.urgency)]}</td>
-                      <td className="col-priority-low">
-                        {LEVEL_LABEL[levelKey(row.importance)]}
-                      </td>
-                      <td className="muted col-priority-low" style={{ fontSize: '0.85rem' }}>
-                        {assigneeLabel(row)}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </ResponsiveDataList>
-        <ListPager
-          total={total}
-          max={max}
-          offset={offset}
-          disabled={loading}
-          onOffset={(o) => setOffset(o).catch((e) => setError(e.message || String(e)))}
-          onMax={(m) => setMax(m).catch((e) => setError(e.message || String(e)))}
-        />
-        </>
-      )}
+      ) : null}
 
       <div className="section-label" style={{ marginTop: '1.5rem' }}>
         {t('pages.work.eisenhower', { defaultValue: 'Action - NOW' })}
       </div>
-      <p className="muted" style={{ marginTop: 0 }}>
-        {t('pages.work.eisenhowerAxes', {
-          defaultValue: 'Rows = urgency (high → low). Columns = importance (low → high). Open tasks only.',
-        })}
-      </p>
 
       <div className="eisenhower-grid">
         <div className="eisenhower-corner" />
