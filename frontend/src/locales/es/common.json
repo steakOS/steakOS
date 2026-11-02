@@ -359,7 +359,11 @@
       "filterAssigned": "Asignado",
       "filterAll": "Todo",
       "empty": "Ninguna tarea coincide con este filtro.",
-      "search": "Tareas de búsqueda…"
+      "search": "Tareas de búsqueda…",
+      "agenticTasks": "Tareas agénticas",
+      "agenticToggleHint": "Mostrar tareas con estado AI:* que un humano aún no ha marcado como DONE. Desactivado = tablero humano abierto.",
+      "subtitleAgentic": "Tareas agénticas (estados AI:*) pendientes de confirmación humana — tablero Eisenhower.",
+      "eisenhowerAgentic": "Agéntico — Action NOW"
     },
     "help": {
       "title": "Centro de ayuda",

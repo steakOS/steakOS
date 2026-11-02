@@ -359,7 +359,11 @@
       "filterAssigned": "Assigned",
       "filterAll": "All",
       "empty": "No tasks match this filter.",
-      "search": "Search tasks…"
+      "search": "Search tasks…",
+      "agenticTasks": "Agentic Tasks",
+      "agenticToggleHint": "Show tasks with AI:* status that a human has not yet marked DONE. Off returns to the human open board.",
+      "subtitleAgentic": "Agentic tasks (AI:* statuses) awaiting human confirmation — Eisenhower board.",
+      "eisenhowerAgentic": "Agentic — Action NOW"
     },
     "help": {
       "title": "Help center",

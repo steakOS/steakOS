@@ -117,6 +117,10 @@ export function statusBadgeClass(status) {
     'UNKNOWN',
   ])
 
+  // Agentic Task workflow (ADR-051) — keep before generic heuristics
+  const raw = String(status).trim()
+  if (raw.startsWith('AI:') || s.startsWith('AI_')) return 'badge badge-agentic'
+
   if (ok.has(s)) return 'badge badge-ok'
   if (bad.has(s)) return 'badge badge-danger'
   if (warn.has(s)) return 'badge badge-warn'

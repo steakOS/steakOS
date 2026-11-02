@@ -359,7 +359,11 @@
       "filterAssigned": "Zugewiesen",
       "filterAll": "Alle",
       "empty": "Keine Aufgaben für diesen Filter.",
-      "search": "Aufgaben suchen…"
+      "search": "Aufgaben suchen…",
+      "agenticTasks": "Agentische Aufgaben",
+      "agenticToggleHint": "Aufgaben mit AI:*-Status anzeigen, die ein Mensch noch nicht als DONE bestätigt hat. Aus = menschliche offene Board-Ansicht.",
+      "subtitleAgentic": "Agentische Aufgaben (AI:*-Status) warten auf menschliche Bestätigung — Eisenhower-Board.",
+      "eisenhowerAgentic": "Agentisch — Action NOW"
     },
     "help": {
       "title": "Hilfezentrum",

@@ -23,6 +23,11 @@
   --steak-process-soft: #d8efe6;
   --steak-process-ink: #1f4d3a;
   --steak-process-active: #2f6f56;
+  /* Agentic / AI mode lane (ADR-051) — violet-indigo; distinct from CTA orange & status green/amber/red */
+  --steak-agentic: #5b4fc9;
+  --steak-agentic-soft: #ede9fe;
+  --steak-agentic-ink: #3730a3;
+  --steak-agentic-border: #c4b5fd;
   --steak-ink: #1a1a1a;
   --steak-muted: #5c5c5c;
   --steak-bg: #faf8f6;
@@ -610,6 +615,59 @@ select {
   background: #fef2f2;
   border-color: #f87171;
   color: #991b1b;
+}
+
+/*
+ * Mode toggle pills (ADR-051) — view/mode switches, not primary CTAs.
+ * Off: soft outline in the lane color. On (.is-on / aria-pressed=true): solid fill.
+ * Never use .btn-primary orange for mode toggles.
+ */
+.btn-toggle {
+  background: #fff;
+  border-color: var(--steak-border);
+  color: var(--steak-muted);
+}
+
+.btn-toggle:hover {
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+  color: var(--steak-ink);
+}
+
+.btn-toggle.is-on,
+.btn-toggle[aria-pressed='true'] {
+  color: #fff;
+  font-weight: 700;
+}
+
+.btn-toggle-agentic {
+  background: var(--steak-agentic-soft);
+  border-color: var(--steak-agentic-border);
+  color: var(--steak-agentic-ink);
+}
+
+.btn-toggle-agentic:hover {
+  background: #ddd6fe;
+  border-color: var(--steak-agentic);
+  color: var(--steak-agentic-ink);
+}
+
+.btn-toggle-agentic.is-on,
+.btn-toggle-agentic[aria-pressed='true'] {
+  background: var(--steak-agentic);
+  border-color: var(--steak-agentic);
+  color: #fff;
+}
+
+.btn-toggle-agentic.is-on:hover,
+.btn-toggle-agentic[aria-pressed='true']:hover {
+  background: #4c41b5;
+  border-color: #4c41b5;
+  color: #fff;
+}
+
+.eisenhower-cell-agentic {
+  border-color: color-mix(in srgb, var(--steak-agentic) 28%, var(--steak-border));
 }
 
 /* Fixed View · Edit · Delete columns (RowActionSlots) — missing actions keep width.
@@ -3126,6 +3184,12 @@ table.data tbody tr.row-selected td:last-child {
 .badge-danger {
   background: #fee2e2;
   color: #991b1b;
+}
+
+/* Agentic AI:* task statuses (ADR-051) */
+.badge-agentic {
+  background: var(--steak-agentic-soft);
+  color: var(--steak-agentic-ink);
 }
 
 /* Legacy alias: draft/info chips stay muted-indigo, not “active” */

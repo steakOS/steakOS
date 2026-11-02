@@ -245,7 +245,7 @@ class DomainRegistryService {
 
     /**
      * Paged domain list with optional filters (LIST-PAGINATION F1 + Task 7640 sort/q).
-     * Task supports view=open|overdue|mine|all, status=, q=, sort=, order=.
+     * Task supports view=open|overdue|mine|all|agentic, status=, q=, sort=, order=.
      * Other resources: optional q matches name (and description when present).
      * Tenant domains: pass filters.npubOwner (active company) to scope rows (B4).
      * Unknown sort → IllegalArgumentException (API 400). Tie-break always id asc.
@@ -429,6 +429,9 @@ class DomainRegistryService {
                 }
                 isNotNull('assigneeAgentId')
             }
+        } else if (view == 'agentic') {
+            // AI:* workflow still open for human confirmation (includes AI:done; excludes human DONE)
+            c.in('status', steakos.configuration.DevelopmentModeService.AI_TASK_STATUSES)
         }
         if (term) {
             c.or {
