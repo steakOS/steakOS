@@ -209,6 +209,12 @@ export default function SecuritySettingsPage() {
           {t('pages.security.extensionTitle')}
         </h2>
         <p className="muted">{t('pages.security.extensionBlurb')}</p>
+        <p className="muted" style={{ fontSize: 13 }}>
+          {t('pages.security.extensionSteps', {
+            defaultValue:
+              '1. Unlock Alby in this browser · 2. Click Link · 3. Approve in Alby · 4. Sign out and try extension login',
+          })}
+        </p>
         <p>
           {t('pages.security.linked')}:{' '}
           <strong>{me?.hasNpub ? t('pages.security.yes') : t('pages.security.no')}</strong>

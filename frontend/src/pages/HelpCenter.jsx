@@ -24,6 +24,7 @@ const ROLE_HELP_KEYS = [
   'help.roles.presets',
   'help.roles.matrix',
   'help.users.invite',
+  'help.security.nostrLogin',
   'help.users.danger',
   'help.users.privacy',
   'help.roles.demo',

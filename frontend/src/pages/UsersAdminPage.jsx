@@ -64,7 +64,13 @@ export default function UsersAdminPage() {
         displayName: form.displayName || null,
         roleProfileId: form.roleProfileId,
       })
-      setInfo(t('pages.users.created', { username: form.username, defaultValue: 'Created {{username}}' }))
+      setInfo(
+        t('pages.users.createdWithNostrHint', {
+          username: form.username,
+          defaultValue:
+            'Created {{username}}. Share the temporary password out-of-band. For Alby login they must sign in with that password, then Security → Link browser extension.',
+        }),
+      )
       setForm({ username: '', password: '', displayName: '', roleProfileId: 'user' })
       load()
     } catch (ex) {
@@ -160,6 +166,13 @@ export default function UsersAdminPage() {
           defaultValue:
             'Keep Admin and CEO as separate logins. Prefer Disable over delete. CEO cannot assign the Admin profile. See Help: Invite a teammate and Safety: Admin, CEO & disable.',
         })}
+        <br />
+        <span style={{ display: 'inline-block', marginTop: 6 }}>
+          {t('pages.users.tipNostr', {
+            defaultValue:
+              'Alby / Nostr login: create the user with a temporary password first. They sign in, open Security → Link browser extension (Alby unlocked), then can use “Sign in with browser extension” on the login page. Extension column = Yes when linked. Never paste nsec.',
+          })}
+        </span>
       </div>
       {err && <p style={{ color: 'var(--danger)' }}>{err}</p>}
       {info && <p className="muted">{info}</p>}

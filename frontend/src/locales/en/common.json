@@ -394,6 +394,7 @@
         "help.roles.presets": "Which role to pick",
         "help.roles.matrix": "Permission matrix (Advanced)",
         "help.users.invite": "Invite a teammate",
+        "help.security.nostrLogin": "Sign in with Alby (Nostr)",
         "help.users.danger": "Safety: Admin, CEO & disable",
         "help.users.privacy": "Privacy, HR & Read only",
         "help.roles.demo": "Practice roles (demo / training)"
@@ -863,14 +864,15 @@
       "bypassOnMsg": "Admin TOTP bypass is on — Admin can skip the authenticator gate.",
       "bypassOffMsg": "Admin TOTP bypass is off — authenticator required again.",
       "extensionTitle": "Sign in with browser extension",
-      "extensionBlurb": "Advanced: links your public login ID (npub). Never paste a secret key (nsec) here.",
+      "extensionBlurb": "Install Alby (or another NIP-07 extension), unlock it, then link here while signed in with your password. After Linked = Yes, use “Sign in with browser extension” on the login page. Never paste a secret key (nsec).",
+      "extensionSteps": "1. Unlock Alby in this browser · 2. Click Link · 3. Approve in Alby · 4. Sign out and try extension login",
       "linked": "Linked",
       "yes": "Yes",
       "no": "No",
       "linkExtension": "Link browser extension",
       "relinkExtension": "Re-link extension",
       "noExtension": "No browser extension found. Install Alby (or similar), unlock it, then try again.",
-      "extensionLinked": "Browser extension linked. You can use “Sign in with extension” next time."
+      "extensionLinked": "Browser extension linked. You can use “Sign in with browser extension” next time."
     },
     "selectCompany": {
       "title": "Choose company",
@@ -895,6 +897,7 @@
       "helpCenter": "Help center",
       "tip": "Tip:",
       "tipBody": "Keep Admin and CEO as separate logins. Prefer Disable over delete. CEO cannot assign the Admin profile. See Help: Invite a teammate and Safety: Admin, CEO & disable.",
+      "tipNostr": "Alby / Nostr login: create the user with a temporary password first. They sign in, open Security → Link browser extension (Alby unlocked), then can use “Sign in with browser extension” on the login page. Extension column = Yes when linked. Never paste nsec.",
       "addUser": "Add user",
       "username": "Username",
       "tempPassword": "Temporary password",
@@ -914,6 +917,7 @@
       "reset2fa": "Reset 2FA",
       "adminRequired": "Admin or CEO role required",
       "created": "Created {{username}}",
+      "createdWithNostrHint": "Created {{username}}. Share the temporary password out-of-band. For Alby login they must sign in with that password, then Security → Link browser extension.",
       "confirmClearTotp": "Clear authenticator for {{username}}?",
       "totpCleared": "Authenticator cleared for {{username}}",
       "roleUpdated": "Updated role for {{username}}",

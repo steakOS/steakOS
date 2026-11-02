@@ -1513,7 +1513,7 @@ export default function SetupWizard() {
             <p>
               {t('nostr.blurb', {
                 defaultValue:
-                  'How steakOS uses Nostr for this company. Admin configures here. Never paste a secret key (nsec). Link a browser extension under Security anytime.',
+                  'Company Nostr level (relay / audit) is configured here. Signing in with Alby is per person: after setup, each user links their extension under Security while signed in with password. Never paste a secret key (nsec).',
               })}
             </p>
             <NostrIdentityPanel
@@ -1539,7 +1539,7 @@ export default function SetupWizard() {
                   title: t('nostr.level0Title', { defaultValue: 'Level 0 — Not now' }),
                   body: t('nostr.level0Body', {
                     defaultValue:
-                      'Skip publish. NIP-07 login stays optional under Security. Local relay may still be installed idle.',
+                      'Skip company publish. People can still link Alby under Security for extension login. Local relay may stay idle.',
                   }),
                 },
                 {
@@ -1547,7 +1547,7 @@ export default function SetupWizard() {
                   title: t('nostr.level1Title', { defaultValue: 'Level 1 — Login + private audit' }),
                   body: t('nostr.level1Body', {
                     defaultValue:
-                      'Publish selected audit events to the private local relay (LIVE only). DEMO stays mock-safe.',
+                      'Publish selected audit events to the private local relay (LIVE only). DEMO stays mock-safe. Each person still links Alby under Security for their own login.',
                   }),
                 },
                 {
@@ -1700,7 +1700,7 @@ export default function SetupWizard() {
             <p className="setup-tip">
               {t('nostr.extensionGuide', {
                 defaultValue:
-                  'No extension yet? Install a NIP-07 browser extension (e.g. Alby), then link under Security after setup. Skip is fine (Level 0).',
+                  'To use Alby on the login page: install Alby → finish setup → sign in with password → Security → Link browser extension → approve in Alby. Then “Sign in with browser extension” works. Skip is fine (Level 0).',
               })}
             </p>
           </section>

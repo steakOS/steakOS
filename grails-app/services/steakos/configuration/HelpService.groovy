@@ -343,15 +343,18 @@ See also **Live payments (BTCPay)** and training topics (basic / advanced securi
             [key: 'integrations.nostr', title: 'Nostr integration', route: '/system/integrations', family: 'digital',
              body: '''# Nostr integration (OI-NOSTR01)
 
-Private **local relay** (`nostr-rs-relay`) for login, audit, and later notify — same ops idea as BTCPay (you run the node).
+Private **local relay** (`nostr-rs-relay`) for company audit / notify — same ops idea as BTCPay (you run the node). **Per-user Alby login** is configured under **Security**, not here.
 
-## Setup
+## Company relay / level
 
 1. **System → Integrations → Nostr** (or setup wizard **Nostr** step after Bitcoin)  
 2. Choose level: **0** not now · **1** login + private audit · **2** + notify (giftwrap later)  
 3. Level ≥ 1: use **Install / start local relay** (project `var/nostr/`, loopback `ws://127.0.0.1:7777`)  
 4. **Probe** until reachable  
-5. Link identity with **NIP-07** under **Security** — **never** paste `nsec`
+
+## People signing in with Alby
+
+Each human needs a steakOS user (password invite), then **Security → Link browser extension**. See **Sign in with Alby (Nostr)**. Never paste `nsec`.
 
 ## Honesty
 
@@ -790,7 +793,14 @@ Path: **System → Users**
 2. Set username + **temporary password** (12+ characters: lower, upper, digit, special)
 3. Create the user
 4. Share credentials out-of-band (chat / paper) — not in a public ticket
-5. Ask them to sign in and open **Security** to enrol an **authenticator** (Admin/CEO already have 2FA from setup)
+5. Ask them to sign in with that password and open **Security** to enrol an **authenticator** (Admin/CEO already have 2FA from setup)
+6. **Optional — Alby / Nostr login:** after password sign-in, they open **Security → Link browser extension** with **Alby** unlocked. The Users table **Extension** column then shows Yes. Only then can they use **Sign in with browser extension** on the login page.
+
+## Sign in with Alby (summary)
+
+steakOS does **not** invent a Nostr identity at invite time. The account must exist first (username + password). The person links their own Alby public key under **Security** while logged in. Never paste an `nsec` (secret key) into steakOS.
+
+Full steps: Help → **Sign in with Alby (Nostr)**.
 
 ## After invite
 
@@ -802,7 +812,55 @@ Path: **System → Users**
 
 **Admin** and **CEO**. CEO **cannot** assign the **Admin** profile (cannot mint Admin).
 
-Related: [Which role to pick] · [Safety: Admin & CEO] · [Roles overview]'''],
+Related: [Which role to pick] · [Safety: Admin & CEO] · [Sign in with Alby] · [Roles overview]'''],
+            [key: 'help.security.nostrLogin', title: 'Sign in with Alby (Nostr)', route: '/security', family: 'core',
+             body: '''# Sign in with Alby (Nostr)
+
+Use a **NIP-07** browser extension (e.g. **Alby**) so you can approve a short login request instead of typing your password every time. Your **secret key stays in the extension** — steakOS never asks for `nsec`.
+
+## What must be true
+
+1. A steakOS **user account** already exists (Admin created you under **System → Users**, or you are the setup Admin).
+2. You can sign in once with **username + temporary password**.
+3. **Alby** (or similar) is installed in this browser and **unlocked**.
+4. On **Security**, **Linked** shows **Yes** after you click **Link browser extension** (or Re-link).
+
+Until step 4 succeeds, the login page button **Sign in with browser extension** returns *This login key is not linked to a steakOS user*.
+
+## Setup checklist (person using Alby)
+
+1. Install [Alby](https://getalby.com/) (or another NIP-07 extension) and create or import a Nostr identity there.
+2. Sign in to steakOS with **username + password**.
+3. Open **System → Security** (or the Security link in the shell).
+4. Under **Sign in with browser extension**, click **Link browser extension**.
+5. Approve the request in Alby.
+6. Confirm **Linked: Yes**.
+7. Sign out. On the login page, click **Sign in with browser extension** and approve again in Alby.
+
+## Admin checklist (invite someone else)
+
+1. **System → Users → Add user** — username, temporary password, role profile.
+2. Tell them the password out-of-band.
+3. Tell them to complete the **Setup checklist** above (password first, then link Alby).
+4. On Users, the **Extension** column turns **Yes** when linking succeeded.
+
+## Company Nostr level (wizard / Integrations)
+
+The setup wizard **Nostr** step and **System → Integrations → Nostr** control the **company** relay / audit level (0 / 1 / 2). That is separate from per-user Alby login:
+
+- **Level 0** — skip publish; Alby login still works after each user links under Security.
+- **Level 1+** — also run the local private relay for audit events.
+
+Operator public id in the wizard is optional company metadata — it does **not** replace linking each human account under Security.
+
+## Safety
+
+- **Never** paste `nsec` / seed / private key into steakOS, the wizard, or Users.
+- One Alby identity can link to **one** steakOS user (already linked → conflict).
+- Password login remains available after linking.
+- Prefer Disable over delete when someone leaves; they can re-link Alby after a new invite if needed.
+
+Related: [Invite a teammate] · [Nostr integration] · Security page.'''],
             [key: 'help.users.danger', title: 'Safety: Admin, CEO & disable', route: null, family: 'core',
              body: '''# Safety: Admin, CEO & disable
 
@@ -1518,10 +1576,21 @@ Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar 
                     'help.roles.presets',
                     'help.roles.matrix',
                     'help.users.invite',
+                    'help.security.nostrLogin',
                     'help.users.danger',
                     'help.users.privacy',
                     'help.roles.demo'
             ].each { String key ->
+                HelpTopic t = HelpTopic.findByHelpKey(key)
+                if (t && t.id != primary?.id && !out.any { it.helpKey == key }) {
+                    out << topicMap(t, lang)
+                }
+            }
+            return out
+        }
+        // Security — 2FA + Alby / NIP-07 login
+        if (path == '/security' || path?.startsWith('/security/')) {
+            ['help.security.nostrLogin', 'help.users.invite', 'integrations.nostr'].each { String key ->
                 HelpTopic t = HelpTopic.findByHelpKey(key)
                 if (t && t.id != primary?.id && !out.any { it.helpKey == key }) {
                     out << topicMap(t, lang)
@@ -1763,6 +1832,7 @@ Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar 
             'help.roles.presets' : 'Welche Rolle wählen',
             'help.roles.matrix'  : 'Berechtigungsmatrix (Erweitert)',
             'help.users.invite'  : 'Teammitglied einladen',
+            'help.security.nostrLogin': 'Mit Alby anmelden (Nostr)',
             'help.users.danger'  : 'Sicherheit: Admin, CEO & Deaktivieren',
             'help.users.privacy' : 'Datenschutz, HR & Nur lesen',
             'help.roles.demo'    : 'Rollen üben (Demo / Training)',
@@ -1795,6 +1865,7 @@ Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar 
             'help.roles.presets' : 'Qué rol elegir',
             'help.roles.matrix'  : 'Matriz de permisos (Avanzado)',
             'help.users.invite'  : 'Invitar a un miembro del equipo',
+            'help.security.nostrLogin': 'Iniciar sesión con Alby (Nostr)',
             'help.users.danger'  : 'Seguridad: Admin, CEO y desactivar',
             'help.users.privacy' : 'Privacidad, RR. HH. y solo lectura',
             'help.roles.demo'    : 'Practicar roles (Demo / formación)',
@@ -2205,7 +2276,12 @@ Pfad: **System → Benutzer**
 1. **Rollenprofil** wählen (Office / Ops / Finance — nicht Admin)
 2. Benutzername + **temporäres Passwort** (12+ Zeichen: klein, groß, Ziffer, Sonderzeichen)
 3. Anlegen und Zugangsdaten außerhalb öffentlicher Tickets weitergeben
-4. Unter **Sicherheit** Authenticator einrichten lassen
+4. Mit Passwort anmelden und unter **Sicherheit** den **Authenticator** einrichten
+5. **Optional — Alby / Nostr:** unter **Sicherheit → Browser-Erweiterung verknüpfen** (Alby entsperrt). Spalte **Erweiterung** wird **Ja**. Danach Login-Seite: **Mit Browsererweiterung anmelden**.
+
+steakOS legt bei der Einladung **keine** Nostr-Identität an. Die Person verknüpft den eigenen Alby-Schlüssel selbst. Niemals `nsec` einfügen.
+
+Vollständig: Hilfe → **Mit Alby anmelden (Nostr)**.
 
 ## Danach
 
@@ -2216,6 +2292,41 @@ Pfad: **System → Benutzer**
 ## Wer darf einladen
 
 **Admin** und **CEO**. CEO kann das Profil **Admin** nicht vergeben.''',
+            'help.security.nostrLogin': '''# Mit Alby anmelden (Nostr)
+
+**NIP-07**-Browsererweiterung (z. B. **Alby**): kurze Freigabe statt jedes Mal Passwort. Der **geheime Schlüssel bleibt in der Erweiterung** — steakOS fragt nie nach `nsec`.
+
+## Voraussetzungen
+
+1. steakOS-**Benutzerkonto** existiert (Einladung unter **System → Benutzer** oder Setup-Admin).
+2. Einmal mit **Benutzername + Passwort** anmelden können.
+3. **Alby** installiert und in diesem Browser **entsperrt**.
+4. Unter **Sicherheit** nach **Browser-Erweiterung verknüpfen** steht **Verknüpft: Ja**.
+
+Ohne Schritt 4 meldet die Login-Seite, dass der Schlüssel keinem Benutzer zugeordnet ist.
+
+## Checkliste (Person mit Alby)
+
+1. Alby installieren und Nostr-Identität anlegen/importieren.
+2. Mit Passwort bei steakOS anmelden.
+3. **System → Sicherheit** öffnen.
+4. **Browser-Erweiterung verknüpfen** → in Alby freigeben.
+5. **Verknüpft: Ja** prüfen.
+6. Abmelden → Login-Seite **Mit Browsererweiterung anmelden**.
+
+## Admin
+
+1. Benutzer anlegen (Passwort + Profil).
+2. Person bittet um Passwort-Login, dann Alby verknüpfen (siehe oben).
+3. Spalte **Erweiterung** = Ja.
+
+Firmen-Nostr-Level (Wizard / Integrationen) steuert Relay/Audit — das ersetzt **nicht** die persönliche Verknüpfung unter Sicherheit.
+
+## Sicherheit
+
+- Niemals `nsec` / Seed einfügen.
+- Eine Alby-Identität ↔ ein steakOS-Benutzer.
+- Passwort-Login bleibt möglich.''',
             'help.users.danger': '''# Sicherheit: Admin, CEO & Deaktivieren
 
 ## Tun
@@ -2594,7 +2705,12 @@ Ruta: **System → Users**
 1. Elija el **perfil de rol** (Office / Ops / Finance — no Admin)
 2. Nombre de usuario + **contraseña temporal** (12+ caracteres: minúscula, mayúscula, dígito, carácter especial)
 3. Cree y entregue las credenciales fuera de tickets públicos
-4. Haga que configure el Authenticator en **Security**
+4. Inicie sesión con esa contraseña y configure el **Authenticator** en **Security**
+5. **Opcional — Alby / Nostr:** **Security → Vincular extensión del navegador** (Alby desbloqueada). La columna **Extensión** pasa a **Sí**. Después, en el login: **Entrar con extensión del navegador**.
+
+steakOS **no** crea una identidad Nostr al invitar. La persona vincula su propia clave Alby. Nunca pegue `nsec`.
+
+Completo: Ayuda → **Iniciar sesión con Alby (Nostr)**.
 
 ## Después
 
@@ -2605,6 +2721,41 @@ Ruta: **System → Users**
 ## Quién puede invitar
 
 **Admin** y **CEO**. El CEO no puede asignar el perfil **Admin**.''',
+            'help.security.nostrLogin': '''# Iniciar sesión con Alby (Nostr)
+
+Extensión **NIP-07** (p. ej. **Alby**): aprobar una solicitud breve en lugar de escribir la contraseña cada vez. La **clave secreta permanece en la extensión** — steakOS nunca pide `nsec`.
+
+## Requisitos
+
+1. Ya existe una **cuenta** de steakOS (invitación en **System → Users** o Admin del setup).
+2. Puede iniciar sesión una vez con **usuario + contraseña**.
+3. **Alby** instalada y **desbloqueada** en este navegador.
+4. En **Security**, tras **Vincular extensión**, **Vinculado: Sí**.
+
+Sin el paso 4, el login indica que la clave no está vinculada a un usuario.
+
+## Lista (persona con Alby)
+
+1. Instale Alby y cree/importe una identidad Nostr.
+2. Entre en steakOS con contraseña.
+3. Abra **System → Security**.
+4. **Vincular extensión del navegador** → apruebe en Alby.
+5. Confirme **Vinculado: Sí**.
+6. Cierre sesión → **Entrar con extensión del navegador**.
+
+## Admin
+
+1. Cree el usuario (contraseña + perfil).
+2. La persona inicia con contraseña y vincula Alby.
+3. Columna **Extensión** = Sí.
+
+El nivel Nostr de la empresa (asistente / Integraciones) controla el relay/auditoría — **no** sustituye la vinculación personal en Security.
+
+## Seguridad
+
+- Nunca pegue `nsec` / semilla.
+- Una identidad Alby ↔ un usuario steakOS.
+- El login con contraseña sigue disponible.''',
             'help.users.danger': '''# Seguridad: Admin, CEO y desactivar
 
 ## Haga
