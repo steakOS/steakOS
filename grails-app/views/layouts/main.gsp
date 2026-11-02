@@ -11,10 +11,70 @@
 
 <body>
 
+<style type="text/css">
+    .steakos-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        text-decoration: none;
+        color: inherit;
+        min-width: 0;
+    }
+    .steakos-brand:hover,
+    .steakos-brand:focus {
+        color: inherit;
+        text-decoration: none;
+    }
+    .steakos-brand-logo {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+        object-fit: contain;
+    }
+    .steakos-brand-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        min-width: 0;
+        text-align: left;
+    }
+    .steakos-brand-title {
+        margin: 0;
+        font-size: 1.45rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: #1c1917;
+    }
+    .steakos-brand-tagline {
+        margin: 0;
+        font-size: 0.72rem;
+        line-height: 1.35;
+        color: #78716c;
+        font-weight: 500;
+        max-width: 36rem;
+    }
+    @media (max-width: 576px) {
+        .steakos-brand-tagline {
+            font-size: 0.65rem;
+            max-width: 14rem;
+        }
+        .steakos-brand-title {
+            font-size: 1.25rem;
+        }
+    }
+</style>
 <nav class="navbar navbar-expand-lg bg-body border-bottom shadow-sm">
     <div class="container-lg">
-        <a class="navbar-brand d-flex align-items-center" href="${request.contextPath}/">
-            <asset:image class="w-75" src="steakos.svg" alt="steakOS"/>
+        <a class="navbar-brand steakos-brand m-0" href="${request.contextPath}/">
+            <asset:image class="steakos-brand-logo" src="steakos.svg" alt=""/>
+            <span class="steakos-brand-text">
+                <span class="steakos-brand-title">steakOS</span>
+                <span class="steakos-brand-tagline">
+                    <g:message code="steakos.brand.tagline"
+                               default="A Sovereign Transactional Enterprise Automation Kernel &amp; Orchestration System."/>
+                </span>
+            </span>
         </a>
         <div class="ms-auto d-flex align-items-center gap-3">
             <sec:ifLoggedIn>
@@ -29,7 +89,10 @@
                 </form>
             </sec:ifLoggedIn>
             <sec:ifNotLoggedIn>
-                <a class="btn btn-sm btn-primary" href="${request.contextPath}/login/auth">Login</a>
+                <%-- No Login CTA on the login page itself (avoids a second Login button). --%>
+                <g:if test="${!(request.forwardURI ?: request.requestURI ?: '').contains('/login')}">
+                    <a class="btn btn-sm btn-primary" href="${request.contextPath}/login/auth">Login</a>
+                </g:if>
             </sec:ifNotLoggedIn>
         </div>
     </div>
