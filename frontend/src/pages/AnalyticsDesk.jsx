@@ -614,12 +614,6 @@ export default function AnalyticsDesk() {
           <h2 className="section-label" style={{ marginTop: 0 }}>
             {t('analytics.catalogue', { defaultValue: 'KPI catalogue' })}
           </h2>
-          <p className="muted" style={{ marginTop: 0 }}>
-            {t('analytics.catalogueHint', {
-              defaultValue:
-                'Live KPIs with backend feeds. Deferred or planned metrics stay hidden until data exists.',
-            })}
-          </p>
           {itemsByArea.length === 0 ? (
             <p className="muted">
               {t('analytics.catalogueEmpty', {
