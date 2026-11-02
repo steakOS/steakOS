@@ -34,7 +34,25 @@ export default function SchemaFormFields({
   form,
   onChange,
   disabled = false,
-  hideNames = ['id', 'class', 'npubOwner', 'revision', 'revisionNote', 'createdByNpub', 'lastUpdatedByNpub', 'dateCreated', 'lastUpdated', 'protection', 'classification', 'contentTypeCode', 'languageCode'],
+  hideNames = [
+    'id',
+    'class',
+    'npubOwner',
+    'revision',
+    'revisionNote',
+    'createdByNpub',
+    'lastUpdatedByNpub',
+    'dateCreated',
+    'lastUpdated',
+    'protection',
+    'classification',
+    'contentTypeCode',
+    'languageCode',
+    // Trait noise on unbound / schema-driven masters — hide for now
+    'access',
+    'deputyNpub',
+    'tags',
+  ],
 }) {
   const { t } = useTranslation('common')
   const fields = (schema?.fields || []).filter(

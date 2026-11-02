@@ -125,7 +125,9 @@ class DomainRegistryService {
             'dateCreated', 'lastUpdated', 'protection', 'classification',
             'contentTypeCode', 'languageCode',
             // Attachable.url removed — links via Object Companion (ObjectContent.url kept elsewhere)
-            'url', 'attachmentMeta', 'attachmentCount'
+            'url', 'attachmentMeta', 'attachmentCount',
+            // Trait noise on unbound / schema-driven masters (Access, Deputy NPUB, Tags) — hide for now
+            'access', 'deputyNpub', 'tags'
     ].asImmutable() as Set
 
     /** Hidden on Strategy / Development / Asset light create forms (G4 entry-level UI). */
