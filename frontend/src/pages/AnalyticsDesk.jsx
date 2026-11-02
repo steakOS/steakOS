@@ -159,13 +159,6 @@ function HeroTile({ tile, onSelect }) {
 
 function CatalogueRow({ item, selected, onSelect }) {
   const { t } = useTranslation(['desks'])
-  const badge = item.deferred
-    ? 'deferred'
-    : item.ship
-      ? 'ship'
-      : item.maturity === 'silver-new'
-        ? 'stretch'
-        : 'other'
 
   return (
     <tr
@@ -179,12 +172,8 @@ function CatalogueRow({ item, selected, onSelect }) {
       <td>{item.name}</td>
       <td>{item.area}</td>
       <td>
-        <span className={`analytics-badge analytics-badge-${badge}`}>
-          {item.deferred
-            ? t('analytics.badgeDefer', { defaultValue: 'Defer' })
-            : item.ship
-              ? t('analytics.badgeShip', { defaultValue: 'Ship' })
-              : t('analytics.badgeStretch', { defaultValue: 'Stretch' })}
+        <span className="analytics-badge analytics-badge-ship">
+          {t('analytics.badgeLive', { defaultValue: 'Live' })}
         </span>
       </td>
       <td className="muted">{item.unit}</td>
@@ -392,10 +381,44 @@ export default function AnalyticsDesk() {
     loadShell()
   }, [loadShell])
 
+  const itemsByArea = useMemo(() => {
+    // Ship / live feeds only — hide deferred + planned stretch (no backend yet)
+    const items = (catalogue?.items || []).filter((item) => item.ship && !item.deferred)
+    const map = new Map()
+    for (const item of items) {
+      const area = item.area || 'other'
+      if (!map.has(area)) map.set(area, [])
+      map.get(area).push(item)
+    }
+    const ordered = []
+    for (const area of AREA_ORDER) {
+      if (map.has(area)) ordered.push([area, map.get(area)])
+    }
+    for (const [area, rows] of map) {
+      if (!AREA_ORDER.includes(area)) ordered.push([area, rows])
+    }
+    return ordered
+  }, [catalogue])
+
+  const liveIds = useMemo(() => {
+    const ids = new Set()
+    for (const [, rows] of itemsByArea) {
+      for (const item of rows) ids.add(item.id)
+    }
+    return ids
+  }, [itemsByArea])
+
   useEffect(() => {
     if (!kpiId || !silverRich) {
       setDetail(null)
       setDetailError(null)
+      return undefined
+    }
+    // Wait until catalogue is known so we can ignore hidden deferred/planned ids
+    if (catalogue && liveIds.size > 0 && !liveIds.has(kpiId)) {
+      setDetail(null)
+      setDetailError(null)
+      navigate('/analytics', { replace: true })
       return undefined
     }
     let cancelled = false
@@ -418,25 +441,7 @@ export default function AnalyticsDesk() {
     return () => {
       cancelled = true
     }
-  }, [kpiId, silverRich])
-
-  const itemsByArea = useMemo(() => {
-    const items = catalogue?.items || []
-    const map = new Map()
-    for (const item of items) {
-      const area = item.area || 'other'
-      if (!map.has(area)) map.set(area, [])
-      map.get(area).push(item)
-    }
-    const ordered = []
-    for (const area of AREA_ORDER) {
-      if (map.has(area)) ordered.push([area, map.get(area)])
-    }
-    for (const [area, rows] of map) {
-      if (!AREA_ORDER.includes(area)) ordered.push([area, rows])
-    }
-    return ordered
-  }, [catalogue])
+  }, [kpiId, silverRich, catalogue, liveIds, navigate])
 
   const selectKpi = (id) => {
     if (!id) return
@@ -612,7 +617,7 @@ export default function AnalyticsDesk() {
           <p className="muted" style={{ marginTop: 0 }}>
             {t('analytics.catalogueHint', {
               defaultValue:
-                'Ship set is live. Deferred rows stay documented — we never show a blank 0% margin.',
+                'Live KPIs with backend feeds. Deferred or planned metrics stay hidden until data exists.',
             })}
           </p>
           {itemsByArea.length === 0 ? (

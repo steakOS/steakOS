@@ -146,7 +146,7 @@ class KpiServiceSpec extends Specification {
         body.value.status == 'ready'
     }
 
-    def "catalogue meta reports ship and defer counts"() {
+    def "catalogue lists ship KPIs only and hides deferred or planned"() {
         given:
         companyConfigService.getString(_, 'template.tier', _) >> TemplateTiers.BRONZE
         springSecurityService.authentication >> auth('ROLE_ADMIN')
@@ -157,8 +157,30 @@ class KpiServiceSpec extends Specification {
         then:
         cat.meta.shipCount == 16
         cat.meta.deferCount == 3
-        cat.items.size() >= 16
+        cat.meta.visibleCount == cat.items.size()
+        cat.items.size() == 16
+        cat.items.every { it.ship && !it.deferred }
         cat.items.find { it.id == 'KPI-S01' }.status == 'ready'
-        cat.items.find { it.id == 'KPI-S04' }.status == 'deferred'
+        cat.items.find { it.id == 'KPI-S04' } == null
+        cat.items.find { it.id == 'KPI-I02' } == null
+        cat.items.find { it.id == 'KPI-F06' } == null
+    }
+
+    def "show rejects deferred and planned stretch KPIs"() {
+        given:
+        companyConfigService.getString(_, 'template.tier', _) >> TemplateTiers.SILVER
+        springSecurityService.authentication >> auth('ROLE_ADMIN')
+
+        when:
+        service.show('npub1', 'KPI-S04')
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        service.show('npub1', 'KPI-F06')
+
+        then:
+        thrown(IllegalArgumentException)
     }
 }

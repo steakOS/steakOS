@@ -36,13 +36,14 @@ class KpiService {
     KpiFeedService kpiFeedService
 
     /**
-     * Full catalogue visible to the caller (RBAC-filtered).
+     * Live catalogue visible to the caller (RBAC-filtered).
+     * Ship KPIs only — deferred / planned stretch rows stay out of the desk until a feed exists.
      */
     Map catalogue(String npubOwner) {
         String tier = resolveTier(npubOwner)
         AccessCtx access = resolveAccess(npubOwner, tier)
         List<Map> items = KpiCatalogue.all().findAll { Map row ->
-            access.maySee(row)
+            row.ship && !row.deferred && access.maySee(row)
         }.collect { Map row ->
             enrichMeta(row, access, tier)
         }
@@ -50,7 +51,9 @@ class KpiService {
                 meta : KpiCatalogue.catalogueMeta() + [
                         npubOwner   : npubOwner,
                         templateTier: tier,
-                        silverRich  : access.silverRich
+                        silverRich  : access.silverRich,
+                        visibleCount: items.size(),
+                        note        : 'Analytics desk lists ship KPIs with live feeds; deferred/planned stay hidden until backend exists'
                 ],
                 items: items
         ]
@@ -59,12 +62,15 @@ class KpiService {
     /**
      * Single KPI definition + live (or honest empty) value envelope.
      * @throws SecurityException when sensitivity denied
-     * @throws IllegalArgumentException when id unknown
+     * @throws IllegalArgumentException when id unknown or not a live ship KPI
      */
     Map show(String npubOwner, String id, Date from = null, Date to = null) {
         Map defn = KpiCatalogue.get(id)
         if (!defn) {
             throw new IllegalArgumentException("unknown kpi: ${id}")
+        }
+        if (!defn.ship || defn.deferred) {
+            throw new IllegalArgumentException("kpi not available: ${defn.id}")
         }
         String tier = resolveTier(npubOwner)
         AccessCtx access = resolveAccess(npubOwner, tier)

@@ -134,7 +134,7 @@ final class KpiCatalogue {
                 extraDeferCount: EXTRA_DEFER_IDS.size(),
                 totalCount    : ENTRIES.size(),
                 heroIds       : new ArrayList<>(HERO_IDS),
-                note          : 'Ship KPI feeds live (PR-13); DEFER stay deferred; Bronze hero stays counts-only'
+                note          : 'Ship KPI feeds live; deferred/planned stretch hidden on Analytics until a feed exists'
         ]
     }
 
