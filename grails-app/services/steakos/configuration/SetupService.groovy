@@ -45,6 +45,8 @@ class SetupService {
     steakos.payments.BtcIntegrationLevelService btcIntegrationLevelService
     steakos.nostr.NostrIntegrationService nostrIntegrationService
     steakos.nostr.NostrPublishService nostrPublishService
+    DatabaseBackupService databaseBackupService
+    DatabaseWipeService databaseWipeService
 
     static final String DEFAULT_NPUB = 'user:admin'
     /** Bumped for Silver depth + messaging payload (plan-wizard-versioning P2). */
@@ -565,14 +567,26 @@ class SetupService {
     }
 
     /**
-     * Admin full reset. wipeSeed=true removes company settings + entities for re-demo.
+     * Admin full reset.
+     * <ul>
+     *   <li>wipeAll — backup DB then truncate all app tables (keeps login users/roles)</li>
+     *   <li>wipeSeed — remove company settings + entities for this npub (re-demo)</li>
+     *   <li>neither — reopen wizard only; company data kept</li>
+     * </ul>
      * Memberships must go before LegalEntity (FK user_company_membership.legal_entity_id).
+     *
+     * @return map: state (SetupState), backup (Map|null), wipe (Map|null)
      */
-    SetupState reset(String npubOwner, boolean wipeSeed, String actor) {
+    Map reset(String npubOwner, boolean wipeSeed, boolean wipeAll, String actor) {
         String npub = resolveNpub(npubOwner)
-        SetupState s = ensureState(npub)
+        Map backupInfo = null
+        Map wipeInfo = null
 
-        if (wipeSeed) {
+        if (wipeAll) {
+            // Backup MUST succeed before any truncate — fail closed.
+            backupInfo = databaseBackupService.backupBeforeWipe('admin-wipe-all')
+            wipeInfo = databaseWipeService.wipeAllData()
+        } else if (wipeSeed) {
             List<LegalEntity> entities = LegalEntity.findAllByNpubOwner(npub)
             entities.each { LegalEntity le ->
                 UserCompanyMembership.findAllByLegalEntity(le).each { it.delete(flush: false) }
@@ -586,15 +600,35 @@ class SetupService {
             CompanySetting.withSession { session -> session.flush() }
         }
 
+        SetupState s = SetupState.findByNpubOwner(npub)
+        if (!s) {
+            s = new SetupState(
+                    npubOwner     : npub,
+                    setupComplete : Boolean.FALSE,
+                    templateTier  : TemplateTiers.DEFAULT_OPERATOR_TIER,
+                    draftStep     : 0,
+                    wizardVersion : WIZARD_VERSION,
+            )
+        }
         s.setupComplete = Boolean.FALSE
         s.completedAt = null
         s.completedBy = null
         s.draftStep = 0
         s.draftJson = null
         s.templateTier = TemplateTiers.DEFAULT_OPERATOR_TIER
-        s.notes = "reset by ${actor ?: 'admin'}${wipeSeed ? ' (wipe)' : ''}"
+        String mode = wipeAll ? ' (wipe-all)' : (wipeSeed ? ' (wipe-seed)' : '')
+        s.notes = "reset by ${actor ?: 'admin'}${mode}"
+        if (backupInfo?.fileName) {
+            s.notes = "${s.notes}; backup=${backupInfo.fileName}"
+        }
         s.save(failOnError: true)
-        s
+
+        [state: s, backup: backupInfo, wipe: wipeInfo]
+    }
+
+    /** Backward-compatible overload used by older callers/tests. */
+    SetupState reset(String npubOwner, boolean wipeSeed, String actor) {
+        reset(npubOwner, wipeSeed, false, actor).state as SetupState
     }
 
     Map consistencyReport(String npubOwner) {

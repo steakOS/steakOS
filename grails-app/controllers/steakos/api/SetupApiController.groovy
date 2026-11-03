@@ -202,11 +202,26 @@ class SetupApiController {
         }
         try {
             Map body = (request.JSON as Map) ?: [:]
-            boolean wipe = body.wipeSeed == true || body.wipeSeed == 'true'
-            setupService.reset(resolveNpub(body), wipe, currentUsername())
-            render([ok: true, wiped: wipe, status: setupService.statusMap(resolveNpub(body))] as JSON)
+            boolean wipeAll = body.wipeAll == true || body.wipeAll == 'true' ||
+                    body.wipeMode == 'all'
+            boolean wipe = wipeAll || body.wipeSeed == true || body.wipeSeed == 'true' ||
+                    body.wipeMode == 'seed'
+            Map result = setupService.reset(resolveNpub(body), wipe, wipeAll, currentUsername())
+            Map status = setupService.statusMap(resolveNpub(body))
+            render([
+                    ok      : true,
+                    wiped   : wipe,
+                    wipeAll : wipeAll,
+                    backup  : result?.backup,
+                    wipe    : result?.wipe ? [
+                            truncatedCount: (result.wipe.truncated as List)?.size() ?: 0,
+                            kept          : result.wipe.kept,
+                            skippedCount  : (result.wipe.skipped as List)?.size() ?: 0,
+                    ] : null,
+                    status  : status,
+            ] as JSON)
         } catch (Exception e) {
-            render(status: 400, text: ([error: e.message] as JSON))
+            render(status: 400, text: ([error: e.message, code: 'SETUP_RESET_FAILED'] as JSON))
         }
     }
 

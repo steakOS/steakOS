@@ -86,6 +86,10 @@ steakos:
             nostrRelay: ${STEAKOS_OBS_NOSTR_RELAY_URL:}
             # Optional marker file written by backup success hook (OBS-09)
             backupMarker: ${STEAKOS_OBS_BACKUP_MARKER:}
+    # Admin wipe-all: pg_dump target before truncate (default var/backups/db under app root)
+    backup:
+        dir: ${STEAKOS_BACKUP_DIR:}
+        pgDump: ${STEAKOS_PG_DUMP:}
         ui:
             grafanaUrl: ${STEAKOS_OBS_GRAFANA_URL:http://umbrel.local:3030}
             uptimeKumaUrl: ${STEAKOS_OBS_KUMA_URL:http://umbrel.local:8385}

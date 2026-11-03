@@ -40,9 +40,12 @@ export default function SettingsPage() {
   const [check, setCheck] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [wipe, setWipe] = useState(false)
+  /** Admin reset mode: keep | seed | all */
+  const [wipeMode, setWipeMode] = useState('keep')
   /** In-page confirm for live-company reset (window.confirm is easy to miss / block). */
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  /** Secondary confirm only for wipe-all (backup + truncate). */
+  const [wipeAllConfirmOpen, setWipeAllConfirmOpen] = useState(false)
   const [resetError, setResetError] = useState(null)
   const [localeMsg, setLocaleMsg] = useState(null)
   const [companies, setCompanies] = useState([])
@@ -302,13 +305,26 @@ export default function SettingsPage() {
   const beginReset = () => {
     setResetError(null)
     setError(null)
+    setWipeAllConfirmOpen(false)
     setResetConfirmOpen(true)
   }
 
   const cancelReset = () => {
     if (busy) return
     setResetConfirmOpen(false)
+    setWipeAllConfirmOpen(false)
     setResetError(null)
+  }
+
+  /** First confirm: for wipe-all, open the secondary warning instead of running yet. */
+  const confirmReset = () => {
+    setResetError(null)
+    setError(null)
+    if (wipeMode === 'all') {
+      setWipeAllConfirmOpen(true)
+      return
+    }
+    runReset()
   }
 
   /**
@@ -316,12 +332,16 @@ export default function SettingsPage() {
    * Hard-navigate to /setup so SetupGate remounts with setupComplete=false
    * (soft navigate left stale gate state / missed celebration-clear).
    */
-  const confirmReset = async () => {
+  const runReset = async () => {
     setBusy(true)
     setResetError(null)
     setError(null)
     try {
-      const result = await setupApi.reset({ wipeSeed: wipe })
+      const result = await setupApi.reset({
+        wipeMode,
+        wipeSeed: wipeMode === 'seed' || wipeMode === 'all',
+        wipeAll: wipeMode === 'all',
+      })
       if (result?.status?.setupComplete === true) {
         throw new Error(
           t('pages.settings.resetStillComplete', {
@@ -335,6 +355,7 @@ export default function SettingsPage() {
         /* ignore */
       }
       setResetConfirmOpen(false)
+      setWipeAllConfirmOpen(false)
       // Full load: remount SetupGate + wizard with fresh status
       window.location.assign('/setup')
     } catch (e) {
@@ -1128,15 +1149,50 @@ export default function SettingsPage() {
       <div className="card" style={{ marginTop: 16 }} id="admin-setup-reset">
         <h2>{t('pages.settings.adminReset')}</h2>
         <p className="page-sub">{t('pages.settings.adminBlurb')}</p>
-        <label className="setup-check">
-          <input
-            type="checkbox"
-            checked={wipe}
-            disabled={busy || resetConfirmOpen}
-            onChange={(e) => setWipe(e.target.checked)}
-          />
-          {t('pages.settings.wipeSeed')}
-        </label>
+        <fieldset
+          disabled={busy || resetConfirmOpen}
+          style={{ border: 'none', margin: 0, padding: 0 }}
+        >
+          <legend className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
+            {t('pages.settings.wipeModeLegend', {
+              defaultValue: 'What should this reset remove?',
+            })}
+          </legend>
+          <label className="setup-check">
+            <input
+              type="radio"
+              name="wipeMode"
+              value="keep"
+              checked={wipeMode === 'keep'}
+              onChange={() => setWipeMode('keep')}
+            />
+            {t('pages.settings.wipeKeep', {
+              defaultValue: 'Keep company data (re-open wizard only)',
+            })}
+          </label>
+          <label className="setup-check">
+            <input
+              type="radio"
+              name="wipeMode"
+              value="seed"
+              checked={wipeMode === 'seed'}
+              onChange={() => setWipeMode('seed')}
+            />
+            {t('pages.settings.wipeSeed')}
+          </label>
+          <label className="setup-check">
+            <input
+              type="radio"
+              name="wipeMode"
+              value="all"
+              checked={wipeMode === 'all'}
+              onChange={() => setWipeMode('all')}
+            />
+            {t('pages.settings.wipeAll', {
+              defaultValue: 'Wipe seed identity and all data',
+            })}
+          </label>
+        </fieldset>
 
         {!resetConfirmOpen ? (
           <div style={{ marginTop: 12 }}>
@@ -1161,9 +1217,14 @@ export default function SettingsPage() {
               {t('pages.settings.confirmTitle', { defaultValue: 'Confirm setup reset' })}
             </p>
             <p>
-              {wipe
-                ? t('pages.settings.confirmWipe')
-                : t('pages.settings.confirmReopen')}
+              {wipeMode === 'all'
+                ? t('pages.settings.confirmWipeAll', {
+                    defaultValue:
+                      'Reset setup and permanently delete all business data? A database backup is written first. Login accounts are kept so you can run the wizard again.',
+                  })
+                : wipeMode === 'seed'
+                  ? t('pages.settings.confirmWipe')
+                  : t('pages.settings.confirmReopen')}
             </p>
             <p className="muted" style={{ fontSize: 13 }}>
               {t('pages.settings.confirmRedirectHint', {
@@ -1184,11 +1245,87 @@ export default function SettingsPage() {
               >
                 {busy
                   ? t('pages.settings.resetting')
-                  : t('pages.settings.confirmReset', { defaultValue: 'Yes, reset and open wizard' })}
+                  : wipeMode === 'all'
+                    ? t('pages.settings.confirmResetContinue', {
+                        defaultValue: 'Continue…',
+                      })
+                    : t('pages.settings.confirmReset', {
+                        defaultValue: 'Yes, reset and open wizard',
+                      })}
               </button>
               <button type="button" className="btn btn-ghost" disabled={busy} onClick={cancelReset}>
                 {t('actions.cancel', { defaultValue: 'Cancel' })}
               </button>
+            </div>
+          </div>
+        )}
+
+        {wipeAllConfirmOpen && (
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="wipe-all-confirm-title"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 80,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.45)',
+              padding: 16,
+            }}
+          >
+            <div
+              className="card"
+              style={{
+                maxWidth: 480,
+                width: '100%',
+                border: '2px solid var(--danger, #b33)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+              }}
+            >
+              <h2 id="wipe-all-confirm-title" style={{ marginTop: 0 }}>
+                {t('pages.settings.wipeAllPopupTitle', {
+                  defaultValue: 'Delete all data?',
+                })}
+              </h2>
+              <p>
+                {t('pages.settings.wipeAllPopupBody', {
+                  defaultValue:
+                    'All database data will be deleted. steakOS will first write a PostgreSQL backup into the backup folder (var/backups/db), then truncate application tables. Login accounts (user / role) are kept so you can sign in and run the setup wizard again. This cannot be undone without restoring the backup.',
+                })}
+              </p>
+              {resetError && (
+                <p className="setup-error" style={{ marginTop: 8 }}>
+                  {resetError}
+                </p>
+              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={busy}
+                  onClick={runReset}
+                >
+                  {busy
+                    ? t('pages.settings.resetting')
+                    : t('pages.settings.wipeAllConfirm', {
+                        defaultValue: 'Backup, then delete all data',
+                      })}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  disabled={busy}
+                  onClick={() => {
+                    if (busy) return
+                    setWipeAllConfirmOpen(false)
+                  }}
+                >
+                  {t('actions.cancel', { defaultValue: 'Cancel' })}
+                </button>
+              </div>
             </div>
           </div>
         )}
