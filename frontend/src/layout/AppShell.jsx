@@ -681,7 +681,7 @@ export default function AppShell() {
       <aside className="sidebar" id="app-nav" aria-hidden={narrow && !navOpen ? true : undefined}>
         <NavLink to="/dashboard" className="sidebar-brand" onClick={() => setNavOpen(false)}>
           <img
-            src="/logo_nav.png"
+            src="/favicon-32.png"
             alt=""
             width={28}
             height={28}
@@ -855,7 +855,7 @@ export default function AppShell() {
                 onClick={() => setNavOpen((v) => !v)}
               >
                 <img
-                  src="/logo_nav.png"
+                  src="/favicon-32.png"
                   alt=""
                   width={28}
                   height={28}

@@ -111,8 +111,7 @@ select {
   display: block;
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  object-fit: contain;
+  border-radius: 999px;
 }
 
 .sidebar-brand span {
