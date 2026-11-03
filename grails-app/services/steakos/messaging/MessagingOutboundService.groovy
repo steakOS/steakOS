@@ -44,6 +44,7 @@ class MessagingOutboundService {
     CompanyConfigService companyConfigService
     FieldEncryptionService fieldEncryptionService
     DomainEventBusService domainEventBusService
+    PartnerOutboundMessageService partnerOutboundMessageService
 
     /** Injectable adapters (tests). Null → built from config services. */
     EmailSmtpSender emailSmtpSender
@@ -137,6 +138,19 @@ class MessagingOutboundService {
 
     private Map buildPayloadFromEvent(DomainEvent event) {
         Map p = new LinkedHashMap(event.payload ?: [:])
+        // OI-I18N02 PR4a — partner-locale email templates when customerId/vendorId present
+        if (partnerOutboundMessageService && (p.customerId || p.vendorId)) {
+            try {
+                Map composed = partnerOutboundMessageService.composeForEvent(event.name, p)
+                composed?.each { k, v ->
+                    if (v != null && (p[k] == null || p[k] == '')) {
+                        p[k] = v
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("partner outbound compose failed for ${event.name}: ${e.message}")
+            }
+        }
         if (!p.subject) {
             p.subject = "steakOS: ${event.name}"
         }

@@ -23,6 +23,7 @@ import steakos.User
 import steakos.finance.Account
 import steakos.finance.FinanceLedgerService
 import steakos.finance.FinanceTreasuryService
+import steakos.finance.PostingRulesetService
 import steakos.generic.ObjectContent
 import steakos.capability.CapProcessService
 
@@ -35,6 +36,7 @@ class SetupService {
 
     FinanceLedgerService financeLedgerService
     FinanceTreasuryService financeTreasuryService
+    PostingRulesetService postingRulesetService
     CompanyConfigService companyConfigService
     CapProcessService capProcessService
     CompanyContextService companyContextService
@@ -363,6 +365,8 @@ class SetupService {
         boolean seedCoa = d.seedCoa == null || Boolean.valueOf(d.seedCoa as String)
         List coa = []
         int treasuryCount = 0
+        String accountingMode = PostingRulesetService.MODE_CASH
+        Map postingSeed = null
         if (seedCoa && financeLedgerService != null) {
             coa = financeLedgerService.ensureChartSeeded(npub)
             // PDR-023 T2: dual treasury (fiat + BTC/LN) under one COA
@@ -372,6 +376,30 @@ class SetupService {
                 } catch (Exception e) {
                     // non-fatal for setup
                 }
+            }
+        }
+
+        // OI-F30 / PDR-027 PR7 — books step: accounting mode + posting rules seed
+        String modeRaw = (d.accountingMode ?: d.financeAccountingMode)?.toString()?.trim()?.toUpperCase()
+        if (modeRaw in [PostingRulesetService.MODE_CASH, PostingRulesetService.MODE_ACCRUAL]) {
+            accountingMode = modeRaw
+        }
+        if (postingRulesetService != null && (seedCoa || modeRaw)) {
+            try {
+                postingSeed = postingRulesetService.ensureSeeded(npub)
+                if (accountingMode != PostingRulesetService.MODE_CASH ||
+                        postingRulesetService.getAccountingMode(npub) != accountingMode) {
+                    postingRulesetService.saveAccountingMode(npub, accountingMode, [
+                            actor : actor ?: 'setup',
+                            reason: 'Setup wizard Finance books step',
+                    ])
+                } else if (accountingMode == PostingRulesetService.MODE_CASH) {
+                    // ensure KEY_MODE is set even when already CASH default
+                    companyConfigService?.put(npub, PostingRulesetService.KEY_MODE,
+                            accountingMode, 'finance', 'string')
+                }
+            } catch (Exception e) {
+                log.warn('posting rules seed/mode apply skipped: {}', e.message)
             }
         }
 
@@ -389,6 +417,8 @@ class SetupService {
                 messaging     : readMessagingFlags(npub),
                 coaCount      : coa?.size() ?: 0,
                 treasuryCount : treasuryCount,
+                accountingMode: accountingMode,
+                postingRulesSeeded: postingSeed != null,
                 btcIntegration: btcLevel ?: null,
                 nostrIntegration: nostrLevel ?: null
         ]

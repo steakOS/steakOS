@@ -16,6 +16,8 @@
 package steakos.finance
 
 import grails.testing.gorm.DataTest
+import steakos.configuration.CompanyConfigService
+import steakos.configuration.CompanySetting
 import spock.lang.Specification
 
 class FinanceOpsServicesSpec extends Specification implements DataTest {
@@ -33,18 +35,21 @@ class FinanceOpsServicesSpec extends Specification implements DataTest {
 
     Class[] getDomainClassesToMock() {
         [Account, JournalEntry, JournalLine, Invoice, Payment, PaymentOption,
-         Treasury, Payable, Budget, Tax, PayrollItem] as Class[]
+         Treasury, Payable, Budget, Tax, PayrollItem, CompanySetting] as Class[]
     }
 
     def setup() {
         ledger = new FinanceLedgerService()
         treasury = new FinanceTreasuryService(financeLedgerService: ledger)
-        rulesetService = new PostingRulesetService(financeLedgerService: ledger)
+        rulesetService = new PostingRulesetService(
+                companyConfigService: new CompanyConfigService(),
+                financeLedgerService: ledger)
         engine = new PostingEngineService(postingRulesetService: rulesetService, financeLedgerService: ledger)
         payables = new FinancePayableService(
                 financeLedgerService: ledger,
                 financeTreasuryService: treasury,
-                postingEngineService: engine)
+                postingEngineService: engine,
+                postingRulesetService: rulesetService)
         plan = new FinancePlanService(financeLedgerService: ledger)
         tax = new FinanceTaxService(financeLedgerService: ledger)
         payroll = new FinancePayrollService(
@@ -55,7 +60,8 @@ class FinanceOpsServicesSpec extends Specification implements DataTest {
         revenue = new FinanceRevenueService(
                 financeLedgerService: ledger,
                 financeTreasuryService: treasury,
-                postingEngineService: engine)
+                postingEngineService: engine,
+                postingRulesetService: rulesetService)
     }
 
     def "treasury seed and inbound"() {
@@ -80,7 +86,69 @@ class FinanceOpsServicesSpec extends Specification implements DataTest {
         then:
         r.payable.payableStatus == 'PAID'
         r.journalEntryId
+        !p.createJournalEntryId
         Treasury.findByNpubOwnerAndAccountKind('npub-ap', 'FIAT_BANK').balanceEur == -20G
+    }
+
+    def "CASH payable create has no create journal"() {
+        given:
+        rulesetService.ensureSeeded('npub-ap-cash')
+        rulesetService.saveAccountingMode('npub-ap-cash', PostingRulesetService.MODE_CASH)
+
+        when:
+        def p = payables.createPayable('npub-ap-cash', [vendorName: 'CashVendor', amountEur: 15G])
+
+        then:
+        p.payableStatus == 'OPEN'
+        !p.createJournalEntryId
+    }
+
+    def "ACCRUAL payable create posts Dr expense Cr AP; pay clears AP"() {
+        given:
+        rulesetService.ensureSeeded('npub-ap-acc')
+        rulesetService.saveAccountingMode('npub-ap-acc', PostingRulesetService.MODE_ACCRUAL)
+        treasury.ensureDefaultPositions('npub-ap-acc')
+
+        when:
+        def p = payables.createPayable('npub-ap-acc', [vendorName: 'AccVendor', amountEur: 30G])
+
+        then:
+        p.createJournalEntryId
+        JournalLine.findAllByJournalEntry(JournalEntry.get(p.createJournalEntryId))
+                .any { it.account.code == '5000' && it.debitEur == 30G }
+        JournalLine.findAllByJournalEntry(JournalEntry.get(p.createJournalEntryId))
+                .any { it.account.code == '2000' && it.creditEur == 30G }
+
+        when:
+        def r = payables.recordPayment(p.id, 'npub-ap-acc', [eventId: 'ap-acc-1'])
+
+        then:
+        r.journalEntryId
+        JournalLine.findAllByJournalEntry(JournalEntry.get(r.journalEntryId as Long))
+                .any { it.account.code == '2000' && it.debitEur == 30G }
+        !JournalLine.findAllByJournalEntry(JournalEntry.get(r.journalEntryId as Long))
+                .any { it.account.code == '5000' }
+    }
+
+    def "ACCRUAL approve DRAFT payable posts create journal"() {
+        given:
+        rulesetService.ensureSeeded('npub-ap-apr')
+        rulesetService.saveAccountingMode('npub-ap-apr', PostingRulesetService.MODE_ACCRUAL)
+
+        when:
+        def p = payables.createPayable('npub-ap-apr', [
+                vendorName: 'DraftVendor', amountEur: 12G, payableStatus: 'DRAFT'])
+
+        then:
+        p.payableStatus == 'DRAFT'
+        !p.createJournalEntryId
+
+        when:
+        p = payables.approvePayable(p.id, 'npub-ap-apr')
+
+        then:
+        p.payableStatus == 'OPEN'
+        p.createJournalEntryId
     }
 
     def "budget variance runs"() {

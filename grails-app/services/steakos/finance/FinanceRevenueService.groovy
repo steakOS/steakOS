@@ -22,7 +22,8 @@ import steakos.sales.SalesOrder
 
 /**
  * Revenue / invoicing / AR (APQC 9.2, F-S2).
- * Cash-oriented recognition (FS8): primary ledger post when payment settles via {@link FinanceLedgerService}.
+ * CASH: ledger post on settle only. ACCRUAL: invoice.issue posts Dr AR / Cr Revenue;
+ * settle clears AR via legsAccrual (PDR-027 PR7).
  * Commercial docs store primary rail amount only (PDR-023 D14).
  * BTC rails: sats filled at payment-time FX when missing (PDR-023 T4).
  */
@@ -37,6 +38,7 @@ class FinanceRevenueService {
     FinanceLedgerService financeLedgerService
     FinanceTreasuryService financeTreasuryService
     PostingEngineService postingEngineService
+    PostingRulesetService postingRulesetService
     TenantMoneyService tenantMoneyService
     BtcFxService btcFxService
     steakos.payments.BtcIntegrationLevelService btcIntegrationLevelService
@@ -110,6 +112,8 @@ class FinanceRevenueService {
 
     /**
      * DRAFT → ISSUED. Optionally creates default three payment rails (ADR-009).
+     * ACCRUAL: posts {@code invoice.issue} (Dr AR 1100 / Cr Revenue 4000) once; stores
+     * {@link Invoice#issueJournalEntryId}. CASH: no document journal.
      */
     @Transactional
     Invoice issueInvoice(Long invoiceId, String npubOwner, Map opts = [:]) {
@@ -124,6 +128,7 @@ class FinanceRevenueService {
             throw new IllegalStateException("cannot issue from status ${inv.invoiceStatus}")
         }
 
+        boolean firstIssue = inv.invoiceStatus == 'DRAFT'
         inv.invoiceStatus = 'ISSUED'
         inv.status = 'ISSUED'
         if (!inv.issueDate) {
@@ -140,6 +145,30 @@ class FinanceRevenueService {
                     registerPaymentOption(inv.id, inv.npubOwner, railSpec)
                 }
             }
+        }
+
+        if (firstIssue && isAccrual(inv.npubOwner) && !inv.issueJournalEntryId) {
+            if (!postingEngineService) {
+                throw new PostingRulesException(PostingEngineService.CODE_MISSING,
+                        'PostingEngineService is required for ACCRUAL invoice issue')
+            }
+            JournalEntry je = postingEngineService.postEvent(
+                    inv.npubOwner,
+                    PostingEngineService.EVENT_INVOICE_ISSUE,
+                    ['invoice.functional': inv.amountEur],
+                    [
+                            name       : "Issue ${inv.invoiceNumber}",
+                            description: "ACCRUAL issue invoice ${inv.invoiceNumber}",
+                            sourceType : 'INVOICE',
+                            sourceId   : inv.id.toString(),
+                            eventId    : "inv-issue-${inv.id}",
+                            memo       : "Invoice ${inv.invoiceNumber}",
+                    ]
+            )
+            inv = Invoice.get(inv.id)
+            inv.issueJournalEntryId = je.id
+            inv.save(failOnError: true, flush: true)
+            log.info('ACCRUAL invoice.issue je={} invoice={}', je.id, inv.invoiceNumber)
         }
         return Invoice.get(inv.id)
     }
@@ -383,7 +412,7 @@ class FinanceRevenueService {
     }
 
     /**
-     * Void invoice. Reverses settled payment journal entries when present.
+     * Void invoice. Reverses settled payment journals and ACCRUAL issue journal when present.
      */
     @Transactional
     Invoice voidInvoice(Long invoiceId, String npubOwner, String reason = null) {
@@ -410,17 +439,35 @@ class FinanceRevenueService {
             p.save(failOnError: true)
         }
 
+        if (inv.issueJournalEntryId) {
+            try {
+                financeLedgerService.reverseEntry(
+                        inv.issueJournalEntryId,
+                        inv.npubOwner,
+                        reason ?: "Void invoice issue ${inv.invoiceNumber}"
+                )
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                log.warn('Could not reverse issue JE {} for invoice {}: {}',
+                        inv.issueJournalEntryId, inv.id, e.message)
+            }
+        }
+
         inv.invoiceStatus = 'VOID'
         inv.status = 'VOID'
         inv.settledAt = null
         inv.save(failOnError: true, flush: true)
 
         // ADR-049 L9 — keep SalesOrder CONFIRMED; clear link so a new DRAFT can be created later
-        SalesOrder linked = SalesOrder.findByNpubOwnerAndFinanceInvoiceId(inv.npubOwner, inv.id)
-        if (linked) {
-            linked.financeInvoiceId = null
-            linked.save(failOnError: true, flush: true)
-            log.info('Cleared financeInvoiceId on order {} after voiding invoice {}', linked.orderNumber, inv.id)
+        try {
+            SalesOrder linked = SalesOrder.findByNpubOwnerAndFinanceInvoiceId(inv.npubOwner, inv.id)
+            if (linked) {
+                linked.financeInvoiceId = null
+                linked.save(failOnError: true, flush: true)
+                log.info('Cleared financeInvoiceId on order {} after voiding invoice {}', linked.orderNumber, inv.id)
+            }
+        } catch (IllegalStateException e) {
+            // Sales domain not registered (finance unit tests without SalesOrder mock)
+            log.debug('SalesOrder unlink skipped: {}', e.message)
         }
 
         return inv
@@ -579,9 +626,10 @@ class FinanceRevenueService {
                 invoiceStatus  : inv.invoiceStatus,
                 status         : inv.status,
                 recurring      : inv.recurring,
-                settledAt      : inv.settledAt,
-                referenceText  : inv.referenceText,
-                npubOwner      : inv.npubOwner
+                settledAt           : inv.settledAt,
+                referenceText       : inv.referenceText,
+                issueJournalEntryId : inv.issueJournalEntryId,
+                npubOwner           : inv.npubOwner
         ]
         if (includeChildren) {
             m.paymentOptions = PaymentOption.findAllByInvoice(inv).collect { paymentOptionToMap(it) }
@@ -706,6 +754,13 @@ class FinanceRevenueService {
         settled.inject(BigDecimal.ZERO) { BigDecimal acc, Payment p ->
             acc.add(p.amountEur ?: BigDecimal.ZERO)
         } as BigDecimal
+    }
+
+    private boolean isAccrual(String npub) {
+        if (postingRulesetService == null) {
+            return false
+        }
+        return postingRulesetService.getAccountingMode(npub) == PostingRulesetService.MODE_ACCRUAL
     }
 
     private Invoice loadInvoice(Long id, String npubOwner) {

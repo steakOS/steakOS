@@ -102,4 +102,27 @@ class ApiPermissionMapperSpec extends Specification {
         r.family == 'grrc'
         r.verb == 'create'
     }
+
+    def "agent proposals POST is allow (not MATRIX_UNMAPPED)"() {
+        when:
+        Map r = ApiPermissionMapper.requireFor('POST', '/api/agent/proposals')
+
+        then:
+        r.kind == 'allow'
+    }
+
+    def "agent proposals GET is allow"() {
+        expect:
+        ApiPermissionMapper.requireFor('GET', '/api/agent/proposals').kind == 'allow'
+        ApiPermissionMapper.requireFor('GET', '/api/agent/proposals/12').kind == 'allow'
+    }
+
+    def "agent token mint still requires agents system"() {
+        when:
+        Map r = ApiPermissionMapper.requireFor('POST', '/api/agent/tokens')
+
+        then:
+        r.kind == 'system'
+        r.systemKey == 'agents'
+    }
 }

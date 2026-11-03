@@ -162,4 +162,94 @@ class PostingEngineServiceSpec extends Specification implements DataTest {
         JournalLine.findAllByJournalEntry(je).any { it.account.code == '2200' && it.debitEur == 100G }
         JournalLine.findAllByJournalEntry(je).any { it.account.code == '1000' && it.creditEur == 100G }
     }
+
+    def "invoice.issue posts Dr AR 1100 Cr revenue 4000"() {
+        given:
+        String npub = 'npub-pe-issue'
+        rulesetService.ensureSeeded(npub)
+
+        when:
+        JournalEntry je = engine.postEvent(npub, PostingEngineService.EVENT_INVOICE_ISSUE,
+                ['invoice.functional': 90G],
+                [
+                        name      : 'Issue INV-A',
+                        sourceType: 'INVOICE',
+                        sourceId  : '1',
+                        eventId   : 'pe-issue-1',
+                ])
+
+        then:
+        je.id
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '1100' && it.debitEur == 90G }
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '4000' && it.creditEur == 90G }
+    }
+
+    def "payable.create posts Dr expense 5000 Cr AP 2000"() {
+        given:
+        String npub = 'npub-pe-create'
+        rulesetService.ensureSeeded(npub)
+
+        when:
+        JournalEntry je = engine.postEvent(npub, PostingEngineService.EVENT_PAYABLE_CREATE,
+                ['payable.functional': 55G],
+                [
+                        name      : 'AP create Vendor',
+                        sourceType: 'PAYABLE',
+                        sourceId  : '3',
+                        eventId   : 'pe-create-1',
+                ])
+
+        then:
+        je.id
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '5000' && it.debitEur == 55G }
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '2000' && it.creditEur == 55G }
+    }
+
+    def "ACCRUAL settle clears AR 1100 not revenue 4000"() {
+        given:
+        String npub = 'npub-pe-acc-settle'
+        rulesetService.ensureSeeded(npub)
+        rulesetService.saveAccountingMode(npub, PostingRulesetService.MODE_ACCRUAL)
+
+        when:
+        JournalEntry je = engine.postEvent(npub, PostingEngineService.EVENT_INVOICE_SETTLE,
+                ['payment.functional': 75G],
+                [
+                        name      : 'Pay INV ACCRUAL',
+                        sourceType: 'PAYMENT',
+                        sourceId  : '2',
+                        eventId   : 'pe-acc-settle-1',
+                        rail      : 'SEPA',
+                ])
+
+        then:
+        je.id
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '1000' && it.debitEur == 75G }
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '1100' && it.creditEur == 75G }
+        !JournalLine.findAllByJournalEntry(je).any { it.account.code == '4000' }
+    }
+
+    def "ACCRUAL pay clears AP 2000 not expense 5000"() {
+        given:
+        String npub = 'npub-pe-acc-pay'
+        rulesetService.ensureSeeded(npub)
+        rulesetService.saveAccountingMode(npub, PostingRulesetService.MODE_ACCRUAL)
+
+        when:
+        JournalEntry je = engine.postEvent(npub, PostingEngineService.EVENT_PAYABLE_PAY,
+                ['payable.functional': 40G],
+                [
+                        name      : 'AP pay ACCRUAL',
+                        sourceType: 'PAYABLE',
+                        sourceId  : '4',
+                        eventId   : 'pe-acc-pay-1',
+                        rail      : 'SEPA',
+                ])
+
+        then:
+        je.id
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '2000' && it.debitEur == 40G }
+        JournalLine.findAllByJournalEntry(je).any { it.account.code == '1000' && it.creditEur == 40G }
+        !JournalLine.findAllByJournalEntry(je).any { it.account.code == '5000' }
+    }
 }

@@ -56,6 +56,10 @@ class Payable implements NpubOwned, AccessControl, Classifiable, Attachable,
 	/** DRAFT | OPEN | PAID | VOID */
 	String payableStatus = 'DRAFT'
 
+	/** ACCRUAL payable.create journal (Dr Expense / Cr AP). Null on CASH. */
+	Long createJournalEntryId
+
+	/** payable.pay journal (cash or clear AP). */
 	Long journalEntryId
 
 	static constraints = {
@@ -80,6 +84,7 @@ class Payable implements NpubOwned, AccessControl, Classifiable, Attachable,
 		paidAt nullable: true
 		payableStatus nullable: false, blank: false, maxSize: 32,
 				inList: ['DRAFT', 'OPEN', 'PAID', 'VOID']
+		createJournalEntryId nullable: true
 		journalEntryId nullable: true
 	}
 

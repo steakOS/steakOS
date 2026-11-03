@@ -33,7 +33,7 @@ export default function PostingRulesPage() {
   const [mode, setMode] = useState('CASH')
   const [draft, setDraft] = useState(null)
   const [changeLog, setChangeLog] = useState([])
-  const [stubEvents, setStubEvents] = useState(['invoice.issue', 'payable.create'])
+  const [stubEvents, setStubEvents] = useState([])
   const [err, setErr] = useState(null)
   const [info, setInfo] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -235,7 +235,8 @@ export default function PostingRulesPage() {
               </option>
               <option value="ACCRUAL">
                 {t('finance.postingRules.modeAccrual', {
-                  defaultValue: 'Accrual — issue/create stubs + payment (hooks pending)',
+                  defaultValue:
+                    'Accrual — books on invoice issue / payable open, and again when paid',
                 })}
               </option>
             </select>
@@ -283,7 +284,7 @@ export default function PostingRulesPage() {
           <p className="muted" style={{ marginTop: '0.75rem' }}>
             {t('finance.postingRules.accrualNote', {
               defaultValue:
-                'Accrual stub rules (invoice.issue / payable.create) are in the pack. Issue/create hooks are not wired yet — cash settle/pay/payroll still post today.',
+                'Accrual posts invoice.issue (Dr AR / Cr revenue) and payable.create (Dr expense / Cr AP). Settle/pay clear AR/AP (Cr 1100 / Dr 2000) so revenue and expense are not double-counted.',
             })}
           </p>
         )}
@@ -305,8 +306,8 @@ export default function PostingRulesPage() {
                 {isStub(eventKey) && (
                   <StubBadge
                     label={t('finance.postingRules.stub', { defaultValue: 'stub' })}
-                    hint={t('finance.postingRules.accrualNote', {
-                      defaultValue: 'Rules present; issue/create hooks not wired yet',
+                    hint={t('finance.postingRules.stubHint', {
+                      defaultValue: 'Marked stub in this company ruleset',
                     })}
                   />
                 )}

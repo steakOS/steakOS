@@ -218,6 +218,10 @@ class FinanceOpsApiController {
     }
 
     def payablePay() {
+        if (isAgentPrincipal()) {
+            render(status: 403, text: ([error: 'Agents cannot settle or pay money', code: 'AGENT_MONEY_DENIED'] as JSON))
+            return
+        }
         wrapBody { String npub, Map body ->
             financePayableService.recordPayment(params.long('id'), npub, body)
         }
@@ -318,6 +322,10 @@ class FinanceOpsApiController {
 
     /** Pay net wages (payroll.pay). Requires prior recognize. */
     def payrollPay() {
+        if (isAgentPrincipal()) {
+            render(status: 403, text: ([error: 'Agents cannot settle or pay money', code: 'AGENT_MONEY_DENIED'] as JSON))
+            return
+        }
         wrapBody { String npub, Map body ->
             financePayrollService.payPayroll(npub, body.period as String ?: params.period, body)
         }
@@ -388,5 +396,10 @@ class FinanceOpsApiController {
 
     private String resolveNpub(Object source) {
         tenantNpubService.resolve(session, source)
+    }
+
+    /** ROLE_AI without admin/C — agents must not pay (HITL + human settle). */
+    private boolean isAgentPrincipal() {
+        steakos.security.AgentPrincipal.isAgentOnly(springSecurityService?.authentication)
     }
 }

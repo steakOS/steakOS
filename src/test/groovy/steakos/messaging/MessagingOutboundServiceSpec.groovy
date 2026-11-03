@@ -220,6 +220,37 @@ class MessagingOutboundServiceSpec extends Specification {
         audited[0].payload.templateId == DomainEventNames.FINANCE_INVOICE_OVERDUE
     }
 
+    def "domain event uses partner locale compose when customerId present"() {
+        given:
+        String npub = 'company:demo'
+        stored["${npub}|${MessagingKeys.EMAIL_ENABLED}"] = 'true'
+        stored["${npub}|${MessagingKeys.EMAIL_SMTP_HOST}"] = 'smtp.example.com'
+        stored["${npub}|${MessagingKeys.EMAIL_FROM}"] = 'noreply@steakos.local'
+        service.partnerOutboundMessageService = Stub(PartnerOutboundMessageService) {
+            composeForEvent(_, _) >> { String name, Map p ->
+                [
+                        locale : 'de_DE',
+                        to     : 'billing@partner.de',
+                        email  : 'billing@partner.de',
+                        subject: 'Rechnung INV-9 ist überfällig',
+                        text   : 'Offener Betrag: 50 EUR'
+                ]
+            }
+        }
+        DomainEvent ev = DomainEvent.of(
+                DomainEventNames.FINANCE_INVOICE_OVERDUE, 'finance', npub,
+                [invoiceId: 9, customerId: 7L, invoiceNumber: 'INV-9'])
+
+        when:
+        service.onDomainEvent(ev)
+
+        then:
+        emailTransport.delivered.size() == 1
+        emailTransport.delivered[0].to == 'billing@partner.de'
+        emailTransport.delivered[0].subject == 'Rechnung INV-9 ist überfällig'
+        emailTransport.delivered[0].text.contains('Offener Betrag')
+    }
+
     def "health reports enabled/configured flags"() {
         given:
         String npub = 'company:demo'

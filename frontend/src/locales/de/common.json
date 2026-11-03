@@ -996,7 +996,16 @@
       "confirmApply": "Aktuelle Spring-Rollen von «{{label}}» auf alle {{count}} Benutzer dieses Profils anwenden? (R6)",
       "applied": "Auf {{count}} Benutzer angewendet",
       "helpHintBefore": "",
-      "helpHintAfter": "für Rollen-Hilfe (Vorgaben, Matrix, Sicherheit) drücken"
+      "helpHintAfter": "für Rollen-Hilfe (Vorgaben, Matrix, Sicherheit) drücken",
+      "profileLabels": {
+        "admin": "Admin",
+        "ceo": "CEO",
+        "office": "Office",
+        "ops": "Ops",
+        "finance": "Finance",
+        "user": "Benutzer",
+        "read_only": "Nur Lesen"
+      }
     }
   },
   "ph": {

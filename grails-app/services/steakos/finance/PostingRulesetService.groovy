@@ -12,6 +12,7 @@ import steakos.configuration.CompanyConfigService
  * PDR-027 — company posting ruleset (CompanySetting JSON) + SBM default pack.
  * PR2–PR3 {@link PostingEngineService} posts settle/pay/payroll.recognize/payroll.pay from these rules.
  * PR4–PR5 Admin save/reseed appends change log + opens a Digital IT ticket (D6).
+ * PR7 — invoice.issue / payable.create live under ACCRUAL; settle/pay use legsAccrual to clear AR/AP.
  */
 @Slf4j
 @Transactional
@@ -25,13 +26,20 @@ class PostingRulesetService {
     static final int RULES_VERSION = 1
     static final int CHANGE_LOG_MAX = 50
 
-    /** Events the engine posts today (cash path). */
+    /** Events the engine may post (cash + accrual document legs). */
     static final List<String> LIVE_EVENTS = [
-            'invoice.settle', 'payable.pay', 'payroll.recognize', 'payroll.pay'
+            'invoice.settle', 'payable.pay', 'payroll.recognize', 'payroll.pay',
+            'invoice.issue', 'payable.create'
     ].asImmutable()
 
-    /** ACCRUAL stub events in seed JSON — hooks not wired until issue/create call the engine. */
-    static final List<String> ACCRUAL_STUB_EVENTS = [
+    /**
+     * ACCRUAL document events (issue/create). Empty stub list — PR7 cleared stub flags;
+     * kept for API compatibility ({@code accrualStubEvents} → []).
+     */
+    static final List<String> ACCRUAL_STUB_EVENTS = [].asImmutable()
+
+    /** Events posted only when accountingMode=ACCRUAL (document recognition). */
+    static final List<String> ACCRUAL_DOCUMENT_EVENTS = [
             'invoice.issue', 'payable.create'
     ].asImmutable()
 
@@ -39,7 +47,11 @@ class PostingRulesetService {
     FinanceLedgerService financeLedgerService
     steakos.digital.DigSupportService digSupportService
 
-    /** Default SBM / restaurant cash pack (+ ACCRUAL stub events for mode switch). */
+    /**
+     * Default SBM / restaurant pack.
+     * Cash settle/pay legs credit revenue / debit expense; {@code legsAccrual} clear AR/AP (1100/2000).
+     * invoice.issue / payable.create are live (no stub) for ACCRUAL document posts.
+     */
     static Map defaultSbmPack() {
         [
                 version        : RULES_VERSION,
@@ -49,13 +61,23 @@ class PostingRulesetService {
                                 legs: [
                                         [side: 'DEBIT', accountFrom: 'railWallet', amountFrom: 'payment.functional'],
                                         [side: 'CREDIT', accountCode: '4000', amountFrom: 'payment.functional'],
-                                ]
+                                ],
+                                // ACCRUAL: cash in, clear AR — do not re-credit revenue
+                                legsAccrual: [
+                                        [side: 'DEBIT', accountFrom: 'railWallet', amountFrom: 'payment.functional'],
+                                        [side: 'CREDIT', accountCode: '1100', amountFrom: 'payment.functional'],
+                                ],
                         ],
                         'payable.pay'       : [
                                 legs: [
                                         [side: 'DEBIT', accountCode: '5000', amountFrom: 'payable.functional'],
                                         [side: 'CREDIT', accountFrom: 'railWallet', amountFrom: 'payable.functional', defaultRail: 'SEPA'],
-                                ]
+                                ],
+                                // ACCRUAL: clear AP, cash out — do not re-debit expense
+                                legsAccrual: [
+                                        [side: 'DEBIT', accountCode: '2000', amountFrom: 'payable.functional'],
+                                        [side: 'CREDIT', accountFrom: 'railWallet', amountFrom: 'payable.functional', defaultRail: 'SEPA'],
+                                ],
                         ],
                         'payroll.recognize' : [
                                 legs: [
@@ -70,16 +92,13 @@ class PostingRulesetService {
                                         [side: 'CREDIT', accountFrom: 'railWallet', amountFrom: 'payroll.net', defaultRail: 'SEPA'],
                                 ]
                         ],
-                        // PR6 stubs — present in pack; engine hooks on issue/create not wired yet
                         'invoice.issue'     : [
-                                stub: true,
                                 legs: [
                                         [side: 'DEBIT', accountCode: '1100', amountFrom: 'invoice.functional'],
                                         [side: 'CREDIT', accountCode: '4000', amountFrom: 'invoice.functional'],
                                 ]
                         ],
                         'payable.create'    : [
-                                stub: true,
                                 legs: [
                                         [side: 'DEBIT', accountCode: '5000', amountFrom: 'payable.functional'],
                                         [side: 'CREDIT', accountCode: '2000', amountFrom: 'payable.functional'],
@@ -122,16 +141,37 @@ class PostingRulesetService {
             Map cur = new LinkedHashMap(existing as Map)
             Map events = cur.events instanceof Map ? new LinkedHashMap(cur.events as Map) : [:]
             Map defaults = defaultSbmPack()
-            ACCRUAL_STUB_EVENTS.each { String key ->
+            // PR7: ensure document events exist, clear legacy stub flags, merge legsAccrual on settle/pay
+            ACCRUAL_DOCUMENT_EVENTS.each { String key ->
                 if (!events.containsKey(key) && defaults.events[key]) {
                     events[key] = defaults.events[key]
+                    merged = true
+                } else if (events[key] instanceof Map && (events[key] as Map).stub) {
+                    Map ev = new LinkedHashMap(events[key] as Map)
+                    ev.remove('stub')
+                    if (!(ev.legs instanceof List) && defaults.events[key]?.legs) {
+                        ev.legs = defaults.events[key].legs
+                    }
+                    events[key] = ev
+                    merged = true
+                }
+            }
+            ['invoice.settle', 'payable.pay'].each { String key ->
+                Map defEv = defaults.events[key] as Map
+                if (!(events[key] instanceof Map) || !(defEv?.legsAccrual instanceof List)) {
+                    return
+                }
+                Map ev = new LinkedHashMap(events[key] as Map)
+                if (!(ev.legsAccrual instanceof List)) {
+                    ev.legsAccrual = defEv.legsAccrual
+                    events[key] = ev
                     merged = true
                 }
             }
             if (merged) {
                 cur.events = events
                 companyConfigService.putJson(npub, KEY_RULES, cur, 'finance')
-                log.info('Merged ACCRUAL stub events into posting ruleset for {}', npub)
+                log.info('Merged ACCRUAL document / legsAccrual into posting ruleset for {}', npub)
             }
             if (!companyConfigService.getString(npub, KEY_MODE, null)) {
                 String mode = (cur.accountingMode as String) ?: MODE_CASH
@@ -279,29 +319,36 @@ class PostingRulesetService {
             throw new IllegalArgumentException('ruleset.events required')
         }
         Map events = rules.events as Map
-        (LIVE_EVENTS + ACCRUAL_STUB_EVENTS).each { String key ->
+        LIVE_EVENTS.each { String key ->
             Object ev = events[key]
             if (ev == null) return // allow partial custom packs
             if (!(ev instanceof Map)) {
                 throw new IllegalArgumentException("event ${key} must be an object")
             }
-            Object legs = (ev as Map).legs
-            if (!(legs instanceof List) || (legs as List).size() < 2) {
-                throw new IllegalArgumentException("event ${key} needs at least 2 legs")
+            Map evMap = ev as Map
+            validateLegsList(evMap.legs, key)
+            if (evMap.legsAccrual != null) {
+                validateLegsList(evMap.legsAccrual, "${key}.legsAccrual")
             }
-            (legs as List).each { Object leg ->
-                if (!(leg instanceof Map)) {
-                    throw new IllegalArgumentException("legs must be objects in ${key}")
-                }
-                Map L = leg as Map
-                if (!(L.side in ['DEBIT', 'CREDIT'])) {
-                    throw new IllegalArgumentException("leg.side must be DEBIT or CREDIT (${key})")
-                }
-                boolean hasCode = !!L.accountCode?.toString()?.trim()
-                boolean hasFrom = !!L.accountFrom?.toString()?.trim()
-                if (!hasCode && !hasFrom) {
-                    throw new IllegalArgumentException("leg needs accountCode or accountFrom (${key})")
-                }
+        }
+    }
+
+    private static void validateLegsList(Object legs, String label) {
+        if (!(legs instanceof List) || (legs as List).size() < 2) {
+            throw new IllegalArgumentException("event ${label} needs at least 2 legs")
+        }
+        (legs as List).each { Object leg ->
+            if (!(leg instanceof Map)) {
+                throw new IllegalArgumentException("legs must be objects in ${label}")
+            }
+            Map L = leg as Map
+            if (!(L.side in ['DEBIT', 'CREDIT'])) {
+                throw new IllegalArgumentException("leg.side must be DEBIT or CREDIT (${label})")
+            }
+            boolean hasCode = !!L.accountCode?.toString()?.trim()
+            boolean hasFrom = !!L.accountFrom?.toString()?.trim()
+            if (!hasCode && !hasFrom) {
+                throw new IllegalArgumentException("leg needs accountCode or accountFrom (${label})")
             }
         }
     }

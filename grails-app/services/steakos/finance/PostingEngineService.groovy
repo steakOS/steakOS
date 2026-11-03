@@ -21,6 +21,7 @@ import groovy.util.logging.Slf4j
 /**
  * PDR-027 — resolve company posting rules and post balanced journals via {@link FinanceLedgerService}.
  * Cash defaults match SBM settle/pay/payroll when the pack is seeded.
+ * ACCRUAL: invoice.issue / payable.create recognize AR/AP; settle/pay use {@code legsAccrual} to clear them.
  * Missing / invalid rules block the money action (D8) — no hardcoded account fallback.
  */
 @Slf4j
@@ -30,6 +31,8 @@ class PostingEngineService {
     static final String EVENT_PAYABLE_PAY = 'payable.pay'
     static final String EVENT_PAYROLL_RECOGNIZE = 'payroll.recognize'
     static final String EVENT_PAYROLL_PAY = 'payroll.pay'
+    static final String EVENT_INVOICE_ISSUE = 'invoice.issue'
+    static final String EVENT_PAYABLE_CREATE = 'payable.create'
 
     static final String CODE_MISSING = 'POSTING_RULES_MISSING'
     static final String CODE_INVALID = 'POSTING_RULES_INVALID'
@@ -40,6 +43,8 @@ class PostingEngineService {
 
     /**
      * Load ruleset (seed if needed), resolve legs for {@code eventKey}, post JE.
+     * When accountingMode=ACCRUAL and the event defines {@code legsAccrual}, those legs are used
+     * (settle → Cr AR 1100; pay → Dr AP 2000) so revenue/expense are not double-counted.
      *
      * @param amounts keys match leg {@code amountFrom} (e.g. payment.functional, payable.functional)
      * @param meta journal fields: name, description, sourceType, sourceId, eventId, memo, entryDate, period,
@@ -61,8 +66,9 @@ class PostingEngineService {
 
         financeLedgerService.ensureChartSeeded(npub)
         Map ruleset = loadRuleset(npub)
+        String mode = resolveMode(npub, ruleset)
         Map eventDef = requireEvent(ruleset, key)
-        List legs = eventDef.legs as List
+        List legs = resolveLegs(eventDef, mode, key)
 
         String rail = (meta.rail ?: null)?.toString()?.trim()
         Long amountSats = meta.amountSats != null && meta.amountSats != '' ? meta.amountSats as Long : null
@@ -142,7 +148,7 @@ class PostingEngineService {
                 memo       : meta.memo as String,
                 lines      : lines
         ))
-        log.info('PostingEngine posted event={} je={} npub={}', key, je.id, npub)
+        log.info('PostingEngine posted event={} mode={} je={} npub={}', key, mode, je.id, npub)
         return je
     }
 
@@ -157,6 +163,33 @@ class PostingEngineService {
         return ruleset
     }
 
+    private String resolveMode(String npub, Map ruleset) {
+        String mode = postingRulesetService.getAccountingMode(npub)
+        if (!(mode in [PostingRulesetService.MODE_CASH, PostingRulesetService.MODE_ACCRUAL])) {
+            mode = (ruleset.accountingMode as String) ?: PostingRulesetService.MODE_CASH
+        }
+        return mode
+    }
+
+    /**
+     * Prefer {@code legsAccrual} when mode is ACCRUAL and the event defines them
+     * (settle/pay clear AR/AP). Otherwise use {@code legs}.
+     */
+    private static List resolveLegs(Map eventDef, String mode, String eventKey) {
+        if (mode == PostingRulesetService.MODE_ACCRUAL && eventDef.legsAccrual instanceof List) {
+            List accrual = eventDef.legsAccrual as List
+            if (accrual.size() >= 2) {
+                return accrual
+            }
+        }
+        Object legs = eventDef.legs
+        if (!(legs instanceof List) || (legs as List).size() < 2) {
+            throw new PostingRulesException(CODE_INVALID,
+                    "event ${eventKey} needs at least 2 legs")
+        }
+        return legs as List
+    }
+
     private static Map requireEvent(Map ruleset, String eventKey) {
         Map events = ruleset.events as Map
         if (!events.containsKey(eventKey) || events[eventKey] == null) {
@@ -167,11 +200,6 @@ class PostingEngineService {
         if (!(ev instanceof Map)) {
             throw new PostingRulesException(CODE_INVALID,
                     "event ${eventKey} must be an object")
-        }
-        Object legs = (ev as Map).legs
-        if (!(legs instanceof List) || (legs as List).size() < 2) {
-            throw new PostingRulesException(CODE_INVALID,
-                    "event ${eventKey} needs at least 2 legs")
         }
         return ev as Map
     }

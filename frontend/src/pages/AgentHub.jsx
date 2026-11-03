@@ -61,6 +61,22 @@ const SECTION_DEFS = [
   { id: 'memory', labelKey: 'agents.tabs.memory', icon: Brain },
 ]
 
+/** Finance / payroll money path — human settles after HITL; agents never pay. */
+function isMoneyProposal(a) {
+  if (!a) return false
+  const fam = String(a.targetFamily || '').toLowerCase()
+  if (fam === 'finance' || fam === 'human') return true
+  const raw =
+    typeof a.proposalJson === 'string'
+      ? a.proposalJson
+      : JSON.stringify(a.proposalJson || '')
+  return /settle|payable|payroll|invoice/i.test(raw)
+}
+
+function needsHitlRiskConfirm(a) {
+  return !!a && (String(a.riskLevel || '').toUpperCase() === 'HIGH' || isMoneyProposal(a))
+}
+
 /**
  * Agentic Resources — DeskShell master–detail (ADR-047 / Nielsen).
  * Route sections: /agents/:section — agents · hives · hitl · memory. Selection via ?id=.
@@ -139,6 +155,8 @@ export default function AgentHub() {
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
+  const [approveConfirmOpen, setApproveConfirmOpen] = useState(false)
+  const [moneySettleCta, setMoneySettleCta] = useState(null)
 
   const [newExpanded, setNewExpanded] = useState(false)
   const [discardOpen, setDiscardOpen] = useState(false)
@@ -1857,18 +1875,26 @@ export default function AgentHub() {
       </div>
     )
     if (selectedApproval.decision === 'PENDING') {
+      const doApprove = async () => {
+        const money = isMoneyProposal(selectedApproval)
+        const name = selectedApproval.name
+        await agentsApi.approvals.approve(selectedApproval.id)
+        setInfo(t('toast.approved', { ns: 'common', name }))
+        setMoneySettleCta(money ? { name } : null)
+      }
       detailFooter = (
         <>
           <button
             type="button"
             className="btn btn-primary"
             disabled={!!busy}
-            onClick={() =>
-              run('ok', async () => {
-                await agentsApi.approvals.approve(selectedApproval.id)
-                setInfo(t('toast.approved', { ns: 'common', name: selectedApproval.name }))
-              })
-            }
+            onClick={() => {
+              if (needsHitlRiskConfirm(selectedApproval)) {
+                setApproveConfirmOpen(true)
+                return
+              }
+              run('ok', doApprove)
+            }}
           >
             <Check size={16} /> Approve
           </button>
@@ -1878,6 +1904,7 @@ export default function AgentHub() {
             disabled={!!busy}
             onClick={() =>
               run('no', async () => {
+                setMoneySettleCta(null)
                 await agentsApi.approvals.reject(selectedApproval.id)
                 setInfo(t('toast.rejected', { ns: 'common', name: selectedApproval.name }))
               })
@@ -1945,6 +1972,37 @@ export default function AgentHub() {
     <div className="page delivery-desk-page">
       {error && <div className="banner-error">{error}</div>}
       {info && <div className="banner-info">{info}</div>}
+      {moneySettleCta && (
+        <div className="banner-info" role="status" style={{ marginBottom: '0.75rem' }}>
+          <strong>
+            {t('agents.hitlMoneyCtaTitle', {
+              defaultValue: 'Approved — human settle next',
+            })}
+          </strong>
+          <p style={{ margin: '0.35rem 0' }}>
+            {t('agents.hitlMoneyCtaBody', {
+              defaultValue:
+                'Agents never settle or pay. Open Finance to settle invoices or pay payables as a human.',
+              name: moneySettleCta.name,
+            })}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Link className="btn btn-secondary" to="/finance/invoices">
+              {t('agents.hitlCtaInvoices', { defaultValue: 'Finance → Invoices' })}
+            </Link>
+            <Link className="btn btn-secondary" to="/finance/payables">
+              {t('agents.hitlCtaPayables', { defaultValue: 'Finance → Payables' })}
+            </Link>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => setMoneySettleCta(null)}
+            >
+              {t('actions.dismiss', { ns: 'common', defaultValue: 'Dismiss' })}
+            </button>
+          </div>
+        </div>
+      )}
       {viewModal}
       {loading && !error && (
         <p className="muted" style={{ marginBottom: '0.75rem' }}>
@@ -1964,12 +2022,12 @@ export default function AgentHub() {
             {t('pages.settings.activationChecklistBlurb', {
               ns: 'common',
               defaultValue:
-                'Agent Basics: mint a token in Settings, paste into your operator-owned agent host, prove a read, optionally propose for HITL. Agents do not settle money by default.',
+                'Agent Basics: mint a token under System → Integrations, paste into your operator-owned agent host, prove a read, optionally propose for HITL. Agents do not settle money by default.',
             })}
           </p>
           <ol style={{ margin: '0.25rem 0 0.5rem 1.25rem' }}>
             <li>
-              <Link to="/settings">Settings → Hermes agents</Link>
+              <Link to="/system/integrations">Integrations → Hermes agents</Link>
               {tokenCount === 0 ? (
                 <span className="muted"> — {t('pages.settings.noTokens', { ns: 'common' })}</span>
               ) : tokenCount != null ? (
@@ -2061,6 +2119,33 @@ export default function AgentHub() {
         tone="danger"
         onConfirm={confirmDiscard}
         onCancel={cancelDiscard}
+      />
+
+      <ConfirmDialog
+        open={approveConfirmOpen}
+        title={t('agents.hitlRiskConfirmTitle', {
+          defaultValue: 'Confirm high-risk / money approval?',
+        })}
+        body={t('agents.hitlRiskConfirmBody', {
+          defaultValue:
+            'This proposal is HIGH risk or touches money. Approving records human consent only — agents still cannot settle or pay. You settle invoices / payables in Finance afterward.',
+          name: selectedApproval?.name,
+          risk: selectedApproval?.riskLevel,
+        })}
+        confirmLabel={t('actions.approve', { ns: 'common', defaultValue: 'Approve' })}
+        tone="danger"
+        onConfirm={() => {
+          setApproveConfirmOpen(false)
+          if (!selectedApproval) return
+          run('ok', async () => {
+            const money = isMoneyProposal(selectedApproval)
+            const name = selectedApproval.name
+            await agentsApi.approvals.approve(selectedApproval.id)
+            setInfo(t('toast.approved', { ns: 'common', name }))
+            setMoneySettleCta(money ? { name } : null)
+          })
+        }}
+        onCancel={() => setApproveConfirmOpen(false)}
       />
     </div>
   )

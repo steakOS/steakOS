@@ -74,6 +74,10 @@ final class ApiPermissionMapper {
                 p.startsWith('/api/agents')) {
             return [kind: KIND_SYSTEM, systemKey: 'agents', verb: verb]
         }
+        // Agent gateway L1 propose — authenticated; gateway + HITL enforce posture
+        if (p.startsWith('/api/agent/proposals')) {
+            return [kind: KIND_ALLOW]
+        }
 
         // Money specials
         if (isSettlePath(p)) {

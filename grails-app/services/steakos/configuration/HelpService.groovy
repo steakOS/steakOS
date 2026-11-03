@@ -359,7 +359,9 @@ Each human needs a steakOS user (password invite), then **Security → Link brow
 ## Honesty
 
 - DEMO companies do not publish  
-- Publish path may still be a stub until JVM WebSocket lands — Integrations shows status honestly  
+- Level ≥ 1 LIVE with company bot `nsec` (Admin API): real **EVENT** to the local relay with **NIP-42 AUTH** (JDK WebSocket + secp256k1 — not nostr-java)  
+- Without bot key: intent is recorded and status stays honest (`stubbed`)  
+- Level 2 **giftwrap** notify (NIP-17) is still residual — `publishNotifyStub` only  
 
 Scripts: `scripts/install/nostr/install-nostr-relay.sh` · QUICKSTART §3b · OPERATOR-RUNBOOK.'''],
             [key: 'sales.desk', title: 'Sales desk', route: '/sales', family: 'sales',
@@ -489,14 +491,16 @@ For **live Bitcoin receive**, see **Live payments (BTCPay)** (Finance → Paymen
             [key: 'finance.postingRules', title: 'Posting rules (auto journals)', route: '/finance/posting-rules', family: 'finance',
              body: '''# Posting rules
 
-steakOS posts balanced journals when money moves — **invoice settle**, **vendor pay**, and **payroll recognize / pay** — using a **company ruleset** (not hardcoded accounts).
+steakOS posts balanced journals when money moves — **invoice settle**, **vendor pay**, and **payroll recognize / pay** — using a **company ruleset** (not hardcoded accounts). Under **Accrual**, **invoice issue** and **payable create/approve** also post.
 
 ## Accounting mode
 
 | Mode | Meaning |
 |------|---------|
 | **Cash** (default / restaurant) | Books update when paid |
-| **Accrual** | Pack includes issue/create stub rules; payment still posts. Issue/create hooks are not fully wired yet |
+| **Accrual** | On **issue**: Dr AR / Cr Revenue; on **settle**: Dr Cash / Cr AR. On **payable open**: Dr Expense / Cr AP; on **pay**: Dr AP / Cr Cash |
+
+Choose mode in the **setup Finance books** step or here. Settle/pay under Accrual clear AR/AP — they do not double-count revenue/expense.
 
 ## Who can change what
 
@@ -923,16 +927,17 @@ On **Customer** and **Vendor** masters, set **Communication language** (e.g. Ger
 ## What it controls
 
 - **PDF labels** on quotes, orders, purchase orders, and invoices to that partner
+- **Email** subject and body to that partner when messaging is enabled (same language)
 - Draft previews follow the live setting; after send / confirm / issue the document **freezes** its language
 
 ## Defaults
 
-Leave blank to use **English (en_US)** for outbound docs. This is separate from your screen language in Settings.
+Leave blank to use **English (en_US)** for outbound docs and email. This is separate from your screen language in Settings.
 
 ## Honest limits (v1)
 
 - Catalogue item descriptions are not dual-language yet
-- Email / Nostr partner templates use the same resolver when those channels ship'''],
+- **Nostr partner DMs** still residual (PL-TR4 giftwrap) — email uses partner locale today'''],
 
             // OI-F23 / L14 — German VAT operator help
             [key: 'help.tax.ust', title: 'German VAT (USt) tax codes', route: '/settings', family: 'finance',
@@ -2097,16 +2102,17 @@ Am **Kunden**- und **Lieferanten**-Stamm **Kommunikationssprache** setzen (z. B.
 ## Was sie steuert
 
 - **PDF-Beschriftungen** auf Angeboten, Aufträgen, Bestellungen und Rechnungen an diesen Partner
+- **E-Mail**-Betreff und -Text an diesen Partner, wenn Messaging aktiviert ist (gleiche Sprache)
 - Entwurfsvorschauen folgen der Live-Einstellung; nach Senden / Bestätigen / Ausstellen **friert** der Beleg die Sprache ein
 
 ## Vorgaben
 
-Leer lassen → **Englisch (en_US)** für ausgehende Belege. Das ist getrennt von Ihrer Bildschirmsprache unter **Einstellungen**.
+Leer lassen → **Englisch (en_US)** für ausgehende Belege und E-Mail. Das ist getrennt von Ihrer Bildschirmsprache unter **Einstellungen**.
 
 ## Ehrliche Grenzen (v1)
 
 - Katalogbeschreibungen sind noch nicht zweisprachig
-- E-Mail- / Nostr-Partner-Vorlagen nutzen denselben Resolver, sobald diese Kanäle ausgeliefert sind''',
+- **Nostr-Partner-DMs** noch Residual (PL-TR4 Giftwrap) — E-Mail nutzt heute die Partnersprache''',
             'help.tax.ust': '''# Deutsche USt-Steuercodes
 
 steakOS liefert ein **DE/AT-Steuercode-Paket**. Codes unter **System → Einstellungen → Verwendete Steuercodes** aktivieren, dann auf Angebots-/Auftrags-/Bestellpositionen wählen.
@@ -2164,14 +2170,16 @@ Steuercodes **DE_RC** / **AT_RC** (Reverse Charge) oder **DE_IG** / **AT_IG** (I
 
             'finance.postingRules': '''# Buchungsregeln
 
-steakOS bucht ausgeglichene Journale bei Geldbewegungen — **Rechnung begleichen**, **Lieferant zahlen** und **Lohn erkennen / zahlen** — über ein **Firmen-Regelsatz** (keine hartcodierten Konten).
+steakOS bucht ausgeglichene Journale bei Geldbewegungen — **Rechnung begleichen**, **Lieferant zahlen** und **Lohn erkennen / zahlen** — über ein **Firmen-Regelsatz** (keine hartcodierten Konten). Unter **Accrual** buchen auch **Rechnungsausgabe** und **Verbindlichkeit anlegen/freigeben**.
 
 ## Buchungsmodus
 
 | Modus | Bedeutung |
 |-------|-----------|
 | **Cash** (Standard / Restaurant) | Bücher bei Zahlung |
-| **Accrual** | Pack enthält Issue/Create-Stub-Regeln; Zahlung bucht weiterhin. Issue/Create-Hooks noch nicht voll verdrahtet |
+| **Accrual** | Bei **Ausgabe**: Soll AR / Haben Erlös; bei **Begleichen**: Soll Cash / Haben AR. Bei **Verbindlichkeit offen**: Soll Aufwand / Haben AP; bei **Zahlen**: Soll AP / Haben Cash |
+
+Modus im Setup-Schritt **Finanzbücher** oder hier wählen. Begleichen/Zahlen unter Accrual lösen AR/AP auf — kein doppelter Erlös/Aufwand.
 
 ## Wer darf was
 
@@ -2609,16 +2617,17 @@ En los maestros **Cliente** y **Proveedor**, fije el **Idioma de comunicación**
 ## Qué controla
 
 - **Etiquetas PDF** en ofertas, pedidos, órdenes de compra y facturas a ese socio
+- **Correo** asunto y cuerpo a ese socio cuando el mensajería está activado (mismo idioma)
 - Las vistas previas de borrador siguen el ajuste en vivo; tras enviar / confirmar / emitir el documento **congela** su idioma
 
 ## Valores por defecto
 
-Déjelo en blanco para usar **inglés (en_US)** en documentos salientes. Es independiente del idioma de pantalla en **Configuración**.
+Déjelo en blanco para usar **inglés (en_US)** en documentos y correo salientes. Es independiente del idioma de pantalla en **Configuración**.
 
 ## Límites honestos (v1)
 
 - Las descripciones de catálogo aún no son bilingües
-- Las plantillas de correo / Nostr usan el mismo resolvedor cuando esos canales se entreguen''',
+- Los **DM Nostr al socio** siguen residuales (PL-TR4 giftwrap) — el correo ya usa el idioma del socio''',
             'help.roles.overview': '''# Roles para un equipo pequeño
 
 steakOS está pensado para una **empresa pequeña** (unas 2–5 personas). Asigne a cada persona un **perfil de rol** (Office, Ops, Finance…). Los roles aportan **valores por defecto** sobre qué escritorios se ven y qué se puede cambiar.

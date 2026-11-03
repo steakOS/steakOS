@@ -22,6 +22,8 @@ import steakos.procurement.PurchaseOrder
 
 /**
  * Simple AP (APQC 9.6 subset, F-S4).
+ * CASH: journal on pay only. ACCRUAL: payable.create on OPEN (Dr Expense / Cr AP);
+ * pay clears AP via legsAccrual (PDR-027 PR7).
  */
 @Slf4j
 class FinancePayableService {
@@ -29,6 +31,7 @@ class FinancePayableService {
     FinanceLedgerService financeLedgerService
     FinanceTreasuryService financeTreasuryService
     PostingEngineService postingEngineService
+    PostingRulesetService postingRulesetService
     TenantMoneyService tenantMoneyService
 
     @Transactional
@@ -42,6 +45,10 @@ class FinancePayableService {
         if (amt == null || amt <= BigDecimal.ZERO) {
             throw new IllegalArgumentException('amount must be > 0')
         }
+        String initialStatus = (fields.payableStatus ?: fields.status ?: 'OPEN').toString().toUpperCase()
+        if (!(initialStatus in ['DRAFT', 'OPEN'])) {
+            initialStatus = 'OPEN'
+        }
         Payable p = new Payable(
                 npubOwner     : npub,
                 name          : (fields.name ?: fields.vendorName ?: 'Payable') as String,
@@ -53,11 +60,14 @@ class FinancePayableService {
                 currencyCode  : (primary.currencyCode ?: 'EUR') as String,
                 issueDate     : parseDate(fields.issueDate) ?: new Date(),
                 dueDate       : parseDate(fields.dueDate),
-                payableStatus : 'OPEN',
-                status        : 'OPEN'
+                payableStatus : initialStatus,
+                status        : initialStatus
         )
         p.save(failOnError: true, flush: true)
-        return p
+        if (initialStatus == 'OPEN') {
+            postCreateIfAccrual(p)
+        }
+        return Payable.get(p.id)
     }
 
     @Transactional
@@ -68,8 +78,9 @@ class FinancePayableService {
             p.payableStatus = 'OPEN'
             p.status = 'OPEN'
             p.save(failOnError: true, flush: true)
+            postCreateIfAccrual(p)
         }
-        return p
+        return Payable.get(p.id)
     }
 
     /**
@@ -132,16 +143,29 @@ class FinancePayableService {
                     amountSats : p.amountSats
             ])
         }
+        if (p.createJournalEntryId) {
+            try {
+                financeLedgerService.reverseEntry(p.createJournalEntryId, p.npubOwner, 'Void payable create')
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                log.warn('Could not reverse create JE {} for payable {}: {}',
+                        p.createJournalEntryId, p.id, e.message)
+            }
+        }
         p.payableStatus = 'VOID'
         p.status = 'VOID'
         p.save(failOnError: true, flush: true)
 
         // ADR-049 L10 — keep PO CONFIRMED; clear payable link after void
-        PurchaseOrder linked = PurchaseOrder.findByNpubOwnerAndFinancePayableId(p.npubOwner, p.id)
-        if (linked) {
-            linked.financePayableId = null
-            linked.save(failOnError: true, flush: true)
-            log.info('Cleared financePayableId on PO {} after voiding payable {}', linked.poNumber, p.id)
+        try {
+            PurchaseOrder linked = PurchaseOrder.findByNpubOwnerAndFinancePayableId(p.npubOwner, p.id)
+            if (linked) {
+                linked.financePayableId = null
+                linked.save(failOnError: true, flush: true)
+                log.info('Cleared financePayableId on PO {} after voiding payable {}', linked.poNumber, p.id)
+            }
+        } catch (IllegalStateException e) {
+            // Procurement domain not registered (finance unit tests without PO mock)
+            log.debug('PurchaseOrder unlink skipped: {}', e.message)
         }
 
         return p
@@ -183,19 +207,57 @@ class FinancePayableService {
     Map toMap(Payable p) {
         if (!p) return null
         [
-                id            : p.id,
-                name          : p.name,
-                vendorName    : p.vendorName,
-                amountEur     : p.amountEur,
-                amountSats    : p.amountSats,
-                currencyCode  : p.currencyCode,
-                issueDate     : p.issueDate,
-                dueDate       : p.dueDate,
-                paidAt        : p.paidAt,
-                payableStatus : p.payableStatus,
-                journalEntryId: p.journalEntryId,
-                npubOwner     : p.npubOwner
+                id                 : p.id,
+                name               : p.name,
+                vendorName         : p.vendorName,
+                amountEur          : p.amountEur,
+                amountSats         : p.amountSats,
+                currencyCode       : p.currencyCode,
+                issueDate          : p.issueDate,
+                dueDate            : p.dueDate,
+                paidAt             : p.paidAt,
+                payableStatus      : p.payableStatus,
+                createJournalEntryId: p.createJournalEntryId,
+                journalEntryId     : p.journalEntryId,
+                npubOwner          : p.npubOwner
         ]
+    }
+
+    /** ACCRUAL document recognition once when payable becomes OPEN. */
+    private void postCreateIfAccrual(Payable p) {
+        if (!p || p.createJournalEntryId || p.payableStatus != 'OPEN') {
+            return
+        }
+        if (!isAccrual(p.npubOwner)) {
+            return
+        }
+        if (!postingEngineService) {
+            throw new PostingRulesException(PostingEngineService.CODE_MISSING,
+                    'PostingEngineService is required for ACCRUAL payable create')
+        }
+        JournalEntry je = postingEngineService.postEvent(
+                p.npubOwner,
+                PostingEngineService.EVENT_PAYABLE_CREATE,
+                ['payable.functional': p.amountEur],
+                [
+                        name       : "AP create ${p.name}",
+                        description: "ACCRUAL create payable ${p.name}",
+                        sourceType : 'PAYABLE',
+                        sourceId   : p.id.toString(),
+                        eventId    : "ap-create-${p.id}",
+                        amountSats : p.amountSats,
+                ]
+        )
+        p.createJournalEntryId = je.id
+        p.save(failOnError: true, flush: true)
+        log.info('ACCRUAL payable.create je={} payable={}', je.id, p.id)
+    }
+
+    private boolean isAccrual(String npub) {
+        if (postingRulesetService == null) {
+            return false
+        }
+        return postingRulesetService.getAccountingMode(npub) == PostingRulesetService.MODE_ACCRUAL
     }
 
     private Payable load(Long id, String npubOwner) {

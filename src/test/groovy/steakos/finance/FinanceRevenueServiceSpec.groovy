@@ -16,10 +16,13 @@
 package steakos.finance
 
 import grails.testing.gorm.DataTest
+import steakos.configuration.CompanyConfigService
+import steakos.configuration.CompanySetting
 import spock.lang.Specification
 
 /**
  * F-S2 revenue: create → issue → settle (cash post) → void.
+ * PR7: CASH issue has no JE; ACCRUAL issue posts AR/revenue; settle clears AR.
  */
 class FinanceRevenueServiceSpec extends Specification implements DataTest {
 
@@ -29,14 +32,19 @@ class FinanceRevenueServiceSpec extends Specification implements DataTest {
     FinanceRevenueService service
 
     Class[] getDomainClassesToMock() {
-        [Account, JournalEntry, JournalLine, Invoice, Payment, PaymentOption] as Class[]
+        [Account, JournalEntry, JournalLine, Invoice, Payment, PaymentOption, CompanySetting] as Class[]
     }
 
     def setup() {
         ledger = new FinanceLedgerService()
-        rulesetService = new PostingRulesetService(financeLedgerService: ledger)
+        rulesetService = new PostingRulesetService(
+                companyConfigService: new CompanyConfigService(),
+                financeLedgerService: ledger)
         engine = new PostingEngineService(postingRulesetService: rulesetService, financeLedgerService: ledger)
-        service = new FinanceRevenueService(financeLedgerService: ledger, postingEngineService: engine)
+        service = new FinanceRevenueService(
+                financeLedgerService: ledger,
+                postingEngineService: engine,
+                postingRulesetService: rulesetService)
     }
 
     def "create and issue with default rails"() {
@@ -52,6 +60,69 @@ class FinanceRevenueServiceSpec extends Specification implements DataTest {
         inv.invoiceStatus == 'ISSUED'
         inv.invoiceNumber
         PaymentOption.countByInvoice(inv) == 3
+        !inv.issueJournalEntryId
+    }
+
+    def "CASH issue does not post invoice.issue journal"() {
+        given:
+        rulesetService.ensureSeeded('npub-cash-iss')
+        rulesetService.saveAccountingMode('npub-cash-iss', PostingRulesetService.MODE_CASH)
+
+        when:
+        Invoice inv = service.createInvoice('npub-cash-iss', [amountEur: 40G, customerName: 'CashCo'])
+        inv = service.issueInvoice(inv.id, 'npub-cash-iss')
+
+        then:
+        inv.invoiceStatus == 'ISSUED'
+        !inv.issueJournalEntryId
+        JournalEntry.countByNpubOwnerAndSourceType('npub-cash-iss', 'INVOICE') == 0
+    }
+
+    def "ACCRUAL issue posts Dr AR Cr revenue; settle clears AR"() {
+        given:
+        rulesetService.ensureSeeded('npub-acc-iss')
+        rulesetService.saveAccountingMode('npub-acc-iss', PostingRulesetService.MODE_ACCRUAL)
+
+        when:
+        Invoice inv = service.createInvoice('npub-acc-iss', [amountEur: 60G, customerName: 'AccCo'])
+        inv = service.issueInvoice(inv.id, 'npub-acc-iss')
+
+        then:
+        inv.issueJournalEntryId
+        JournalLine.findAllByJournalEntry(JournalEntry.get(inv.issueJournalEntryId))
+                .any { it.account.code == '1100' && it.debitEur == 60G }
+        JournalLine.findAllByJournalEntry(JournalEntry.get(inv.issueJournalEntryId))
+                .any { it.account.code == '4000' && it.creditEur == 60G }
+
+        when:
+        Map result = service.recordSettlement(inv.id, 'npub-acc-iss', [
+                rail   : 'SEPA',
+                eventId: 'acc-settle-1'
+        ])
+
+        then:
+        result.journalEntryId
+        JournalLine.findAllByJournalEntry(JournalEntry.get(result.journalEntryId as Long))
+                .any { it.account.code == '1100' && it.creditEur == 60G }
+        !JournalLine.findAllByJournalEntry(JournalEntry.get(result.journalEntryId as Long))
+                .any { it.account.code == '4000' }
+    }
+
+    def "ACCRUAL void reverses issue journal"() {
+        given:
+        rulesetService.ensureSeeded('npub-acc-void')
+        rulesetService.saveAccountingMode('npub-acc-void', PostingRulesetService.MODE_ACCRUAL)
+        Invoice inv = service.createInvoice('npub-acc-void', [amountEur: 25G])
+        inv = service.issueInvoice(inv.id, 'npub-acc-void')
+        Long issueJe = inv.issueJournalEntryId
+
+        when:
+        Invoice voided = service.voidInvoice(inv.id, 'npub-acc-void', 'cancel')
+
+        then:
+        voided.invoiceStatus == 'VOID'
+        issueJe
+        JournalEntry.findAllByNpubOwner('npub-acc-void').any { it.reversesEntryId == issueJe }
     }
 
     def "settle posts Dr wallet Cr revenue and marks PAID"() {

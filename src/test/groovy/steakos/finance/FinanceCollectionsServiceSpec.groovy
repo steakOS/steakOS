@@ -20,6 +20,7 @@ import spock.lang.Specification
 import steakos.events.DomainEvent
 import steakos.events.DomainEventBusService
 import steakos.events.DomainEventNames
+import steakos.sales.Customer
 
 /**
  * FinanceAdvanced PR-5a — overdue queue + promise/activity over Invoice AR.
@@ -31,7 +32,7 @@ class FinanceCollectionsServiceSpec extends Specification implements DataTest {
     List<DomainEvent> published
 
     Class[] getDomainClassesToMock() {
-        [Invoice, Payment, CollectionActivity] as Class[]
+        [Invoice, Payment, CollectionActivity, Customer] as Class[]
     }
 
     def setup() {
@@ -195,6 +196,32 @@ class FinanceCollectionsServiceSpec extends Specification implements DataTest {
         published.size() == 1
         published[0].name == DomainEventNames.FINANCE_INVOICE_OVERDUE
         published[0].payload.invoiceId == inv.id
+    }
+
+    def "REMINDER overdue payload includes customerId and partner email"() {
+        given:
+        Customer c = new Customer(
+                npubOwner: 'npub1e',
+                name: 'Acme Billing',
+                email: 'ar@acme.example',
+                currencyCode: 'EUR'
+        ).save(failOnError: true, flush: true)
+        Invoice inv = issued('npub1e', [
+                dueDate      : daysAgo(3),
+                amountEur    : 70G,
+                customerId   : c.id,
+                customerName : c.name
+        ])
+
+        when:
+        service.recordActivity('npub1e', inv.id, [kind: 'REMINDER', channel: 'EMAIL'])
+
+        then:
+        published.size() == 1
+        published[0].payload.customerId == c.id
+        published[0].payload.customerName == 'Acme Billing'
+        published[0].payload.email == 'ar@acme.example'
+        published[0].payload.to == 'ar@acme.example'
     }
 
     def "updatePromiseStatus KEPT"() {

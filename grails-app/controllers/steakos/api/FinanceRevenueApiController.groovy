@@ -135,6 +135,10 @@ class FinanceRevenueApiController {
 
     /** POST /api/finance/revenue/invoices/$id/settle */
     def settle() {
+        if (isAgentPrincipal()) {
+            render(status: 403, text: ([error: 'Agents cannot settle or pay money', code: 'AGENT_MONEY_DENIED'] as JSON))
+            return
+        }
         try {
             Map body = (request.JSON as Map) ?: [:]
             String npub = resolveNpub(body)
@@ -182,5 +186,10 @@ class FinanceRevenueApiController {
 
     private String resolveNpub(Object source) {
         tenantNpubService.resolve(session, source)
+    }
+
+    /** ROLE_AI without admin/C — agents must not settle (HITL + human settle). */
+    private boolean isAgentPrincipal() {
+        steakos.security.AgentPrincipal.isAgentOnly(springSecurityService?.authentication)
     }
 }

@@ -23,6 +23,7 @@ import KpiRing from '../components/KpiRing'
 import EisenhowerMini from '../components/EisenhowerMini'
 import { primaryRoleLabel } from '../utils/humanize'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+import { domainResourceLabel } from '../utils/domainLabels'
 
 function formatDeadline(iso) {
   if (!iso) return null
@@ -46,6 +47,7 @@ function isOverdue(iso, status) {
 
 export default function DashboardCeo() {
   const { t } = useTranslation('common')
+  const { t: tDomain } = useTranslation('domain')
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -245,7 +247,7 @@ export default function DashboardCeo() {
               </div>
               {(g.metrics || []).slice(0, 3).map((m) => (
                 <div className="metric-row" key={m.key}>
-                  <span>{m.label}</span>
+                  <span>{domainResourceLabel(tDomain, g.package, m.key || m.label)}</span>
                   <strong>{m.value}</strong>
                 </div>
               ))}

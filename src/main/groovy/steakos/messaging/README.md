@@ -11,6 +11,8 @@ WhatsApp / WeChat are Gold — out of scope here.
 | `EmailSmtpSender` | SMTP adapter; no-op when `messaging.emailEnabled` is false |
 | `TelegramBotSender` | Telegram Bot API adapter; no-op when `messaging.telegramEnabled` is false |
 | `MessagingOutboundService` | Façade + domain-event triggers → outbound; publishes `messaging.outbound.sent` |
+| `PartnerOutboundMessageService` | OI-I18N02 PR4a — partner-locale email subject/body (+ `to` from Customer/Vendor) |
+| `MessagingMessageBundle` | EN/DE packs under `steakos/messaging/messages_*.properties` |
 | `*Transport` / `Recording*` | Pluggable delivery; recording stubs for unit tests |
 
 ## CompanySetting keys (PR-3)

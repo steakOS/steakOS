@@ -407,7 +407,11 @@ export default function RolesPage() {
                   style={{ width: '100%', justifyContent: 'space-between' }}
                   onClick={() => selectProfile(p.profileId)}
                 >
-                  <span>{p.label}</span>
+                  <span>
+                    {t(`pages.roles.profileLabels.${p.profileId}`, {
+                      defaultValue: p.label,
+                    })}
+                  </span>
                   <span className="muted" style={{ fontSize: 12 }}>
                     {t('pages.roles.userCount', {
                       count: p.userCount ?? 0,

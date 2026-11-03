@@ -8,6 +8,7 @@
     "nostr": "Nostr",
     "template": "Größe wählen",
     "families": "Was Sie nutzen",
+    "books": "Finanzbücher",
     "accounts": "Konten & Authenticator",
     "summary": "Prüfen & abschließen"
   },
@@ -154,6 +155,18 @@
     "blurbSilver": "Festes Paket für {{tier}}: Bronze-Desks plus Governance und Stakeholder. Tiefe und Messaging darunter.",
     "seedCoa": "Starter-Kontenplan seed (empfohlen)",
     "seedDemo": "Demodaten laden (Beispielkunden, Lieferant, Katalogartikel, Aufgabe)"
+  },
+  "books": {
+    "title": "Finanzbücher",
+    "blurb": "Wenn Geld fließt, bucht steakOS passende Journalbuchungen. Wählen Sie Cash (empfohlen für die meisten Kleinbetriebe) oder Accrual. Später änderbar unter Finanzen → Buchungsregeln (Admin).",
+    "accountingMode": "Buchungsmodus",
+    "modeCash": "Cash (empfohlen) — Bücher bei Zahlung",
+    "modeAccrual": "Accrual — Bücher bei Rechnungsausgabe / Verbindlichkeit und erneut bei Zahlung",
+    "modeCashShort": "Cash",
+    "modeAccrualShort": "Accrual",
+    "cashHint": "Cash bucht Erlöse/Aufwand wenn der Kunde zahlt oder Sie einen Lieferanten zahlen. Lohn erkennen + zahlen bleiben zwei Journale.",
+    "accrualHint": "Accrual bucht Forderungen/Verbindlichkeiten bei Ausgabe bzw. Öffnen und löst sie bei Zahlung auf (kein doppelter Erlös/Aufwand).",
+    "seedCoa": "Kontenplan + Buchungsregeln seed (empfohlen)"
   },
   "silverOptions": {
     "title": "Silver-Paketoptionen",

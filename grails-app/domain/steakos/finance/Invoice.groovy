@@ -89,6 +89,9 @@ class Invoice implements NpubOwned, AccessControl, Classifiable, Attachable,
 
 	String referenceText
 
+	/** ACCRUAL invoice.issue journal (Dr AR / Cr Revenue). Null on CASH. */
+	Long issueJournalEntryId
+
 	static hasMany = [paymentOptions: PaymentOption, payments: Payment]
 
 	static constraints = {
@@ -122,6 +125,7 @@ class Invoice implements NpubOwned, AccessControl, Classifiable, Attachable,
 		recurring nullable: true
 		settledAt nullable: true
 		referenceText nullable: true, maxSize: 2000
+		issueJournalEntryId nullable: true
 	}
 
 	static mapping = {

@@ -996,7 +996,16 @@
       "confirmApply": "Apply current Spring roles from «{{label}}» to all {{count}} user(s) on this profile? (R6)",
       "applied": "Applied to {{count}} user(s)",
       "helpHintBefore": "Press",
-      "helpHintAfter": "for Roles help (presets, matrix, safety)"
+      "helpHintAfter": "for Roles help (presets, matrix, safety)",
+      "profileLabels": {
+        "admin": "Admin",
+        "ceo": "CEO",
+        "office": "Office",
+        "ops": "Ops",
+        "finance": "Finance",
+        "user": "User",
+        "read_only": "Read only"
+      }
     }
   },
   "ph": {

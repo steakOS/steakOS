@@ -19,6 +19,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.events.DomainEventBusService
 import steakos.events.DomainEventNames
+import steakos.sales.Customer
 
 /**
  * FinanceAdvanced collections queue over existing Invoice / AR (APQC 9.2.4).
@@ -168,17 +169,30 @@ class FinanceCollectionsService {
 
         if (kind == 'REMINDER' && domainEventBusService != null) {
             try {
+                Map overduePayload = [
+                        invoiceId     : inv.id,
+                        invoiceNumber : inv.invoiceNumber,
+                        amountOpenEur : amountOpenEur(inv),
+                        dueDate       : inv.dueDate,
+                        activityId    : act.id,
+                        customerId    : inv.customerId,
+                        customerName  : inv.customerName,
+                        currencyCode  : inv.currencyCode
+                ]
+                // PL-TR3 — partner email for MessagingOutbound when messaging enabled
+                if (inv.customerId) {
+                    Customer c = Customer.get(inv.customerId as Long)
+                    String partnerEmail = c?.email?.toString()?.trim()
+                    if (partnerEmail) {
+                        overduePayload.email = partnerEmail
+                        overduePayload.to = partnerEmail
+                    }
+                }
                 domainEventBusService.publish(
                         DomainEventNames.FINANCE_INVOICE_OVERDUE,
                         'finance.collections',
                         npub,
-                        [
-                                invoiceId     : inv.id,
-                                invoiceNumber : inv.invoiceNumber,
-                                amountOpenEur : amountOpenEur(inv),
-                                dueDate       : inv.dueDate,
-                                activityId    : act.id
-                        ]
+                        overduePayload
                 )
             } catch (Exception e) {
                 log.warn('finance.invoice.overdue publish failed: {}', e.message)

@@ -8,6 +8,7 @@
     "nostr": "Nostr",
     "template": "Choose your size",
     "families": "What you will use",
+    "books": "Finance books",
     "accounts": "Accounts & authenticator",
     "summary": "Review & finish"
   },
@@ -189,6 +190,18 @@
     "blurbSilver": "Fixed pack for {{tier}}: Bronze desks plus Governance and Stakeholder. Depth and messaging options below.",
     "seedCoa": "Seed a starter chart of accounts (recommended)",
     "seedDemo": "Load demo data (sample customers, vendor, catalogue items, task)"
+  },
+  "books": {
+    "title": "Finance books",
+    "blurb": "When money moves, steakOS posts matching ledger entries. Choose cash (recommended for most small businesses) or accrual. You can change this later under Finance → Posting rules (Admin).",
+    "accountingMode": "Accounting mode",
+    "modeCash": "Cash (recommended) — books update when paid",
+    "modeAccrual": "Accrual — books update on invoice issue / payable open, and again when paid",
+    "modeCashShort": "Cash",
+    "modeAccrualShort": "Accrual",
+    "cashHint": "Cash posts revenue/expense when the customer pays or you pay a vendor. Payroll recognize + pay still use two journals.",
+    "accrualHint": "Accrual posts AR/AP when you issue an invoice or open a payable, then clears them on payment (no double revenue/expense).",
+    "seedCoa": "Seed chart of accounts + posting rules (recommended)"
   },
   "silverOptions": {
     "title": "Silver pack options",

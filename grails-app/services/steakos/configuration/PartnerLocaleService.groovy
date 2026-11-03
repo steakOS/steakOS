@@ -25,8 +25,9 @@ import steakos.sales.CustomerQuote
 import steakos.sales.SalesOrder
 
 /**
- * OI-I18N02 — resolve partner communication locale for outbound PDFs (and later email/Nostr).
- * Never uses operator UI locale. Fallback {@link #FALLBACK} (en_US).
+ * OI-I18N02 — resolve partner communication locale for outbound PDFs and email (PR4a).
+ * Nostr partner DMs remain residual (PL-TR4 giftwrap). Never uses operator UI locale.
+ * Fallback {@link #FALLBACK} (en_US).
  */
 @Transactional
 class PartnerLocaleService {

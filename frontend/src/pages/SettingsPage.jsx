@@ -1080,7 +1080,7 @@ export default function SettingsPage() {
                 ? t('actions.loading')
                 : t('pages.settings.savePackOptions', { defaultValue: 'Save pack options' })}
             </button>
-            <Link to="/integrations" className="btn btn-ghost">
+            <Link to="/system/integrations" className="btn btn-ghost">
               {t('pages.settings.openIntegrations', { defaultValue: 'Open Integrations' })}
             </Link>
           </div>

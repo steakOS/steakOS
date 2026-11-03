@@ -218,7 +218,9 @@ export default function UsersAdminPage() {
             >
               {profiles.map((p) => (
                 <option key={p.profileId} value={p.profileId}>
-                  {p.label}
+                  {t(`pages.roles.profileLabels.${p.profileId}`, {
+                    defaultValue: p.label,
+                  })}
                 </option>
               ))}
             </select>
@@ -261,7 +263,9 @@ export default function UsersAdminPage() {
                   >
                     {profiles.map((p) => (
                       <option key={p.profileId} value={p.profileId}>
-                        {p.label}
+                        {t(`pages.roles.profileLabels.${p.profileId}`, {
+                          defaultValue: p.label,
+                        })}
                       </option>
                     ))}
                     {u.roleProfileId &&

@@ -996,7 +996,16 @@
       "confirmApply": "¿Aplicar los roles de Spring actuales de «{{label}}» a todos los {{count}} usuarios en este perfil? (R6)",
       "applied": "Aplicado a {{count}} usuario(s)",
       "helpHintBefore": "Prensa",
-      "helpHintAfter": "para ayuda de roles (presets, matriz, seguridad)"
+      "helpHintAfter": "para ayuda de roles (presets, matriz, seguridad)",
+      "profileLabels": {
+        "admin": "Admin",
+        "ceo": "CEO",
+        "office": "Office",
+        "ops": "Ops",
+        "finance": "Finance",
+        "user": "Usuario",
+        "read_only": "Solo lectura"
+      }
     }
   },
   "ph": {

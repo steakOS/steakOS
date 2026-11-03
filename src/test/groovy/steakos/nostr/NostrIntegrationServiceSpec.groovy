@@ -148,7 +148,43 @@ class NostrIntegrationServiceSpec extends Specification implements DataTest {
         r.status == 'stubbed'
         r.nostrEventId
         r.residual
+        r.residual.toLowerCase().contains('companybotnsec') || r.reason.toLowerCase().contains('bot nsec')
         publish.lastIntent('npub-nostr-stub').status == 'stubbed'
+    }
+
+    def "Level 1 LIVE with bot nsec publishes via injected relay client"() {
+        given:
+        live('npub-nostr-real')
+        service.applyFromWizard('npub-nostr-real', [nostrIntegrationLevel: '1'], 'admin')
+        // Store plain hex as sealed value when FieldEncryptionService absent
+        configs.put('npub-nostr-real', NostrIntegrationService.KEY_BOT_NSEC,
+                '67dea2ed018072d675f5415ecfaed7d2597555e202d85b3d65ea4e58d2d92ffa', 'nostr', 'string')
+        NostrRelayWsClient mockClient = Mock(NostrRelayWsClient)
+        publish.nostrRelayWsClient = mockClient
+
+        when:
+        Map r = publish.publishAuditEvent('npub-nostr-real', 'invoice.settle INV-9')
+
+        then:
+        1 * mockClient.publishEvent('ws://127.0.0.1:7777', _ as String, _ as Map) >> [
+                ok: true, eventId: 'a' * 64, authenticated: true, detail: ''
+        ]
+        r.status == 'published'
+        r.nostrEventId == 'a' * 64
+        publish.lastIntent('npub-nostr-real').status == 'published'
+    }
+
+    def "publishNotifyStub remains giftwrap residual"() {
+        given:
+        live('npub-nostr-notify')
+        service.applyFromWizard('npub-nostr-notify', [nostrIntegrationLevel: '2'], 'admin')
+
+        when:
+        Map r = publish.publishNotifyStub('npub-nostr-notify', 'ping')
+
+        then:
+        r.notifyResidual?.toLowerCase()?.contains('giftwrap')
+        r.status == 'stubbed' // no bot key
     }
 
     def "normalizeLevel accepts UI numbers"() {

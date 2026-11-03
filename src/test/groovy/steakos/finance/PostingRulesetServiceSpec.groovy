@@ -24,16 +24,33 @@ class PostingRulesetServiceSpec extends Specification {
         pack.events['payroll.pay'].legs.any { it.accountCode == '2200' }
     }
 
-    void 'default pack includes ACCRUAL stub events with AR/AP codes'() {
+    void 'default pack includes live ACCRUAL document events with AR/AP codes'() {
         when:
         Map pack = PostingRulesetService.defaultSbmPack()
 
         then:
-        pack.events['invoice.issue'].stub == true
+        !pack.events['invoice.issue'].stub
         pack.events['invoice.issue'].legs.any { it.accountCode == '1100' }
-        pack.events['payable.create'].stub == true
+        pack.events['invoice.issue'].legs.any { it.accountCode == '4000' }
+        !pack.events['payable.create'].stub
         pack.events['payable.create'].legs.any { it.accountCode == '2000' }
+        pack.events['payable.create'].legs.any { it.accountCode == '5000' }
+        PostingRulesetService.ACCRUAL_STUB_EVENTS.isEmpty()
+        PostingRulesetService.LIVE_EVENTS.containsAll(['invoice.issue', 'payable.create'])
         PostingRulesetService.validateStructureStatic(pack)
+    }
+
+    void 'default pack settle/pay legsAccrual clear AR/AP not revenue/expense'() {
+        when:
+        Map pack = PostingRulesetService.defaultSbmPack()
+
+        then:
+        pack.events['invoice.settle'].legs.any { it.accountCode == '4000' }
+        pack.events['invoice.settle'].legsAccrual.any { it.accountCode == '1100' }
+        !pack.events['invoice.settle'].legsAccrual.any { it.accountCode == '4000' }
+        pack.events['payable.pay'].legs.any { it.accountCode == '5000' }
+        pack.events['payable.pay'].legsAccrual.any { it.accountCode == '2000' }
+        !pack.events['payable.pay'].legsAccrual.any { it.accountCode == '5000' }
     }
 
     void 'validateStructure rejects single-leg event'() {

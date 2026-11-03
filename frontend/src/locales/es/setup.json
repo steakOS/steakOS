@@ -8,6 +8,7 @@
     "nostr": "Nostr",
     "template": "Elegir el tamaño",
     "families": "Qué va a usar",
+    "books": "Libros de finanzas",
     "accounts": "Cuentas y autenticador",
     "summary": "Revisar y finalizar"
   },
@@ -189,6 +190,18 @@
     "blurbSilver": "Paquete fijo para {{tier}}: escritorios Bronze más Gobernanza y Stakeholder. Opciones de profundidad y mensajería abajo.",
     "seedCoa": "Sembrar un plan de cuentas inicial (recomendado)",
     "seedDemo": "Cargar datos de demostración (clientes de ejemplo, proveedor, artículos de catálogo, tarea)"
+  },
+  "books": {
+    "title": "Libros de finanzas",
+    "blurb": "Cuando se mueve el dinero, steakOS registra asientos. Elija caja (recomendado para la mayoría de pymes) o devengo. Puede cambiarlo después en Finanzas → Reglas de asiento (Admin).",
+    "accountingMode": "Modo contable",
+    "modeCash": "Caja (recomendado) — libros al cobrar/pagar",
+    "modeAccrual": "Devengo — libros al emitir factura / abrir pago, y otra vez al liquidar",
+    "modeCashShort": "Caja",
+    "modeAccrualShort": "Devengo",
+    "cashHint": "Caja registra ingresos/gastos cuando el cliente paga o usted paga a un proveedor. Nómina reconocer + pagar siguen siendo dos asientos.",
+    "accrualHint": "Devengo registra CxC/CxP al emitir o abrir, y las liquida al pagar (sin duplicar ingreso/gasto).",
+    "seedCoa": "Sembrar plan de cuentas + reglas de asiento (recomendado)"
   },
   "silverOptions": {
     "title": "Opciones del paquete Silver",

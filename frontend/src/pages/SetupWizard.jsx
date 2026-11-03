@@ -31,6 +31,7 @@ const STEP_IDS = [
   'nostr', // OI-NOSTR01 — after Bitcoin (micro-decision: banking → BTC → Nostr)
   'template',
   'families',
+  'books', // OI-F30 / PDR-027 PR7 — accounting mode + COA/posting seed
   'accounts',
   'summary',
 ]
@@ -146,6 +147,8 @@ const EMPTY = {
   messaging: defaultMessagingFlags(),
   seedDemo: true,
   seedCoa: true,
+  /** PDR-027 — CASH (default) | ACCRUAL */
+  accountingMode: 'CASH',
   locale: 'en_US',
   adminPassword: '',
   ceoUsername: 'ceo',
@@ -799,6 +802,7 @@ export default function SetupWizard() {
         pluginDepth: applyDepth,
         messaging,
         seedCoa: draft.seedCoa,
+        accountingMode: draft.accountingMode || 'CASH',
       })
       const report = await setupApi.check()
       setCheck(report)
@@ -1911,14 +1915,6 @@ export default function SetupWizard() {
             <label className="setup-check">
               <input
                 type="checkbox"
-                checked={!!draft.seedCoa}
-                onChange={(e) => patch({ seedCoa: e.target.checked })}
-              />
-              {t('families.seedCoa')}
-            </label>
-            <label className="setup-check">
-              <input
-                type="checkbox"
                 checked={draft.seedDemo !== false}
                 onChange={(e) => patch({ seedDemo: e.target.checked })}
               />
@@ -1988,6 +1984,58 @@ export default function SetupWizard() {
                 )}
               </div>
             )}
+          </section>
+        )}
+
+        {STEP_IDS[step] === 'books' && (
+          <section className="setup-card">
+            <h1>{t('books.title', { defaultValue: 'Finance books' })}</h1>
+            <p>
+              {t('books.blurb', {
+                defaultValue:
+                  'When money moves, steakOS posts matching ledger entries. Choose cash (recommended for most small businesses) or accrual. You can change this later under Finance → Posting rules (Admin).',
+              })}
+            </p>
+            <label className="setup-field">
+              {t('books.accountingMode', { defaultValue: 'Accounting mode' })}
+              <select
+                value={draft.accountingMode || 'CASH'}
+                onChange={(e) => patch({ accountingMode: e.target.value })}
+              >
+                <option value="CASH">
+                  {t('books.modeCash', {
+                    defaultValue: 'Cash (recommended) — books update when paid',
+                  })}
+                </option>
+                <option value="ACCRUAL">
+                  {t('books.modeAccrual', {
+                    defaultValue:
+                      'Accrual — books update on invoice issue / payable open, and again when paid',
+                  })}
+                </option>
+              </select>
+            </label>
+            <p className="setup-tip">
+              {(draft.accountingMode || 'CASH') === 'ACCRUAL'
+                ? t('books.accrualHint', {
+                    defaultValue:
+                      'Accrual posts AR/AP when you issue an invoice or open a payable, then clears them on payment (no double revenue/expense).',
+                  })
+                : t('books.cashHint', {
+                    defaultValue:
+                      'Cash posts revenue/expense when the customer pays or you pay a vendor. Payroll recognize + pay still use two journals.',
+                  })}
+            </p>
+            <label className="setup-check">
+              <input
+                type="checkbox"
+                checked={!!draft.seedCoa}
+                onChange={(e) => patch({ seedCoa: e.target.checked })}
+              />
+              {t('books.seedCoa', {
+                defaultValue: 'Seed chart of accounts + posting rules (recommended)',
+              })}
+            </label>
           </section>
         )}
 
@@ -2213,13 +2261,19 @@ export default function SetupWizard() {
                   </dd>
                 </>
               )}
+              <dt>{t('books.title', { defaultValue: 'Finance books' })}</dt>
+              <dd>
+                {(draft.accountingMode || 'CASH') === 'ACCRUAL'
+                  ? t('books.modeAccrualShort', { defaultValue: 'Accrual' })
+                  : t('books.modeCashShort', { defaultValue: 'Cash' })}
+                {' · COA '}
+                {draft.seedCoa ? t('yes', { ns: 'common' }) : t('no', { ns: 'common' })}
+              </dd>
               <dt>Accounts</dt>
               <dd>
                 Admin 2FA {adminTotpOk ? 'on' : 'off'} · CEO ({draft.ceoUsername || 'ceo'}) 2FA{' '}
                 {ceoTotpOk ? 'on' : 'off'}
               </dd>
-              <dt>COA</dt>
-              <dd>{draft.seedCoa ? t('yes', { ns: 'common' }) : t('no', { ns: 'common' })}</dd>
               {needsHrPrivacyAck && (
                 <>
                   <dt>{t('privacy.summaryLabel', { defaultValue: 'HR privacy ack' })}</dt>
