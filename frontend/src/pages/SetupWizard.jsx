@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { authApi, meApi, nostrApi, setupApi } from '../api/client'
 import AuthAppGuide from '../components/AuthAppGuide'
@@ -149,6 +149,8 @@ const EMPTY = {
   seedCoa: true,
   /** PDR-027 — CASH (default) | ACCRUAL */
   accountingMode: 'CASH',
+  /** Bronze BR-R6 — people-data controller ack (persisted in draft so remount/TOTP does not lose it). */
+  hrPrivacyAcknowledged: false,
   locale: 'en_US',
   adminPassword: '',
   ceoUsername: 'ceo',
@@ -327,6 +329,9 @@ export default function SetupWizard() {
               ? merged.messaging
               : {}),
           }
+          merged.hrPrivacyAcknowledged = !!(
+            merged.hrPrivacyAcknowledged || prev.hrPrivacyAcknowledged
+          )
           return merged
         })
       } else {
@@ -420,7 +425,11 @@ export default function SetupWizard() {
   )
   /** Server may already have an ack from a prior run; UI still requires an explicit click each setup. */
   const hrPrivacyAlreadyAcked = !!(status?.privacy?.hrAcknowledged)
-  const [hrPrivacyChecked, setHrPrivacyChecked] = useState(false)
+  /** Draft-backed so Next/remount/TOTP cannot drop a just-checked ack (stale React state). */
+  const hrPrivacyChecked = !!draft.hrPrivacyAcknowledged
+  /** Sync flag for Finish click that races setState after checking the box. */
+  const hrPrivacyCheckedRef = useRef(hrPrivacyChecked)
+  hrPrivacyCheckedRef.current = hrPrivacyChecked
 
   const patch = (fields) => {
     setDraft((d) => {
@@ -446,18 +455,34 @@ export default function SetupWizard() {
     }))
   }
 
-  const saveDraft = async (nextStep = step) => {
+  const buildDraftPayload = (base = draft, extra = {}) => ({
+    ...base,
+    ...extra,
+    enabledFamilies: familiesForTier,
+    pluginDepth: isSilverPack
+      ? { ...pluginDepth, sales: 'ADVANCED', finance: 'ADVANCED' }
+      : pluginDepth,
+    messaging,
+  })
+
+  const saveDraft = async (nextStep = step, extra = {}) => {
     await setupApi.saveDraft({
       step: nextStep,
-      draft: {
-        ...draft,
-        enabledFamilies: familiesForTier,
-        pluginDepth: isSilverPack
-          ? { ...pluginDepth, sales: 'ADVANCED', finance: 'ADVANCED' }
-          : pluginDepth,
-        messaging,
-      },
+      draft: buildDraftPayload(draft, extra),
     })
+  }
+
+  /** Persist people-data ack into the server draft immediately (not only on Next). */
+  const setHrPrivacyChecked = (checked) => {
+    const value = !!checked
+    hrPrivacyCheckedRef.current = value
+    patch({ hrPrivacyAcknowledged: value })
+    setupApi
+      .saveDraft({
+        step,
+        draft: buildDraftPayload(draft, { hrPrivacyAcknowledged: value }),
+      })
+      .catch((e) => setError(e.message || String(e)))
   }
 
   const refreshAccountTotpFlags = useCallback(async () => {
@@ -769,7 +794,7 @@ export default function SetupWizard() {
       )
       return
     }
-    if (needsHrPrivacyAck && !hrPrivacyChecked) {
+    if (needsHrPrivacyAck && !hrPrivacyCheckedRef.current && !draft.hrPrivacyAcknowledged) {
       showErr(
         t('privacy.required', {
           defaultValue:
@@ -782,6 +807,11 @@ export default function SetupWizard() {
     setBusy(true)
     try {
       if (needsHrPrivacyAck) {
+        // Ensure draft carries the ack before apply (Finish may race checkbox setState).
+        if (!draft.hrPrivacyAcknowledged) {
+          await saveDraft(step, { hrPrivacyAcknowledged: true })
+          patch({ hrPrivacyAcknowledged: true })
+        }
         const ack = await setupApi.privacyHrAck({})
         setStatus(ack?.status || status)
       }
@@ -2285,13 +2315,39 @@ export default function SetupWizard() {
                 </>
               )}
             </dl>
-            {needsHrPrivacyAck && !hrPrivacyChecked && (
-              <p className="setup-tip" style={{ color: 'var(--danger, #b00020)' }}>
-                {t('privacy.required', {
-                  defaultValue:
-                    'Acknowledge privacy duties on the previous step (families) before finishing.',
-                })}
-              </p>
+            {needsHrPrivacyAck && (
+              <div
+                className="setup-privacy-box"
+                style={{
+                  marginTop: '1.25rem',
+                  padding: '0.85rem',
+                  border: '1px solid var(--border, #ccc)',
+                  borderRadius: 8,
+                }}
+              >
+                <h2 style={{ fontSize: '1rem', marginTop: 0 }}>
+                  {t('privacy.title', { defaultValue: 'People data & privacy' })}
+                </h2>
+                <label className="setup-check" style={{ marginTop: '0.25rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={hrPrivacyChecked}
+                    onChange={(e) => setHrPrivacyChecked(e.target.checked)}
+                  />
+                  {t('privacy.ackLabel', {
+                    defaultValue:
+                      'I understand I am the controller for people data on this instance and will configure access and retention responsibly.',
+                  })}
+                </label>
+                {!hrPrivacyChecked && (
+                  <p className="setup-tip" style={{ color: 'var(--danger, #b00020)', marginBottom: 0 }}>
+                    {t('privacy.required', {
+                      defaultValue:
+                        'Acknowledge privacy duties before enabling people (HR) data on this instance.',
+                    })}
+                  </p>
+                )}
+              </div>
             )}
             {check && !check.ok && (
               <p className="setup-tip">
@@ -2343,7 +2399,7 @@ export default function SetupWizard() {
           <button
             type="button"
             className="btn btn-primary"
-            disabled={busy}
+            disabled={busy || (needsHrPrivacyAck && !hrPrivacyChecked)}
             onClick={() => {
               finish().catch((e) => setError(e.message || String(e)))
             }}

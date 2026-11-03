@@ -228,7 +228,7 @@
     "guideLink": "Configure steakOS for privacy (guide)",
     "runbookLink": "Operator trust runbook",
     "ackLabel": "I understand I am the controller for people data on this instance and will configure access and retention responsibly.",
-    "alreadyAcked": "Privacy acknowledgement already recorded for this tenant.",
+    "alreadyAcked": "A previous acknowledgement exists on this tenant; please confirm again for this setup.",
     "required": "Acknowledge privacy duties before enabling people (HR) data on this instance.",
     "summaryLabel": "HR privacy ack"
   },
