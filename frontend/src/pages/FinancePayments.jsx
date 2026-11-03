@@ -67,7 +67,7 @@ export default function FinancePayments() {
         throw new Error(
           t('finance.needLevel3', {
             defaultValue:
-              'Set Bitcoin integration level to BTCPay (Level 3) in System → Settings before enabling live BTCPay.',
+              'Set Bitcoin integration level to BTCPay (Level 3) in System → Integrations before enabling live BTCPay.',
           }),
         )
       }
@@ -156,9 +156,11 @@ export default function FinancePayments() {
         <div className="banner-info" role="status">
           {t('finance.level1Deferred', {
             defaultValue:
-              'Bitcoin receive deferred (Level 1). Mock settle only. Upgrade the integration level under System → Settings (or re-run setup) to enable single-address or BTCPay.',
+              'Bitcoin receive deferred (Level 1). Mock settle only. Upgrade under System → Integrations to enable single-address or BTCPay.',
           })}{' '}
-          <Link to="/settings">{t('finance.openSettings', { defaultValue: 'Open Settings' })}</Link>
+          <Link to="/system/integrations">
+            {t('finance.openSettings', { defaultValue: 'Open Integrations' })}
+          </Link>
         </div>
       )}
 
@@ -171,7 +173,9 @@ export default function FinancePayments() {
           {btcLevel?.receiveAddressMasked && (
             <span className="mono"> {btcLevel.receiveAddressMasked}</span>
           )}{' '}
-          <Link to="/settings">{t('finance.upgradeLevel', { defaultValue: 'Change level' })}</Link>
+          <Link to="/system/integrations">
+            {t('finance.upgradeLevel', { defaultValue: 'Change level' })}
+          </Link>
         </div>
       )}
 

@@ -195,6 +195,8 @@ export default function App() {
             <Route path="company" element={<CompanyProfile />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="system/integrations" element={<IntegrationsPage />} />
+            {/* Legacy bookmark from Silver pack "Open Integrations" (pre-PL-TR1) */}
+            <Route path="integrations" element={<Navigate to="/system/integrations" replace />} />
             <Route path="security" element={<SecuritySettingsPage />} />
             <Route path="users" element={<UsersAdminPage />} />
             <Route path="roles" element={<RolesPage />} />
