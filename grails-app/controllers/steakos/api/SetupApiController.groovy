@@ -90,8 +90,10 @@ class SetupApiController {
             Map result = setupService.apply(resolveNpub(body), draft, currentUsername())
             render([ok: true, result: result, status: setupService.statusMap(resolveNpub(body))] as JSON)
         } catch (IllegalStateException e) {
-            String code = e.message?.contains('complete') ? 'SETUP_COMPLETE' : 'SETUP_ERROR'
-            render(status: code == 'SETUP_COMPLETE' ? 409 : 400, text: ([error: e.message, code: code] as JSON))
+            // Only "already complete" — do not match "completing" / "incomplete" substrings.
+            boolean already = (e.message ?: '').toLowerCase().contains('already complete')
+            String code = already ? 'SETUP_COMPLETE' : 'SETUP_ERROR'
+            render(status: already ? 409 : 400, text: ([error: e.message, code: code] as JSON))
         } catch (IllegalArgumentException e) {
             render(status: 400, text: ([error: e.message] as JSON))
         } catch (Exception e) {
@@ -104,7 +106,14 @@ class SetupApiController {
         try {
             Map body = (request.JSON as Map) ?: [:]
             String npub = resolveNpub(body)
-            setupService.complete(npub, currentUsername())
+            String actor = currentUsername()
+            // Commit setupComplete alone first — hooks/demo must not share that transaction.
+            setupService.complete(npub, actor)
+            try {
+                setupService.runAfterCompleteHooks(npub, actor)
+            } catch (Exception e) {
+                // non-fatal: setup is already complete
+            }
             Map demo = null
             boolean wantDemo = body.seedDemo == null || body.seedDemo == true || body.seedDemo == 'true'
             Map heard = null
@@ -133,7 +142,16 @@ class SetupApiController {
                 }
             } catch (ignored) {
             }
-            render([ok: true, status: setupService.statusMap(npub), demoSeed: demo, heardCookSeed: heard] as JSON)
+            Map status = setupService.statusMap(npub)
+            if (!status?.setupComplete) {
+                render(status: 500, text: ([
+                        error: 'Setup complete did not persist setupComplete=true',
+                        code : 'SETUP_COMPLETE_NOT_PERSISTED',
+                        status: status,
+                ] as JSON))
+                return
+            }
+            render([ok: true, status: status, demoSeed: demo, heardCookSeed: heard] as JSON)
         } catch (IllegalStateException e) {
             render(status: 400, text: ([error: e.message, code: 'SETUP_INCOMPLETE'] as JSON))
         }

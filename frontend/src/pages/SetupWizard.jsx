@@ -248,10 +248,14 @@ export default function SetupWizard() {
     }
   }, [phase, step])
 
+  const loadGenRef = useRef(0)
+
   const load = useCallback(async () => {
+    const gen = ++loadGenRef.current
     setError(null)
     try {
       const st = await setupApi.status()
+      if (gen !== loadGenRef.current) return
       if (!st || typeof st !== 'object' || !('setupComplete' in st)) {
         setError(t('errors.loginAgain', { ns: 'common' }))
         return
@@ -266,10 +270,12 @@ export default function SetupWizard() {
         return
       }
 
+      // Drop orphaned finale flags (e.g. pre-fix Finish that rolled back setupComplete).
       clearCelebration()
       setPhase('wizard')
       const open = openMetalCodes(st.tiers || [])
       const d = await setupApi.getDraft()
+      if (gen !== loadGenRef.current) return
       if (d?.draft && typeof d.draft === 'object' && Object.keys(d.draft).length) {
         setDraft((prev) => {
           const merged = { ...prev, ...d.draft }
@@ -836,20 +842,41 @@ export default function SetupWizard() {
       })
       const report = await setupApi.check()
       setCheck(report)
-      await setupApi.complete({ seedDemo: draft.seedDemo !== false })
+      const done = await setupApi.complete({ seedDemo: draft.seedDemo !== false })
+      if (!done?.status?.setupComplete) {
+        showErr(
+          t('errors.completeNotPersisted', {
+            ns: 'setup',
+            defaultValue:
+              'Server accepted Finish but setupComplete is still false. Try Finish again, or check API logs.',
+          }),
+        )
+        return
+      }
+      // Invalidate in-flight load() so a stale incomplete status cannot bounce to Review.
+      loadGenRef.current += 1
       markCelebration()
       setPhase('celebration')
-      setStatus((s) => (s ? { ...s, setupComplete: true } : { setupComplete: true }))
+      setStatus(done.status)
     } catch (e) {
       const msg = e.message || String(e)
-      // If apply/complete raced and setup is already done, still show the party
+      // Only treat genuine "already complete" as success (not "completing" / incomplete).
       if (/already complete/i.test(msg) || e?.code === 'SETUP_COMPLETE') {
-        markCelebration()
-        setPhase('celebration')
-        setError(null)
-      } else {
-        showErr(msg)
+        try {
+          const st = await setupApi.status()
+          if (st?.setupComplete) {
+            loadGenRef.current += 1
+            markCelebration()
+            setPhase('celebration')
+            setStatus(st)
+            setError(null)
+            return
+          }
+        } catch {
+          /* fall through */
+        }
       }
+      showErr(msg)
     } finally {
       setBusy(false)
     }

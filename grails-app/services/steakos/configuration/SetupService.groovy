@@ -426,6 +426,12 @@ class SetupService {
         ]
     }
 
+    /**
+     * Persist setupComplete only. Post-complete hooks (Nostr, currency, process catalogue,
+     * birth note) run via {@link #runAfterCompleteHooks} in a separate transaction so a
+     * nested failure cannot mark this transaction rollback-only and silently undo Finish
+     * (celebration ↔ Review loop).
+     */
     SetupState complete(String npubOwner, String actor) {
         String npub = resolveNpub(npubOwner)
         SetupState s = ensureState(npub)
@@ -440,7 +446,18 @@ class SetupService {
         s.setupComplete = Boolean.TRUE
         s.completedAt = new Date()
         s.completedBy = actor ?: 'admin'
-        s.save(failOnError: true)
+        s.save(flush: true, failOnError: true)
+        s
+    }
+
+    /**
+     * Best-effort work after setupComplete is committed. Must not run inside {@link #complete}
+     * (joined @Transactional callees that throw mark the outer tx rollback-only even when caught).
+     */
+    void runAfterCompleteHooks(String npubOwner, String actor) {
+        String npub = resolveNpub(npubOwner)
+        SetupState s = ensureState(npub)
+        LegalEntity le = LegalEntity.findByNpubOwner(npub)
 
         // OI-NOSTR01: dual-write setup-complete audit when Level ≥ 1 (stub-safe)
         try {
@@ -463,12 +480,12 @@ class SetupService {
                 capProcessService.seedSystemProcesses(npub)
             }
         } catch (Exception e) {
-            // non-fatal for setup completion
+            log.warn("setup after-complete process seed failed for {}: {}", npub, e.message)
         }
 
         // Birth certificate companion note
         try {
-            if (!ObjectContent.findByNpubOwnerAndHostPackageAndHostResourceAndTitle(
+            if (le && !ObjectContent.findByNpubOwnerAndHostPackageAndHostResourceAndTitle(
                     'SYSTEM', 'system', 'Tenant', "Setup complete — ${s.templateTier}")) {
                 new ObjectContent(
                         name            : "Setup ${s.templateTier}",
@@ -487,7 +504,6 @@ class SetupService {
         } catch (Exception ignored) {
             // non-fatal
         }
-        s
     }
 
     /**
