@@ -16,7 +16,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { nostrApi, financeOpsApi, meApi, agentTokenApi, setupApi } from '../api/client'
+import { agentsApi, nostrApi, financeOpsApi, meApi, agentTokenApi, setupApi } from '../api/client'
 
 const L2_WARN_DISMISS_KEY = 'steakos.btcLevel2WarnDismissed'
 
@@ -56,9 +56,13 @@ export default function IntegrationsPage() {
     }
   })
   const [agentTokens, setAgentTokens] = useState([])
-  const [agentUsername, setAgentUsername] = useState('HiveA:bookkeeper')
-  const [agentLabel, setAgentLabel] = useState('olympus primary')
-  const [agentHost, setAgentHost] = useState('olympus')
+  const [tokenHives, setTokenHives] = useState([])
+  const [tokenHiveId, setTokenHiveId] = useState('')
+  const [tokenHiveAgents, setTokenHiveAgents] = useState([])
+  const [tokenAgentId, setTokenAgentId] = useState('')
+  const [hiveAgentsBusy, setHiveAgentsBusy] = useState(false)
+  const [agentLabel, setAgentLabel] = useState('')
+  const [agentHost, setAgentHost] = useState('')
   const [mintedToken, setMintedToken] = useState(null)
   const [agentMsg, setAgentMsg] = useState(null)
 
@@ -95,10 +99,15 @@ export default function IntegrationsPage() {
         }))
       }
       try {
-        const tok = await agentTokenApi.list(false)
+        const [tok, hives] = await Promise.all([
+          agentTokenApi.list(false),
+          agentsApi.hives.list({ max: 200, offset: 0 }),
+        ])
         setAgentTokens(tok?.tokens || [])
+        setTokenHives(hives?.items || [])
       } catch {
         setAgentTokens([])
+        setTokenHives([])
       }
     } catch (e) {
       setError(e.message || String(e))
@@ -108,6 +117,38 @@ export default function IntegrationsPage() {
   useEffect(() => {
     load()
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!tokenHiveId) {
+      setTokenHiveAgents([])
+      setTokenAgentId('')
+      return undefined
+    }
+    setHiveAgentsBusy(true)
+    setTokenAgentId('')
+    agentsApi.hives
+      .members(tokenHiveId)
+      .then((r) => {
+        if (!cancelled) setTokenHiveAgents(Array.isArray(r?.items) ? r.items : [])
+      })
+      .catch(() => {
+        if (!cancelled) setTokenHiveAgents([])
+      })
+      .finally(() => {
+        if (!cancelled) setHiveAgentsBusy(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tokenHiveId])
+
+  const canMintToken =
+    !!tokenHiveId &&
+    !!tokenAgentId &&
+    !!agentLabel.trim() &&
+    !!agentHost.trim() &&
+    !hiveAgentsBusy
 
   const saveNostr = async () => {
     setBusy(true)
@@ -551,29 +592,71 @@ export default function IntegrationsPage() {
               defaultValue:
                 'Agent Basics: mint a token here, paste into your operator-owned agent host, prove a read, optionally propose for HITL. Agents do not settle money by default.',
             })}{' '}
+            <Link to="/agents/hives">{t('features.hives', { defaultValue: 'Hives' })}</Link>
+            {' · '}
             <Link to="/agents/agents">{t('features.agents', { defaultValue: 'Agents' })}</Link>
           </p>
         </div>
-        <label>
-          {t('pages.settings.agentUsername')}
-          <input
-            value={agentUsername}
-            onChange={(e) => setAgentUsername(e.target.value)}
-            placeholder="HiveA:bookkeeper"
+        <label style={{ display: 'block' }}>
+          {t('pages.settings.selectHive', { defaultValue: 'Select hive' })} *
+          <select
+            required
+            value={tokenHiveId}
+            onChange={(e) => setTokenHiveId(e.target.value)}
             style={{ display: 'block', width: '100%', marginTop: 4 }}
-          />
+          >
+            <option value="">
+              {t('pages.settings.pickHive', { defaultValue: '— select hive —' })}
+            </option>
+            {tokenHives.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+                {h.hiveStatus ? ` (${h.hiveStatus})` : ''}
+              </option>
+            ))}
+          </select>
         </label>
         <label style={{ display: 'block', marginTop: 8 }}>
-          {t('pages.settings.agentLabel')}
+          {t('pages.settings.selectHiveAgent', { defaultValue: 'Select agent in hive' })} *
+          <select
+            required
+            value={tokenAgentId}
+            disabled={!tokenHiveId || hiveAgentsBusy}
+            onChange={(e) => setTokenAgentId(e.target.value)}
+            style={{ display: 'block', width: '100%', marginTop: 4 }}
+          >
+            <option value="">
+              {!tokenHiveId
+                ? t('pages.settings.pickHiveFirst', { defaultValue: '— select a hive first —' })
+                : hiveAgentsBusy
+                  ? t('actions.loading')
+                  : tokenHiveAgents.length === 0
+                    ? t('pages.settings.noHiveAgents', {
+                        defaultValue: '— no agents assigned to this hive —',
+                      })
+                    : t('pages.settings.pickHiveAgent', { defaultValue: '— select agent —' })}
+            </option>
+            {tokenHiveAgents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+                {a.agentKey ? ` (${a.agentKey})` : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label style={{ display: 'block', marginTop: 8 }}>
+          {t('pages.settings.agentLabel')} *
           <input
+            required
             value={agentLabel}
             onChange={(e) => setAgentLabel(e.target.value)}
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
         </label>
         <label style={{ display: 'block', marginTop: 8 }}>
-          {t('pages.settings.agentHost')}
+          {t('pages.settings.agentHost')} *
           <input
+            required
             value={agentHost}
             onChange={(e) => setAgentHost(e.target.value)}
             placeholder="olympus"
@@ -584,7 +667,7 @@ export default function IntegrationsPage() {
           <button
             type="button"
             className="btn btn-primary"
-            disabled={busy || !agentUsername.trim()}
+            disabled={busy || !canMintToken}
             onClick={async () => {
               setBusy(true)
               setError(null)
@@ -592,9 +675,10 @@ export default function IntegrationsPage() {
               setMintedToken(null)
               try {
                 const r = await agentTokenApi.mint({
-                  username: agentUsername.trim(),
-                  label: agentLabel.trim() || undefined,
-                  hostLabel: agentHost.trim() || undefined,
+                  hiveId: Number(tokenHiveId),
+                  agentId: Number(tokenAgentId),
+                  label: agentLabel.trim(),
+                  hostLabel: agentHost.trim(),
                 })
                 setMintedToken(r?.result?.token || null)
                 setAgentMsg(r?.result?.warning || t('pages.settings.tokenMinted'))

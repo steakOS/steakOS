@@ -18,7 +18,7 @@ package steakos.e2e
 import steakos.e2e.support.E2eBaseSpec
 
 /**
- * D3 + D10: human session mints agent token; bearer used for L0 reads.
+ * D3 + D10: human session mints agent token for a hive member; bearer used for L0 reads.
  */
 class AgentBearerSmokeSpec extends E2eBaseSpec {
 
@@ -29,27 +29,38 @@ class AgentBearerSmokeSpec extends E2eBaseSpec {
     }
 
     def "mint agent token then GET version with Bearer"() {
-        when: 'ensure agent user + mint (admin session)'
-        Map ensure = http.postJson('/api/agent/users', [
-                username        : 'e2e.agent.bookkeeper',
-                linkedTenantKey : 'user:admin'
+        when: 'create hive + agent member, then mint'
+        Map agent = http.postJson('/api/agents/agents', [
+                name       : 'E2E Bookkeeper',
+                agentKey   : 'e2e-bookkeeper',
+                agentStatus: 'ACTIVE',
+                runtimeKind: 'HERMES',
         ])
-        // ensure may be 200 or 201
-        assert ensure.status in [200, 201]: "ensure user failed ${ensure.status}: ${ensure.bodyText?.take(300)}"
+        assertJsonOk(agent, 201)
+        Long agentId = (agent.body.id ?: agent.body?.result?.id) as Long
+        assert agentId: "agent create missing id: ${agent.bodyText?.take(300)}"
+
+        Map hive = http.postJson('/api/agents/hives', [
+                name             : 'E2E Hive',
+                hiveMasterAgentId: agentId,
+        ])
+        assertJsonOk(hive, 201)
+        Long hiveId = (hive.body.id ?: hive.body?.result?.id) as Long
+        assert hiveId: "hive create missing id: ${hive.bodyText?.take(300)}"
 
         Map mint = http.postJson('/api/agent/tokens', [
-                username        : 'e2e.agent.bookkeeper',
-                label           : 'e2e-smoke',
-                hostLabel       : 'integration-test',
-                linkedTenantKey : 'user:admin'
+                hiveId    : hiveId,
+                agentId   : agentId,
+                label     : 'e2e-smoke',
+                hostLabel : 'integration-test',
         ])
 
         then:
-        // Controller returns 200 { ok, result: { token, ... } }
         assertJsonOk(mint, 200)
         def tokenPayload = mint.body.result ?: mint.body
         tokenPayload.token
         tokenPayload.token.toString().startsWith('sos_')
+        tokenPayload.username == 'E2EHive:e2e-bookkeeper'
 
         when: 'drop session; use bearer only'
         String token = tokenPayload.token as String

@@ -49,7 +49,8 @@ class AgentTokenApiController {
 
     /**
      * POST /api/agent/tokens
-     * body: { username, label?, hostLabel?, linkedTenantKey? }
+     * body: { hiveId, agentId, label, hostLabel, linkedTenantKey? }
+     * Agent must already belong to the hive. Free-text username mint is rejected.
      */
     def mint() {
         if (!requireHumanAdmin()) {
@@ -57,15 +58,29 @@ class AgentTokenApiController {
         }
         try {
             Map body = (request.JSON as Map) ?: [:]
-            String username = body.username as String
-            if (!username?.trim()) {
-                render(status: 400, text: ([error: 'username required', code: 'AGENT_USERNAME_REQUIRED'] as JSON))
+            Long hiveId = body.hiveId != null && body.hiveId != '' ? body.hiveId as Long : null
+            Long agentId = body.agentId != null && body.agentId != '' ? body.agentId as Long : null
+            if (hiveId == null || agentId == null) {
+                render(status: 400, text: ([
+                        error: 'hiveId and agentId required (agent must belong to the hive)',
+                        code : 'AGENT_HIVE_REQUIRED'
+                ] as JSON))
                 return
             }
-            Map result = agentTokenService.mint(
-                    username,
-                    body.label as String,
-                    body.hostLabel as String,
+            String label = body.label as String
+            String hostLabel = body.hostLabel as String
+            if (!label?.trim() || !hostLabel?.trim()) {
+                render(status: 400, text: ([
+                        error: 'label and hostLabel are required',
+                        code : 'AGENT_TOKEN_FIELDS_REQUIRED'
+                ] as JSON))
+                return
+            }
+            Map result = agentTokenService.mintForHiveAgent(
+                    hiveId,
+                    agentId,
+                    label,
+                    hostLabel,
                     body.linkedTenantKey as String,
                     currentUsername()
             )

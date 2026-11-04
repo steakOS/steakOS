@@ -20,6 +20,10 @@ import grails.plugin.springsecurity.SpringSecurityService
 import steakos.Role
 import steakos.User
 import steakos.UserRole
+import steakos.agents.Agent
+import steakos.agents.AgAgentService
+import steakos.agents.AgHiveService
+import steakos.agents.Hive
 import steakos.security.RoleLevel
 
 import java.security.MessageDigest
@@ -28,11 +32,14 @@ import java.util.HexFormat
 
 /**
  * Mint / verify / revoke opaque bearer tokens for Hermes agents (ADR-037 P0).
+ * Tokens may only be minted for Agents that already belong to a Hive.
  */
 @Transactional
 class AgentTokenService {
 
     SpringSecurityService springSecurityService
+    AgHiveService agHiveService
+    AgAgentService agAgentService
 
     private static final SecureRandom RANDOM = new SecureRandom()
     private static final HexFormat HEX = HexFormat.of()
@@ -72,14 +79,32 @@ class AgentTokenService {
     }
 
     /**
-     * Mint a new opaque token. Returns map with plaintext {@code token} once.
+     * Mint a token for an existing Agent that is a member of an existing Hive.
+     * Username principal is derived as {@code {HiveNameSlug}:{agentKey}} (e.g. HiveA:bookkeeper).
+     * Returns map with plaintext {@code token} once.
      */
-    Map mint(String username, String label, String hostLabel, String linkedTenantKey, String actor) {
+    Map mintForHiveAgent(Long hiveId, Long agentId, String label, String hostLabel,
+                         String linkedTenantKey, String actor) {
+        if (hiveId == null) throw new IllegalArgumentException('hiveId required')
+        if (agentId == null) throw new IllegalArgumentException('agentId required')
+        String labelTrim = label?.toString()?.trim()
+        String hostTrim = hostLabel?.toString()?.trim()
+        if (!labelTrim) throw new IllegalArgumentException('label required')
+        if (!hostTrim) throw new IllegalArgumentException('hostLabel required')
+
         String tenant = (linkedTenantKey ?: resolveDefaultTenantKey(actor))?.trim()
         if (!tenant) {
             tenant = 'user:admin'
         }
-        User agent = ensureAgentUser(username, tenant)
+
+        Hive hive = agHiveService.get(hiveId, tenant)
+        Agent agent = agAgentService.get(agentId, tenant)
+        if (agent.hiveId == null || agent.hiveId != hive.id) {
+            throw new IllegalArgumentException("agent ${agentId} is not a member of hive ${hiveId}")
+        }
+
+        String username = "${slugHiveName(hive.name)}:${agent.agentKey}"
+        User agentUser = ensureAgentUser(username, tenant)
 
         String secret = 'sos_' + randomSecret(32)
         String hash = sha256Hex(secret)
@@ -88,10 +113,10 @@ class AgentTokenService {
         AgentApiToken row = new AgentApiToken(
                 tokenPrefix     : prefix,
                 tokenHash       : hash,
-                label           : (label ?: "${unameLabel(agent)} token").take(255),
-                user            : agent,
+                label           : labelTrim.take(255),
+                user            : agentUser,
                 linkedTenantKey : tenant,
-                hostLabel       : hostLabel?.trim() ?: null,
+                hostLabel       : hostTrim.take(128),
                 revoked         : Boolean.FALSE,
                 dateCreated     : new Date(),
                 createdBy       : actor ?: 'admin'
@@ -103,12 +128,23 @@ class AgentTokenService {
                 token           : secret,
                 tokenPrefix     : prefix,
                 label           : row.label,
-                username        : agent.username,
+                username        : agentUser.username,
+                hiveId          : hive.id,
+                hiveName        : hive.name,
+                agentId         : agent.id,
+                agentKey        : agent.agentKey,
+                agentName       : agent.name,
                 linkedTenantKey : row.linkedTenantKey,
                 hostLabel       : row.hostLabel,
                 dateCreated     : row.dateCreated?.time,
                 warning         : 'Store this token now — it will not be shown again.'
         ]
+    }
+
+    /** @deprecated Free-text mint removed — use {@link #mintForHiveAgent}. */
+    Map mint(String username, String label, String hostLabel, String linkedTenantKey, String actor) {
+        throw new IllegalArgumentException(
+                'Free-text agent username mint is disabled. Provide hiveId and agentId for an agent that belongs to a hive.')
     }
 
     List<Map> listTokens(boolean includeRevoked = false) {
@@ -171,6 +207,14 @@ class AgentTokenService {
             throw new IllegalArgumentException('invalid agent username')
         }
         u
+    }
+
+    /** "Hive A" → "HiveA" for principal usernames. */
+    static String slugHiveName(String name) {
+        String raw = name?.toString()?.trim()
+        if (!raw) return 'Hive'
+        String slug = raw.replaceAll(/[^A-Za-z0-9]/, '')
+        slug ?: 'Hive'
     }
 
     private static String unameLabel(User u) {
