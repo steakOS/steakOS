@@ -428,11 +428,11 @@
         "finance.invoices": "Facturas",
         "finance.treasury": "Tesorería"
       },
-      "desksTitle": "Listas y escritorios (UI 2.0)",
+      "desksTitle": "Listas y escritorios",
       "desksBody": "Cómo se ven listas y escritorios: iconos de Acción (Ver · Editar · Eliminar), formularios emergentes, y cuándo sigue apareciendo un detalle lateral. También en el cajón de Ayuda (?) en cualquier escritorio.",
       "desksLoading": "Cargando ayuda de escritorios…",
       "desksTopics": {
-        "app.ui20": "Listas y escritorios (UI 2.0)",
+        "app.desks": "Listas y escritorios",
         "sales.desk": "Escritorio de ventas",
         "scm.desk": "Escritorio de compras",
         "scm.shopfloor": "Control de taller",

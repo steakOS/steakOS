@@ -36,9 +36,9 @@ const WORK_HELP_KEYS = ['help.work.actionNow', 'app.dashboard']
 
 const FINANCE_HELP_KEYS = ['finance.postingRules', 'finance.invoices', 'finance.treasury']
 
-/** UI 2.0 desk chrome + major desks (ADR-050 / PDR-034). */
+/** Desk chrome + major desks (ADR-050 / PDR-034). */
 const DESKS_HELP_KEYS = [
-  'app.ui20',
+  'app.desks',
   'sales.desk',
   'scm.desk',
   'scm.shopfloor',
@@ -59,7 +59,7 @@ function topicLabelKey(helpKey) {
 }
 
 /**
- * Help center — tour, IT support, Roles, Settings language, Action-NOW, desks UI 2.0.
+ * Help center — tour, IT support, Roles, Settings language, Action-NOW, desks.
  */
 export default function HelpCenter() {
   const { t, i18n } = useTranslation('common')
@@ -270,7 +270,7 @@ export default function HelpCenter() {
       </div>
 
       <div className="card" style={{ marginTop: 12 }}>
-        <h2>{t('pages.help.desksTitle', { defaultValue: 'Lists & desks (UI 2.0)' })}</h2>
+        <h2>{t('pages.help.desksTitle', { defaultValue: 'Lists & desks' })}</h2>
         <p className="page-sub">
           {t('pages.help.desksBody', {
             defaultValue:

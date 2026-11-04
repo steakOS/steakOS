@@ -17,8 +17,8 @@
   "ticketCreated": "Boleto {{number}} abierto.",
   "ticketViewAll": "Ver todas las entradas",
   "backToContext": "Volver a la página de ayuda",
-  "ui20Title": "Listas y escritorios (UI 2.0)",
-  "ui20Hint": "Pestañas, iconos de acción (Ver · Editar · Eliminar) y modales. Relacionados como Nombre (ID único). ID único primero y de solo lectura al editar.",
+  "desksTitle": "Listas y escritorios",
+  "desksHint": "Pestañas, iconos de acción (Ver · Editar · Eliminar) y modales. Relacionados como Nombre (ID único). ID único primero y de solo lectura al editar.",
   "unboundTitle": "Dominio no vinculado",
   "unboundBody": "Este producto de datos es solo de referencia y para uso futuro. Actualmente no impulsa ninguna lógica de negocio en escritorios o procesos."
 }

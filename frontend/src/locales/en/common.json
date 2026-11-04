@@ -428,11 +428,11 @@
         "finance.invoices": "Invoices",
         "finance.treasury": "Treasury"
       },
-      "desksTitle": "Lists & desks (UI 2.0)",
+      "desksTitle": "Lists & desks",
       "desksBody": "How lists and desks look: Action icons (View · Edit · Delete), pop-up forms, and when a side detail still appears. Also from the Help drawer (?) on any desk.",
       "desksLoading": "Loading desks help…",
       "desksTopics": {
-        "app.ui20": "Lists & desks (UI 2.0)",
+        "app.desks": "Lists & desks",
         "sales.desk": "Sales desk",
         "scm.desk": "Buyers Desk",
         "scm.shopfloor": "Shop Floor Control",
