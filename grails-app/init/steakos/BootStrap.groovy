@@ -59,6 +59,7 @@ class BootStrap {
     steakos.configuration.CompanyConfigService companyConfigService
     steakos.agents.AgAgentService agAgentService
     steakos.configuration.DevelopmentModeService developmentModeService
+    steakos.human.HrFileService hrFileService
 
     def init = {
         // ADR-037: Bearer token filter after security context is established
@@ -101,6 +102,7 @@ class BootStrap {
         seedSupportedLocales()
         seedSimpleStatuses()
         seedDevSecurity()
+        seedDevHrEmployment()
         seedSetupState()
         seedHelpTopics()
         seedRoleProfiles()
@@ -109,6 +111,43 @@ class BootStrap {
         backfillCompanyCurrencies()
         backfillCompanyTax()
         backfillBtcIntegrationLevels()
+    }
+
+    /**
+     * Task assignees (humans) sync from ACTIVE HR employment files.
+     * Seed admin + ceo so the assignee picker is usable after wipe/reseed.
+     */
+    private void seedDevHrEmployment() {
+        if (!(Environment.current in [Environment.DEVELOPMENT, Environment.TEST])) {
+            return
+        }
+        if (hrFileService == null) {
+            println 'BootStrap: HrFileService not wired — skip seed HR employment'
+            return
+        }
+        String npub = 'user:admin'
+        [
+                [username: 'admin', name: 'Admin', email: 'admin@local'],
+                [username: 'ceo', name: 'CEO', email: 'ceo@local'],
+        ].each { Map row ->
+            try {
+                User u = User.findByUsername(row.username as String)
+                if (!u) return
+                if (steakos.human.HRFile.findByNpubOwnerAndUserId(npub, u.id)) return
+                hrFileService.create(npub, [
+                        name            : row.name,
+                        username        : u.username,
+                        userId          : u.id,
+                        personRef       : u.username,
+                        email           : row.email,
+                        employmentKind  : 'EMPLOYEE',
+                        employmentStatus: 'ACTIVE',
+                ])
+                println "BootStrap: HR employment seeded for ${u.username}"
+            } catch (Exception e) {
+                println "BootStrap: HR employment seed skipped for ${row.username}: ${e.message}"
+            }
+        }
     }
 
     /** Lab Coder agent when STEAKOS_DEVELOPMENT_MODE / steakos.developmentMode is true. */
