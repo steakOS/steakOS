@@ -6,6 +6,8 @@
     <meta name="layout" content=""/>
     <title><g:message code='steakos.logout.thanks'/> steakOS</title>
     <asset:link rel="icon" href="favicon.ico" type="image/x-ico"/>
+    <asset:link rel="icon" href="favicon-32.png" type="image/png"/>
+    <asset:link rel="apple-touch-icon" href="apple-touch-icon.png"/>
     <asset:stylesheet src="application.css"/>
     <style>
         :root {
@@ -49,6 +51,17 @@
             letter-spacing: -0.02em;
             color: var(--steak-muted);
             line-height: 1.25;
+        }
+
+        .thanks-logo {
+            display: block;
+            width: min(280px, 70vw);
+            height: auto;
+            margin: 0.75rem auto 0;
+            border-radius: 1rem;
+            /* logo_big_white.png — white bg matches light logout page */
+            box-shadow: 0 12px 28px rgba(232, 93, 4, 0.18);
+            animation: brand-in 0.7s ease-out both;
         }
 
         .thanks-brand {
@@ -115,6 +128,7 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+            .thanks-logo,
             .thanks-brand {
                 animation: none;
             }
@@ -124,7 +138,7 @@
 <body class="logout-thanks">
     <main class="thanks-card" role="main">
         <p class="thanks-line"><g:message code='steakos.logout.thanks'/></p>
-        <h1 class="thanks-brand">steakOS</h1>
+        <asset:image class="thanks-logo" src="logo_big_white.png" alt="steakOS"/>
         <hr class="thanks-rule" aria-hidden="true"/>
         <div class="thanks-actions">
             <a class="btn btn-steak" id="sign-in-again" href="${request.contextPath}/login/auth?lang=${request.getAttribute('steakosUiLocale') ?: request.getAttribute('steakosUiLang') ?: request.locale?.language ?: 'en'}"><g:message code='steakos.logout.signInAgain'/></a>

@@ -894,7 +894,10 @@ export default function SetupWizard() {
     return (
       <div className="setup-wizard setup-wizard--finale">
         <header className="setup-header">
-          <div className="setup-brand">{t('brand')}</div>
+          <div className="setup-brand">
+            <img src="/logo_small.png" alt="" className="setup-brand-logo" width={36} height={36} aria-hidden="true" />
+            <span>{t('brand')}</span>
+          </div>
           <div className="setup-meta">{t('celebration.meta')}</div>
           <div className="setup-progress">
             <div className="setup-progress-bar" style={{ width: '100%' }} />
@@ -987,7 +990,10 @@ export default function SetupWizard() {
   return (
     <div className="setup-wizard">
       <header className="setup-header">
-        <div className="setup-brand">{t('brand')}</div>
+        <div className="setup-brand">
+          <img src="/logo_small.png" alt="" className="setup-brand-logo" width={36} height={36} aria-hidden="true" />
+          <span>{t('brand')}</span>
+        </div>
         <div className="setup-meta">
           {step + 1}/{STEP_IDS.length} · {t(`steps.${STEP_IDS[step]}`)}
           {status?.templateTier ? ` · ${status.templateTier}` : ''}
