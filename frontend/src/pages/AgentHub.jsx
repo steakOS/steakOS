@@ -521,6 +521,7 @@ export default function AgentHub() {
     } else if (tab === 'hives') {
       const h = hives.find((x) => String(x.id) === sid)
       if (h && selectedHive?.id !== h.id) selectHive(h)
+      else if (h && selectedHive?.id === h.id) setSelectedHive(h)
       else if (!h && !loading) setSelectedHive(null)
     } else if (tab === 'hitl') {
       const a = approvals.find((x) => String(x.id) === sid)
@@ -1752,6 +1753,11 @@ export default function AgentHub() {
       </div>
     )
   } else if (tab === 'hives' && selectedHive) {
+    const masterCandidates =
+      hiveMembers.length > 0
+        ? hiveMembers
+        : agentOptions
+    const masterMissing = !selectedHive.hiveMasterAgentId
     detail = (
       <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
         <div className="inv-detail-hero">
@@ -1766,8 +1772,8 @@ export default function AgentHub() {
                 {selectedHive.hiveStatus}
               </span>
               {selectedHive.hiveMasterAgentId
-                ? ` · master ${labelFromList(agents, selectedHive.hiveMasterAgentId)}`
-                : ''}
+                ? ` · master ${labelFromList(agentOptions, selectedHive.hiveMasterAgentId) || selectedHive.hiveMasterAgentId}`
+                : ` · ${t('agents.masterRequired', { defaultValue: 'no master yet' })}`}
             </div>
           </div>
         </div>
@@ -1776,7 +1782,14 @@ export default function AgentHub() {
             <button
               type="button"
               className="btn btn-primary"
-              disabled={!!busy}
+              disabled={!!busy || masterMissing}
+              title={
+                masterMissing
+                  ? t('agents.masterRequiredToActivate', {
+                      defaultValue: 'Set a Hive Master before activating',
+                    })
+                  : undefined
+              }
               onClick={() =>
                 run('hact', async () => {
                   await agentsApi.hives.activate(selectedHive.id)
@@ -1804,6 +1817,68 @@ export default function AgentHub() {
           )}
           <ViewButton pkg="agents" resource="Hive" record={selectedHive} />
         </div>
+        {selectedHive.hiveStatus !== 'CLOSED' && (
+          <form
+            className="form-grid"
+            style={{ marginBottom: '1rem' }}
+            onSubmit={(e) => {
+              e.preventDefault()
+              const fd = new FormData(e.target)
+              const agentId = fd.get('masterAgentId')
+              if (!agentId) return
+              run('hmaster', async () => {
+                const updated = await agentsApi.hives.setMaster(selectedHive.id, {
+                  agentId: Number(agentId),
+                })
+                setSelectedHive(updated)
+                setInfo(
+                  t('agents.masterSet', {
+                    defaultValue: 'Hive Master set',
+                    name: labelFromList(agentOptions, agentId) || agentId,
+                  }),
+                )
+                await selectHive(updated || selectedHive)
+              })
+            }}
+          >
+            <label>
+              {t('agents.hiveMaster')}
+              <select
+                name="masterAgentId"
+                required
+                defaultValue={
+                  selectedHive.hiveMasterAgentId != null
+                    ? String(selectedHive.hiveMasterAgentId)
+                    : ''
+                }
+                key={`master-${selectedHive.id}-${selectedHive.hiveMasterAgentId || 'none'}`}
+              >
+                <option value="">
+                  {t('agents.pickMaster', { defaultValue: '— pick master —' })}
+                </option>
+                {masterCandidates.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                    {a.agentKey ? ` (${a.agentKey})` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="submit" className="btn btn-primary" disabled={!!busy}>
+              {selectedHive.hiveMasterAgentId
+                ? t('agents.changeMaster', { defaultValue: 'Change master' })
+                : t('agents.setMaster', { defaultValue: 'Set master' })}
+            </button>
+            {masterMissing ? (
+              <p className="muted" style={{ margin: 0, gridColumn: '1 / -1' }}>
+                {t('agents.masterRequiredHint', {
+                  defaultValue:
+                    'Assign members, then choose one as Hive Master before Activate.',
+                })}
+              </p>
+            ) : null}
+          </form>
+        )}
         <h3 className="section-label">Members · {selectedHive.name}</h3>
         <form
           className="form-grid"
@@ -1837,7 +1912,7 @@ export default function AgentHub() {
           {hiveMembers.map((m) => (
             <li key={m.id}>
               {m.name} ({m.agentKey})
-              {selectedHive.hiveMasterAgentId === m.id ? ' · Master' : ''}
+              {String(selectedHive.hiveMasterAgentId) === String(m.id) ? ' · Master' : ''}
             </li>
           ))}
         </ul>
