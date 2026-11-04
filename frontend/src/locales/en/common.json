@@ -295,7 +295,7 @@
       "action": "Got it"
     },
     "serverStarting": {
-      "title": "Hold on — the application server may still be starting. Check the UI URL uses port :9001",
+      "title": "Hold on — the application server may still be starting on port 9001",
       "body": "",
       "action": "Retry"
     }

@@ -102,7 +102,7 @@ export default function DashboardCeo() {
         {starting ? (
           t('errors.serverStarting.title', {
             defaultValue:
-              'Hold on — the application server may still be starting. Check the UI URL uses port :9001',
+              'Hold on — the application server may still be starting on port 9001',
           })
         ) : (
           <>
