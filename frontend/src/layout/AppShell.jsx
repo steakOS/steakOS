@@ -865,17 +865,7 @@ export default function AppShell() {
               </button>
             )}
             <div className="topbar-meta">
-              <span className="topbar-meta-full" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                {!narrow && (
-                  <img
-                    src="/logo_nav.png"
-                    alt=""
-                    width={22}
-                    height={22}
-                    className="topbar-brand-mark"
-                    aria-hidden="true"
-                  />
-                )}
+              <span className="topbar-meta-full">
                 steakOS
                 {templateTier ? ` · ${formatTierLabel(templateTier)}` : ''}
                 {locale ? ` · ${locale}` : ''}
