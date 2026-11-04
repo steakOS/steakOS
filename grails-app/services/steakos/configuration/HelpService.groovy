@@ -94,7 +94,7 @@ Ejemplos: lista de tareas · escritorio de compradores.'''
 
 **Fields**
 - name, description
-- **status** — OPEN · IN_PROGRESS · DONE · CANCELLED
+- **status** — humans: OPEN · IN_PROGRESS · DONE · CANCELLED; agents (API): **AI:*** only, finish with **AI:done** (never DONE)
 - **urgency** / **importance** — 1 low · 2 medium · 3 high (Eisenhower 3×3)
 - **deadlineAt**, startAt, endAt
 - **assigneeHumanNpub** and/or **assigneeAgentId**
@@ -102,6 +102,7 @@ Ejemplos: lista de tareas · escritorio de compradores.'''
 
 **Tips**
 - Prefer status transitions over deleting work history
+- Agents complete with **AI:done**; a human sets **DONE** after review
 - Use **My work** (`/work`) for the Eisenhower **Action - NOW** board (and **Agentic Tasks** toggle)
 - Capability ProjectItem can link via optional taskId
 - Domain list **Action** column: **View (Eye) · Edit (Pencil) · Delete (Trash)** — View/Edit open **modals** ''',

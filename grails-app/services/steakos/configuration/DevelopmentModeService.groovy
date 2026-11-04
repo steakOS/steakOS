@@ -28,7 +28,7 @@ class DevelopmentModeService {
 
     static final String CODER_AGENT_KEY = 'coder'
 
-    /** Task.status values used by the Coder / Grok Build pickup loop. */
+    /** Task.status values used by the Coder / Hermes / Grok Build pickup loop. */
     static final List<String> AI_TASK_STATUSES = [
             'AI:new',
             'AI:conceptualizing',
@@ -47,6 +47,16 @@ class DevelopmentModeService {
             'AI:waiting-go',
     ].asImmutable()
 
+    /** Human-only Task.status values (operators confirm completion with DONE). */
+    static final List<String> HUMAN_TASK_STATUSES = [
+            'OPEN',
+            'IN_PROGRESS',
+            'DONE',
+            'CANCELLED',
+    ].asImmutable()
+
+    static final String AGENT_TASK_STATUS_CODE = 'AGENT_TASK_STATUS_FORBIDDEN'
+
     GrailsApplication grailsApplication
 
     boolean isEnabled() {
@@ -56,5 +66,35 @@ class DevelopmentModeService {
         } catch (ignored) {
             return false
         }
+    }
+
+    static boolean isAiTaskStatus(String status) {
+        status != null && AI_TASK_STATUSES.contains(status.toString().trim())
+    }
+
+    static boolean isHumanTaskStatus(String status) {
+        status != null && HUMAN_TASK_STATUSES.contains(status.toString().trim())
+    }
+
+    /**
+     * Agent-only principals may set Task.status to an AI:* value only.
+     * DONE / CANCELLED / OPEN / IN_PROGRESS are reserved for humans.
+     * @return normalized AI:* status, or null when status is blank (leave unchanged on update)
+     */
+    static String requireAgentAiTaskStatus(Object status, boolean required) {
+        String raw = status?.toString()?.trim()
+        if (!raw) {
+            if (required) {
+                throw new SecurityException(
+                        "${AGENT_TASK_STATUS_CODE}: agents must set an AI:* Task status (never DONE)")
+            }
+            return null
+        }
+        if (isAiTaskStatus(raw)) {
+            return raw
+        }
+        throw new SecurityException(
+                "${AGENT_TASK_STATUS_CODE}: agents may only set AI:* Task statuses " +
+                        "(got '${raw}'); DONE is reserved for humans")
     }
 }

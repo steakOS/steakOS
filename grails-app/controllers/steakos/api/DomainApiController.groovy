@@ -149,6 +149,8 @@ class DomainApiController {
             Map body = request.JSON as Map ?: [:]
             Object row = domainRegistryService.create(domainClass, body, activeNpub())
             render(status: 201, text: (domainRegistryService.toMap(row) as JSON))
+        } catch (SecurityException e) {
+            renderAgentTaskStatusForbidden(e)
         } catch (IllegalArgumentException e) {
             renderApiError(422, 'VALIDATION_ERROR', e)
         } catch (Exception e) {
@@ -172,6 +174,8 @@ class DomainApiController {
             render(domainRegistryService.toMap(row) as JSON)
         } catch (steakos.document.DocumentChainLockedException e) {
             renderApiError(409, steakos.document.DocumentChainLockedException.CODE, e, e.reasons)
+        } catch (SecurityException e) {
+            renderAgentTaskStatusForbidden(e)
         } catch (IllegalArgumentException e) {
             renderApiError(422, 'VALIDATION_ERROR', e)
         } catch (IllegalStateException e) {
@@ -229,6 +233,15 @@ class DomainApiController {
         return domainClass
     }
 
+    private void renderAgentTaskStatusForbidden(SecurityException e) {
+        String code = steakos.configuration.DevelopmentModeService.AGENT_TASK_STATUS_CODE
+        String detail = e?.message ?: code
+        if (detail.startsWith("${code}:")) {
+            detail = detail.substring(code.length() + 1).trim()
+        }
+        renderApiError(403, code, new SecurityException(detail ?: 'Agents may only set AI:* Task statuses; DONE is reserved for humans'))
+    }
+
     private void renderApiError(int status, String code, Throwable e, List reasons = null) {
         Throwable root = rootCause(e)
         String message = friendlyMessage(code, root)
@@ -275,6 +288,9 @@ class DomainApiController {
         }
         if (code == 'VALIDATION_ERROR') {
             return root?.message ?: 'Validation failed'
+        }
+        if (code == steakos.configuration.DevelopmentModeService.AGENT_TASK_STATUS_CODE) {
+            return root?.message ?: 'Agents may only set AI:* Task statuses; DONE is reserved for humans'
         }
         return root?.message ?: 'Request failed'
     }

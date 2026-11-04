@@ -28,7 +28,10 @@ import steakos.human.Payroll
 import steakos.production.BillOfMaterials
 import steakos.production.BomItem
 import steakos.catalogue.CatalogueItem
+import steakos.configuration.DevelopmentModeService
 import steakos.helper.DateParse
+import steakos.security.AgentPrincipal
+import grails.plugin.springsecurity.SpringSecurityService
 
 /**
  * Maps package/resource path segments to GORM domain classes (FE-2 dynamic CRUD).
@@ -39,6 +42,7 @@ import steakos.helper.DateParse
 class DomainRegistryService {
 
     GrailsApplication grailsApplication
+    SpringSecurityService springSecurityService
     steakos.catalogue.CatalogueService catalogueService
     steakos.asset.AssetBasicsService assetBasicsService
     steakos.configuration.CompanyCurrencyService companyCurrencyService
@@ -452,6 +456,7 @@ class DomainRegistryService {
     Object create(Class domainClass, Map body, String activeNpub = null) {
         Map safeBody = body != null ? new LinkedHashMap(body) : [:]
         enforceCreateNpub(domainClass, safeBody, activeNpub)
+        enforceAgentTaskStatusOnWrite(domainClass, safeBody, true)
         Object instance = domainClass.newInstance()
         bindBasics(instance, safeBody)
         // New assets must not set configItemId from client — link is server-created
@@ -463,6 +468,7 @@ class DomainRegistryService {
         }
         validateCurrencyWrite(instance)
         applyStockMoveDefaults(instance)
+        applyAgentTaskStatusDefaults(instance)
         if (!instance.save(flush: true)) {
             throw new IllegalArgumentException(formatValidationErrors(instance))
         }
@@ -481,6 +487,7 @@ class DomainRegistryService {
         rejectForeignNpubClaim(safeBody, activeNpub)
         // Never reassign tenant via body
         safeBody.remove('npubOwner')
+        enforceAgentTaskStatusOnWrite(domainClass, safeBody, false)
         Long priorCi = null
         if (instance instanceof steakos.asset.PhysicalAsset) {
             priorCi = ((steakos.asset.PhysicalAsset) instance).configItemId
@@ -504,6 +511,40 @@ class DomainRegistryService {
         }
         afterWrite(instance, safeBody)
         return instance
+    }
+
+    /**
+     * Agent-only principals may only write AI:* on core.Task.status.
+     * DONE / other human statuses are reserved for humans (ADR-048 / ADR-051).
+     */
+    private void enforceAgentTaskStatusOnWrite(Class domainClass, Map safeBody, boolean creating) {
+        if (domainClass != steakos.core.Task) {
+            return
+        }
+        if (!AgentPrincipal.isAgentOnly(springSecurityService?.authentication)) {
+            return
+        }
+        boolean statusInBody = safeBody.containsKey('status')
+        if (!statusInBody) {
+            if (creating) {
+                safeBody.status = 'AI:new'
+            }
+            return
+        }
+        safeBody.status = DevelopmentModeService.requireAgentAiTaskStatus(safeBody.get('status'), true)
+    }
+
+    private void applyAgentTaskStatusDefaults(Object instance) {
+        if (!(instance instanceof steakos.core.Task)) {
+            return
+        }
+        if (!AgentPrincipal.isAgentOnly(springSecurityService?.authentication)) {
+            return
+        }
+        steakos.core.Task task = (steakos.core.Task) instance
+        if (!DevelopmentModeService.isAiTaskStatus(task.status)) {
+            task.status = 'AI:new'
+        }
     }
 
     private static void applyStockMoveDefaults(Object instance) {
@@ -1099,7 +1140,9 @@ class DomainRegistryService {
                 instance.importance = 2
             }
             if (!instance.status) {
-                instance.status = 'OPEN'
+                instance.status = AgentPrincipal.isAgentOnly(springSecurityService?.authentication)
+                        ? 'AI:new'
+                        : 'OPEN'
             }
         }
 
