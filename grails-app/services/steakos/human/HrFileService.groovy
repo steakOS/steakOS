@@ -18,9 +18,12 @@ package steakos.human
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.User
+import steakos.UserRole
+import steakos.security.RoleLevel
 
 /**
  * Employment file master (APQC 7.7.3 / 7.6). HR1: User required; names encrypted via domain converter.
+ * Agent principals (ROLE_AI / Hive*:agentKey) live only in the Agents desk — never as HR employment.
  */
 @Slf4j
 class HrFileService {
@@ -35,6 +38,7 @@ class HrFileService {
 
         Map userResult = hrUserSupportService.resolveOrCreateUser(fields + [name: name, enabled: false])
         User u = userResult.user as User
+        rejectAgentPrincipal(u)
 
         if (HRFile.findByNpubOwnerAndUserId(npub, u.id)) {
             throw new IllegalStateException("HRFile already exists for user ${u.username}")
@@ -149,6 +153,23 @@ class HrFileService {
     private static String requireNpub(String n) {
         if (!n?.trim()) throw new IllegalArgumentException('npubOwner is required')
         n.trim()
+    }
+
+    /**
+     * Agents (Hermes token principals) are not employees — keep them out of HR / assignees.
+     */
+    private static void rejectAgentPrincipal(User u) {
+        if (!u) return
+        String uname = u.username?.toString() ?: ''
+        boolean aiRole = UserRole.findAllByUser(u).any { UserRole ur ->
+            ur.role?.authority == RoleLevel.AI.authority
+        }
+        // HiveA:bookkeeper-style agent usernames
+        boolean agentUsername = uname.contains(':')
+        if (aiRole || agentUsername) {
+            throw new IllegalArgumentException(
+                    "Agents are not HR employees (user=${uname}). Manage them under Agents / Hives.")
+        }
     }
 
     private static Date parseDate(Object raw) {

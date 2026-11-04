@@ -115,7 +115,8 @@ class BootStrap {
 
     /**
      * Task assignees (humans) sync from ACTIVE HR employment files.
-     * Seed admin + ceo so the assignee picker is usable after wipe/reseed.
+     * Seed admin + ceo only (human operators). Never seed agent principals
+     * (Bookkeeper, Manager, Coder, …) — those live only in the Agents desk.
      */
     private void seedDevHrEmployment() {
         if (!(Environment.current in [Environment.DEVELOPMENT, Environment.TEST])) {
@@ -126,6 +127,7 @@ class BootStrap {
             return
         }
         String npub = 'user:admin'
+        // Humans only — do not add Hive*:agentKey / ROLE_AI users here
         [
                 [username: 'admin', name: 'Admin', email: 'admin@local'],
                 [username: 'ceo', name: 'CEO', email: 'ceo@local'],
