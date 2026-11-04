@@ -3,92 +3,224 @@
 	<meta name="layout" content="${gspLayout ?: 'main'}"/>
 	<title><g:message code='springSecurity.login.title'/></title>
 	<style type="text/css" media="screen">
-		/* Spring Security Core plugin default login styles */
+		/* Match SPA tokens (styles.css) — modal card + form-grid inputs */
 		#login {
-			margin: 15px 0px;
-			padding: 0px;
+			--steak-orange: #e85d04;
+			--steak-orange-soft: #f48c06;
+			--steak-ink: #1a1a1a;
+			--steak-muted: #5c5c5c;
+			--steak-bg: #faf8f6;
+			--steak-card: #ffffff;
+			--steak-border: #ebe4dc;
+			--radius: 14px;
+			--shadow: 0 8px 30px rgba(28, 25, 23, 0.06);
+			margin: 0;
+			padding: 0.5rem 0 1.5rem;
 			text-align: center;
-			font-family: Arial, Helvetica, sans-serif;
+			font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+			color: var(--steak-ink);
 		}
 
 		#login .inner {
-			width: 480px;
-			max-width: calc(100vw - 32px);
-			padding-bottom: 6px;
-			margin: 60px auto;
+			width: min(440px, calc(100vw - 32px));
+			margin: 1.25rem auto 0;
 			text-align: left;
-			border: 1px solid #aab;
-			background-color: #f0f0fa;
-			-moz-box-shadow: 2px 2px 2px #eee;
-			-webkit-box-shadow: 2px 2px 2px #eee;
-			-khtml-box-shadow: 2px 2px 2px #eee;
-			box-shadow: 2px 2px 2px #eee;
+			background: var(--steak-card);
+			border: 1px solid var(--steak-border);
+			border-radius: var(--radius);
+			box-shadow: var(--shadow), 0 20px 50px rgba(232, 93, 4, 0.08);
+			overflow: hidden;
 		}
 
 		#login .inner .fheader {
-			padding: 18px 26px 14px 26px;
-			background-color: #f7f7ff;
-			margin: 0px 0 14px 0;
-			color: #2e3741;
-			font-size: 18px;
-			font-weight: bold;
+			padding: 1.15rem 1.35rem 0.95rem;
+			margin: 0;
+			color: var(--steak-ink);
+			font-size: 1.15rem;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+			border-bottom: 1px solid var(--steak-border);
+			background: linear-gradient(180deg, #fff 0%, #fffaf6 100%);
+		}
+
+		#login .inner .cssform {
+			padding: 1.15rem 1.35rem 0.35rem;
+			display: grid;
+			gap: 0.95rem;
 		}
 
 		#login .inner .cssform p {
-			clear: left;
 			margin: 0;
-			padding: 4px 0 3px 0;
-			padding-left: 168px;
-			margin-bottom: 20px;
-			height: 1%;
-		}
-
-		#login .inner .cssform input[type="text"] {
-			width: 75%;
+			padding: 0;
+			display: grid;
+			gap: 0.35rem;
 		}
 
 		#login .inner .cssform label {
-			font-weight: bold;
-			float: left;
-			text-align: right;
-			margin-left: -168px;
-			width: 158px;
-			padding-top: 3px;
-			padding-right: 10px;
-			white-space: nowrap;
-		}
-
-		#remember_me_holder {
-			padding-left: 168px;
-		}
-
-		#submit {
-			margin-left: 15px;
-		}
-
-		#remember_me_holder label {
-			float: none;
-			margin-left: 0;
+			font-weight: 600;
+			font-size: 0.88rem;
+			color: var(--steak-ink);
 			text-align: left;
-			width: 200px;
+			float: none;
+			width: auto;
+			margin: 0;
+			padding: 0;
+			white-space: normal;
 		}
 
-		#login .inner .login_message {
-			padding: 6px 25px 20px 25px;
-			color: #c33;
+		#login .inner .cssform input[type="text"],
+		#login .inner .cssform input[type="password"],
+		#login .inner .cssform select.text_ {
+			width: 100%;
+			box-sizing: border-box;
+			border: 1px solid var(--steak-border);
+			border-radius: 10px;
+			padding: 0.65rem 0.8rem;
+			background: #fff;
+			color: var(--steak-ink);
+			font: inherit;
+			font-size: 0.95rem;
+			outline: none;
+			transition: border-color 0.15s ease, box-shadow 0.15s ease;
 		}
 
-		#login .inner .text_ {
-			width: 75%;
+		#login .inner .cssform input[type="text"]:focus,
+		#login .inner .cssform input[type="password"]:focus,
+		#login .inner .cssform select.text_:focus {
+			border-color: #fdba74;
+			box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.15);
 		}
 
-		#login .inner .chk {
-			height: 12px;
+		#login .password-row {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 0.4rem;
+			align-items: stretch;
+		}
+
+		#login .password-row input {
+			width: 100%;
 		}
 
 		#passwordToggler {
-			padding: 3px 4px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 2.75rem;
+			padding: 0 0.65rem;
+			border: 1px solid var(--steak-border);
+			border-radius: 10px;
+			background: #fff7ed;
+			color: #c2410c;
 			cursor: pointer;
+			font-style: normal;
+			line-height: 1;
+		}
+
+		#passwordToggler:hover {
+			background: #ffedd5;
+			border-color: #fed7aa;
+		}
+
+		#remember_me_holder {
+			display: flex !important;
+			flex-direction: row !important;
+			align-items: center;
+			gap: 0.55rem;
+			padding-top: 0.15rem;
+		}
+
+		#remember_me_holder label {
+			font-weight: 600;
+			margin: 0;
+			cursor: pointer;
+		}
+
+		#login .inner .chk {
+			width: 1.05rem;
+			height: 1.05rem;
+			accent-color: var(--steak-orange);
+			margin: 0;
+		}
+
+		#login .actions {
+			padding-top: 0.25rem;
+		}
+
+		#submit {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			margin: 0;
+			border: 1px solid var(--steak-orange);
+			border-radius: 999px;
+			padding: 0.7rem 1.1rem;
+			background: var(--steak-orange);
+			color: #fff;
+			font-weight: 700;
+			font-size: 0.95rem;
+			cursor: pointer;
+			transition: background 0.15s ease, border-color 0.15s ease;
+		}
+
+		#submit:hover {
+			background: #d00000;
+			border-color: #d00000;
+		}
+
+		#login .inner .login_message {
+			margin: 0.85rem 1.35rem 0;
+			padding: 0.65rem 0.85rem;
+			border-radius: 10px;
+			background: #fef2f2;
+			border: 1px solid #fecaca;
+			color: #991b1b;
+			font-size: 0.9rem;
+			font-weight: 600;
+		}
+
+		#login .nostr-login {
+			padding: 0.85rem 1.35rem 1.25rem;
+			border-top: 1px solid var(--steak-border);
+			margin-top: 0.5rem;
+		}
+
+		#login .nostr-login .or-label {
+			font-size: 0.72rem;
+			color: var(--steak-muted);
+			margin: 0 0 0.55rem;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			font-weight: 700;
+		}
+
+		#login .btn-secondary-login {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			padding: 0.65rem 1rem;
+			background: #fff7ed;
+			border: 1px solid #fed7aa;
+			border-radius: 999px;
+			color: #c2410c;
+			font-weight: 600;
+			font-size: 0.9rem;
+			cursor: pointer;
+			transition: background 0.15s ease, border-color 0.15s ease;
+		}
+
+		#login .btn-secondary-login:hover {
+			background: #ffedd5;
+			border-color: #fdba74;
+		}
+
+		#nostrLoginMsg {
+			font-size: 0.8rem;
+			color: #991b1b;
+			min-height: 1.2em;
+			margin: 0.55rem 0 0;
 		}
 	</style>
 </head>
@@ -108,7 +240,7 @@
 			</g:if>
 			<p>
 				<label for="ui_locale"><g:message code='steakos.login.language.label'/>:</label>
-				<select id="ui_locale" class="text_" name="ui_locale" style="width:75%">
+				<select id="ui_locale" class="text_" name="ui_locale">
 					<option value="en_US">English (United States)</option>
 					<option value="en_SG">English (Singapore)</option>
 					<option value="de_DE">Deutsch (Deutschland)</option>
@@ -124,8 +256,10 @@
 
 			<p>
 				<label for="password"><g:message code='springSecurity.login.password.label'/>:</label>
-				<input type="password" class="text_" name="${passwordParameter ?: 'password'}" id="password"/>
-				<i id="passwordToggler" title="${message(code: 'steakos.login.password.toggle')}" onclick="passwordDisplayToggle()">&#128065;</i>
+				<span class="password-row">
+					<input type="password" class="text_" name="${passwordParameter ?: 'password'}" id="password"/>
+					<i id="passwordToggler" title="${message(code: 'steakos.login.password.toggle')}" onclick="passwordDisplayToggle()" role="button" tabindex="0">&#128065;</i>
+				</span>
 			</p>
 
 			<p id="remember_me_holder">
@@ -133,22 +267,21 @@
 				<label for="remember_me"><g:message code='springSecurity.login.remember.me.label'/></label>
 			</p>
 
-			<p>
+			<p class="actions">
 				<input type="submit" id="submit" value="${message(code: 'springSecurity.login.button')}"/>
 			</p>
 		</form>
 
-		<div class="nostr-login" style="padding: 0 26px 18px 26px; border-top: 1px solid #ccd; margin-top: 8px;">
-			<p style="font-size: 12px; color: #667; margin: 14px 0 8px 0; text-transform: uppercase; letter-spacing: 0.04em;">
+		<div class="nostr-login">
+			<p class="or-label">
 				<g:message code='steakos.login.nostr.secondary' default="Or"/>
 			</p>
 			<button type="button" id="nostrSignInBtn" class="btn-secondary-login"
 				title="${message(code: 'steakos.login.nostr.buttonTitle')}"
-				aria-label="${message(code: 'steakos.login.nostr.button')} — ${message(code: 'steakos.login.nostr.buttonTitle')}"
-				style="width: 100%; padding: 8px; background: #f5f5f4; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
+				aria-label="${message(code: 'steakos.login.nostr.button')} — ${message(code: 'steakos.login.nostr.buttonTitle')}">
 				<g:message code='steakos.login.nostr.button'/>
 			</button>
-			<p id="nostrLoginMsg" style="font-size: 12px; color: #c33; min-height: 1.2em; margin: 8px 0 0 0;"></p>
+			<p id="nostrLoginMsg"></p>
 		</div>
 		<div id="steakos-login-i18n" hidden
 			data-waiting="${message(code: 'steakos.login.nostr.waiting')}"

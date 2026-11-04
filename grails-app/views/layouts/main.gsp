@@ -107,7 +107,23 @@
     </div>
 </nav>
 
-<div class="bg-body-tertiary">
+<%
+    def _uri = (request.forwardURI ?: request.requestURI ?: '').toString()
+    def _isLogin = _uri.contains('/login')
+%>
+<div class="${_isLogin ? 'steakos-auth-page' : 'bg-body-tertiary'}">
+    <style type="text/css">
+        .steakos-auth-page {
+            min-height: calc(100vh - 11rem);
+            background:
+                radial-gradient(ellipse 80% 55% at 50% 18%, rgba(232, 93, 4, 0.12), transparent 70%),
+                linear-gradient(165deg, #fff 0%, #faf8f6 45%, #f0ebe6 100%);
+        }
+        .steakos-auth-page > .container-lg {
+            padding-top: 1.5rem;
+            padding-bottom: 2rem;
+        }
+    </style>
     <div class="container-lg py-4">
         <g:flashMessages />
         <g:layoutBody/>
