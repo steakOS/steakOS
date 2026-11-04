@@ -39,9 +39,17 @@
     .steakos-brand-text {
         display: flex;
         flex-direction: column;
-        gap: 0.1rem;
+        gap: 0.15rem;
         min-width: 0;
         text-align: left;
+    }
+    .steakos-brand-title {
+        margin: 0;
+        font-size: 1.85rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        color: #1c1917;
     }
     .steakos-brand-tagline {
         margin: 0;
@@ -56,6 +64,9 @@
             height: 44px;
             max-width: 32vw;
         }
+        .steakos-brand-title {
+            font-size: 1.45rem;
+        }
         .steakos-brand-tagline {
             font-size: 0.62rem;
             max-width: 11rem;
@@ -67,6 +78,7 @@
         <a class="navbar-brand steakos-brand m-0" href="${request.contextPath}/">
             <asset:image class="steakos-brand-logo" src="logo_small_white.png" alt="steakOS"/>
             <span class="steakos-brand-text">
+                <span class="steakos-brand-title">steakOS</span>
                 <span class="steakos-brand-tagline">
                     <g:message code="steakos.brand.tagline"
                                default="A Sovereign Transactional Enterprise Automation Kernel &amp; Orchestration System."/>
