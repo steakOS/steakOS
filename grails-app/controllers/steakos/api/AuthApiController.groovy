@@ -278,6 +278,18 @@ class AuthApiController {
         render([items: authAccountService.listUsers()] as JSON)
     }
 
+    /** POST /api/auth/users/purge-disabled — permanently delete all enabled=false logins. */
+    @Secured(['ROLE_ADMIN'])
+    def usersPurgeDisabled() {
+        try {
+            User me = currentUser()
+            Map result = authAccountService.deleteDisabledUsers(me?.id)
+            render(result as JSON)
+        } catch (Exception e) {
+            render(status: 400, text: ([error: e.message, code: 'PURGE_DISABLED_FAILED'] as JSON))
+        }
+    }
+
     @Secured(['ROLE_ADMIN', 'ROLE_CEO'])
     def usersCreate() {
         try {

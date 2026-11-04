@@ -11,6 +11,8 @@ import groovy.util.logging.Slf4j
 import steakos.Role
 import steakos.User
 import steakos.UserRole
+import steakos.agent.AgentApiToken
+import steakos.configuration.UserCompanyMembership
 
 /**
  * AUTH01–04 account helpers: TOTP enrol, users for CEO, roles.
@@ -171,6 +173,36 @@ class AuthAccountService {
     void setEnabled(User user, boolean enabled) {
         user.enabled = enabled
         user.save(failOnError: true, flush: true)
+    }
+
+    /**
+     * Permanently delete every login with {@code enabled=false}.
+     * Clears user_role, company memberships, and agent API tokens first.
+     * @param skipUserId optional current principal — never delete yourself even if disabled
+     */
+    Map deleteDisabledUsers(Long skipUserId = null) {
+        List<User> victims = User.findAllByEnabled(false, [sort: 'username']) as List<User>
+        List<Map> deleted = []
+        List<String> skipped = []
+        for (User u : victims) {
+            if (skipUserId != null && u.id == skipUserId) {
+                skipped << (u.username ?: String.valueOf(u.id))
+                continue
+            }
+            String name = u.username
+            Long id = u.id
+            UserRole.removeAll(u)
+            UserCompanyMembership.where { user == u }.deleteAll()
+            AgentApiToken.where { user == u }.deleteAll()
+            u.delete(flush: true)
+            deleted << [id: id, username: name]
+        }
+        [
+                ok      : true,
+                count   : deleted.size(),
+                deleted : deleted,
+                skipped : skipped
+        ]
     }
 
     /** Change password (encodes via User.beforeUpdate). Enforces {@link PasswordPolicy}. */

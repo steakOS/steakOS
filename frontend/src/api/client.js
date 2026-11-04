@@ -440,6 +440,8 @@ export const authApi = {
   usersList: () => api('/api/auth/users'),
   usersCreate: (body) => api('/api/auth/users', { method: 'POST', body }),
   usersUpdate: (body) => api('/api/auth/users', { method: 'PUT', body }),
+  usersPurgeDisabled: () =>
+    api('/api/auth/users/purge-disabled', { method: 'POST', body: {} }),
   roleProfiles: () => api('/api/auth/role-profiles'),
   roleProfile: (profileId) => api(`/api/auth/role-profiles/${encodeURIComponent(profileId)}`),
   roleProfileUpdate: (profileId, body) =>

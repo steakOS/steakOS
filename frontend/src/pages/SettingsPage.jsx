@@ -24,6 +24,7 @@ import {
   taxCodesApi,
   meApi,
   financeOpsApi,
+  authApi,
 } from '../api/client'
 import { useLocaleBootstrap } from '../hooks/useLocaleBootstrap'
 import { allowsSilverSurfaces, normalizeMetalTier } from '../utils/silverSurfaces'
@@ -98,6 +99,11 @@ export default function SettingsPage() {
   const [upgradeConfirmOpen, setUpgradeConfirmOpen] = useState(false)
   const [upgradeTarget, setUpgradeTarget] = useState(null)
   const [upgradeError, setUpgradeError] = useState(null)
+  const [purgeDisabledBusy, setPurgeDisabledBusy] = useState(false)
+  const [purgeDisabledConfirmOpen, setPurgeDisabledConfirmOpen] = useState(false)
+  const [purgeDisabledMsg, setPurgeDisabledMsg] = useState(null)
+  const [purgeDisabledError, setPurgeDisabledError] = useState(null)
+  const [disabledUserCount, setDisabledUserCount] = useState(null)
 
   const loadCurrencies = async () => {
     try {
@@ -156,11 +162,23 @@ export default function SettingsPage() {
         setIsCeo(!!me?.isCeo)
         setCompanies(Array.isArray(me?.companies) ? me.companies : [])
         setActiveCompanyId(me?.activeCompanyId ?? me?.activeCompany?.id ?? null)
+        if (me?.isAdmin) {
+          try {
+            const ul = await authApi.usersList()
+            const items = Array.isArray(ul?.items) ? ul.items : []
+            setDisabledUserCount(items.filter((u) => u && u.enabled === false).length)
+          } catch {
+            setDisabledUserCount(null)
+          }
+        } else {
+          setDisabledUserCount(null)
+        }
       } catch {
         setIsAdmin(false)
         setIsCeo(false)
         setCompanies([])
         setActiveCompanyId(null)
+        setDisabledUserCount(null)
       }
       try {
         const tok = await agentTokenApi.list(false)
@@ -1145,6 +1163,134 @@ export default function SettingsPage() {
         </button>
         {seedMsg && <p className="muted" style={{ marginTop: 8 }}>{seedMsg}</p>}
       </div>
+
+      {isAdmin && (
+        <div className="card" style={{ marginTop: 16 }} id="admin-purge-disabled-users">
+          <h2>
+            {t('pages.settings.purgeDisabledTitle', {
+              defaultValue: 'Disabled users',
+            })}
+          </h2>
+          <p className="page-sub">
+            {t('pages.settings.purgeDisabledBlurb', {
+              defaultValue:
+                'Permanently delete login accounts that are turned off. Roles, company memberships, and agent tokens for those users are removed too. Enabled accounts are kept.',
+            })}
+          </p>
+          <p className="muted" style={{ fontSize: 13 }}>
+            {disabledUserCount == null
+              ? t('pages.settings.purgeDisabledCounting', {
+                  defaultValue: 'Counting disabled accounts…',
+                })
+              : t('pages.settings.purgeDisabledCount', {
+                  count: disabledUserCount,
+                  defaultValue:
+                    disabledUserCount === 1
+                      ? '1 disabled account'
+                      : '{{count}} disabled accounts',
+                })}
+          </p>
+          {!purgeDisabledConfirmOpen ? (
+            <div style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={purgeDisabledBusy || disabledUserCount === 0}
+                onClick={() => {
+                  setPurgeDisabledError(null)
+                  setPurgeDisabledMsg(null)
+                  setPurgeDisabledConfirmOpen(true)
+                }}
+              >
+                {t('pages.settings.purgeDisabledOpen', {
+                  defaultValue: 'Delete all disabled users',
+                })}
+              </button>
+            </div>
+          ) : (
+            <div
+              className="setup-error"
+              role="alertdialog"
+              aria-labelledby="purge-disabled-confirm-title"
+              style={{
+                marginTop: 16,
+                padding: 12,
+                border: '1px solid var(--border, #c45)',
+                borderRadius: 8,
+                background: 'var(--surface-warn, #fff8f6)',
+              }}
+            >
+              <p id="purge-disabled-confirm-title" style={{ fontWeight: 600, marginTop: 0 }}>
+                {t('pages.settings.purgeDisabledConfirmTitle', {
+                  defaultValue: 'Delete all disabled users?',
+                })}
+              </p>
+              <p>
+                {t('pages.settings.purgeDisabledConfirmBody', {
+                  count: disabledUserCount ?? 0,
+                  defaultValue:
+                    'This permanently removes every disabled login ({{count}}). It cannot be undone.',
+                })}
+              </p>
+              {purgeDisabledError && (
+                <p className="setup-error" style={{ marginTop: 8 }}>
+                  {purgeDisabledError}
+                </p>
+              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={purgeDisabledBusy}
+                  onClick={async () => {
+                    setPurgeDisabledBusy(true)
+                    setPurgeDisabledError(null)
+                    setPurgeDisabledMsg(null)
+                    try {
+                      const r = await authApi.usersPurgeDisabled()
+                      const n = r?.count ?? (Array.isArray(r?.deleted) ? r.deleted.length : 0)
+                      setPurgeDisabledMsg(
+                        t('pages.settings.purgeDisabledDone', {
+                          count: n,
+                          defaultValue:
+                            n === 1
+                              ? 'Deleted 1 disabled user.'
+                              : 'Deleted {{count}} disabled users.',
+                        }),
+                      )
+                      setDisabledUserCount(0)
+                      setPurgeDisabledConfirmOpen(false)
+                    } catch (e) {
+                      setPurgeDisabledError(e.message || String(e))
+                    } finally {
+                      setPurgeDisabledBusy(false)
+                    }
+                  }}
+                >
+                  {purgeDisabledBusy
+                    ? t('actions.loading', { defaultValue: 'Working…' })
+                    : t('pages.settings.purgeDisabledConfirm', {
+                        defaultValue: 'Yes, delete disabled users',
+                      })}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  disabled={purgeDisabledBusy}
+                  onClick={() => setPurgeDisabledConfirmOpen(false)}
+                >
+                  {t('actions.cancel', { defaultValue: 'Cancel' })}
+                </button>
+              </div>
+            </div>
+          )}
+          {purgeDisabledMsg && (
+            <p className="muted" style={{ marginTop: 8 }}>
+              {purgeDisabledMsg}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: 16 }} id="admin-setup-reset">
         <h2>{t('pages.settings.adminReset')}</h2>

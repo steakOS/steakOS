@@ -118,6 +118,7 @@ class UrlMappings {
         "/api/auth/nostr/challenge"(controller: 'authApi', action: 'nostrChallenge', method: 'POST')
         "/api/auth/nostr/verify"(controller: 'authApi', action: 'nostrVerify', method: 'POST')
         "/api/auth/nostr/link"(controller: 'authApi', action: 'nostrLink', method: 'POST')
+        "/api/auth/users/purge-disabled"(controller: 'authApi', action: 'usersPurgeDisabled', method: 'POST')
         "/api/auth/users"(controller: 'authApi') {
             action = [GET: 'usersList', POST: 'usersCreate', PUT: 'usersUpdate']
         }
