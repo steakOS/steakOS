@@ -814,12 +814,14 @@ const strategyItemSpec = {
   packages: ['strategy'],
   empty: () => ({
     name: '',
+    type: '',
     description: '',
     itemKind: 'STRATEGY',
     status: 'DRAFT',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'type', label: 'Type', type: 'text', maxLength: 128 },
     { name: 'description', label: 'Description', type: 'textarea' },
     {
       name: 'itemKind',
@@ -848,6 +850,7 @@ const strategyItemSpec = {
   ],
   toBody: (f) => ({
     name: f.name,
+    type: f.type || null,
     description: f.description || null,
     itemKind: f.itemKind || 'STRATEGY',
     status: f.status || 'DRAFT',
@@ -855,11 +858,14 @@ const strategyItemSpec = {
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
+    type: row.type || '',
     description: row.description || '',
     itemKind: row.itemKind || 'STRATEGY',
     status: row.status || 'DRAFT',
   }),
   listColumns: [
+    { key: 'type', label: 'Type' },
+    { key: 'description', label: 'Description' },
     { key: 'itemKind', label: 'Kind' },
     { key: 'status', label: 'Status' },
   ],

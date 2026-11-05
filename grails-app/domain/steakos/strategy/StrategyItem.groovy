@@ -37,6 +37,8 @@ class StrategyItem implements NpubOwned, AccessControl, Classifiable, Attachable
 
 	String name
 	String description
+	/** Short free-text type label (alongside structured itemKind). */
+	String type
 	/** VISION | MISSION | STRATEGY | NEED | FACTOR */
 	String itemKind = 'STRATEGY'
 	/** DRAFT | ACTIVE | ARCHIVED */
@@ -50,6 +52,7 @@ class StrategyItem implements NpubOwned, AccessControl, Classifiable, Attachable
 		DomainTraitConstraints.applyAuditable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 8000
+		type nullable: true, blank: true, maxSize: 128
 		itemKind nullable: false, blank: false, maxSize: 32,
 				inList: ['VISION', 'MISSION', 'STRATEGY', 'NEED', 'FACTOR']
 		status nullable: false, blank: false, maxSize: 32, inList: ['DRAFT', 'ACTIVE', 'ARCHIVED']

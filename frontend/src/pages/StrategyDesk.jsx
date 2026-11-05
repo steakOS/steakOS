@@ -139,6 +139,7 @@ export default function StrategyDesk() {
   const [competitorForm, setCompetitorForm] = useState(() => competitorMasterSpec.empty())
   const [topicForm, setTopicForm] = useState(() => strategyItemMasterSpec.empty())
   const [pendingCompetitorContent, setPendingCompetitorContent] = useState([])
+  const [pendingTopicContent, setPendingTopicContent] = useState([])
   const [competitorPage, setCompetitorPage] = useState({ max: 25, offset: 0, total: 0 })
   const [topicPage, setTopicPage] = useState({ max: 25, offset: 0, total: 0 })
   const [competitorSort, setCompetitorSort] = useState('id')
@@ -169,6 +170,7 @@ export default function StrategyDesk() {
     () => [
       { value: 'id', label: 'Id' },
       { value: 'name', label: 'Name' },
+      { value: 'type', label: 'Type' },
       { value: 'status', label: 'Status' },
     ],
     [],
@@ -378,6 +380,7 @@ export default function StrategyDesk() {
     setCompetitorForm(competitorMasterSpec.empty())
     setTopicForm(strategyItemMasterSpec.empty())
     setPendingCompetitorContent([])
+    setPendingTopicContent([])
   }, [])
 
   const createDirty = useMemo(() => {
@@ -391,10 +394,15 @@ export default function StrategyDesk() {
       )
     }
     if (tab === 'topics') {
-      return Boolean((topicForm.name || '').trim() || (topicForm.description || '').trim())
+      return Boolean(
+        (topicForm.name || '').trim() ||
+          (topicForm.type || '').trim() ||
+          (topicForm.description || '').trim() ||
+          pendingTopicContent.length,
+      )
     }
     return false
-  }, [tab, competitorForm, topicForm, pendingCompetitorContent])
+  }, [tab, competitorForm, topicForm, pendingCompetitorContent, pendingTopicContent])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -484,11 +492,15 @@ export default function StrategyDesk() {
     setBusy('t')
     setError(null)
     try {
-      await domainsApi.create(
+      const created = await domainsApi.create(
         'strategy',
         'StrategyItem',
         strategyItemMasterSpec.toBody(topicForm),
       )
+      if (pendingTopicContent.length && created?.id != null) {
+        await attachPendingContent('strategy', 'StrategyItem', created.id, pendingTopicContent)
+        setPendingTopicContent([])
+      }
       setInfo(
         t('toast.namedCreated', {
           ns: 'common',
@@ -541,7 +553,13 @@ export default function StrategyDesk() {
         form={topicForm}
         onChange={onMasterField(setTopicForm)}
         disabled={!!busy}
-        showDescription={false}
+        showDescription
+      />
+      <PendingContentComposer
+        package="strategy"
+        resource="StrategyItem"
+        pending={pendingTopicContent}
+        onChange={setPendingTopicContent}
       />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('strategy.createTopic', { defaultValue: 'Create topic' })}
@@ -640,7 +658,17 @@ export default function StrategyDesk() {
         onSortChange={onTopicSortChange}
         fields={[
           { id: 'name', primary: true, render: (v) => v.name },
-          { id: 'itemKind', secondary: true, render: (v) => v.itemKind || '—' },
+          { id: 'type', secondary: true, render: (v) => v.type || '—' },
+          {
+            id: 'description',
+            meta: true,
+            render: (v) => {
+              const d = (v.description || '').trim()
+              if (!d) return '—'
+              return d.length > 80 ? `${d.slice(0, 80)}…` : d
+            },
+          },
+          { id: 'itemKind', meta: true, render: (v) => v.itemKind || '—' },
           { id: 'status', meta: true, render: (v) => v.status || '—' },
         ]}
         actions={(v) => renderRowActions('StrategyItem', v)}
@@ -656,6 +684,14 @@ export default function StrategyDesk() {
                   order={topicOrder}
                   onSortChange={onTopicSortChange}
                 />
+                <ListSortHeader
+                  field="type"
+                  label={t('strategy.topicType', { defaultValue: 'Type' })}
+                  sort={topicSort}
+                  order={topicOrder}
+                  onSortChange={onTopicSortChange}
+                />
+                <th>{t('wb.description', { ns: 'common', defaultValue: 'Description' })}</th>
                 <th>{t('wb.kind', { ns: 'common' })}</th>
                 <ListSortHeader
                   field="status"
@@ -675,6 +711,14 @@ export default function StrategyDesk() {
                   onClick={() => openView('strategy', 'StrategyItem', v)}
                 >
                   <td>{v.name}</td>
+                  <td>{v.type || '—'}</td>
+                  <td>
+                    {(() => {
+                      const d = (v.description || '').trim()
+                      if (!d) return '—'
+                      return d.length > 80 ? `${d.slice(0, 80)}…` : d
+                    })()}
+                  </td>
                   <td>{v.itemKind || '—'}</td>
                   <td>
                     <span className={statusBadgeClass(v.status)}>{v.status || '—'}</span>
