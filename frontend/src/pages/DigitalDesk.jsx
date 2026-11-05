@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -61,7 +61,10 @@ const TAB_DEFS = [
  */
 export default function DigitalDesk() {
   const { t } = useTranslation(['desks', 'common', 'content'])
-  const { viewModal, ViewButton } = useRecordView()
+  const getBelowFieldsRef = useRef(null)
+  const { viewModal, ViewButton } = useRecordView({
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
+  })
   const narrow = useNarrowViewport()
   const tabs = useMemo(
     () => TAB_DEFS.map((d) => ({ id: d.id, label: t(d.labelKey), icon: d.icon })),
@@ -157,8 +160,16 @@ export default function DigitalDesk() {
   const [ciOptions, setCiOptions] = useState([])
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [selectedChange, setSelectedChange] = useState(null)
+  const [systemContentMap, setSystemContentMap] = useState({})
+  const [dataContentMap, setDataContentMap] = useState({})
+  const [solutionContentMap, setSolutionContentMap] = useState({})
+  const [ciContentMap, setCiContentMap] = useState({})
   const [changeContentMap, setChangeContentMap] = useState({})
   const [ticketContentMap, setTicketContentMap] = useState({})
+  const [pendingSystemContent, setPendingSystemContent] = useState([])
+  const [pendingDataContent, setPendingDataContent] = useState([])
+  const [pendingSolutionContent, setPendingSolutionContent] = useState([])
+  const [pendingCiContent, setPendingCiContent] = useState([])
   const [pendingChangeContent, setPendingChangeContent] = useState([])
   const [pendingTicketContent, setPendingTicketContent] = useState([])
   const [error, setError] = useState(null)
@@ -347,11 +358,15 @@ export default function DigitalDesk() {
     const tixRes = val(5)
     const chg = chgRes?.items || []
     const tix = tixRes?.items || []
-    setSystems(sys?.items || [])
-    setDataItems(dat?.items || [])
-    setSolutions(sol?.items || [])
+    const sysItems = sys?.items || []
+    const datItems = dat?.items || []
+    const solItems = sol?.items || []
+    const ciItems = ciRes?.items || []
+    setSystems(sysItems)
+    setDataItems(datItems)
+    setSolutions(solItems)
     setChanges(chg)
-    setCis(ciRes?.items || [])
+    setCis(ciItems)
     setTickets(tix)
     setSystemOptions(val(6)?.items || [])
     setSolutionOptions(val(7)?.items || [])
@@ -384,7 +399,7 @@ export default function DigitalDesk() {
       ...pg,
       max: ciRes?.max ?? pg.max,
       offset: ciRes?.offset ?? pg.offset,
-      total: ciRes?.total ?? (ciRes?.items || []).length,
+      total: ciRes?.total ?? ciItems.length,
     }))
     setTixPage((pg) => ({
       ...pg,
@@ -392,10 +407,18 @@ export default function DigitalDesk() {
       offset: tixRes?.offset ?? pg.offset,
       total: tixRes?.total ?? tix.length,
     }))
-    const [cm, tm] = await Promise.all([
+    const [sysMap, datMap, solMap, ciMap, cm, tm] = await Promise.all([
+      fetchContentMap('digital', 'System', sysItems),
+      fetchContentMap('digital', 'Data', datItems),
+      fetchContentMap('digital', 'Solution', solItems),
+      fetchContentMap('digital', 'ConfigItem', ciItems),
       fetchContentMap('digital', 'ITChange', chg),
       fetchContentMap('digital', 'ItTicket', tix),
     ])
+    setSystemContentMap(sysMap)
+    setDataContentMap(datMap)
+    setSolutionContentMap(solMap)
+    setCiContentMap(ciMap)
     setChangeContentMap(cm)
     setTicketContentMap(tm)
     if (failed.length) {
@@ -517,6 +540,10 @@ export default function DigitalDesk() {
       configItemId: '',
       solutionId: '',
     })
+    setPendingSystemContent([])
+    setPendingDataContent([])
+    setPendingSolutionContent([])
+    setPendingCiContent([])
     setPendingChangeContent([])
     setPendingTicketContent([])
   }, [])
@@ -526,14 +553,16 @@ export default function DigitalDesk() {
       return Boolean(
         (sysForm.name || '').trim() ||
           (sysForm.systemKey || '').trim() ||
-          sysForm.environment !== 'PROD',
+          sysForm.environment !== 'PROD' ||
+          pendingSystemContent.length,
       )
     }
     if (tab === 'data') {
       return Boolean(
         (dataForm.name || '').trim() ||
           dataForm.dataClass !== 'INTERNAL' ||
-          dataForm.retentionDays !== '365',
+          dataForm.retentionDays !== '365' ||
+          pendingDataContent.length,
       )
     }
     if (tab === 'solutions') {
@@ -541,7 +570,8 @@ export default function DigitalDesk() {
         (solForm.name || '').trim() ||
           solForm.systemId ||
           (solForm.versionLabel || '').trim() ||
-          solForm.integrationType !== 'OTHER',
+          solForm.integrationType !== 'OTHER' ||
+          pendingSolutionContent.length,
       )
     }
     if (tab === 'changes') {
@@ -559,7 +589,8 @@ export default function DigitalDesk() {
           (ciForm.hostname || '').trim() ||
           ciForm.systemId ||
           ciForm.solutionId ||
-          ciForm.ciKind !== 'HOST',
+          ciForm.ciKind !== 'HOST' ||
+          pendingCiContent.length,
       )
     }
     if (tab === 'support') {
@@ -573,7 +604,21 @@ export default function DigitalDesk() {
       )
     }
     return false
-  }, [tab, sysForm, dataForm, solForm, chgForm, ciForm, tixForm, pendingChangeContent, pendingTicketContent])
+  }, [
+    tab,
+    sysForm,
+    dataForm,
+    solForm,
+    chgForm,
+    ciForm,
+    tixForm,
+    pendingSystemContent,
+    pendingDataContent,
+    pendingSolutionContent,
+    pendingCiContent,
+    pendingChangeContent,
+    pendingTicketContent,
+  ])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -682,6 +727,41 @@ export default function DigitalDesk() {
     </details>
   )
 
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (!record || (record.id == null && record.id !== 0)) return null
+    if (resource === 'System') {
+      return collapsedContentRail('digital', 'System', record.id, async () =>
+        setSystemContentMap(await fetchContentMap('digital', 'System', systems)),
+      )
+    }
+    if (resource === 'Data') {
+      return collapsedContentRail('digital', 'Data', record.id, async () =>
+        setDataContentMap(await fetchContentMap('digital', 'Data', dataItems)),
+      )
+    }
+    if (resource === 'Solution') {
+      return collapsedContentRail('digital', 'Solution', record.id, async () =>
+        setSolutionContentMap(await fetchContentMap('digital', 'Solution', solutions)),
+      )
+    }
+    if (resource === 'ConfigItem') {
+      return collapsedContentRail('digital', 'ConfigItem', record.id, async () =>
+        setCiContentMap(await fetchContentMap('digital', 'ConfigItem', cis)),
+      )
+    }
+    if (resource === 'ITChange') {
+      return collapsedContentRail('digital', 'ITChange', record.id, async () =>
+        setChangeContentMap(await fetchContentMap('digital', 'ITChange', changes)),
+      )
+    }
+    if (resource === 'ItTicket') {
+      return collapsedContentRail('digital', 'ItTicket', record.id, async () =>
+        setTicketContentMap(await fetchContentMap('digital', 'ItTicket', tickets)),
+      )
+    }
+    return null
+  }
+
   const sysCreatePanel = (
     <form
       className="form-grid"
@@ -689,6 +769,10 @@ export default function DigitalDesk() {
         e.preventDefault()
         run('sys', async () => {
           const s = await digitalApi.systems.create(sysForm)
+          if (pendingSystemContent.length && s?.id != null) {
+            await attachPendingContent('digital', 'System', s.id, pendingSystemContent)
+            setPendingSystemContent([])
+          }
           setInfo(
             t('toast.namedCreated', {
               ns: 'common',
@@ -731,6 +815,12 @@ export default function DigitalDesk() {
           </select>
         </label>
       </div>
+      <PendingContentComposer
+        package="digital"
+        resource="System"
+        pending={pendingSystemContent}
+        onChange={setPendingSystemContent}
+      />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('digital.createSystem')}
       </button>
@@ -747,6 +837,10 @@ export default function DigitalDesk() {
             ...dataForm,
             retentionDays: dataForm.retentionDays || null,
           })
+          if (pendingDataContent.length && d?.id != null) {
+            await attachPendingContent('digital', 'Data', d.id, pendingDataContent)
+            setPendingDataContent([])
+          }
           setInfo(
             t('toast.namedStatus', {
               ns: 'common',
@@ -790,6 +884,12 @@ export default function DigitalDesk() {
           />
         </label>
       </div>
+      <PendingContentComposer
+        package="digital"
+        resource="Data"
+        pending={pendingDataContent}
+        onChange={setPendingDataContent}
+      />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('digital.createData')}
       </button>
@@ -806,6 +906,10 @@ export default function DigitalDesk() {
             ...solForm,
             systemId: solForm.systemId || undefined,
           })
+          if (pendingSolutionContent.length && s?.id != null) {
+            await attachPendingContent('digital', 'Solution', s.id, pendingSolutionContent)
+            setPendingSolutionContent([])
+          }
           setInfo(
             t('toast.namedStatus', {
               ns: 'common',
@@ -863,6 +967,12 @@ export default function DigitalDesk() {
           ))}
         </select>
       </label>
+      <PendingContentComposer
+        package="digital"
+        resource="Solution"
+        pending={pendingSolutionContent}
+        onChange={setPendingSolutionContent}
+      />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('digital.createSolution')}
       </button>
@@ -961,6 +1071,10 @@ export default function DigitalDesk() {
             systemId: ciForm.systemId || undefined,
             solutionId: ciForm.solutionId || undefined,
           })
+          if (pendingCiContent.length && c?.id != null) {
+            await attachPendingContent('digital', 'ConfigItem', c.id, pendingCiContent)
+            setPendingCiContent([])
+          }
           setInfo(
             t('toast.namedStatus', {
               ns: 'common',
@@ -1035,6 +1149,12 @@ export default function DigitalDesk() {
           ))}
         </select>
       </label>
+      <PendingContentComposer
+        package="digital"
+        resource="ConfigItem"
+        pending={pendingCiContent}
+        onChange={setPendingCiContent}
+      />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('digital.createCi')}
       </button>
@@ -1216,6 +1336,7 @@ export default function DigitalDesk() {
                   defaultOrder="asc"
                   onSortChange={onSysSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th />
               </tr>
             </thead>
@@ -1225,6 +1346,9 @@ export default function DigitalDesk() {
                   <td>{s.name}</td>
                   <td className="mono col-priority-low">{s.systemKey || '—'}</td>
                   <td>{s.environment}</td>
+                  <td className="col-priority-low">
+                    <ContentChannelIcons summary={systemContentMap[s.id]} />
+                  </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <ViewButton pkg="digital" resource="System" record={s} />
                   </td>
@@ -1304,6 +1428,7 @@ export default function DigitalDesk() {
                   onSortChange={onDataSortChange}
                   className="col-priority-low"
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th />
               </tr>
             </thead>
@@ -1314,6 +1439,9 @@ export default function DigitalDesk() {
                   <td>{d.dataClass}</td>
                   <td className="col-priority-low">
                     {d.retentionDays != null ? `${d.retentionDays}d` : '—'}
+                  </td>
+                  <td className="col-priority-low">
+                    <ContentChannelIcons summary={dataContentMap[d.id]} />
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <ViewButton pkg="digital" resource="Data" record={d} />
@@ -1435,6 +1563,7 @@ export default function DigitalDesk() {
                   defaultOrder="desc"
                   onSortChange={onSolSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th />
               </tr>
             </thead>
@@ -1445,6 +1574,9 @@ export default function DigitalDesk() {
                   <td className="col-priority-low">{s.integrationType}</td>
                   <td>
                     <span className={statusClass(s.lifecycleStatus)}>{s.lifecycleStatus}</span>
+                  </td>
+                  <td className="col-priority-low">
+                    <ContentChannelIcons summary={solutionContentMap[s.id]} />
                   </td>
                   <td>
                     {s.lifecycleStatus === 'DRAFT' && (
@@ -1673,6 +1805,7 @@ export default function DigitalDesk() {
                   defaultOrder="asc"
                   onSortChange={onCiSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <th />
               </tr>
             </thead>
@@ -1684,6 +1817,9 @@ export default function DigitalDesk() {
                   <td className="mono col-priority-low">{c.hostname || '—'}</td>
                   <td>
                     <span className={statusClass(c.ciStatus)}>{c.ciStatus}</span>
+                  </td>
+                  <td className="col-priority-low">
+                    <ContentChannelIcons summary={ciContentMap[c.id]} />
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <ViewButton pkg="digital" resource="ConfigItem" record={c} />
