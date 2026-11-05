@@ -501,7 +501,6 @@
   },
   "agents": {
     "title": "Recursos agentes",
-    "subtitle": "APQC 14.x · Hermes predeterminado · HITL de alto valor · aprender diariamente · Nostr/BTC-savvy",
     "tabs": {
       "agents": "Agentes",
       "hives": "Urticaria",

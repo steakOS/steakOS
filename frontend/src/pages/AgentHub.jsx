@@ -2155,7 +2155,6 @@ export default function AgentHub() {
             {sectionMeta?.label || t('agents.title')}
           </>
         }
-        subtitle={t('agents.subtitle')}
         tabs={tabs}
         activeTab={tab}
         onTabChange={requestTabChange}

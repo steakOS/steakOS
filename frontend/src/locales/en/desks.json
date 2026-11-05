@@ -501,7 +501,6 @@
   },
   "agents": {
     "title": "Agentic Resources",
-    "subtitle": "APQC 14.x · Hermes default · HITL on high-value · learn daily · Nostr/BTC-savvy",
     "tabs": {
       "agents": "Agents",
       "hives": "Hives",

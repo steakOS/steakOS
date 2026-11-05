@@ -501,7 +501,6 @@
   },
   "agents": {
     "title": "Agentische Ressourcen",
-    "subtitle": "APQC 14.x · Hermes Standard · HITL bei hohem Wert · täglich lernen · Nostr/BTC-kompetent",
     "tabs": {
       "agents": "Agenten",
       "hives": "Schwärme",
