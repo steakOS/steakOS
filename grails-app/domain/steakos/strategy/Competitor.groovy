@@ -37,6 +37,10 @@ class Competitor implements NpubOwned, AccessControl, Classifiable, Attachable, 
 
 	String name
 	String description
+	/** Short free-text competitor type (e.g. direct, substitute, partner). */
+	String type
+	/** Free-text sources / references for this competitor. */
+	String sources
 	/** ACTIVE | WATCH | INACTIVE */
 	String status = 'ACTIVE'
 
@@ -48,11 +52,14 @@ class Competitor implements NpubOwned, AccessControl, Classifiable, Attachable, 
 		DomainTraitConstraints.applyAuditable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 4000
+		type nullable: true, blank: true, maxSize: 128
+		sources nullable: true, blank: true, maxSize: 8000
 		status nullable: false, blank: false, maxSize: 32, inList: ['ACTIVE', 'WATCH', 'INACTIVE']
 	}
 
 	static mapping = {
 		description type: 'text'
+		sources type: 'text'
 		status index: 'strategy_competitor_status_idx'
 	}
 }

@@ -587,7 +587,7 @@ Flags are Basics intent markers; automatic depreciation posting and maintenance 
             [key: 'strategy.desk', title: 'Strategy desk', route: '/strategy', family: 'strategy',
              body: '''# Strategy desk
 
-**Competitors** and **Strategy topics** — list with View/Edit dialogs.
+**Competitors** (name, type, sources, status, Link/File/Content attachments) and **Strategy topics** — list with View/Edit dialogs.
 
 Use tabs + **New** in the tab row; Action column **Eye · Pencil · Trash**.
 

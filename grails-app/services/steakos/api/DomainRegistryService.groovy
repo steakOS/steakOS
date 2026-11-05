@@ -91,6 +91,7 @@ class DomainRegistryService {
             'stepCode', 'deskHint', 'outcomeStatus', 'actorHint',
             // strategy / development / asset G4 thin
             'itemKind', 'projectKind', 'projectStatus', 'assetTag', 'location', 'ownerName',
+            'sources',
             // configuration LegalEntity (Task 7623)
             'legalForm', 'registeredAddressText', 'website', 'mainEmail'
     ].asImmutable()
@@ -730,12 +731,14 @@ class DomainRegistryService {
     private static int schemaFieldRank(String name) {
         switch (name) {
             case 'name': return 0
-            case 'description': return 1
+            case 'type': return 1
+            case 'description': return 2
+            case 'sources': return 3
             case 'catalogueItemId':
-            case 'productId': return 2
+            case 'productId': return 4
             case 'qtyDelta':
-            case 'quantity': return 3
-            case 'reason': return 4
+            case 'quantity': return 5
+            case 'reason': return 6
             case 'status': return 90
             case 'itManaged': return 94
             case 'configItemId': return 95

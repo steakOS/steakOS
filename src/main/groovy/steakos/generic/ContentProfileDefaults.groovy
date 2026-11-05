@@ -47,6 +47,8 @@ class ContentProfileDefaults {
             'digital|ItTicket'      : ['Note', 'Issue', 'Communication'],
             'digital|Solution'      : ['Note', 'Document', 'Plan'],
             'finance|RevenueItem'   : ['Note', 'Issue', 'Risk'],
+            'strategy|Competitor'   : ['Note', 'Document', 'Assessment', 'Risk'],
+            'strategy|StrategyItem' : ['Note', 'Plan', 'Document'],
     ].asImmutable()
 
     static String key(String hostPackage, String hostResource) {

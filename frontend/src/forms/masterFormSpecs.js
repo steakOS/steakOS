@@ -766,12 +766,16 @@ const competitorSpec = {
   packages: ['strategy'],
   empty: () => ({
     name: '',
+    type: '',
     description: '',
+    sources: '',
     status: 'ACTIVE',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
+    { name: 'type', label: 'Type', type: 'text', maxLength: 128 },
     { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'sources', label: 'Sources', type: 'textarea' },
     {
       name: 'status',
       label: 'Status',
@@ -786,16 +790,23 @@ const competitorSpec = {
   ],
   toBody: (f) => ({
     name: f.name,
+    type: f.type || null,
     description: f.description || null,
+    sources: f.sources || null,
     status: f.status || 'ACTIVE',
   }),
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
+    type: row.type || '',
     description: row.description || '',
+    sources: row.sources || '',
     status: row.status || 'ACTIVE',
   }),
-  listColumns: [{ key: 'status', label: 'Status' }],
+  listColumns: [
+    { key: 'type', label: 'Type' },
+    { key: 'status', label: 'Status' },
+  ],
 }
 
 const strategyItemSpec = {

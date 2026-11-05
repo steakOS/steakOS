@@ -26,6 +26,10 @@ import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
+import ContentRail from '../components/ContentRail'
+import PendingContentComposer, {
+  attachPendingContent,
+} from '../components/PendingContentComposer'
 import useRecordView from '../hooks/useRecordView'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
@@ -134,12 +138,14 @@ export default function StrategyDesk() {
 
   const [competitorForm, setCompetitorForm] = useState(() => competitorMasterSpec.empty())
   const [topicForm, setTopicForm] = useState(() => strategyItemMasterSpec.empty())
+  const [pendingCompetitorContent, setPendingCompetitorContent] = useState([])
   const [competitorPage, setCompetitorPage] = useState({ max: 25, offset: 0, total: 0 })
   const [topicPage, setTopicPage] = useState({ max: 25, offset: 0, total: 0 })
   const [competitorSort, setCompetitorSort] = useState('id')
   const [competitorOrder, setCompetitorOrder] = useState('desc')
   const [topicSort, setTopicSort] = useState('id')
   const [topicOrder, setTopicOrder] = useState('desc')
+  const getBelowFieldsRef = useRef(null)
   const onCompetitorSortChange = useCallback(({ sort: s, order: o }) => {
     setCompetitorSort(s || 'id')
     setCompetitorOrder(o === 'asc' ? 'asc' : 'desc')
@@ -154,6 +160,7 @@ export default function StrategyDesk() {
     () => [
       { value: 'id', label: 'Id' },
       { value: 'name', label: 'Name' },
+      { value: 'type', label: 'Type' },
       { value: 'status', label: 'Status' },
     ],
     [],
@@ -180,7 +187,28 @@ export default function StrategyDesk() {
     onSaved: () => {
       loadAllRef.current().catch(() => {})
     },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
   })
+
+  const collapsedContentRail = (pkg, resource, id) => (
+    <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+      <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+        {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+      </summary>
+      <ContentRail package={pkg} resource={resource} id={id} />
+    </details>
+  )
+
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (!record?.id) return null
+    if (resource === 'Competitor') {
+      return collapsedContentRail('strategy', 'Competitor', record.id)
+    }
+    if (resource === 'StrategyItem') {
+      return collapsedContentRail('strategy', 'StrategyItem', record.id)
+    }
+    return null
+  }
 
   const loadAll = useCallback(async () => {
     const [c, items] = await Promise.all([
@@ -349,17 +377,24 @@ export default function StrategyDesk() {
   const resetCreateForms = useCallback(() => {
     setCompetitorForm(competitorMasterSpec.empty())
     setTopicForm(strategyItemMasterSpec.empty())
+    setPendingCompetitorContent([])
   }, [])
 
   const createDirty = useMemo(() => {
     if (tab === 'competitors') {
-      return Boolean((competitorForm.name || '').trim() || (competitorForm.description || '').trim())
+      return Boolean(
+        (competitorForm.name || '').trim() ||
+          (competitorForm.type || '').trim() ||
+          (competitorForm.description || '').trim() ||
+          (competitorForm.sources || '').trim() ||
+          pendingCompetitorContent.length,
+      )
     }
     if (tab === 'topics') {
       return Boolean((topicForm.name || '').trim() || (topicForm.description || '').trim())
     }
     return false
-  }, [tab, competitorForm, topicForm])
+  }, [tab, competitorForm, topicForm, pendingCompetitorContent])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -413,7 +448,20 @@ export default function StrategyDesk() {
     setBusy('c')
     setError(null)
     try {
-      await domainsApi.create('strategy', 'Competitor', competitorMasterSpec.toBody(competitorForm))
+      const created = await domainsApi.create(
+        'strategy',
+        'Competitor',
+        competitorMasterSpec.toBody(competitorForm),
+      )
+      if (pendingCompetitorContent.length && created?.id != null) {
+        await attachPendingContent(
+          'strategy',
+          'Competitor',
+          created.id,
+          pendingCompetitorContent,
+        )
+        setPendingCompetitorContent([])
+      }
       setInfo(
         t('toast.namedCreated', {
           ns: 'common',
@@ -474,6 +522,12 @@ export default function StrategyDesk() {
         disabled={!!busy}
         showDescription={false}
       />
+      <PendingContentComposer
+        package="strategy"
+        resource="Competitor"
+        pending={pendingCompetitorContent}
+        onChange={setPendingCompetitorContent}
+      />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('strategy.createCompetitor', { defaultValue: 'Create competitor' })}
       </button>
@@ -509,7 +563,8 @@ export default function StrategyDesk() {
         onSortChange={onCompetitorSortChange}
         fields={[
           { id: 'name', primary: true, render: (v) => v.name },
-          { id: 'status', secondary: true, render: (v) => v.status || '—' },
+          { id: 'type', secondary: true, render: (v) => v.type || '—' },
+          { id: 'status', meta: true, render: (v) => v.status || '—' },
         ]}
         actions={(v) => renderRowActions('Competitor', v)}
       >
@@ -520,6 +575,13 @@ export default function StrategyDesk() {
                 <ListSortHeader
                   field="name"
                   label={t('wb.name', { ns: 'common' })}
+                  sort={competitorSort}
+                  order={competitorOrder}
+                  onSortChange={onCompetitorSortChange}
+                />
+                <ListSortHeader
+                  field="type"
+                  label={t('strategy.competitorType', { defaultValue: 'Type' })}
                   sort={competitorSort}
                   order={competitorOrder}
                   onSortChange={onCompetitorSortChange}
@@ -542,6 +604,7 @@ export default function StrategyDesk() {
                   onClick={() => openView('strategy', 'Competitor', v)}
                 >
                   <td>{v.name}</td>
+                  <td>{v.type || '—'}</td>
                   <td>
                     <span className={statusBadgeClass(v.status)}>{v.status || '—'}</span>
                   </td>
