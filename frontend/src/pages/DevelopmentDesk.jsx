@@ -27,6 +27,10 @@ import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
+import ContentRail from '../components/ContentRail'
+import PendingContentComposer, {
+  attachPendingContent,
+} from '../components/PendingContentComposer'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 
@@ -124,9 +128,11 @@ export default function DevelopmentDesk() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
   const [projectForm, setProjectForm] = useState(() => projectMasterSpec.empty())
+  const [pendingProjectContent, setPendingProjectContent] = useState([])
   const [projectPage, setProjectPage] = useState({ max: 25, offset: 0, total: 0 })
   const [projectSort, setProjectSort] = useState('id')
   const [projectOrder, setProjectOrder] = useState('desc')
+  const getBelowFieldsRef = useRef(null)
   const onProjectSortChange = useCallback(({ sort: s, order: o }) => {
     setProjectSort(s || 'id')
     setProjectOrder(o === 'asc' ? 'asc' : 'desc')
@@ -152,7 +158,20 @@ export default function DevelopmentDesk() {
     onSaved: () => {
       loadAllRef.current().catch(() => {})
     },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
   })
+
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (resource !== RESOURCE || !record?.id) return null
+    return (
+      <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+        <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+          {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+        </summary>
+        <ContentRail package={PKG} resource={RESOURCE} id={record.id} />
+      </details>
+    )
+  }
 
   const loadAll = useCallback(async () => {
     const res = await domainsApi.list(PKG, RESOURCE, {
@@ -286,6 +305,7 @@ export default function DevelopmentDesk() {
 
   const resetCreateForm = useCallback(() => {
     setProjectForm(projectMasterSpec.empty())
+    setPendingProjectContent([])
   }, [])
 
   const createDirty = useMemo(() => {
@@ -297,9 +317,10 @@ export default function DevelopmentDesk() {
         projectForm.projectStatus !== empty.projectStatus ||
         (projectForm.catalogueItemId || '').toString().trim() ||
         projectForm.startDate ||
-        projectForm.endDate,
+        projectForm.endDate ||
+        pendingProjectContent.length,
     )
-  }, [projectForm])
+  }, [projectForm, pendingProjectContent])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -355,6 +376,10 @@ export default function DevelopmentDesk() {
     setInfo(null)
     try {
       const created = await domainsApi.create(PKG, RESOURCE, projectMasterSpec.toBody(projectForm))
+      if (pendingProjectContent.length && created?.id != null) {
+        await attachPendingContent(PKG, RESOURCE, created.id, pendingProjectContent)
+        setPendingProjectContent([])
+      }
       setInfo(
         t('toast.namedCreated', {
           ns: 'common',
@@ -385,6 +410,12 @@ export default function DevelopmentDesk() {
         form={projectForm}
         onChange={onMasterField}
         disabled={!!busy}
+      />
+      <PendingContentComposer
+        package={PKG}
+        resource={RESOURCE}
+        pending={pendingProjectContent}
+        onChange={setPendingProjectContent}
       />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('development.createProject')}
