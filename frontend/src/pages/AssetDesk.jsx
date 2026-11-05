@@ -27,6 +27,10 @@ import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
+import ContentRail from '../components/ContentRail'
+import PendingContentComposer, {
+  attachPendingContent,
+} from '../components/PendingContentComposer'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 
@@ -129,9 +133,11 @@ export default function AssetDesk() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
   const [assetForm, setAssetForm] = useState(() => assetMasterSpec.empty())
+  const [pendingAssetContent, setPendingAssetContent] = useState([])
   const [assetPage, setAssetPage] = useState({ max: 25, offset: 0, total: 0 })
   const [assetSort, setAssetSort] = useState('id')
   const [assetOrder, setAssetOrder] = useState('desc')
+  const getBelowFieldsRef = useRef(null)
   const onAssetSortChange = useCallback(({ sort: s, order: o }) => {
     setAssetSort(s || 'id')
     setAssetOrder(o === 'asc' ? 'asc' : 'desc')
@@ -157,7 +163,20 @@ export default function AssetDesk() {
     onSaved: () => {
       loadAllRef.current().catch(() => {})
     },
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
   })
+
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (resource !== RESOURCE || !record?.id) return null
+    return (
+      <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+        <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+          {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+        </summary>
+        <ContentRail package={PKG} resource={RESOURCE} id={record.id} />
+      </details>
+    )
+  }
 
   const loadAll = useCallback(async () => {
     const res = await domainsApi.list(PKG, RESOURCE, {
@@ -291,6 +310,7 @@ export default function AssetDesk() {
 
   const resetCreateForm = useCallback(() => {
     setAssetForm(assetMasterSpec.empty())
+    setPendingAssetContent([])
   }, [])
 
   const createDirty = useMemo(() => {
@@ -305,9 +325,10 @@ export default function AssetDesk() {
         assetForm.itManaged !== empty.itManaged ||
         (assetForm.configItemId || '').toString().trim() ||
         assetForm.financialDepreciation !== empty.financialDepreciation ||
-        assetForm.requiresMaintenance !== empty.requiresMaintenance,
+        assetForm.requiresMaintenance !== empty.requiresMaintenance ||
+        pendingAssetContent.length,
     )
-  }, [assetForm])
+  }, [assetForm, pendingAssetContent])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -363,6 +384,10 @@ export default function AssetDesk() {
     setInfo(null)
     try {
       const created = await domainsApi.create(PKG, RESOURCE, assetMasterSpec.toBody(assetForm))
+      if (pendingAssetContent.length && created?.id != null) {
+        await attachPendingContent(PKG, RESOURCE, created.id, pendingAssetContent)
+        setPendingAssetContent([])
+      }
       setInfo(
         t('toast.namedCreated', {
           ns: 'common',
@@ -390,6 +415,12 @@ export default function AssetDesk() {
         form={assetForm}
         onChange={onMasterField}
         disabled={!!busy}
+      />
+      <PendingContentComposer
+        package={PKG}
+        resource={RESOURCE}
+        pending={pendingAssetContent}
+        onChange={setPendingAssetContent}
       />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('asset.createAsset', { defaultValue: 'Create asset' })}
