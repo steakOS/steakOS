@@ -286,9 +286,14 @@ export default function SalesDesk() {
   const [quoteLines, setQuoteLines] = useState(DEFAULT_QUOTE_LINES)
   const [pendingQuoteContent, setPendingQuoteContent] = useState([])
   const [pendingOrderContent, setPendingOrderContent] = useState([])
+  const [pendingCustomerContent, setPendingCustomerContent] = useState([])
+  const [pendingProductContent, setPendingProductContent] = useState([])
+  const [pendingServiceContent, setPendingServiceContent] = useState([])
   const [quoteContentMap, setQuoteContentMap] = useState({})
   const [orderContentMap, setOrderContentMap] = useState({})
   const [customerContentMap, setCustomerContentMap] = useState({})
+  const [productContentMap, setProductContentMap] = useState({})
+  const [serviceContentMap, setServiceContentMap] = useState({})
 
   const [orderForm, setOrderForm] = useState({
     customerId: '',
@@ -427,14 +432,20 @@ export default function SalesDesk() {
       offset: s.offset ?? pg.offset,
       total: s.total ?? (s.items || []).length,
     }))
-    const [qMap, oMap, cMap] = await Promise.all([
+    const prods = p.items || []
+    const svcs = s.items || []
+    const [qMap, oMap, cMap, pMap, sMap] = await Promise.all([
       fetchContentMap('sales', 'CustomerQuote', qs),
       fetchContentMap('sales', 'SalesOrder', os),
       fetchContentMap('sales', 'Customer', cust),
+      fetchContentMap('catalogue', 'CatalogueItem', prods),
+      fetchContentMap('catalogue', 'CatalogueItem', svcs),
     ])
     setQuoteContentMap(qMap)
     setOrderContentMap(oMap)
     setCustomerContentMap(cMap)
+    setProductContentMap(pMap)
+    setServiceContentMap(sMap)
     return { customers: cust, quotes: qs, orders: os }
   }, [
     quoteSort,
@@ -702,8 +713,11 @@ export default function SalesDesk() {
     setPendingOrderContent([])
     setOrderWarnings([])
     setCustomerForm(customerMasterSpec.empty())
+    setPendingCustomerContent([])
     setProductForm(productMasterSpec.empty())
+    setPendingProductContent([])
     setSvcForm(serviceMasterSpec.empty())
+    setPendingServiceContent([])
   }, [])
 
   const createDirty = useMemo(() => {
@@ -727,15 +741,26 @@ export default function SalesDesk() {
     }
     if (tab === 'customers') {
       const empty = customerMasterSpec.empty()
-      return Boolean((customerForm.name || '').trim() || customerForm.email || customerForm.phone)
-        || customerForm.customerKind !== empty.customerKind
-        || customerForm.currencyCode !== empty.currencyCode
+      return (
+        Boolean((customerForm.name || '').trim() || customerForm.email || customerForm.phone) ||
+        customerForm.customerKind !== empty.customerKind ||
+        customerForm.currencyCode !== empty.currencyCode ||
+        pendingCustomerContent.length
+      )
     }
     if (tab === 'products') {
-      return Boolean((productForm.name || '').trim() || (productForm.sku || '').trim())
+      return Boolean(
+        (productForm.name || '').trim() ||
+          (productForm.sku || '').trim() ||
+          pendingProductContent.length,
+      )
     }
     if (tab === 'services') {
-      return Boolean((svcForm.name || '').trim() || (svcForm.code || '').trim())
+      return Boolean(
+        (svcForm.name || '').trim() ||
+          (svcForm.code || '').trim() ||
+          pendingServiceContent.length,
+      )
     }
     return false
   }, [
@@ -747,8 +772,11 @@ export default function SalesDesk() {
     orderLines,
     pendingOrderContent,
     customerForm,
+    pendingCustomerContent,
     productForm,
+    pendingProductContent,
     svcForm,
+    pendingServiceContent,
   ])
 
   const quoteCanSubmit =
@@ -841,6 +869,15 @@ export default function SalesDesk() {
         code: productForm.sku || productForm.code || undefined,
       }
       const prod = await catalogueApi.create(body)
+      if (pendingProductContent.length && prod?.id != null) {
+        await attachPendingContent(
+          'catalogue',
+          'CatalogueItem',
+          prod.id,
+          pendingProductContent,
+        )
+        setPendingProductContent([])
+      }
       setInfo(
         t('toast.namedStatus', {
           ns: 'common',
@@ -874,6 +911,15 @@ export default function SalesDesk() {
         canBeSold: true,
         canBeBought: false,
       })
+      if (pendingServiceContent.length && s?.id != null) {
+        await attachPendingContent(
+          'catalogue',
+          'CatalogueItem',
+          s.id,
+          pendingServiceContent,
+        )
+        setPendingServiceContent([])
+      }
       setInfo(
         t('toast.namedCreated', {
           ns: 'common',
@@ -899,6 +945,10 @@ export default function SalesDesk() {
     setInfo(null)
     try {
       const c = await salesApi.customers.create(customerMasterSpec.toBody(customerForm))
+      if (pendingCustomerContent.length && c?.id != null) {
+        await attachPendingContent('sales', 'Customer', c.id, pendingCustomerContent)
+        setPendingCustomerContent([])
+      }
       setInfo(
         t('toast.namedCreated', {
           ns: 'common',
@@ -1305,6 +1355,12 @@ export default function SalesDesk() {
         disabled={!!busy}
         showDescription={false}
       />
+      <PendingContentComposer
+        package="sales"
+        resource="Customer"
+        pending={pendingCustomerContent}
+        onChange={setPendingCustomerContent}
+      />
       <button
         type="submit"
         className="btn btn-primary"
@@ -1327,6 +1383,12 @@ export default function SalesDesk() {
           onChange={onMasterField(setProductForm)}
           disabled={!!busy}
           showDescription={false}
+        />
+        <PendingContentComposer
+          package="catalogue"
+          resource="CatalogueItem"
+          pending={pendingProductContent}
+          onChange={setPendingProductContent}
         />
         <button
           type="submit"
@@ -1351,6 +1413,12 @@ export default function SalesDesk() {
           onChange={onMasterField(setSvcForm)}
           disabled={!!busy}
           showDescription={false}
+        />
+        <PendingContentComposer
+          package="catalogue"
+          resource="CatalogueItem"
+          pending={pendingServiceContent}
+          onChange={setPendingServiceContent}
         />
         <button
           type="submit"
@@ -2012,6 +2080,27 @@ export default function SalesDesk() {
           )}
         </>
       )
+    }
+    if (resource === 'Customer') {
+      return collapsedContentRail('sales', 'Customer', record.id, async () =>
+        setCustomerContentMap(
+          await fetchContentMap('sales', 'Customer', customers),
+        ),
+      )
+    }
+    if (resource === 'CatalogueItem') {
+      const isService = record.nature === 'SERVICE'
+      return collapsedContentRail('catalogue', 'CatalogueItem', record.id, async () => {
+        if (isService) {
+          setServiceContentMap(
+            await fetchContentMap('catalogue', 'CatalogueItem', services),
+          )
+        } else {
+          setProductContentMap(
+            await fetchContentMap('catalogue', 'CatalogueItem', products),
+          )
+        }
+      })
     }
     return null
   }
