@@ -36,6 +36,10 @@ import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
+import ContentRail from '../components/ContentRail'
+import PendingContentComposer, {
+  attachPendingContent,
+} from '../components/PendingContentComposer'
 import useRecordView from '../hooks/useRecordView'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
@@ -175,6 +179,7 @@ export default function SalesCrmPage() {
   const [selected, setSelected] = useState(null)
   const [activities, setActivities] = useState([])
   const [form, setForm] = useState(emptyOpp())
+  const [pendingOppContent, setPendingOppContent] = useState([])
   const [stageDraft, setStageDraft] = useState('LEAD')
   const [actForm, setActForm] = useState({ kind: 'NOTE', description: '', dueDate: '' })
   const [loading, setLoading] = useState(true)
@@ -296,6 +301,7 @@ export default function SalesCrmPage() {
 
   const resetCreateForms = useCallback(() => {
     setForm(emptyOpp())
+    setPendingOppContent([])
   }, [])
 
   const createDirty = useMemo(() => {
@@ -311,9 +317,10 @@ export default function SalesCrmPage() {
         form.expectedCloseDate ||
         (form.ownerName || '').trim() ||
         form.source ||
-        (form.description || '').trim(),
+        (form.description || '').trim() ||
+        pendingOppContent.length,
     )
-  }, [form])
+  }, [form, pendingOppContent])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -360,6 +367,10 @@ export default function SalesCrmPage() {
     setInfo(null)
     try {
       const opp = await salesApi.crm.createOpportunity(oppBody(form))
+      if (pendingOppContent.length && opp?.id != null) {
+        await attachPendingContent(PKG, RESOURCE, opp.id, pendingOppContent)
+        setPendingOppContent([])
+      }
       setInfo(t('crm.created', { defaultValue: 'Opportunity “{{name}}” created.', name: opp.name }))
       resetCreateForms()
       setNewExpanded(false)
@@ -694,6 +705,12 @@ export default function SalesCrmPage() {
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
+      <PendingContentComposer
+        package={PKG}
+        resource={RESOURCE}
+        pending={pendingOppContent}
+        onChange={setPendingOppContent}
+      />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('crm.create', { defaultValue: 'Create opportunity' })}
       </button>
@@ -907,6 +924,13 @@ export default function SalesCrmPage() {
             </button>
           </form>
         )}
+
+        <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+          <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+            {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+          </summary>
+          <ContentRail package={PKG} resource={RESOURCE} id={opp.id} />
+        </details>
       </>
     )
   }

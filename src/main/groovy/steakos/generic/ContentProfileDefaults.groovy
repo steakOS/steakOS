@@ -26,6 +26,7 @@ class ContentProfileDefaults {
             'sales|CustomerQuote'   : ['Note', 'Target', 'Risk', 'Plan', 'Issue', 'Assessment'],
             'sales|SalesOrder'      : ['Note', 'Risk', 'Issue', 'Plan'],
             'sales|Customer'        : ['Note', 'Communication', 'Feedback'],
+            'sales|Opportunity'     : ['Note', 'Plan', 'Risk', 'Communication', 'Assessment'],
             'catalogue|CatalogueItem': ['Note', 'Document', 'Plan', 'Risk'],
             'finance|RevenueItem'   : ['Note', 'Issue', 'Risk'],
             'finance|Invoice'       : ['Note', 'Issue', 'Communication'],
