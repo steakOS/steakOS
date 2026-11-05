@@ -347,7 +347,7 @@ export default function RolesPage() {
   if (err && !me) {
     return (
       <div className="page">
-        <p style={{ color: 'var(--danger)' }}>{err}</p>
+        <p style={{ color: 'var(--danger, #b00020)' }}>{err}</p>
       </div>
     )
   }
@@ -390,7 +390,7 @@ export default function RolesPage() {
             'articles Roles for a small team and Which role to pick before inventing custom grants.',
         })}
       </div>
-      {err && <p style={{ color: 'var(--danger)' }}>{err}</p>}
+      {err && <p style={{ color: 'var(--danger, #b00020)' }}>{err}</p>}
       {info && <p className="muted">{info}</p>}
 
       <div className="two-col finance-tx-grid">

@@ -175,6 +175,14 @@ class AuthAccountService {
         user.save(failOnError: true, flush: true)
     }
 
+    /** Persist per-user permission override JSON inside a GORM transaction. */
+    User setPermissionOverride(User user, String permissionOverrideJson) {
+        if (!user) throw new IllegalArgumentException('user required')
+        user.permissionOverrideJson = permissionOverrideJson
+        user.save(failOnError: true, flush: true)
+        user
+    }
+
     /**
      * Permanently delete every login with {@code enabled=false}.
      * Clears user_role, company memberships, and agent API tokens first.

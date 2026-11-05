@@ -364,8 +364,7 @@ class AuthApiController {
                 authAccountService.clearTotp(u)
             }
             if (body.containsKey('permissionOverrideJson')) {
-                u.permissionOverrideJson = body.permissionOverrideJson as String
-                u.save(failOnError: true, flush: true)
+                authAccountService.setPermissionOverride(u, body.permissionOverrideJson as String)
             }
             render(authAccountService.userToMap(User.findByUsername(u.username)) as JSON)
         } catch (SecurityException e) {
@@ -395,28 +394,17 @@ class AuthApiController {
     @Secured(['ROLE_ADMIN', 'ROLE_CEO'])
     def roleProfileUpdate() {
         try {
-            def p = roleProfileService.findByProfileId(params.profileId as String)
-            if (!p) {
-                render(status: 404, text: ([error: 'not found'] as JSON))
-                return
-            }
+            String profileId = params.profileId as String
             // CEO may edit non-admin profiles; Admin may edit all
-            if (p.profileId == 'admin' && !isTrulyAdmin()) {
+            if (profileId == 'admin' && !isTrulyAdmin()) {
                 render(status: 403, text: ([error: 'Only Admin can edit the Admin profile'] as JSON))
                 return
             }
             Map body = (request.JSON as Map) ?: [:]
-            if (body.label) p.label = body.label as String
-            if (body.defaultHome) p.defaultHome = body.defaultHome as String
-            if (body.matrix instanceof Map) {
-                p.matrixJson = JsonOutput.toJson(body.matrix)
-                p.matrixVersion = (body.matrixVersion as Integer) ?: (p.matrixVersion + 1)
-            }
-            if (body.matrixJson) {
-                p.matrixJson = body.matrixJson as String
-            }
-            p.save(failOnError: true, flush: true)
+            def p = roleProfileService.updateProfile(profileId, body)
             render(roleProfileService.toMap(p) as JSON)
+        } catch (IllegalArgumentException e) {
+            render(status: 404, text: ([error: e.message] as JSON))
         } catch (Exception e) {
             render(status: 400, text: ([error: e.message] as JSON))
         }

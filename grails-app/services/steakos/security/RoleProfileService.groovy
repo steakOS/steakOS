@@ -231,6 +231,28 @@ class RoleProfileService {
         'user'
     }
 
+    /**
+     * Persist label / home / matrix for a profile.
+     * Must run inside this transactional service — controller-side domain.save()
+     * after findByProfileId returns fails with "no transaction is in progress".
+     */
+    RoleProfile updateProfile(String profileId, Map body) {
+        ensureSeeded()
+        RoleProfile p = RoleProfile.findByProfileId(profileId?.trim())
+        if (!p) throw new IllegalArgumentException("profile not found: ${profileId}")
+        if (body.label) p.label = body.label as String
+        if (body.defaultHome) p.defaultHome = body.defaultHome as String
+        if (body.matrix instanceof Map) {
+            p.matrixJson = JsonOutput.toJson(body.matrix)
+            p.matrixVersion = (body.matrixVersion as Integer) ?: ((p.matrixVersion ?: 0) + 1)
+        }
+        if (body.matrixJson) {
+            p.matrixJson = body.matrixJson as String
+        }
+        p.save(failOnError: true, flush: true)
+        p
+    }
+
     RoleProfile resetToDefault(String profileId) {
         Map d = defaults().find { it.profileId == profileId }
         if (!d) throw new IllegalArgumentException("unknown profile: ${profileId}")
