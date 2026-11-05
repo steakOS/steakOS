@@ -169,7 +169,6 @@
   },
   "hr": {
     "title": "HR desk",
-    "subtitle": "APQC 7.x · People (encrypted names) · recruit · time · payroll → Finance · parties without full file",
     "tabs": {
       "files": "People",
       "candidates": "Recruit",

@@ -2415,7 +2415,6 @@ export default function HrDesk() {
             {t('hr.title')}
           </>
         }
-        subtitle={t('hr.subtitle')}
         tabs={tabs}
         activeTab={tab}
         onTabChange={requestTabChange}

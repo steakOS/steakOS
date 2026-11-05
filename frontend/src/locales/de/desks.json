@@ -169,7 +169,6 @@
   },
   "hr": {
     "title": "Dashboard HR",
-    "subtitle": "APQC 7.x · People (verschlüsselte Namen) · Recruiting · Zeit · Payroll → Finance · Parties ohne volle Akte",
     "tabs": {
       "files": "People",
       "candidates": "Recruiting",
