@@ -2004,7 +2004,6 @@ export default function DigitalDesk() {
             {t('digital.title')}
           </>
         }
-        subtitle={t('digital.subtitle')}
         tabs={tabs}
         activeTab={tab}
         onTabChange={requestTabChange}

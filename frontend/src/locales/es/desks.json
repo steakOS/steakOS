@@ -70,7 +70,6 @@
   },
   "delivery": {
     "title": "mostrador de entrega",
-    "subtitle": "APQC 5.x · Clientes → catálogo de servicios → recurso → cumplir · ventas mixtas: solo líneas de servicio · sin factura financiera de entrega",
     "tabs": {
       "customers": "Clientes",
       "services": "Servicios",
@@ -108,7 +107,6 @@
   },
   "aftersales": {
     "title": "Mostrador de posventa",
-    "subtitle": "APQC 6.x · Casos · garantía y reclamaciones · devoluciones · crédito vía Finanzas · stock vía SCM",
     "tabs": {
       "inquiries": "Consultas",
       "warranties": "Garantías",
@@ -212,7 +210,6 @@
   },
   "digital": {
     "title": "escritorio digital",
-    "subtitle": "APQC 8.x · Sistemas · datos · soluciones · cambio · CMDB-lite · soporte TI interno",
     "tabs": {
       "systems": "Sistemas",
       "data": "Datos",
@@ -442,7 +439,6 @@
   },
   "capability": {
     "title": "Capacidad",
-    "subtitle": "APQC 13.x · cambio de organización ≠ cambio de TI digital · sin presupuestos de proyecto en Conceptos básicos",
     "tabs": {
       "portfolios": "Portafolios",
       "programs": "Programas",

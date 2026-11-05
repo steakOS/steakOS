@@ -70,7 +70,6 @@
   },
   "delivery": {
     "title": "Dashboard Auslieferung",
-    "subtitle": "APQC 5.x · Kunden → Servicekatalog → Ressource → erfüllen · gemischte Sales: nur Service-Zeilen · keine Finance-Rechnung aus Delivery",
     "tabs": {
       "customers": "Kunden",
       "services": "Services",
@@ -108,7 +107,6 @@
   },
   "aftersales": {
     "title": "Dashboard After Sales",
-    "subtitle": "APQC 6.x · Cases · Warranty & Claims · Retouren · Gutschrift über Finance · Bestand über SCM",
     "tabs": {
       "inquiries": "Anfragen",
       "warranties": "Garantien",
@@ -212,7 +210,6 @@
   },
   "digital": {
     "title": "Dashboard IT",
-    "subtitle": "APQC 8.x · Systems · Daten · Solutions · Change · CMDB-lite · interner IT-Support (nicht Kunden-After-Sales)",
     "tabs": {
       "systems": "Systems",
       "data": "Daten",
@@ -442,7 +439,6 @@
   },
   "capability": {
     "title": "Verbesserungswesen",
-    "subtitle": "APQC 13.x · Org-Change ≠ Digital-IT-Change · keine Projektbudgets in Basics",
     "tabs": {
       "portfolios": "Portfolios",
       "programs": "Programme",

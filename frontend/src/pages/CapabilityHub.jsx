@@ -3143,7 +3143,6 @@ export default function CapabilityHub() {
             {sectionMeta?.label || t('capability.title')}
           </>
         }
-        subtitle={t('capability.subtitle')}
         tabs={tabs}
         activeTab={tab}
         onTabChange={requestTabChange}

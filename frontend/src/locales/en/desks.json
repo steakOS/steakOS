@@ -70,7 +70,6 @@
   },
   "delivery": {
     "title": "Delivery desk",
-    "subtitle": "APQC 5.x · Customers → service catalogue → resource → fulfill · mixed sales: service lines only · no Finance invoice from Delivery",
     "tabs": {
       "customers": "Customers",
       "services": "Services",
@@ -108,7 +107,6 @@
   },
   "aftersales": {
     "title": "AfterSales desk",
-    "subtitle": "APQC 6.x · Cases · warranty & claims · returns · credit via Finance · stock via SCM",
     "tabs": {
       "inquiries": "Inquiries",
       "warranties": "Warranties",
@@ -212,7 +210,6 @@
   },
   "digital": {
     "title": "Digital desk",
-    "subtitle": "APQC 8.x · Systems · data · solutions · change · CMDB-lite · internal IT support",
     "tabs": {
       "systems": "Systems",
       "data": "Data",
@@ -442,7 +439,6 @@
   },
   "capability": {
     "title": "Capability",
-    "subtitle": "APQC 13.x · org change ≠ Digital IT change · no project budgets in Basics",
     "tabs": {
       "portfolios": "Portfolios",
       "programs": "Programs",
