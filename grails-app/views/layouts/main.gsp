@@ -130,31 +130,33 @@
     </div>
 </div>
 
-<footer class="border-top py-4" role="contentinfo">
+<footer class="border-top py-3 bg-body" role="contentinfo">
     <div class="container-lg">
-        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
-            <div>
-                <div class="fw-semibold">steakOS</div>
-                <p class="text-body-secondary small mb-0">
-                    <g:message code="steakos.login.footer.tagline"
-                               default="Business system you run yourself — Bitcoin-ready, plain language."/>
-                </p>
-            </div>
-            <div class="small text-body-secondary">
-                <g:message code="steakos.login.footer.localeHint"
-                           default="Choose your language above before signing in."/>
-            </div>
+        <%
+            def _footerVersion = null
+            try {
+                def _pvs = grailsApplication.mainContext.getBean('productVersionService')
+                _footerVersion = _pvs.current()?.semVerLabel
+            } catch (ignored) { /* fall through */ }
+            if (!_footerVersion) {
+                try {
+                    _footerVersion = g.meta(name: 'info.app.version')?.toString()?.trim()
+                    if (_footerVersion && !(_footerVersion.startsWith('V') || _footerVersion.startsWith('v'))) {
+                        _footerVersion = "V${_footerVersion}"
+                    }
+                } catch (ignored2) { }
+            }
+            if (!_footerVersion) {
+                _footerVersion = '—'
+            }
+        %>
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <span class="small text-body-secondary" id="steakos-footer-version">${_footerVersion}</span>
+            <a class="small text-body-secondary"
+               href="https://www.steakos.org"
+               target="_blank"
+               rel="noopener noreferrer">www.steakOS.org</a>
         </div>
-        <details class="mt-3 small text-body-secondary">
-            <summary class="fw-semibold" style="cursor:pointer">
-                <g:message code="steakos.login.footer.developers" default="For developers"/>
-            </summary>
-            <p class="mb-1 mt-2">
-                <g:message code="steakos.login.footer.developersBody"
-                           default="Framework docs for contributors (not required for operators):"/>
-                <a href="https://grails.apache.org/docs/" target="_blank" rel="noopener">Grails User Guide</a>
-            </p>
-        </details>
     </div>
 </footer>
 <div id="spinner" class="position-absolute top-0 end-0 p-1" style="display:none;">

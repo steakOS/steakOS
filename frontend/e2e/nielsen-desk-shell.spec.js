@@ -24,9 +24,13 @@ test.describe('Nielsen DeskShell smoke', () => {
     await page.goto('/login/auth', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('text=Grails Guides')).toHaveCount(0)
     await expect(page.locator('text=Community')).toHaveCount(0)
-    // Optional folded developer docs are OK under <details>
     const footer = page.locator('footer')
-    await expect(footer.getByText('steakOS').first()).toBeVisible()
+    await expect(footer.locator('#steakos-footer-version')).toBeVisible()
+    await expect(footer.getByRole('link', { name: 'www.steakOS.org' })).toHaveAttribute(
+      'href',
+      'https://www.steakos.org',
+    )
+    await expect(footer.getByText(/Bitcoin-ready|plain language|For developers/i)).toHaveCount(0)
   })
 
   test('Sales: select row → detail without full navigation; help context; keyboard', async ({
