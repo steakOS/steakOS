@@ -186,7 +186,7 @@
   },
   "review": {
     "title": "Prüfen & abschließen",
-    "tip": "Abschluss legt LegalEntity, Standort, Settings, optionalen Kontenplan an und markiert Setup als fertig. Admins können Setup später unter Einstellungen zurücksetzen.",
+    "tip": "Abschluss legt LegalEntity, Standort, Settings, optionalen Kontenplan an und markiert Setup als fertig. Admins können Setup später unter System → Konfiguration zurücksetzen.",
     "lastCheck": "Letzter Check: {{issues}}"
   },
   "celebration": {

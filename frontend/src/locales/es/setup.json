@@ -84,7 +84,7 @@
   },
   "site": {
     "title": "Sede principal",
-    "blurb": "Empiece con una sede. Puede añadir más adelante en Ajustes.",
+    "blurb": "Empiece con una sede. Puede añadir más adelante en Sistema → Configuración.",
     "name": "Nombre de la sede",
     "type": "Tipo",
     "hq": "HQ / sede principal",
@@ -234,7 +234,7 @@
   },
   "review": {
     "title": "Revisar y finalizar",
-    "tip": "Finalizar crea LegalEntity, sede, ajustes, plan de cuentas opcional y marca la configuración como completa. Un administrador puede restablecer la configuración más adelante desde Ajustes.",
+    "tip": "Finalizar crea LegalEntity, sede, ajustes, plan de cuentas opcional y marca la configuración como completa. Un administrador puede restablecer la configuración más adelante desde Sistema → Configuración.",
     "lastCheck": "Última comprobación: {{issues}}"
   },
   "celebration": {

@@ -34,6 +34,7 @@ import {
   ShieldCheck,
   KeyRound,
   Plug,
+  AlertTriangle,
 } from 'lucide-react'
 import { domainGroups } from '../config/domainRegistry'
 import { setupApi, versionApi, meApi } from '../api/client'
@@ -531,6 +532,18 @@ export default function AppShell() {
         })
       }
       links.push({ name: t('nav.company'), path: '/company', icon: Building2 })
+      {
+        // Danger zone: matrix.configuration (Admin/CEO). Pre-v3 matrices omit the key → elevated.
+        const hasConfigKey = Object.prototype.hasOwnProperty.call(sys, 'configuration')
+        const showConfiguration = hasConfigKey ? !!sys.configuration : elevated
+        if (showConfiguration) {
+          links.push({
+            name: t('nav.configuration', { defaultValue: 'Configuration' }),
+            path: '/system/configuration',
+            icon: AlertTriangle,
+          })
+        }
+      }
       if (sys.users) {
         links.push(
           {
@@ -943,7 +956,7 @@ export default function AppShell() {
               {isAdmin ? (
                 <>
                   {' '}
-                  Admin: <Link to="/settings">Reset demo</Link> in Settings.
+                  Admin: <Link to="/system/configuration">Reset</Link> in Configuration.
                 </>
               ) : null}
             </div>

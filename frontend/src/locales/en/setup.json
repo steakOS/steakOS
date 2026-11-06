@@ -234,7 +234,7 @@
   },
   "review": {
     "title": "Review & finish",
-    "tip": "Finish creates LegalEntity, Site, settings, optional COA, and marks setup complete. An admin can reset setup later from Settings.",
+    "tip": "Finish creates LegalEntity, Site, settings, optional COA, and marks setup complete. An admin can reset setup later from System → Configuration.",
     "lastCheck": "Last check: {{issues}}"
   },
   "celebration": {

@@ -26,7 +26,8 @@
     "openMenu": "abrir menú",
     "closeMenu": "Cerrar menú",
     "security": "Seguridad",
-    "analytics": "Analítica"
+    "analytics": "Analítica",
+    "configuration": "Configuración"
   },
   "groups": {
     "core": "mi trabajo",
@@ -383,7 +384,7 @@
       "setupTitle": "Instalación y configuración",
       "wizard": "Asistente de configuración",
       "wizardHint": "(primera vez o después del reinicio del administrador)",
-      "settingsHint": "— estado de configuración y reinicio de administrador",
+      "settingsHint": "— estado de setup; reinicio admin en Configuración",
       "docsTitle": "Documentos (repositorio)",
       "legalTitle": "Privacidad y confianza del operador",
       "legalBody": "Usted es el responsable del tratamiento de los datos personales en esta instancia autoalojada. Las guías breves pueden estar aún en inglés en algunas áreas; el resto de la interfaz alfa está en español. Consulte también Seguridad y la política de divulgación.",
@@ -674,7 +675,7 @@
       "groupHelp": "Ayuda"
     },
     "settings": {
-      "subtitle": "Configuración de la empresa, nivel de plantilla, configuración regional y herramientas de administración.",
+      "subtitle": "Idioma, empresa, demos, monedas, impuestos y estado del setup.",
       "companyHint": "Vista de solo lectura de entidades legales, sitios, banca y plantilla desde la configuración.",
       "openCompany": "Abrir perfil de empresa",
       "localeField": "Idioma de la interfaz",
@@ -1002,7 +1003,8 @@
         "catalogs": "Catálogos de administración",
         "agents": "Centro de agentes / menta",
         "setup": "Configuración / interruptor de metal",
-        "settle": "Liquidar dinero"
+        "settle": "Liquidar dinero",
+        "configuration": "Configuración (zona de peligro)"
       },
       "discardUnsaved": "¿Descartar los cambios no guardados?",
       "saved": "Guardado «{{label}}»",
@@ -1020,6 +1022,12 @@
         "user": "Usuario",
         "read_only": "Solo lectura"
       }
+    },
+    "configuration": {
+      "subtitle": "Zona de peligro: pack, catálogo, cuentas y reinicio de setup.",
+      "dangerTitle": "Zona de peligro",
+      "dangerBody": "Cambiar la configuración sin considerar los procesos y datos existentes puede tener efectos desastrosos en la empresa.",
+      "settingsMovedHint": "Opciones del pack, catálogo de procesos, usuarios deshabilitados y reinicio de setup están en Sistema → Configuración."
     }
   },
   "ph": {

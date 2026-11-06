@@ -26,7 +26,8 @@
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",
     "security": "Sicherheit",
-    "analytics": "Analytik"
+    "analytics": "Analytik",
+    "configuration": "Konfiguration"
   },
   "groups": {
     "core": "Meine Arbeit",
@@ -383,7 +384,7 @@
       "setupTitle": "Einrichtung & Konfiguration",
       "wizard": "Einrichtungsassistent",
       "wizardHint": "(erstmalig oder nach Admin-Reset)",
-      "settingsHint": "— Setup-Status und Admin-Reset",
+      "settingsHint": "— Setup-Status; Admin-Reset unter Konfiguration",
       "docsTitle": "Docs (Repo)",
       "legalTitle": "Datenschutz & Operator-Trust",
       "legalBody": "Sie sind der Verantwortliche für personenbezogene Daten in dieser Self-Host-Instanz. Die Kurzleitfäden (derzeit nur Englisch) öffnen in einem neuen Browser-Tab.",
@@ -674,7 +675,7 @@
       "groupHelp": "Hilfe"
     },
     "settings": {
-      "subtitle": "Firmeneinrichtung, Vorlagen-Stufe, Locale und Admin-Tools.",
+      "subtitle": "Sprache, Unternehmen, Demos, Währungen, Steuern und Setup-Status.",
       "companyHint": "Nur-Lesen-Ansicht von Rechtsträger, Standorten, Banking und Vorlage aus dem Setup.",
       "openCompany": "Unternehmensprofil öffnen",
       "localeField": "Locale",
@@ -1002,7 +1003,8 @@
         "catalogs": "Admin-Kataloge",
         "agents": "Agenten-Hub / Token",
         "setup": "Setup / Metallstufe",
-        "settle": "Geld verbuchen"
+        "settle": "Geld verbuchen",
+        "configuration": "Konfiguration (Gefahrenzone)"
       },
       "discardUnsaved": "Ungespeicherte Änderungen verwerfen?",
       "saved": "«{{label}}» gespeichert",
@@ -1020,6 +1022,12 @@
         "user": "Benutzer",
         "read_only": "Nur Lesen"
       }
+    },
+    "configuration": {
+      "subtitle": "Gefahrenzone: Pack, Katalog, Konten und Setup-Reset.",
+      "dangerTitle": "Gefahrenzone",
+      "dangerBody": "Konfigurationsänderungen ohne Rücksicht auf bestehende Prozesse und Daten können verheerende Auswirkungen auf das Unternehmen haben.",
+      "settingsMovedHint": "Pack-Optionen, Prozesskatalog, deaktivierte Benutzer und Admin-Setup-Reset finden Sie unter System → Konfiguration."
     }
   },
   "ph": {

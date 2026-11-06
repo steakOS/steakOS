@@ -29,6 +29,7 @@ const SYSTEM_TOGGLE_KEYS = [
   'catalogs',
   'agents',
   'setup',
+  'configuration',
   'settle',
 ]
 
@@ -64,6 +65,7 @@ const SYSTEM_TOGGLE_DEFAULTS = {
   catalogs: 'Admin catalogs',
   agents: 'Agents hub / mint',
   setup: 'Setup / metal switch',
+  configuration: 'Configuration (danger zone)',
   settle: 'Settle money',
 }
 

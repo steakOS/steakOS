@@ -54,6 +54,7 @@ import {
   KeyRound,
   Plug,
   ShieldAlert,
+  AlertTriangle,
   Handshake,
   Tags,
   ContactRound,
@@ -81,6 +82,12 @@ export function systemLinks(t, { isAdmin, isCeo } = {}) {
   ]
   if (isAdmin || isCeo) {
     links.push(
+      {
+        name: t('nav.configuration', { defaultValue: 'Configuration' }),
+        path: '/system/configuration',
+        icon: AlertTriangle,
+        keywords: 'configuration danger zone pack reset catalogue',
+      },
       {
         name: t('nav.users', { defaultValue: 'Users' }),
         path: '/users',

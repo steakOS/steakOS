@@ -5,6 +5,7 @@
     "about": "About",
     "system": "System",
     "settings": "Settings",
+    "configuration": "Configuration",
     "integrations": "Integrations",
     "company": "Company profile",
     "import": "Data & import",
@@ -383,7 +384,7 @@
       "setupTitle": "Setup & configuration",
       "wizard": "Configuration wizard",
       "wizardHint": "(first-time or after admin reset)",
-      "settingsHint": "— setup status and admin reset",
+      "settingsHint": "— setup status; admin reset is under Configuration",
       "docsTitle": "Docs (repo)",
       "legalTitle": "Privacy & operator trust",
       "legalBody": "You are the controller for personal data on this self-hosted instance. These short guides open in a new browser tab.",
@@ -550,7 +551,7 @@
       "inactive": "inactive",
       "related": "Related",
       "relatedAbout": "product version and build stamp",
-      "relatedSettings": "locale, setup status, and admin reset",
+      "relatedSettings": "locale, setup status; admin reset under Configuration",
       "relatedCatalogs": "power-user domain lists",
       "editInCatalog": "Edit in catalog",
       "editInSettings": "Edit in Settings",
@@ -673,8 +674,14 @@
       "groupMasterData": "Data Products",
       "groupHelp": "Help"
     },
+    "configuration": {
+      "subtitle": "Danger-zone controls for pack, catalogue, accounts, and setup reset.",
+      "dangerTitle": "Danger zone",
+      "dangerBody": "Changing configuration without consideration for existing processes and data can have disastrous effects on the company.",
+      "settingsMovedHint": "Pack options, process catalogue, disabled users, and admin setup reset live under System → Configuration."
+    },
     "settings": {
-      "subtitle": "Company setup, template tier, locale, and admin tools.",
+      "subtitle": "Locale, company, demos, currencies, tax, and setup status.",
       "companyHint": "Read-only view of legal entity, sites, banking, and template from setup.",
       "openCompany": "Open company profile",
       "localeField": "Locale",
@@ -1011,6 +1018,7 @@
         "catalogs": "Admin catalogs",
         "agents": "Agents hub / mint",
         "setup": "Setup / metal switch",
+        "configuration": "Configuration (danger zone)",
         "settle": "Settle money"
       },
       "discardUnsaved": "Discard unsaved changes?",

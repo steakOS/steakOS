@@ -105,6 +105,10 @@ class MatrixAccessFilter extends OncePerRequestFilter {
                 Map specials = eff.specials as Map ?: [:]
                 ok = !!specials.settle
             }
+            // Setup APIs (pack / reset) also allowed with Configuration danger-zone permission
+            if (!ok && key == 'setup') {
+                ok = !!sys.configuration
+            }
             if (!ok) {
                 forbid(response, "Role cannot perform system action: ${key}", 'MATRIX_SYSTEM_FORBIDDEN')
                 return

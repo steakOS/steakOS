@@ -49,6 +49,7 @@ const CapabilityHub = lazy(() => import('./pages/CapabilityHub'))
 const AgentHub = lazy(() => import('./pages/AgentHub'))
 const SetupWizard = lazy(() => import('./pages/SetupWizard'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const ConfigurationPage = lazy(() => import('./pages/ConfigurationPage'))
 const IntegrationsPage = lazy(() => import('./pages/IntegrationsPage'))
 const CompanyProfile = lazy(() => import('./pages/CompanyProfile'))
 const SystemCatalogs = lazy(() => import('./pages/SystemCatalogs'))
@@ -194,6 +195,7 @@ export default function App() {
             <Route path="about" element={<About />} />
             <Route path="company" element={<CompanyProfile />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="system/configuration" element={<ConfigurationPage />} />
             <Route path="system/integrations" element={<IntegrationsPage />} />
             {/* Legacy bookmark from Silver pack "Open Integrations" (pre-PL-TR1) */}
             <Route path="integrations" element={<Navigate to="/system/integrations" replace />} />

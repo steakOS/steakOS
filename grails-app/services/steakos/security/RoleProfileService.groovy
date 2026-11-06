@@ -29,7 +29,7 @@ class RoleProfileService {
     static final Set<String> ELEVATED_SEE_PROFILES = ['admin', 'ceo'].asImmutable() as Set
 
     /** Bumped when ALL_DESK_FAMILIES or default matrices change so system presets re-seed. */
-    static final int MATRIX_VERSION = 2
+    static final int MATRIX_VERSION = 3
 
     AuthAccountService authAccountService
 
@@ -170,7 +170,7 @@ class RoleProfileService {
         Map sysOv = (override.system instanceof Map) ? (override.system as Map) : [:]
         sysOv.each { k, v -> if (v != null && v != 'inherit') sys[k] = v }
         if (readOnly) {
-            ['users', 'import', 'catalogs', 'agents', 'setup', 'securityOthers', 'settle'].each { sys[it] = false }
+            ['users', 'import', 'catalogs', 'agents', 'setup', 'configuration', 'securityOthers', 'settle'].each { sys[it] = false }
         }
 
         Map specials = (matrix.specials instanceof Map) ? new LinkedHashMap(matrix.specials as Map) : [:]
@@ -191,6 +191,7 @@ class RoleProfileService {
                         catalogs       : !!sys.catalogs,
                         agents         : !!sys.agents,
                         setup          : !!sys.setup,
+                        configuration  : !!sys.configuration,
                         settle         : !!sys.settle || !!specials.settle
                 ],
                 specials     : specials
@@ -341,7 +342,7 @@ class RoleProfileService {
                         matrix     : [
                                 version : MATRIX_VERSION,
                                 desks   : allWork,
-                                system  : [users: true, securitySelf: true, securityOthers: true, import: true, catalogs: true, agents: true, setup: true, settle: true],
+                                system  : [users: true, securitySelf: true, securityOthers: true, import: true, catalogs: true, agents: true, setup: true, configuration: true, settle: true],
                                 specials: [settle: true, hrSee: true]
                         ]
                 ],
@@ -353,7 +354,8 @@ class RoleProfileService {
                         matrix     : [
                                 version : MATRIX_VERSION,
                                 desks   : allWork,
-                                system  : [users: true, securitySelf: true, securityOthers: true, import: true, catalogs: false, agents: true, setup: false, settle: true],
+                                // Configuration danger zone on; catalogs stay off by default
+                                system  : [users: true, securitySelf: true, securityOthers: true, import: true, catalogs: false, agents: true, setup: false, configuration: true, settle: true],
                                 specials: [settle: true, hrSee: true]
                         ]
                 ],
@@ -365,7 +367,7 @@ class RoleProfileService {
                         matrix     : [
                                 version : MATRIX_VERSION,
                                 desks   : deskMap(['core', 'sales', 'delivery', 'aftersales', 'capability'], true, true, true, false),
-                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, settle: false],
+                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, configuration: false, settle: false],
                                 specials: [settle: false, hrSee: false]
                         ]
                 ],
@@ -378,7 +380,7 @@ class RoleProfileService {
                                 version : MATRIX_VERSION,
                                 desks   : deskMap(['core', 'scm', 'delivery', 'asset', 'capability'], true, true, true, false) +
                                         deskMap(['sales'], true, false, false, false),
-                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, settle: false],
+                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, configuration: false, settle: false],
                                 specials: [settle: false, hrSee: false]
                         ]
                 ],
@@ -391,7 +393,7 @@ class RoleProfileService {
                                 version : MATRIX_VERSION,
                                 desks   : deskMap(['core', 'finance'], true, true, true, false) +
                                         deskMap(['sales'], true, false, false, false),
-                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, settle: true],
+                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, configuration: false, settle: true],
                                 specials: [settle: true, hrSee: false]
                         ]
                 ],
@@ -404,7 +406,7 @@ class RoleProfileService {
                                 version : MATRIX_VERSION,
                                 desks   : deskMap(['core', 'sales', 'delivery'], true, true, true, false) +
                                         deskMap(['aftersales'], true, false, false, false),
-                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, settle: false],
+                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, configuration: false, settle: false],
                                 specials: [settle: false, hrSee: false]
                         ]
                 ],
@@ -416,7 +418,7 @@ class RoleProfileService {
                         matrix     : [
                                 version : MATRIX_VERSION,
                                 desks   : deskMap(ALL_DESK_FAMILIES, true, false, false, false),
-                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, settle: false],
+                                system  : [users: false, securitySelf: true, securityOthers: false, import: false, catalogs: false, agents: false, setup: false, configuration: false, settle: false],
                                 specials: [settle: false, hrSee: false]
                         ]
                 ]

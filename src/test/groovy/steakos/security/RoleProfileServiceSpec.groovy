@@ -21,6 +21,7 @@ class RoleProfileServiceSpec extends Specification {
         then:
         m.system.users == true
         m.system.setup == true
+        m.system.configuration == true
         m.desks.sales.see == true
         m.desks.finance.create == true
     }
@@ -46,12 +47,13 @@ class RoleProfileServiceSpec extends Specification {
         roles.contains('ROLE_USER')
     }
 
-    def "ceo defaults deny setup and catalogs but allow users and settle"() {
+    def "ceo defaults deny setup and catalogs but allow configuration, users and settle"() {
         when:
         Map m = RoleProfileService.defaults().find { it.profileId == 'ceo' }.matrix as Map
 
         then:
         m.system.setup == false
+        m.system.configuration == true
         m.system.catalogs == false
         m.system.users == true
         m.system.settle == true
