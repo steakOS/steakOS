@@ -1,7 +1,7 @@
 {
   "ui": {
     "openBrowser": "Prozessbrowser öffnen",
-    "seedHint": "SYSTEM-Prozesse in den Einstellungen seeden, falls der Katalog leer ist.",
+    "seedHint": "Wenn der Katalog leer ist: unter Capability → Prozesse „Übliche Prozesse seeden“ nutzen.",
     "hoverHint": "Schritt oder Fokus auf einen Schritt für Was / Wer / Wo. Auf Touch tippen, um den Hinweis anzuheften. Esc schließt.",
     "tipWhat": "Was",
     "tipWho": "Wer",

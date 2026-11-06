@@ -482,7 +482,7 @@
     "processesCount": "Prozesse ({{count}})",
     "processBrowserTitle": "Prozessbrowser (SYSTEM)",
     "processBrowserHint": "Sehen Sie, was steakOS umsetzt. Prozess wählen für das Diagramm — Hover oder Fokus auf einen Schritt für Was / Wer / Wo. Nach Tip-Updates SYSTEM-Katalog neu seeden.",
-    "emptyProcesses": "Keine Prozesse — SYSTEM-Katalog neu seeden oder einen HUMAN-Prozess anlegen.",
+    "emptyProcesses": "Noch keine Prozesse — übliche SYSTEM-Prozesse seeden oder einen HUMAN-Prozess anlegen.",
     "activate": "Aktivieren",
     "retire": "Zurückziehen",
     "stepName": "Schrittname",
@@ -493,7 +493,10 @@
     "portfoliosCount": "Portfolios ({{count}})",
     "programsCount": "Programme ({{count}})",
     "emptyPortfolios": "Noch keine Portfolios",
-    "emptyPrograms": "Noch keine Programme"
+    "emptyPrograms": "Noch keine Programme",
+    "seedCommonProcesses": "Übliche Prozesse seeden",
+    "seedCommonProcessesTitle": "Noch keine Prozesse",
+    "seedCommonProcessesHint": "Den eingebauten SYSTEM-Katalog laden (Einkauf, Verkauf, Finanzen, Lieferung, HR, Digital u. a.) mit Schritten und Abhängigkeiten. Später über Neu erneut seeden möglich. Oder einen HUMAN-Prozess über Neu anlegen."
   },
   "agents": {
     "title": "Agentische Ressourcen",

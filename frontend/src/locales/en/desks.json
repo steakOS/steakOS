@@ -482,7 +482,7 @@
     "processesCount": "Processes ({{count}})",
     "processBrowserTitle": "Process browser (SYSTEM)",
     "processBrowserHint": "Browse what steakOS implements. Select a process to open the diagram — hover or focus a step for What / Who / Where. Reseed SYSTEM catalogue after tip updates.",
-    "emptyProcesses": "No processes — reseed SYSTEM catalogue or create a HUMAN process.",
+    "emptyProcesses": "No processes yet — seed common SYSTEM processes or create a HUMAN process.",
     "activate": "Activate",
     "retire": "Retire",
     "stepName": "Step name",
@@ -493,7 +493,10 @@
     "portfoliosCount": "Portfolios ({{count}})",
     "programsCount": "Programs ({{count}})",
     "emptyPortfolios": "No portfolios yet",
-    "emptyPrograms": "No programs yet"
+    "emptyPrograms": "No programs yet",
+    "seedCommonProcesses": "Seed common processes",
+    "seedCommonProcessesTitle": "No processes yet",
+    "seedCommonProcessesHint": "Load the built-in SYSTEM catalogue (purchase, sales, finance, delivery, HR, digital, and more) with steps and dependencies. You can reseed later from New to refresh. Or create a HUMAN process with New."
   },
   "agents": {
     "title": "Agentic Resources",

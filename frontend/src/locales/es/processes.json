@@ -1,7 +1,7 @@
 {
   "ui": {
     "openBrowser": "Abrir explorador de procesos",
-    "seedHint": "Si el catálogo está vacío, cargue los procesos SYSTEM desde Ajustes.",
+    "seedHint": "Si el catálogo está vacío, use Sembrar procesos comunes en Capability → Procesos.",
     "hoverHint": "Pase el cursor o enfoque un paso para Qué / Quién / Dónde. En táctil, pulse para fijar la ayuda. Esc cierra.",
     "tipWhat": "Qué",
     "tipWho": "Quién",

@@ -1,7 +1,7 @@
 {
   "ui": {
     "openBrowser": "Open process browser",
-    "seedHint": "Seed SYSTEM processes from Settings if the catalogue is empty.",
+    "seedHint": "If the catalogue is empty, use Seed common processes on Capability → Processes.",
     "hoverHint": "Hover or focus a step for What / Who / Where. On touch, tap to pin the tip. Esc closes.",
     "tipWhat": "What",
     "tipWho": "Who",

@@ -627,6 +627,22 @@ export default function CapabilityHub() {
     }
   }
 
+  /** Idempotent SYSTEM catalogue seed (empty-state CTA + New panel reseed). */
+  const seedSystemCatalogue = () => {
+    run('reseed', async () => {
+      const r = await capabilityApi.processes.reseed()
+      setKindFilter('ALL')
+      setProcPage((pg) => ({ ...pg, offset: 0 }))
+      setInfo(
+        t('capability.reseeded', {
+          created: r.created || 0,
+          updated: r.updated || 0,
+          steps: r.stepsUpserted || 0,
+        }),
+      )
+    })
+  }
+
   const selectPortfolio = (p) => {
     setSelectedPortfolio(p)
     setSelectedProgram(null)
@@ -1107,14 +1123,27 @@ export default function CapabilityHub() {
     selectedChange,
   ])
 
+  // Default kind filter is SYSTEM (A7 browser). Treat ALL/SYSTEM empty as “catalogue empty”
+  // so first visit shows the seed CTA; HUMAN/AGENTIC/OTHER empty means “no matches”.
+  const processesCatalogueEmpty =
+    tab === 'processes' &&
+    !loading &&
+    processes.length === 0 &&
+    (kindFilter === 'ALL' || kindFilter === 'SYSTEM')
+
   const emptyTitle = useMemo(() => {
     if (tab === 'knowledge') {
       return t('capability.knowledgeEmptyTitle', {
         defaultValue: 'Knowledge & standards',
       })
     }
+    if (processesCatalogueEmpty) {
+      return t('capability.seedCommonProcessesTitle', {
+        defaultValue: 'No processes yet',
+      })
+    }
     return t('desk.emptyTitle', { ns: 'common', defaultValue: 'Select an item' })
-  }, [tab, t])
+  }, [tab, t, processesCatalogueEmpty])
 
   const emptyBody = useMemo(() => {
     if (tab === 'knowledge') {
@@ -1122,11 +1151,17 @@ export default function CapabilityHub() {
         defaultValue: 'Create areas or standards with New, or browse the list.',
       })
     }
+    if (processesCatalogueEmpty) {
+      return t('capability.seedCommonProcessesHint', {
+        defaultValue:
+          'Seed the built-in SYSTEM catalogue (purchase, sales, finance, delivery, HR, and more) with steps and dependencies, or create a HUMAN process with New.',
+      })
+    }
     return t('desk.emptyBody', {
       ns: 'common',
       defaultValue: 'Choose a row from the list to see details.',
     })
-  }, [tab, t])
+  }, [tab, t, processesCatalogueEmpty])
 
   // —— create panels ——
   const portfoliosCreatePanel = (
@@ -1420,18 +1455,7 @@ export default function CapabilityHub() {
         className="btn"
         style={{ marginTop: 8 }}
         disabled={!!busy}
-        onClick={() =>
-          run('reseed', async () => {
-            const r = await capabilityApi.processes.reseed()
-            setInfo(
-              t('capability.reseeded', {
-                created: r.created || 0,
-                updated: r.updated || 0,
-                steps: r.stepsUpserted || 0,
-              }),
-            )
-          })
-        }
+        onClick={seedSystemCatalogue}
       >
         {t('capability.reseedCatalogue')}
       </button>
@@ -2223,10 +2247,47 @@ export default function CapabilityHub() {
           count: procPage.total || visibleProcesses.length,
         })}
       </h2>
-      <div className="banner-info" role="status" style={{ marginBottom: 8 }}>
-        <strong>{t('capability.processBrowserTitle')}</strong>
-        <p style={{ margin: '0.25rem 0 0' }}>{t('capability.processBrowserHint')}</p>
-      </div>
+      {processesCatalogueEmpty ? (
+        <div className="card" role="status" style={{ marginBottom: 12 }}>
+          <h3 className="section-label" style={{ marginTop: 0 }}>
+            {t('capability.seedCommonProcessesTitle', {
+              defaultValue: 'No processes yet',
+            })}
+          </h3>
+          <p className="muted" style={{ marginTop: 0 }}>
+            {t('capability.seedCommonProcessesHint', {
+              defaultValue:
+                'Seed the built-in SYSTEM catalogue (purchase, sales, finance, delivery, HR, and more) with steps and dependencies, or create a HUMAN process with New.',
+            })}
+          </p>
+          <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!!busy}
+              onClick={seedSystemCatalogue}
+            >
+              <GitBranch size={16} />{' '}
+              {t('capability.seedCommonProcesses', {
+                defaultValue: 'Seed common processes',
+              })}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={!!busy || newExpanded}
+              onClick={() => !newExpanded && requestToggleNew()}
+            >
+              <Plus size={16} /> {t('capability.newProcess')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="banner-info" role="status" style={{ marginBottom: 8 }}>
+          <strong>{t('capability.processBrowserTitle')}</strong>
+          <p style={{ margin: '0.25rem 0 0' }}>{t('capability.processBrowserHint')}</p>
+        </div>
+      )}
       <ResponsiveDataList
         items={visibleProcesses}
         empty={t('capability.emptyProcesses')}
@@ -2966,6 +3027,19 @@ export default function CapabilityHub() {
           {k}
         </button>
       ))}
+      {processesCatalogueEmpty ? (
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={!!busy}
+          onClick={seedSystemCatalogue}
+        >
+          <GitBranch size={16} />{' '}
+          {t('capability.seedCommonProcesses', {
+            defaultValue: 'Seed common processes',
+          })}
+        </button>
+      ) : null}
     </div>
   )
 

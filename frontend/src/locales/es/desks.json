@@ -482,7 +482,7 @@
     "processesCount": "Procesos ({{count}})",
     "processBrowserTitle": "Navegador de procesos (SISTEMA)",
     "processBrowserHint": "Explore lo que implementa steakOS. Seleccione un proceso para abrir el diagrama: coloque el cursor o enfoque un paso para Qué/Quién/Dónde. Vuelva a iniciar el catálogo del SISTEMA después de las actualizaciones de sugerencias.",
-    "emptyProcesses": "Sin procesos: reinicie el catálogo del SISTEMA o cree un proceso HUMANO.",
+    "emptyProcesses": "Aún no hay procesos: siembre los procesos SYSTEM comunes o cree un proceso HUMAN.",
     "activate": "Activar",
     "retire": "Retirarse",
     "stepName": "Nombre del paso",
@@ -493,7 +493,10 @@
     "portfoliosCount": "Portafolios ({{count}})",
     "programsCount": "Programas ({{count}})",
     "emptyPortfolios": "Aún no hay portafolios",
-    "emptyPrograms": "Aún no hay programas"
+    "emptyPrograms": "Aún no hay programas",
+    "seedCommonProcesses": "Sembrar procesos comunes",
+    "seedCommonProcessesTitle": "Aún no hay procesos",
+    "seedCommonProcessesHint": "Cargar el catálogo SYSTEM integrado (compras, ventas, finanzas, entrega, RR. HH., digital y más) con pasos y dependencias. Puede volver a sembrar desde Nuevo. O crear un proceso HUMAN con Nuevo."
   },
   "agents": {
     "title": "Recursos agentes",
