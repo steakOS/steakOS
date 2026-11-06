@@ -95,6 +95,25 @@ SYSTEM entries are not editable. Tips marked planned/stub are honest residuals.
 ## Related
 - Process charts · Capability hub (CAP_PROJECT)
 ''',
+
+            'capability.Standard': '''# Standard
+
+## Process overview
+Metric / KPI master data for the Capability **Standards** desk (`/capability/standards`). Prefer the desk for create and activate/deactivate.
+
+## Actions
+- Create/edit on Capability → Standards
+- Toggle ACTIVE / INACTIVE on the detail pane
+
+## Fields
+name, description, metricCode, targetValue, unit, standardStatus.
+
+## Special situations
+Create from domain list redirects to the Standards desk.
+
+## Related
+- Capability Standards desk · Quality · CAP_PROJECT
+''',
             'sales.Customer': '''# Customer
 
 ## Process overview
@@ -1141,23 +1160,49 @@ Requires **Silver** (or higher). Communications need an existing party. Ethics n
              body: '''# Capability hub
 
 ## Process overview
-SYSTEM process **CAP_PROJECT** plus the process **catalogue** (SYSTEM / HUMAN / AGENTIC). Section tabs cover projects, processes, quality, changes, knowledge.
+SYSTEM process **CAP_PROJECT** plus the process **catalogue** (SYSTEM / HUMAN / AGENTIC). Section tabs cover portfolios, programs, projects, processes, quality, standards, changes, knowledge.
 
 ## Actions
-- Section tabs — switch projects / processes / quality / changes / knowledge
+- Section tabs — switch surfaces including **Standards** (`/capability/standards`)
 - Select a row for split detail; start / complete / cancel projects
 - Open a SYSTEM process — Mermaid chart and steps (see Process charts)
 - Green **Process** pill — opens CAP_PROJECT (or the active process context)
 
 ## Fields
-Project portfolio fields; process kind/status (SYSTEM read-only seeds); quality and change records as tabs provide.
+Project portfolio fields; process kind/status (SYSTEM read-only seeds); quality, standards/KPIs, and change records as tabs provide.
 
 ## Special situations
 SYSTEM catalogue entries are read-only. Reseed from Settings or Capability → Reseed. Detail empty until row select.
 
 ## Related
 - Process charts
+- Standards (`/capability/standards`)
 - Development desk (DEV_PROJECT_DELIVER)
+- [Onboarding tour](/tour/)
+'''],
+
+            [key: 'capability.standards', title: 'Standards & KPIs', route: '/capability/standards', family: 'capability',
+             body: '''# Standards & KPIs
+
+## Process overview
+Capability **Standards** register (APQC 13.7 thin) for metrics and targets used with improvement work. Complements **Quality** and **CAP_PROJECT** portfolio delivery — not a separate money process.
+
+## Actions
+- **New** — create a standard / KPI (name, metric code, target, unit)
+- Row **View / Edit** — inspect; detail pane saves field updates
+- **Activate / Deactivate** — toggle ACTIVE ↔ INACTIVE
+- Green **Process** pill — CAP_PROJECT (hub default)
+- Content rail — attach notes/files on the selected standard
+
+## Fields
+Name; description; metricCode; targetValue; unit; standardStatus (ACTIVE | INACTIVE).
+
+## Special situations
+Empty list is fine until the first KPI is defined. Deactivated standards stay in history — they are not deleted. Domain list `/domains/capability/Standard` redirects create to this desk.
+
+## Related
+- Capability hub (CAP_PROJECT)
+- Quality tab
 - [Onboarding tour](/tour/)
 '''],
             [key: 'process.chart', title: 'Process charts', route: '/capability/processes', family: 'capability',
@@ -1953,6 +1998,25 @@ SYSTEM nicht editierbar; Tipps planned/stub sind ehrlich.
 ## Verwandt
 - Prozessdiagramme · Capability-Hub
 ''',
+
+            'capability.Standard': '''# Standard
+
+## Process overview
+Metric / KPI master data for the Capability **Standards** desk (`/capability/standards`). Prefer the desk for create and activate/deactivate.
+
+## Actions
+- Create/edit on Capability → Standards
+- Toggle ACTIVE / INACTIVE on the detail pane
+
+## Fields
+name, description, metricCode, targetValue, unit, standardStatus.
+
+## Special situations
+Create from domain list redirects to the Standards desk.
+
+## Related
+- Capability Standards desk · Quality · CAP_PROJECT
+''',
             'sales.Customer': '''# Kunde
 
 ## Prozessüberblick
@@ -2076,6 +2140,25 @@ SYSTEM no editable; tips planned/stub son honestos.
 
 ## Relacionado
 - Diagramas de proceso · Hub de capacidades
+''',
+
+            'capability.Standard': '''# Standard
+
+## Process overview
+Metric / KPI master data for the Capability **Standards** desk (`/capability/standards`). Prefer the desk for create and activate/deactivate.
+
+## Actions
+- Create/edit on Capability → Standards
+- Toggle ACTIVE / INACTIVE on the detail pane
+
+## Fields
+name, description, metricCode, targetValue, unit, standardStatus.
+
+## Special situations
+Create from domain list redirects to the Standards desk.
+
+## Related
+- Capability Standards desk · Quality · CAP_PROJECT
 ''',
             'sales.Customer': '''# Cliente
 
@@ -2607,6 +2690,7 @@ Emitido/confirmado solo Ver.
             'grrc.desk'          : 'Governance-Desk',
             'stakeholder.desk'   : 'Stakeholder-Desk',
             'capability.hub'     : 'Capability-Hub',
+            'capability.standards': 'Standards / KPIs',
             'agents.hub'         : 'KI- / Agenten-Hub',
             'finance.treasury'   : 'Treasury',
             'finance.invoices'   : 'Rechnungen',
@@ -2639,6 +2723,7 @@ Emitido/confirmado solo Ver.
             'grrc.desk'          : 'Escritorio de gobernanza',
             'stakeholder.desk'   : 'Escritorio de stakeholders',
             'capability.hub'     : 'Hub de capacidades',
+            'capability.standards': 'Estándares / KPI',
             'agents.hub'         : 'Hub de IA / agentes',
             'finance.treasury'   : 'Tesorería',
             'finance.invoices'   : 'Facturas',
@@ -2922,10 +3007,33 @@ Erfordert **Silver**. Kommunikation braucht eine bestehende Partei. Ethiknotizen
 - Governance-Desk (GRC_RISK_TREAT / GRC_COMPLIANCE_ITEM)
 - [Onboarding-Tour](/tour/)
 ''',
+
+            'capability.standards': '''# Standards / KPIs
+
+## Prozessüberblick
+Capability-**Standards**-Register (APQC 13.7 dünn) für Kennzahlen und Zielwerte. Ergänzt **Qualität** und **CAP_PROJECT** — kein Geldprozess.
+
+## Aktionen
+- **Neu** — Standard/KPI anlegen
+- Zeile Ansehen/Bearbeiten; Detail speichert Felder
+- **Aktivieren / Deaktivieren** — ACTIVE ↔ INACTIVE
+- Grüne **Prozess**-Pille — CAP_PROJECT
+- Content-Leiste am Datensatz
+
+## Felder
+Name, Beschreibung, metricCode, targetValue, unit, standardStatus.
+
+## Besondere Situationen
+Leere Liste ist ok. Deaktivierte Standards bleiben erhalten.
+
+## Verwandt
+- Capability-Hub · Qualität
+- [Onboarding-Tour](/tour/)
+''',
             'capability.hub': '''# Capability-Hub
 
 ## Prozessüberblick
-SYSTEM-Prozess **CAP_PROJECT** plus Prozesskatalog. Tabs: Projekte, Prozesse, Qualität, Changes, Wissen.
+SYSTEM-Prozess **CAP_PROJECT** plus Prozesskatalog. Tabs: Portfolios, Programme, Projekte, Prozesse, Qualität, Standards, Changes, Wissen.
 
 ## Aktionen
 - Tabs wechseln; Projekt starten/abschließen; SYSTEM-Prozess öffnen (Mermaid)
@@ -3905,10 +4013,33 @@ Requiere **Silver**. Las comunicaciones necesitan una parte existente. Las notas
 - Escritorio de gobernanza (GRC_RISK_TREAT / GRC_COMPLIANCE_ITEM)
 - [Tour de incorporación](/tour/)
 ''',
+
+            'capability.standards': '''# Estándares / KPI
+
+## Resumen del proceso
+Registro de **estándares** Capability (APQC 13.7 ligero) para métricas y objetivos. Complementa **Calidad** y **CAP_PROJECT** — sin movimiento de dinero.
+
+## Acciones
+- **Nuevo** — crear estándar/KPI
+- Ver/editar; el detalle guarda campos
+- **Activar / Desactivar** — ACTIVE ↔ INACTIVE
+- Pastilla verde **Proceso** — CAP_PROJECT
+- Barra de contenido
+
+## Campos
+Nombre, descripción, metricCode, targetValue, unit, standardStatus.
+
+## Situaciones especiales
+Lista vacía está bien. Los desactivados se conservan.
+
+## Relacionado
+- Hub de capacidades · Calidad
+- [Tour de incorporación](/tour/)
+''',
             'capability.hub': '''# Hub de capacidades
 
 ## Resumen del proceso
-Proceso SYSTEM **CAP_PROJECT** más catálogo de procesos. Pestañas: proyectos, procesos, calidad, cambios, conocimiento.
+Proceso SYSTEM **CAP_PROJECT** más catálogo de procesos. Pestañas: portafolios, programas, proyectos, procesos, calidad, estándares, cambios, conocimiento.
 
 ## Acciones
 - Cambiar pestañas; iniciar/completar proyectos; abrir proceso SYSTEM (Mermaid)

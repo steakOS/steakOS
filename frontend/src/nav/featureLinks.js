@@ -298,6 +298,7 @@ export function capabilityFeatureLinks(t) {
     { name: t('features.projects'), path: '/capability/projects', icon: FolderKanban },
     { name: t('features.processes'), path: '/capability/processes', icon: GitBranch },
     { name: t('features.quality'), path: '/capability/quality', icon: BadgeCheck },
+    { name: t('features.standards'), path: '/capability/standards', icon: Target },
     { name: t('features.changes'), path: '/capability/changes', icon: RefreshCw },
     { name: t('features.knowledge'), path: '/capability/knowledge', icon: BookOpen },
   ]

@@ -22,6 +22,7 @@ import {
   BadgeCheck,
   RefreshCw,
   BookOpen,
+  Target,
   Layers,
   Briefcase,
   Plus,
@@ -61,13 +62,14 @@ const SECTION_DEFS = [
   { id: 'projects', labelKey: 'capability.tabs.projects', icon: FolderKanban },
   { id: 'processes', labelKey: 'capability.tabs.processes', icon: GitBranch },
   { id: 'quality', labelKey: 'capability.tabs.quality', icon: BadgeCheck },
+  { id: 'standards', labelKey: 'capability.tabs.standards', icon: Target },
   { id: 'changes', labelKey: 'capability.tabs.changes', icon: RefreshCw },
   { id: 'knowledge', labelKey: 'capability.tabs.knowledge', icon: BookOpen },
 ]
 
 /**
  * Capability ops — DeskShell master–detail (ADR-047 / Nielsen WP-3).
- * Route sections: /capability/:section — portfolios · programs · projects · processes · quality · changes · knowledge.
+ * Route sections: /capability/:section — portfolios · programs · projects · processes · quality · standards · changes · knowledge.
  */
 const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
 const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' })
@@ -207,6 +209,7 @@ export default function CapabilityHub() {
   const [selectedChange, setSelectedChange] = useState(null)
   const [changeItems, setChangeItems] = useState([])
   const [selectedQuality, setSelectedQuality] = useState(null)
+  const [selectedStandard, setSelectedStandard] = useState(null)
 
   const [portPage, setPortPage] = useState({ max: 25, offset: 0, total: 0 })
   const [progPage, setProgPage] = useState({ max: 25, offset: 0, total: 0 })
@@ -527,43 +530,38 @@ export default function CapabilityHub() {
           total: c.total ?? ch.length,
         }))
         setChangeContentMap(await fetchContentMap('capability', 'Change', ch))
-      } else if (tab === 'knowledge') {
-        const [k, s] = await Promise.all([
-          capabilityApi.knowledge.list({
-            max: knowPage.max,
-            offset: knowPage.offset,
-            sort: knowSort,
-            order: knowOrder,
-          }),
-          capabilityApi.standards.list({
-            max: stdPage.max,
-            offset: stdPage.offset,
-            sort: stdSort,
-            order: stdOrder,
-          }),
-        ])
-        const kItems = k.items || []
+      } else if (tab === 'standards') {
+        const s = await capabilityApi.standards.list({
+          max: stdPage.max,
+          offset: stdPage.offset,
+          sort: stdSort,
+          order: stdOrder,
+        })
         const sItems = s.items || []
-        setKnowledge(kItems)
         setStandards(sItems)
-        const [kMap, sMap] = await Promise.all([
-          fetchContentMap('capability', 'KnowledgeArea', kItems),
-          fetchContentMap('capability', 'Standard', sItems),
-        ])
-        setKnowledgeContentMap(kMap)
-        setStandardContentMap(sMap)
-        setKnowPage((pg) => ({
-          ...pg,
-          max: k.max ?? pg.max,
-          offset: k.offset ?? pg.offset,
-          total: k.total ?? kItems.length,
-        }))
         setStdPage((pg) => ({
           ...pg,
           max: s.max ?? pg.max,
           offset: s.offset ?? pg.offset,
           total: s.total ?? sItems.length,
         }))
+        setStandardContentMap(await fetchContentMap('capability', 'Standard', sItems))
+      } else if (tab === 'knowledge') {
+        const k = await capabilityApi.knowledge.list({
+          max: knowPage.max,
+          offset: knowPage.offset,
+          sort: knowSort,
+          order: knowOrder,
+        })
+        const kItems = k.items || []
+        setKnowledge(kItems)
+        setKnowPage((pg) => ({
+          ...pg,
+          max: k.max ?? pg.max,
+          offset: k.offset ?? pg.offset,
+          total: k.total ?? kItems.length,
+        }))
+        setKnowledgeContentMap(await fetchContentMap('capability', 'KnowledgeArea', kItems))
       }
     } catch (e) {
       setError(e.message || String(e))
@@ -672,6 +670,7 @@ export default function CapabilityHub() {
     setSelectedProcess(null)
     setSelectedQuality(null)
     setSelectedChange(null)
+    setSelectedStandard(null)
   }
 
   const selectProgram = (p) => {
@@ -681,6 +680,7 @@ export default function CapabilityHub() {
     setSelectedProcess(null)
     setSelectedQuality(null)
     setSelectedChange(null)
+    setSelectedStandard(null)
   }
 
   const selectProject = async (p) => {
@@ -690,6 +690,7 @@ export default function CapabilityHub() {
     setSelectedProcess(null)
     setSelectedQuality(null)
     setSelectedChange(null)
+    setSelectedStandard(null)
     try {
       const items = await capabilityApi.projects.items(p.id)
       setProjectItems(items.items || [])
@@ -705,6 +706,7 @@ export default function CapabilityHub() {
     setSelectedProject(null)
     setSelectedQuality(null)
     setSelectedChange(null)
+    setSelectedStandard(null)
     setProcessMermaid('')
     try {
       const detail = await capabilityApi.processes.get(p.id)
@@ -756,6 +758,7 @@ export default function CapabilityHub() {
     setSelectedProject(null)
     setSelectedProcess(null)
     setSelectedQuality(null)
+    setSelectedStandard(null)
     try {
       const items = await capabilityApi.changes.items(c.id)
       setChangeItems(items.items || [])
@@ -771,6 +774,7 @@ export default function CapabilityHub() {
     setSelectedProject(null)
     setSelectedProcess(null)
     setSelectedChange(null)
+    setSelectedStandard(null)
     try {
       const items = await capabilityApi.qualities.items(q.id)
       setQualityItems(items.items || [])
@@ -779,12 +783,30 @@ export default function CapabilityHub() {
     }
   }
 
+  const selectStandard = async (s) => {
+    setSelectedStandard(s)
+    setSelectedPortfolio(null)
+    setSelectedProgram(null)
+    setSelectedProject(null)
+    setSelectedProcess(null)
+    setSelectedQuality(null)
+    setSelectedChange(null)
+    try {
+      const detail = await capabilityApi.standards.get(s.id)
+      setSelectedStandard(detail)
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
+
   const clearSelection = useCallback(() => {
     setSelectedPortfolio(null)
     setSelectedProgram(null)
     setSelectedProject(null)
     setSelectedProcess(null)
     setSelectedQuality(null)
+    setSelectedStandard(null)
     setSelectedChange(null)
     setProjectItems([])
     setProcessSteps([])
@@ -910,19 +932,23 @@ export default function CapabilityHub() {
           pendingChangeContent.length,
       )
     }
+    if (tab === 'standards') {
+      return Boolean(
+        (stdForm.name || '').trim() ||
+          (stdForm.description || '').trim() ||
+          (stdForm.metricCode || '').trim() ||
+          (stdForm.targetValue || '').trim() ||
+          (stdForm.unit || '').trim() ||
+          pendingStandardContent.length,
+      )
+    }
     if (tab === 'knowledge') {
       return Boolean(
         (knowForm.name || '').trim() ||
           (knowForm.description || '').trim() ||
           (knowForm.areaCode || '').trim() ||
           knowForm.parentId ||
-          (stdForm.name || '').trim() ||
-          (stdForm.description || '').trim() ||
-          (stdForm.metricCode || '').trim() ||
-          (stdForm.targetValue || '').trim() ||
-          (stdForm.unit || '').trim() ||
-          pendingKnowledgeContent.length ||
-          pendingStandardContent.length,
+          pendingKnowledgeContent.length,
       )
     }
     return false
@@ -969,9 +995,11 @@ export default function CapabilityHub() {
     if (tab === 'projects') return projects.map((p) => p.id)
     if (tab === 'processes') return processes.map((p) => p.id)
     if (tab === 'quality') return qualities.map((q) => q.id)
+    if (tab === 'standards') return standards.map((s) => s.id)
     if (tab === 'changes') return changes.map((c) => c.id)
+    if (tab === 'knowledge') return knowledge.map((k) => k.id)
     return []
-  }, [tab, portfolios, programs, projects, processes, qualities, changes])
+  }, [tab, portfolios, programs, projects, processes, qualities, standards, changes, knowledge])
 
   const keyboardSelectedId = useMemo(() => {
     if (tab === 'portfolios') return selectedPortfolio?.id ?? null
@@ -979,6 +1007,7 @@ export default function CapabilityHub() {
     if (tab === 'projects') return selectedProject?.id ?? null
     if (tab === 'processes') return selectedProcess?.id ?? null
     if (tab === 'quality') return selectedQuality?.id ?? null
+    if (tab === 'standards') return selectedStandard?.id ?? null
     if (tab === 'changes') return selectedChange?.id ?? null
     return null
   }, [
@@ -988,6 +1017,7 @@ export default function CapabilityHub() {
     selectedProject?.id,
     selectedProcess?.id,
     selectedQuality?.id,
+    selectedStandard?.id,
     selectedChange?.id,
   ])
 
@@ -1013,6 +1043,9 @@ export default function CapabilityHub() {
       } else if (tab === 'quality') {
         const q = qualities.find((x) => String(x.id) === sid)
         if (q) selectQuality(q)
+      } else if (tab === 'standards') {
+        const s = standards.find((x) => String(x.id) === sid)
+        if (s) selectStandard(s)
       } else if (tab === 'changes') {
         const c = changes.find((x) => String(x.id) === sid)
         if (c) selectChange(c)
@@ -1025,6 +1058,7 @@ export default function CapabilityHub() {
       projects,
       processes,
       qualities,
+      standards,
       changes,
       clearSelection,
       selectPortfolio,
@@ -1032,6 +1066,7 @@ export default function CapabilityHub() {
       selectProject,
       selectProcess,
       selectQuality,
+      selectStandard,
       selectChange,
     ],
   )
@@ -1092,8 +1127,11 @@ export default function CapabilityHub() {
     if (tab === 'changes') {
       return t('capability.newChange', { defaultValue: 'New org change' })
     }
+    if (tab === 'standards') {
+      return t('capability.newStandard', { defaultValue: 'New standard / KPI' })
+    }
     if (tab === 'knowledge') {
-      return t('capability.newKnowledge', { defaultValue: 'New knowledge / standard' })
+      return t('capability.newKnowledge', { defaultValue: 'New knowledge area' })
     }
     return t('desk.new', { ns: 'common', defaultValue: 'New' })
   }, [tab, t])
@@ -1104,6 +1142,7 @@ export default function CapabilityHub() {
     if (tab === 'projects') return Boolean(selectedProject?.id)
     if (tab === 'processes') return Boolean(selectedProcess?.id)
     if (tab === 'quality') return Boolean(selectedQuality?.id)
+    if (tab === 'standards') return Boolean(selectedStandard?.id)
     if (tab === 'changes') return Boolean(selectedChange?.id)
     return false
   }, [
@@ -1113,6 +1152,7 @@ export default function CapabilityHub() {
     selectedProject?.id,
     selectedProcess?.id,
     selectedQuality?.id,
+    selectedStandard?.id,
     selectedChange?.id,
   ])
 
@@ -1164,6 +1204,14 @@ export default function CapabilityHub() {
         status: selectedQuality.qualityStatus,
       }
     }
+    if (tab === 'standards' && selectedStandard) {
+      return {
+        ...base,
+        resource: 'Standard',
+        objectId: selectedStandard.id,
+        status: selectedStandard.standardStatus,
+      }
+    }
     if (tab === 'changes' && selectedChange) {
       return {
         ...base,
@@ -1181,6 +1229,7 @@ export default function CapabilityHub() {
     selectedProject,
     selectedProcess,
     selectedQuality,
+    selectedStandard,
     selectedChange,
   ])
 
@@ -1211,9 +1260,14 @@ export default function CapabilityHub() {
     (kindFilter === 'ALL' || kindFilter === 'SYSTEM')
 
   const emptyTitle = useMemo(() => {
+    if (tab === 'standards') {
+      return t('capability.standardsEmptyTitle', {
+        defaultValue: 'Standards & KPIs',
+      })
+    }
     if (tab === 'knowledge') {
       return t('capability.knowledgeEmptyTitle', {
-        defaultValue: 'Knowledge & standards',
+        defaultValue: 'Knowledge areas',
       })
     }
     if (processesCatalogueEmpty) {
@@ -1225,9 +1279,14 @@ export default function CapabilityHub() {
   }, [tab, t, processesCatalogueEmpty])
 
   const emptyBody = useMemo(() => {
+    if (tab === 'standards') {
+      return t('capability.standardsEmptyBody', {
+        defaultValue: 'Create a standard or KPI with New, then select a row for detail.',
+      })
+    }
     if (tab === 'knowledge') {
       return t('capability.knowledgeEmptyBody', {
-        defaultValue: 'Create areas or standards with New, or browse the list.',
+        defaultValue: 'Create knowledge areas with New, or browse the list.',
       })
     }
     if (processesCatalogueEmpty) {
@@ -1855,9 +1914,15 @@ export default function CapabilityHub() {
           <Plus size={16} /> {t('capability.createArea')}
         </button>
       </form>
+    </>
+  )
 
-      <h2 className="section-label">{t('capability.standardKpi')}</h2>
-      <form
+  const standardsCreatePanel = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('capability.standardKpi')}
+      </h2>
+<form
         className="form-grid"
         onSubmit={(e) => {
           e.preventDefault()
@@ -1930,6 +1995,7 @@ export default function CapabilityHub() {
     </>
   )
 
+
   const newPanel =
     tab === 'portfolios'
       ? portfoliosCreatePanel
@@ -1941,11 +2007,13 @@ export default function CapabilityHub() {
             ? processesCreatePanel
             : tab === 'quality'
               ? qualityCreatePanel
-              : tab === 'changes'
-                ? changesCreatePanel
-                : tab === 'knowledge'
-                  ? knowledgeCreatePanel
-                  : null
+              : tab === 'standards'
+                ? standardsCreatePanel
+                : tab === 'changes'
+                  ? changesCreatePanel
+                  : tab === 'knowledge'
+                    ? knowledgeCreatePanel
+                    : null
 
   // —— lists (col1) ——
   const portfoliosList = (
@@ -3150,15 +3218,26 @@ export default function CapabilityHub() {
         onOffset={(o) => setKnowPage((pg) => ({ ...pg, offset: o }))}
         onMax={(m) => setKnowPage((pg) => ({ ...pg, max: m, offset: 0 }))}
       />
+    </>
+  )
 
-      <h2 className="section-label">Standards ({stdPage.total || standards.length})</h2>
+  const standardsList = (
+    <>
+      <h2 className="section-label" style={{ marginTop: 0 }}>
+        {t('capability.standardsCount', {
+          defaultValue: 'Standards ({{count}})',
+          count: stdPage.total || standards.length,
+        })}
+      </h2>
       <ResponsiveDataList
         items={standards}
         sortFields={STD_SORT_MENU}
         sort={stdSort}
         order={stdOrder}
         onSortChange={onStdSortChange}
-        empty="—"
+        empty={t('capability.emptyStandards', { defaultValue: 'No standards yet' })}
+        selectedKey={selectedStandard?.id}
+        onSelect={(s) => selectStandard(s)}
         fields={[
           { id: 'name', primary: true, render: (s) => s.name },
           {
@@ -3170,6 +3249,13 @@ export default function CapabilityHub() {
             id: 'target',
             meta: true,
             render: (s) => s.targetValue || '—',
+          },
+          {
+            id: 'status',
+            meta: true,
+            render: (s) => (
+              <span className={statusClass(s.standardStatus)}>{s.standardStatus}</span>
+            ),
           },
           {
             id: 'unit',
@@ -3203,6 +3289,13 @@ export default function CapabilityHub() {
                   onSortChange={onStdSortChange}
                 />
                 <th>{t('capability.target')}</th>
+                <ListSortHeader
+                  field="standardStatus"
+                  label={t('wb.status', { ns: 'common' })}
+                  sort={stdSort}
+                  order={stdOrder}
+                  onSortChange={onStdSortChange}
+                />
                 <th className="col-priority-low">{t('wb.unit', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
@@ -3210,19 +3303,39 @@ export default function CapabilityHub() {
             </thead>
             <tbody>
               {standards.map((s) => (
-                <tr key={s.id}>
+                <tr
+                  key={s.id}
+                  style={{
+                    cursor: 'pointer',
+                    background:
+                      selectedStandard?.id === s.id
+                        ? 'var(--surface-2, #f0f0f0)'
+                        : undefined,
+                  }}
+                  onClick={() => selectStandard(s)}
+                >
                   <td>{s.name}</td>
                   <td className="mono">{s.metricCode || '—'}</td>
                   <td>{s.targetValue || '—'}</td>
+                  <td>
+                    <span className={statusClass(s.standardStatus)}>{s.standardStatus}</span>
+                  </td>
                   <td className="col-priority-low">{s.unit || '—'}</td>
-                  <td className="col-priority-low">
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={standardContentMap[s.id]} />
                   </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
+                  <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     {renderRowActions('capability', 'Standard', s)}
                   </td>
                 </tr>
               ))}
+              {!standards.length && (
+                <tr>
+                  <td colSpan={7} className="muted">
+                    {t('capability.emptyStandards', { defaultValue: 'No standards yet' })}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -3238,6 +3351,7 @@ export default function CapabilityHub() {
     </>
   )
 
+
   const list =
     tab === 'portfolios'
       ? portfoliosList
@@ -3249,11 +3363,13 @@ export default function CapabilityHub() {
             ? processesList
             : tab === 'quality'
               ? qualityList
-              : tab === 'changes'
-                ? changesList
-                : tab === 'knowledge'
-                  ? knowledgeList
-                  : null
+              : tab === 'standards'
+                ? standardsList
+                : tab === 'changes'
+                  ? changesList
+                  : tab === 'knowledge'
+                    ? knowledgeList
+                    : null
 
   const processesToolbar = (
     <div className="toolbar" style={{ flexWrap: 'wrap', gap: 6 }}>
@@ -3659,6 +3775,134 @@ export default function CapabilityHub() {
           id={selectedQuality.id}
           onChanged={async () =>
             setQualityContentMap(await fetchContentMap('capability', 'Quality', qualities))
+          }
+        />
+      </div>
+    )
+  } else if (tab === 'standards' && selectedStandard) {
+    detail = (
+      <div className="card" style={{ boxShadow: 'none', border: 'none', padding: 0 }}>
+        <h2 className="section-label" style={{ marginTop: 0 }}>
+          {selectedStandard.name}
+        </h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {t('capability.standardKpi')} ·{' '}
+          <span className={statusClass(selectedStandard.standardStatus)}>
+            {selectedStandard.standardStatus}
+          </span>
+          {selectedStandard.metricCode ? ` · ${selectedStandard.metricCode}` : ''}
+        </p>
+        {selectedStandard.description ? (
+          <p style={{ fontSize: '0.9rem' }}>{selectedStandard.description}</p>
+        ) : null}
+        <p style={{ fontSize: '0.9rem' }}>
+          {t('capability.target')}: {selectedStandard.targetValue || '—'}
+          {selectedStandard.unit ? ` ${selectedStandard.unit}` : ''}
+        </p>
+        <div className="toolbar" style={{ flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+          {selectedStandard.standardStatus === 'ACTIVE' ? (
+            <button
+              type="button"
+              className="btn"
+              disabled={!!busy}
+              onClick={() =>
+                run('stdOff', async () => {
+                  const updated = await capabilityApi.standards.update(selectedStandard.id, {
+                    standardStatus: 'INACTIVE',
+                  })
+                  setSelectedStandard(updated)
+                  setInfo(
+                    t('capability.standardDeactivated', {
+                      defaultValue: 'Standard deactivated',
+                    }),
+                  )
+                  await loadAllRef.current?.()
+                })
+              }
+            >
+              {t('capability.deactivate', { defaultValue: 'Deactivate' })}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!!busy}
+              onClick={() =>
+                run('stdOn', async () => {
+                  const updated = await capabilityApi.standards.update(selectedStandard.id, {
+                    standardStatus: 'ACTIVE',
+                  })
+                  setSelectedStandard(updated)
+                  setInfo(
+                    t('capability.standardActivated', {
+                      defaultValue: 'Standard activated',
+                    }),
+                  )
+                  await loadAllRef.current?.()
+                })
+              }
+            >
+              {t('capability.activate', { defaultValue: 'Activate' })}
+            </button>
+          )}
+        </div>
+        <form
+          className="form-grid"
+          style={{ marginTop: 12 }}
+          onSubmit={(e) => {
+            e.preventDefault()
+            const fd = new FormData(e.currentTarget)
+            run('stdSave', async () => {
+              const updated = await capabilityApi.standards.update(selectedStandard.id, {
+                name: String(fd.get('name') || '').trim(),
+                description: String(fd.get('description') || '').trim() || null,
+                metricCode: String(fd.get('metricCode') || '').trim() || null,
+                targetValue: String(fd.get('targetValue') || '').trim() || null,
+                unit: String(fd.get('unit') || '').trim() || null,
+              })
+              setSelectedStandard(updated)
+              setInfo(t('toast.saved', { ns: 'common', defaultValue: 'Saved' }))
+              await loadAllRef.current?.()
+            })
+          }}
+        >
+          <h2 className="section-label">{t('actions.edit', { ns: 'common' })}</h2>
+          <label>
+            {t('wb.name', { ns: 'common' })} *
+            <input name="name" required defaultValue={selectedStandard.name || ''} />
+          </label>
+          <label>
+            Description
+            <textarea
+              name="description"
+              rows={2}
+              defaultValue={selectedStandard.description || ''}
+            />
+          </label>
+          <div className="form-row-2">
+            <label>
+              {t('capability.metric')}
+              <input name="metricCode" defaultValue={selectedStandard.metricCode || ''} />
+            </label>
+            <label>
+              {t('capability.target')}
+              <input name="targetValue" defaultValue={selectedStandard.targetValue || ''} />
+            </label>
+          </div>
+          <label>
+            {t('wb.unit', { ns: 'common' })}
+            <input name="unit" defaultValue={selectedStandard.unit || ''} />
+          </label>
+          <button type="submit" className="btn btn-primary" disabled={!!busy}>
+            {t('actions.save', { ns: 'common' })}
+          </button>
+        </form>
+        <ContentRail
+          package="capability"
+          resource="Standard"
+          id={selectedStandard.id}
+          onChanged={async () =>
+            setStandardContentMap(await fetchContentMap('capability', 'Standard', standards))
           }
         />
       </div>

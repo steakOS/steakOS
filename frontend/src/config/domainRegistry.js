@@ -474,7 +474,13 @@ export const CREATE_META = {
     parentResource: 'Change',
     deskPath: '/capability/changes',
   },
-  'capability/KnowledgeArea': { entityClass: 'E', createMode: 'domain', interaction: 'capability' },
+  'capability/KnowledgeArea': {
+    entityClass: 'E',
+    createMode: 'deskRedirect',
+    interaction: 'capability',
+    deskPath: '/capability/knowledge',
+    deskLabel: 'Capability hub',
+  },
   'capability/Portfolio': {
     entityClass: 'B',
     createMode: 'deskRedirect',
@@ -532,7 +538,13 @@ export const CREATE_META = {
     parentResource: 'Quality',
     deskPath: '/capability/quality',
   },
-  'capability/Standard': { entityClass: 'E', createMode: 'domain', interaction: 'capability' },
+  'capability/Standard': {
+    entityClass: 'E',
+    createMode: 'deskRedirect',
+    interaction: 'capability',
+    deskPath: '/capability/standards',
+    deskLabel: 'Capability hub',
+  },
 
   // —— agents ——
   'agents/Agent': {
