@@ -19,6 +19,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.events.DomainEventBusService
 import steakos.events.DomainEventNames
+import steakos.helper.AssignableSupport
 
 /**
  * SalesAdvanced light CRM (OI-S08 / G5) — Opportunity + CrmActivity.
@@ -69,7 +70,8 @@ class SalesCrmService {
                 expectedCloseDate : parseDate(fields.expectedCloseDate),
                 ownerName         : blankToNull(fields.ownerName),
                 source            : blankToNull(fields.source),
-                active            : fields.containsKey('active') ? fields.active as Boolean : Boolean.TRUE
+                active            : fields.containsKey('active') ? fields.active as Boolean : Boolean.TRUE,
+                *: AssignableSupport.initialPair(fields)
         )
         opp.save(failOnError: true, flush: true)
         return opp
@@ -115,6 +117,7 @@ class SalesCrmService {
         if (fields.containsKey('ownerName')) opp.ownerName = blankToNull(fields.ownerName)
         if (fields.containsKey('source')) opp.source = blankToNull(fields.source)
         if (fields.containsKey('active')) opp.active = fields.active as Boolean
+        AssignableSupport.apply(opp, fields)
 
         opp.save(failOnError: true, flush: true)
         return opp
@@ -216,7 +219,9 @@ class SalesCrmService {
 
     static final List OPP_SORT_FIELDS = [
             'id', 'name', 'stage', 'contactName', 'expectedAmountEur',
-            'expectedCloseDate', 'ownerName', 'source', 'dateCreated', 'lastUpdated'
+            'expectedCloseDate', 'ownerName', 'source',
+            'assigneeHumanNpub', 'assigneeAgentId',
+            'dateCreated', 'lastUpdated'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -361,7 +366,8 @@ class SalesCrmService {
                 resultingQuoteId : opp.resultingQuoteId,
                 active           : opp.active,
                 npubOwner        : opp.npubOwner,
-                activityCount    : CrmActivity.countByOpportunity(opp)
+                activityCount    : CrmActivity.countByOpportunity(opp),
+                *: AssignableSupport.toMapFragment(opp)
         ]
         if (includeActivities) {
             m.activities = listActivities(opp.id, opp.npubOwner).collect { activityToMap(it) }

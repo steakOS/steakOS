@@ -27,6 +27,7 @@ import steakos.traits.Versioned
 import steakos.traits.NostrPublishable
 import steakos.traits.DynamicExtensible
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Customer commercial quote (S-S0/S-S2). Lines via {@link QuoteLine}.
@@ -35,7 +36,7 @@ import steakos.traits.DomainTraitConstraints
 @EqualsAndHashCode(includes = 'quoteNumber')
 @ToString(includes = 'quoteNumber,name,quoteStatus', includeNames = true, includePackage = false)
 class CustomerQuote implements NpubOwned, AccessControl, Classifiable, Attachable,
-		Auditable, Versioned, NostrPublishable, DynamicExtensible, Serializable {
+		Auditable, Versioned, NostrPublishable, DynamicExtensible, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -74,6 +75,7 @@ class CustomerQuote implements NpubOwned, AccessControl, Classifiable, Attachabl
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		DomainTraitConstraints.applyVersioned(delegate)
 		DomainTraitConstraints.applyNostrPublishable(delegate)

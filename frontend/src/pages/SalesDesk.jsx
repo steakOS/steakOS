@@ -66,7 +66,9 @@ import RowActionSlots from '../components/RowActionSlots'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
+import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
 import {
+  assigneePairForBody,
   buildAssigneeOptions,
   filterAssigneeOptionsForDevMode,
   formatAssigneeDisplay,
@@ -290,6 +292,8 @@ export default function SalesDesk() {
     name: '',
     description: '',
     currencyCode: 'EUR',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   })
   const [quoteWarnings, setQuoteWarnings] = useState([])
   const [quoteLines, setQuoteLines] = useState(DEFAULT_QUOTE_LINES)
@@ -753,7 +757,14 @@ export default function SalesDesk() {
   }, [loadAll])
 
   const resetCreateForms = useCallback(() => {
-    setQuoteForm({ customerId: '', name: '', description: '', currencyCode: 'EUR' })
+    setQuoteForm({
+      customerId: '',
+      name: '',
+      description: '',
+      currencyCode: 'EUR',
+      assigneeHumanNpub: '',
+      assigneeAgentId: '',
+    })
     setQuoteLines(DEFAULT_QUOTE_LINES())
     setPendingQuoteContent([])
     setQuoteWarnings([])
@@ -776,6 +787,8 @@ export default function SalesDesk() {
           (quoteForm.name || '').trim() ||
           (quoteForm.description || '').trim() ||
           quoteForm.currencyCode !== 'EUR' ||
+          quoteForm.assigneeHumanNpub ||
+          quoteForm.assigneeAgentId ||
           pendingQuoteContent.length ||
           linesDirty(quoteLines, DEFAULT_QUOTE_LINES),
       )
@@ -1037,11 +1050,19 @@ export default function SalesDesk() {
         customerId: quoteForm.customerId || undefined,
         currencyCode: quoteForm.currencyCode || undefined,
         lines,
+        ...assigneePairForBody(quoteForm),
       }
       const q = await salesApi.quotes.create(body)
       setQuoteWarnings(Array.isArray(q?.warnings) ? q.warnings : [])
       setQuoteLines(DEFAULT_QUOTE_LINES())
-      setQuoteForm({ customerId: '', name: '', description: '', currencyCode: 'EUR' })
+      setQuoteForm({
+        customerId: '',
+        name: '',
+        description: '',
+        currencyCode: 'EUR',
+        assigneeHumanNpub: '',
+        assigneeAgentId: '',
+      })
       let contentNote = ''
       if (pendingQuoteContent.length) {
         const att = await attachPendingContent(
@@ -1342,6 +1363,20 @@ export default function SalesDesk() {
           required
         />
       </label>
+      <TaskAssigneeSelect
+        id="sales-quote-assignee"
+        assigneeHumanNpub={quoteForm.assigneeHumanNpub}
+        assigneeAgentId={quoteForm.assigneeAgentId}
+        onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+          setQuoteForm((f) => ({
+            ...f,
+            assigneeHumanNpub: assigneeHumanNpub || '',
+            assigneeAgentId: assigneeAgentId || '',
+          }))
+        }
+        disabled={!!busy}
+        defaultToMe={false}
+      />
       {quoteWarnings?.length > 0 && (
         <div className="banner-info" role="status">
           {quoteWarnings.map((w) => (
@@ -1570,6 +1605,11 @@ export default function SalesDesk() {
             render: (q) =>
               q.amountEur != null ? `${Number(q.amountEur).toFixed(2)} EUR` : '—',
           },
+          {
+            id: 'assignee',
+            meta: true,
+            render: (q) => assigneeLabel(q),
+          },
         ]}
         actions={(q) =>
           renderRowActions('sales', 'CustomerQuote', q, { onView: openQuoteView })
@@ -1612,6 +1652,9 @@ export default function SalesDesk() {
                     setQuotePage((pg) => ({ ...pg, offset: 0 }))
                   }}
                 />
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('quote.table.content')}</th>
                 <ListSortHeader
                   field="quoteStatus"
@@ -1630,7 +1673,7 @@ export default function SalesDesk() {
             <tbody>
               {quotes.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={7} className="muted">
                     {t('quote.empty')}
                   </td>
                 </tr>
@@ -1644,6 +1687,7 @@ export default function SalesDesk() {
                   <td className="mono">{q.quoteNumber}</td>
                   <td>{q.customerName || '—'}</td>
                   <td>{q.amountEur != null ? Number(q.amountEur).toFixed(2) : '—'}</td>
+                  <td className="col-priority-low">{assigneeLabel(q)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={quoteContentMap[q.id]} />
                   </td>

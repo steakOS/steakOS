@@ -29,9 +29,10 @@ import {
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListSortHeader from '../components/ListSortHeader'
 import useServerListSort from '../hooks/useServerListSort'
-import { salesApi, domainsApi } from '../api/client'
+import { agentsApi, deliveryApi, domainsApi, meApi, salesApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrencySelect from '../components/CurrencySelect'
+import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
 import DeskShell from '../components/desk/DeskShell'
 import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import DeskNewFab from '../components/DeskNewFab'
@@ -49,6 +50,14 @@ import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
+import {
+  assigneePairForBody,
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const PKG = 'sales'
 const RESOURCE = 'Opportunity'
@@ -71,6 +80,8 @@ const emptyOpp = () => ({
   ownerName: '',
   source: '',
   description: '',
+  assigneeHumanNpub: '',
+  assigneeAgentId: '',
 })
 
 function toDateInput(v) {
@@ -105,6 +116,7 @@ function oppBody(src) {
     source: src.source || undefined,
     description: src.description.trim() || undefined,
     expectedCloseDate: src.expectedCloseDate || undefined,
+    ...assigneePairForBody(src),
   }
   if (src.customerId) body.customerId = Number(src.customerId)
   if (src.expectedAmountEur !== '') body.expectedAmountEur = Number(src.expectedAmountEur)
@@ -191,6 +203,8 @@ export default function SalesCrmPage() {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
   const itemsRef = useRef([])
 
   selectedRef.current = selected
@@ -198,6 +212,44 @@ export default function SalesCrmPage() {
   busyRef.current = busy
   stageDraftRef.current = stageDraft
   actFormRef.current = actForm
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
 
   const {
     viewModal,
@@ -329,6 +381,8 @@ export default function SalesCrmPage() {
         (form.ownerName || '').trim() ||
         form.source ||
         (form.description || '').trim() ||
+        form.assigneeHumanNpub ||
+        form.assigneeAgentId ||
         pendingOppContent.length,
     )
   }, [form, pendingOppContent])
@@ -713,6 +767,20 @@ export default function SalesCrmPage() {
           />
         </label>
       </div>
+      <TaskAssigneeSelect
+        id="crm-opp-assignee"
+        assigneeHumanNpub={form.assigneeHumanNpub}
+        assigneeAgentId={form.assigneeAgentId}
+        onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+          setForm((f) => ({
+            ...f,
+            assigneeHumanNpub: assigneeHumanNpub || '',
+            assigneeAgentId: assigneeAgentId || '',
+          }))
+        }
+        disabled={!!busy}
+        defaultToMe={false}
+      />
       <label>
         {t('crm.fieldDescription', { defaultValue: 'Description' })}
         <textarea
@@ -778,6 +846,11 @@ export default function SalesCrmPage() {
                 : '—',
           },
           {
+            id: 'assignee',
+            meta: true,
+            render: (row) => assigneeLabel(row),
+          },
+          {
             id: 'content',
             priority: 'low',
             render: (row) => <ContentChannelIcons summary={oppContentMap[row.id]} />,
@@ -817,6 +890,9 @@ export default function SalesCrmPage() {
                   order={order}
                   onSortChange={onSortChange}
                 />
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
@@ -824,7 +900,7 @@ export default function SalesCrmPage() {
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={7} className="muted">
                     {t('crm.emptyAll', {
                       defaultValue: 'No opportunities yet. Create one with New.',
                     })}
@@ -850,6 +926,7 @@ export default function SalesCrmPage() {
                       ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
                       : '—'}
                   </td>
+                  <td className="col-priority-low">{assigneeLabel(row)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={oppContentMap[row.id]} />
                   </td>

@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * SalesAdvanced light CRM opportunity (OI-S08 / G5). Pipeline stages; optional Customer link.
@@ -32,7 +33,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'name,stage,customerId', includeNames = true, includePackage = false)
-class Opportunity implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class Opportunity implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -86,6 +87,7 @@ class Opportunity implements NpubOwned, AccessControl, Classifiable, Attachable,
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 
 		name nullable: false, blank: false, maxSize: 255

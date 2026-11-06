@@ -17,6 +17,7 @@ package steakos.sales
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /**
  * Customer quotes (S-S2). SS1 lines; SS2 accept → create order.
@@ -52,7 +53,8 @@ class SalesQuoteService {
                 currencyCode: ccy,
                 quoteStatus : 'DRAFT',
                 status      : 'DRAFT',
-                amountEur   : BigDecimal.ZERO
+                amountEur   : BigDecimal.ZERO,
+                *: AssignableSupport.initialPair(fields)
         )
         q.save(failOnError: true, flush: true)
 
@@ -143,7 +145,8 @@ class SalesQuoteService {
 
     static final List QUOTE_SORT_FIELDS = [
             'id', 'name', 'code', 'status', 'quoteStatus', 'quoteNumber',
-            'amountEur', 'customerName', 'dateCreated', 'lastUpdated'
+            'amountEur', 'customerName', 'assigneeHumanNpub', 'assigneeAgentId',
+            'dateCreated', 'lastUpdated'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -206,7 +209,8 @@ class SalesQuoteService {
                 documentLocale  : q.documentLocale,
                 quoteStatus     : q.quoteStatus,
                 resultingOrderId: q.resultingOrderId,
-                npubOwner       : q.npubOwner
+                npubOwner       : q.npubOwner,
+                *: AssignableSupport.toMapFragment(q)
         ]
         if (includeLines) {
             m.lines = QuoteLine.findAllByQuote(q, [sort: 'lineNo']).collect { lineToMap(it) }

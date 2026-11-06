@@ -638,6 +638,8 @@ const customerQuoteSpec = {
     name: '',
     description: '',
     quoteStatus: 'DRAFT',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -655,17 +657,20 @@ const customerQuoteSpec = {
         { value: 'EXPIRED', label: 'Expired' },
       ],
     },
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => ({
     name: f.name,
     description: f.description || null,
     quoteStatus: f.quoteStatus || 'DRAFT',
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
     description: row.description || '',
     quoteStatus: row.quoteStatus || 'DRAFT',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [
     { key: 'quoteNumber', label: 'Number', mono: true },
@@ -1402,6 +1407,8 @@ const opportunitySpec = {
     ownerName: '',
     source: '',
     active: true,
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -1431,6 +1438,8 @@ const opportunitySpec = {
     { name: 'currencyCode', label: 'Currency', type: 'currency', required: true },
     { name: 'expectedCloseDate', label: 'Expected close', type: 'date' },
     { name: 'ownerName', label: 'Owner', type: 'text' },
+    // Optional Assignable — keep free-text ownerName
+    ASSIGNEE_FIELD,
     {
       name: 'source',
       label: 'Source',
@@ -1459,6 +1468,7 @@ const opportunitySpec = {
       description: (f.description || '').trim() || null,
       expectedCloseDate: f.expectedCloseDate || null,
       active: f.active !== false,
+      ...assigneePairForBody(f),
     }
     if (f.customerId !== '' && f.customerId != null) {
       body.customerId = Number(f.customerId)
@@ -1493,6 +1503,7 @@ const opportunitySpec = {
       ownerName: row.ownerName || '',
       source: row.source || '',
       active: row.active !== false,
+      ...assigneePairFromRow(row),
     }
   },
   listColumns: [
