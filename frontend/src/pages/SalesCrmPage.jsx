@@ -33,6 +33,7 @@ import { salesApi, domainsApi } from '../api/client'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrencySelect from '../components/CurrencySelect'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
@@ -581,8 +582,14 @@ export default function SalesCrmPage() {
   onConvertRef.current = onConvert
   onAddActivityRef.current = onAddActivity
 
+  const processCode = 'SALES_OPPORTUNITY'
+  const processStatus = selected?.stage ?? null
+  const processSlot = (
+    <DeskProcessSlot processCode={processCode} status={processStatus} />
+  )
+
   const helpContext = useMemo(() => {
-    const base = { desk: 'sales-crm', tab: 'opportunities' }
+    const base = { desk: 'sales-crm', tab: 'opportunities', processCode }
     if (selected) {
       return {
         ...base,
@@ -1049,6 +1056,7 @@ export default function SalesCrmPage() {
         list={list}
         hasSelection={false}
         detail={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

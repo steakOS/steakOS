@@ -23,6 +23,7 @@ import CustomerSelect from '../components/CustomerSelect'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
 import CurrencySelect from '../components/CurrencySelect'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
@@ -693,7 +694,7 @@ export default function SalesPricingPage() {
   }
 
   const helpContext = useMemo(() => {
-    const base = { desk: 'sales-pricing', tab: 'lists' }
+    const base = { desk: 'sales-pricing', tab: 'lists', processCode: 'SALES_PRICE_LIST' }
     if (selected) {
       return {
         ...base,
@@ -704,6 +705,15 @@ export default function SalesPricingPage() {
     }
     return base
   }, [selected])
+
+  const processStatus = selected
+    ? selected.active === false
+      ? 'INACTIVE'
+      : 'ACTIVE'
+    : null
+  const processSlot = (
+    <DeskProcessSlot processCode="SALES_PRICE_LIST" status={processStatus} />
+  )
 
   const newPanel = (
     <form className="form-grid" onSubmit={onCreate}>
@@ -829,6 +839,7 @@ export default function SalesPricingPage() {
         list={list}
         hasSelection={false}
         detail={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

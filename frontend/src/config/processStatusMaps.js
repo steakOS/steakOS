@@ -172,6 +172,121 @@ export const PROCESS_STATUS_MAPS = {
       { id: 'cancelled', statusValues: ['CANCELLED'] },
     ],
   },
+  CAP_PROJECT: {
+    titleKey: 'labels.CAP_PROJECT',
+    processCode: 'CAP_PROJECT',
+    steps: [
+      { id: 'draft', statusValues: ['DRAFT'] },
+      { id: 'active', statusValues: ['ACTIVE'] },
+      { id: 'completed', statusValues: ['COMPLETED'] },
+      { id: 'cancelled', statusValues: ['CANCELLED'] },
+    ],
+  },
+  AR_HITL_APPROVAL: {
+    titleKey: 'labels.AR_HITL_APPROVAL',
+    processCode: 'AR_HITL_APPROVAL',
+    steps: [
+      { id: 'pending', statusValues: ['PENDING'] },
+      { id: 'approved', statusValues: ['APPROVED'] },
+      { id: 'rejected', statusValues: ['REJECTED'] },
+    ],
+  },
+  AST_ASSET_LIFECYCLE: {
+    titleKey: 'labels.AST_ASSET_LIFECYCLE',
+    processCode: 'AST_ASSET_LIFECYCLE',
+    steps: [
+      { id: 'draft', statusValues: ['DRAFT'] },
+      { id: 'in_service', statusValues: ['IN_SERVICE'] },
+      { id: 'maintenance', statusValues: ['MAINTENANCE'] },
+      { id: 'retired', statusValues: ['RETIRED'] },
+    ],
+  },
+  DEV_PROJECT_DELIVER: {
+    titleKey: 'labels.DEV_PROJECT_DELIVER',
+    processCode: 'DEV_PROJECT_DELIVER',
+    steps: [
+      { id: 'draft', statusValues: ['DRAFT'] },
+      { id: 'active', statusValues: ['ACTIVE'] },
+      { id: 'done', statusValues: ['DONE'] },
+      { id: 'cancelled', statusValues: ['CANCELLED'] },
+    ],
+  },
+  STR_STRATEGY_ITEM: {
+    titleKey: 'labels.STR_STRATEGY_ITEM',
+    processCode: 'STR_STRATEGY_ITEM',
+    steps: [
+      { id: 'draft', statusValues: ['DRAFT'] },
+      { id: 'active', statusValues: ['ACTIVE'] },
+      { id: 'archived', statusValues: ['ARCHIVED'] },
+    ],
+  },
+  STR_COMPETITOR_WATCH: {
+    titleKey: 'labels.STR_COMPETITOR_WATCH',
+    processCode: 'STR_COMPETITOR_WATCH',
+    steps: [
+      { id: 'active', statusValues: ['ACTIVE'] },
+      { id: 'watch', statusValues: ['WATCH'] },
+      { id: 'inactive', statusValues: ['INACTIVE'] },
+    ],
+  },
+  GRC_RISK_TREAT: {
+    titleKey: 'labels.GRC_RISK_TREAT',
+    processCode: 'GRC_RISK_TREAT',
+    steps: [
+      { id: 'open', statusValues: ['OPEN'] },
+      { id: 'mitigating', statusValues: ['MITIGATING'] },
+      { id: 'closed', statusValues: ['CLOSED'] },
+      { id: 'accepted', statusValues: ['ACCEPTED'] },
+    ],
+  },
+  GRC_COMPLIANCE_ITEM: {
+    titleKey: 'labels.GRC_COMPLIANCE_ITEM',
+    processCode: 'GRC_COMPLIANCE_ITEM',
+    steps: [
+      { id: 'draft', statusValues: ['DRAFT'] },
+      { id: 'active', statusValues: ['ACTIVE'] },
+      { id: 'retired', statusValues: ['RETIRED'] },
+    ],
+  },
+  STK_PARTY_ENGAGE: {
+    titleKey: 'labels.STK_PARTY_ENGAGE',
+    processCode: 'STK_PARTY_ENGAGE',
+    steps: [
+      { id: 'active', statusValues: ['ACTIVE'] },
+      { id: 'watch', statusValues: ['WATCH'] },
+      { id: 'inactive', statusValues: ['INACTIVE'] },
+    ],
+  },
+  FIN_PAYABLE: {
+    titleKey: 'labels.FIN_PAYABLE',
+    processCode: 'FIN_PAYABLE',
+    steps: [
+      { id: 'draft', statusValues: ['DRAFT'] },
+      { id: 'open', statusValues: ['OPEN'] },
+      { id: 'paid', statusValues: ['PAID'] },
+      { id: 'void', statusValues: ['VOID'] },
+    ],
+  },
+  SALES_OPPORTUNITY: {
+    titleKey: 'labels.SALES_OPPORTUNITY',
+    processCode: 'SALES_OPPORTUNITY',
+    steps: [
+      { id: 'lead', statusValues: ['LEAD'] },
+      { id: 'qualified', statusValues: ['QUALIFIED'] },
+      { id: 'proposal', statusValues: ['PROPOSAL'] },
+      { id: 'negotiation', statusValues: ['NEGOTIATION'] },
+      { id: 'won', statusValues: ['WON'] },
+      { id: 'lost', statusValues: ['LOST'] },
+    ],
+  },
+  SALES_PRICE_LIST: {
+    titleKey: 'labels.SALES_PRICE_LIST',
+    processCode: 'SALES_PRICE_LIST',
+    steps: [
+      { id: 'active', statusValues: ['ACTIVE'] },
+      { id: 'inactive', statusValues: ['INACTIVE'] },
+    ],
+  },
 }
 
 /**

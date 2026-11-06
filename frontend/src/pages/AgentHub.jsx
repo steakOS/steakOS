@@ -2072,10 +2072,7 @@ export default function AgentHub() {
     )
   }
 
-  const processSlot =
-    tab === 'hitl' ? (
-      <DeskProcessSlot processCode="AR_HITL_APPROVAL" />
-    ) : null
+  const processSlot = <DeskProcessSlot processCode="AR_HITL_APPROVAL" />
 
   return (
     <div className="page delivery-desk-page">

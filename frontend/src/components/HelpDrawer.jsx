@@ -415,8 +415,6 @@ export default function HelpDrawer({
           </div>
 
           <p className="muted" style={{ marginTop: 16, fontSize: 13 }}>
-            {t('tour')}: <a href="/tour/index.html">/tour/index.html</a>
-            {' · '}
             <Link to="/help" onClick={onClose}>
               {t('center')}
             </Link>

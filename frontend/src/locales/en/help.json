@@ -18,7 +18,7 @@
   "ticketViewAll": "View all tickets",
   "backToContext": "Back to page help",
   "desksTitle": "Lists & desks",
-  "desksHint": "Tabs, Action icons (View · Edit · Delete), and modals. Related fields show as Name (Unique ID). Unique ID is listed first and is read-only when editing.",
+  "desksHint": "Open a desk and use Help (?) for process overview, actions, and fields. The green Process pill opens the process diagram.",
   "unboundTitle": "Unbound domain",
   "unboundBody": "This data product is for reference and future use only. It does not currently drive any business logic on desks or processes."
 }

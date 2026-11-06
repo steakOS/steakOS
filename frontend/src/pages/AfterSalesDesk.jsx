@@ -48,6 +48,7 @@ import ListSortHeader from '../components/ListSortHeader'
 import CustomerSelect from '../components/CustomerSelect'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import useDeskSelection from '../hooks/useDeskSelection'
@@ -1189,7 +1190,8 @@ export default function AfterSalesDesk() {
   const hasSelection = false
 
   const helpContext = useMemo(() => {
-    const base = { desk: 'aftersales', tab, processCode: 'AS_INQUIRY' }
+    const processCode = tab === 'rmas' ? 'AS_RMA' : 'AS_INQUIRY'
+    const base = { desk: 'aftersales', tab, processCode }
     if (tab === 'inquiries' && selectedInq) {
       return {
         ...base,
@@ -1216,6 +1218,12 @@ export default function AfterSalesDesk() {
     }
     return base
   }, [tab, selectedInq, selectedClaim, selectedRma])
+
+  const processCode = tab === 'rmas' ? 'AS_RMA' : 'AS_INQUIRY'
+  const processStatus =
+    tab === 'inquiries' ? selectedInq?.caseStatus : tab === 'rmas' ? selectedRma?.rmaStatus : null
+
+  const processSlot = <DeskProcessSlot processCode={processCode} status={processStatus} />
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
@@ -2497,7 +2505,7 @@ export default function AfterSalesDesk() {
         emptyBody={emptyBody}
         detail={null}
         detailFooter={null}
-        processSlot={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

@@ -1051,14 +1051,13 @@ export default function HrDesk() {
   }, [tab, selectedCandidate?.id, selectedPayroll?.id])
 
   const helpContext = useMemo(() => {
-    const base = { desk: 'hr', tab }
+    const base = { desk: 'hr', tab, processCode: 'HR_CANDIDATE_HIRE' }
     if (tab === 'candidates' && selectedCandidate) {
       return {
         ...base,
         resource: 'Candidate',
         objectId: selectedCandidate.id,
         status: selectedCandidate.stage,
-        processCode: 'HR_CANDIDATE_HIRE',
       }
     }
     if (tab === 'payroll' && selectedPayroll) {
@@ -1074,10 +1073,9 @@ export default function HrDesk() {
 
   const processStatus = tab === 'candidates' ? selectedCandidate?.stage : null
 
-  const processSlot =
-    tab === 'candidates' ? (
-      <DeskProcessSlot processCode="HR_CANDIDATE_HIRE" status={processStatus} />
-    ) : null
+  const processSlot = (
+    <DeskProcessSlot processCode="HR_CANDIDATE_HIRE" status={processStatus} />
+  )
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>

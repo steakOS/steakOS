@@ -25,6 +25,7 @@ import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import ContentRail from '../components/ContentRail'
@@ -420,7 +421,30 @@ export default function AssetDesk() {
   }
 
   const newLabel = t('asset.newAsset', { defaultValue: 'New asset' })
-  const helpContext = useMemo(() => ({ desk: 'asset', tab }), [tab])
+  const selectedAsset = useMemo(
+    () =>
+      selectedId != null && selectedId !== ''
+        ? assets.find((a) => String(a.id) === String(selectedId)) || null
+        : null,
+    [assets, selectedId],
+  )
+  const processCode = 'AST_ASSET_LIFECYCLE'
+  const processStatus = selectedAsset?.status ?? null
+  const processSlot = (
+    <DeskProcessSlot processCode={processCode} status={processStatus} />
+  )
+  const helpContext = useMemo(() => {
+    const base = { desk: 'asset', tab, processCode }
+    if (selectedAsset) {
+      return {
+        ...base,
+        resource: RESOURCE,
+        objectId: selectedAsset.id,
+        status: selectedAsset.status,
+      }
+    }
+    return base
+  }, [tab, selectedAsset])
 
   const newPanel = (
     <form className="form-grid" onSubmit={onCreate}>
@@ -559,7 +583,7 @@ export default function AssetDesk() {
         })}
         detail={null}
         detailFooter={null}
-        processSlot={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

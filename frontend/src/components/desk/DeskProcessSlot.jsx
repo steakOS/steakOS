@@ -14,21 +14,12 @@
 // limitations under the License.
 
 import ProcessHowItWorks from '../ProcessHowItWorks'
-import ProcessStatusStrip from '../ProcessStatusStrip'
-import { activeStepIndex } from '../../config/processStatusMaps'
 
 /**
- * Standard desk processSlot: How-it-works trigger + inline status continuum strip.
+ * Standard desk processSlot: green process pill only (first item in desk tab row).
+ * Modal carries the diagram; desk chrome stays a single pill.
  */
 export default function DeskProcessSlot({ processCode, status, show = true }) {
   if (!show || !processCode) return null
-  const step = activeStepIndex(processCode, status)
-  return (
-    <div className="desk-process-slot">
-      <div className="desk-process-slot-toolbar toolbar">
-        <ProcessHowItWorks processCode={processCode} status={status} />
-      </div>
-      <ProcessStatusStrip processCode={processCode} activeIndex={step} status={status} />
-    </div>
-  )
+  return <ProcessHowItWorks processCode={processCode} status={status} />
 }

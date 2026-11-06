@@ -24,19 +24,29 @@
     "dependsOn": "Depends on"
   },
   "labels": {
-    "AS_INQUIRY": "Inquiry process",
-    "AS_RMA": "RMA process",
-    "SCM_PO_FULFILL": "PO process",
-    "SCM_MAKE_TO_STOCK": "Make→stock process",
-    "SALES_QUOTE_TO_ORDER": "Quote→Order process",
-    "FIN_INVOICE_SETTLE": "Invoice process",
-    "FIN_LEDGER": "Ledger process",
-    "DEL_SERVICE_ORDER": "Service order process",
-    "HR_CANDIDATE_HIRE": "Hire process",
-    "CAP_PROJECT": "Project process",
-    "DIG_IT_TICKET": "IT ticket process",
-    "DIG_IT_CHANGE": "IT change process",
-    "AR_HITL_APPROVAL": "HITL process"
+    "AS_INQUIRY": "Inquiry",
+    "AS_RMA": "RMA",
+    "SCM_PO_FULFILL": "PO",
+    "SCM_MAKE_TO_STOCK": "Make→stock",
+    "SALES_QUOTE_TO_ORDER": "Quote→Order",
+    "FIN_INVOICE_SETTLE": "Invoice",
+    "FIN_LEDGER": "Ledger",
+    "DEL_SERVICE_ORDER": "Service order",
+    "HR_CANDIDATE_HIRE": "Hire",
+    "CAP_PROJECT": "Project",
+    "DIG_IT_TICKET": "IT ticket",
+    "DIG_IT_CHANGE": "IT change",
+    "AR_HITL_APPROVAL": "HITL",
+    "AST_ASSET_LIFECYCLE": "Asset",
+    "DEV_PROJECT_DELIVER": "Dev project",
+    "STR_STRATEGY_ITEM": "Strategy item",
+    "STR_COMPETITOR_WATCH": "Competitor watch",
+    "GRC_RISK_TREAT": "Risk",
+    "GRC_COMPLIANCE_ITEM": "Compliance",
+    "STK_PARTY_ENGAGE": "Stakeholder",
+    "FIN_PAYABLE": "Payable",
+    "SALES_OPPORTUNITY": "Opportunity",
+    "SALES_PRICE_LIST": "Price list"
   },
   "catalogue": {
     "SCM_PO_FULFILL": {
@@ -327,6 +337,177 @@
           "name": "Or cancel change"
         }
       }
+    },
+    "AST_ASSET_LIFECYCLE": {
+      "name": "Asset lifecycle",
+      "description": "Register asset → put in service → maintain → retire. Asset desk.",
+      "steps": {
+        "ast.asset.register": {
+          "name": "Register asset (draft)"
+        },
+        "ast.asset.inService": {
+          "name": "Put in service"
+        },
+        "ast.asset.maintain": {
+          "name": "Maintenance"
+        },
+        "ast.asset.retire": {
+          "name": "Retire asset"
+        }
+      }
+    },
+    "DEV_PROJECT_DELIVER": {
+      "name": "Development project",
+      "description": "Create NPD/revision project → activate → complete or cancel. Development desk.",
+      "steps": {
+        "dev.proj.create": {
+          "name": "Create project (draft)"
+        },
+        "dev.proj.activate": {
+          "name": "Activate project"
+        },
+        "dev.proj.complete": {
+          "name": "Complete project"
+        },
+        "dev.proj.cancel": {
+          "name": "Or cancel project"
+        }
+      }
+    },
+    "STR_STRATEGY_ITEM": {
+      "name": "Strategy item",
+      "description": "Capture vision/mission/strategy/need → activate → archive. Strategy desk topics.",
+      "steps": {
+        "str.item.draft": {
+          "name": "Draft strategy item"
+        },
+        "str.item.activate": {
+          "name": "Activate item"
+        },
+        "str.item.archive": {
+          "name": "Archive item"
+        }
+      }
+    },
+    "STR_COMPETITOR_WATCH": {
+      "name": "Competitor watch",
+      "description": "Track competitor as active → watchlist → inactive. Strategy desk competitors.",
+      "steps": {
+        "str.comp.active": {
+          "name": "Track competitor (active)"
+        },
+        "str.comp.watch": {
+          "name": "Move to watchlist"
+        },
+        "str.comp.inactive": {
+          "name": "Mark inactive"
+        }
+      }
+    },
+    "GRC_RISK_TREAT": {
+      "name": "Risk treatment",
+      "description": "Open risk → mitigate → close or accept. Governance desk.",
+      "steps": {
+        "grc.risk.open": {
+          "name": "Open risk"
+        },
+        "grc.risk.mitigate": {
+          "name": "Mitigate"
+        },
+        "grc.risk.close": {
+          "name": "Close risk"
+        },
+        "grc.risk.accept": {
+          "name": "Or accept risk"
+        }
+      }
+    },
+    "GRC_COMPLIANCE_ITEM": {
+      "name": "Compliance item",
+      "description": "Draft policy/obligation/control → activate → retire. Governance desk.",
+      "steps": {
+        "grc.comp.draft": {
+          "name": "Draft compliance item"
+        },
+        "grc.comp.activate": {
+          "name": "Activate item"
+        },
+        "grc.comp.retire": {
+          "name": "Retire item"
+        }
+      }
+    },
+    "STK_PARTY_ENGAGE": {
+      "name": "Stakeholder party",
+      "description": "Register party as active → watch → inactive. Stakeholder desk.",
+      "steps": {
+        "stk.party.active": {
+          "name": "Register party (active)"
+        },
+        "stk.party.watch": {
+          "name": "Watch party"
+        },
+        "stk.party.inactive": {
+          "name": "Mark inactive"
+        }
+      }
+    },
+    "FIN_PAYABLE": {
+      "name": "Vendor payable",
+      "description": "Create payable → open → pay or void. Finance hub payables.",
+      "steps": {
+        "fin.pay.create": {
+          "name": "Create payable (draft)"
+        },
+        "fin.pay.open": {
+          "name": "Open payable"
+        },
+        "fin.pay.paid": {
+          "name": "Mark paid"
+        },
+        "fin.pay.void": {
+          "name": "Or void payable"
+        }
+      }
+    },
+    "SALES_OPPORTUNITY": {
+      "name": "Opportunity pipeline",
+      "description": "Lead → qualify → proposal → negotiate → won or lost. Sales CRM.",
+      "steps": {
+        "sales.opp.lead": {
+          "name": "Capture lead"
+        },
+        "sales.opp.qualify": {
+          "name": "Qualify"
+        },
+        "sales.opp.proposal": {
+          "name": "Proposal"
+        },
+        "sales.opp.negotiate": {
+          "name": "Negotiate"
+        },
+        "sales.opp.won": {
+          "name": "Won"
+        },
+        "sales.opp.lost": {
+          "name": "Or lost"
+        }
+      }
+    },
+    "SALES_PRICE_LIST": {
+      "name": "Price list",
+      "description": "Create price list → keep active → deactivate. Sales pricing.",
+      "steps": {
+        "sales.price.create": {
+          "name": "Create price list"
+        },
+        "sales.price.active": {
+          "name": "Maintain active list"
+        },
+        "sales.price.inactive": {
+          "name": "Deactivate list"
+        }
+      }
     }
   },
   "strip": {
@@ -372,6 +553,96 @@
       "in_progress": "In progress",
       "completed": "Completed",
       "qa": "QA"
+    },
+    "FIN_LEDGER": {
+      "ready": "Ready",
+      "posted": "Posted",
+      "balanced": "Balanced",
+      "closed": "Closed"
+    },
+    "AS_RMA": {
+      "requested": "Requested",
+      "confirmed": "Confirmed",
+      "closed": "Closed"
+    },
+    "DIG_IT_TICKET": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "DIG_IT_CHANGE": {
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "CAP_PROJECT": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "AR_HITL_APPROVAL": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "AST_ASSET_LIFECYCLE": {
+      "draft": "Draft",
+      "in_service": "In service",
+      "maintenance": "Maintenance",
+      "retired": "Retired"
+    },
+    "DEV_PROJECT_DELIVER": {
+      "draft": "Draft",
+      "active": "Active",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "STR_STRATEGY_ITEM": {
+      "draft": "Draft",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "STR_COMPETITOR_WATCH": {
+      "active": "Active",
+      "watch": "Watch",
+      "inactive": "Inactive"
+    },
+    "GRC_RISK_TREAT": {
+      "open": "Open",
+      "mitigating": "Mitigating",
+      "closed": "Closed",
+      "accepted": "Accepted"
+    },
+    "GRC_COMPLIANCE_ITEM": {
+      "draft": "Draft",
+      "active": "Active",
+      "retired": "Retired"
+    },
+    "STK_PARTY_ENGAGE": {
+      "active": "Active",
+      "watch": "Watch",
+      "inactive": "Inactive"
+    },
+    "FIN_PAYABLE": {
+      "draft": "Draft",
+      "open": "Open",
+      "paid": "Paid",
+      "void": "Void"
+    },
+    "SALES_OPPORTUNITY": {
+      "lead": "Lead",
+      "qualified": "Qualified",
+      "proposal": "Proposal",
+      "negotiation": "Negotiation",
+      "won": "Won",
+      "lost": "Lost"
+    },
+    "SALES_PRICE_LIST": {
+      "active": "Active",
+      "inactive": "Inactive"
     }
   }
 }

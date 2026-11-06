@@ -41,6 +41,7 @@ import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
@@ -727,7 +728,8 @@ export default function DigitalDesk() {
   }, [tab, selectedChange?.id, selectedTicket?.id])
 
   const helpContext = useMemo(() => {
-    const base = { desk: 'digital', tab }
+    const processCode = tab === 'changes' ? 'DIG_IT_CHANGE' : 'DIG_IT_TICKET'
+    const base = { desk: 'digital', tab, processCode }
     if (tab === 'changes' && selectedChange) {
       return {
         ...base,
@@ -746,6 +748,16 @@ export default function DigitalDesk() {
     }
     return base
   }, [tab, selectedChange, selectedTicket])
+
+  const processCode = tab === 'changes' ? 'DIG_IT_CHANGE' : 'DIG_IT_TICKET'
+  const processStatus =
+    tab === 'support'
+      ? selectedTicket?.ticketStatus
+      : tab === 'changes'
+        ? selectedChange?.changeStatus
+        : null
+
+  const processSlot = <DeskProcessSlot processCode={processCode} status={processStatus} />
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
@@ -2241,6 +2253,7 @@ export default function DigitalDesk() {
         emptyBody={emptyBody}
         detail={detail}
         detailFooter={detailFooter}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={narrow && hasSelection}
         onCloseSheet={() => setSelectedId(null)}

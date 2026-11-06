@@ -2887,8 +2887,9 @@ table.data tbody tr.row-selected td:last-child {
   display: none !important;
 }
 
-/* One height for every pill in the desk tab row (tabs + New) */
-.desk-shell-tabs > .btn {
+/* One height for every pill in the desk tab row (Process + tabs + New) — ADR-050 */
+.desk-shell-tabs > .btn,
+.desk-shell-tabs .desk-shell-process-pill .btn-process {
   min-height: 44px;
   box-sizing: border-box;
 }
@@ -2977,27 +2978,24 @@ table.data tbody tr.row-selected td:last-child {
   box-sizing: border-box;
 }
 
-.desk-shell-process {
-  margin-bottom: 0.65rem;
-  padding: 0.65rem 0.75rem;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--steak-process) 28%, var(--steak-border));
-  background: color-mix(in srgb, var(--steak-process-soft) 70%, var(--steak-card));
+/* First pill in desk tab row — green Process trigger only (no band/box). */
+.desk-shell-process-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  flex: 0 0 auto;
 }
 
-.desk-process-slot {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.desk-process-slot-toolbar {
-  margin-bottom: 0;
+.desk-shell-process-pill .btn-process {
+  white-space: nowrap;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 .btn-process {
   color: var(--steak-process-ink);
   border-color: color-mix(in srgb, var(--steak-process) 35%, var(--steak-border));
+  background: color-mix(in srgb, var(--steak-process-soft) 70%, var(--steak-card));
 }
 
 .btn-process:hover,

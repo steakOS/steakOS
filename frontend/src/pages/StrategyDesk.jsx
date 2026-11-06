@@ -24,6 +24,7 @@ import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import ContentRail from '../components/ContentRail'
@@ -547,7 +548,28 @@ export default function StrategyDesk() {
       ? t('strategy.newCompetitor', { defaultValue: 'New competitor' })
       : t('strategy.newTopic', { defaultValue: 'New topic' })
 
-  const helpContext = useMemo(() => ({ desk: deskKey, tab }), [tab])
+  const processCode = tab === 'competitors' ? 'STR_COMPETITOR_WATCH' : 'STR_STRATEGY_ITEM'
+  const selectedRow = useMemo(() => {
+    if (selectedId == null || selectedId === '') return null
+    const list = tab === 'competitors' ? competitors : topics
+    return list.find((r) => String(r.id) === String(selectedId)) || null
+  }, [tab, selectedId, competitors, topics])
+  const processStatus = selectedRow?.status ?? null
+  const processSlot = (
+    <DeskProcessSlot processCode={processCode} status={processStatus} />
+  )
+  const helpContext = useMemo(() => {
+    const base = { desk: deskKey, tab, processCode }
+    if (selectedRow) {
+      return {
+        ...base,
+        resource: tab === 'topics' ? 'StrategyItem' : 'Competitor',
+        objectId: selectedRow.id,
+        status: selectedRow.status,
+      }
+    }
+    return base
+  }, [tab, processCode, selectedRow])
 
   const competitorCreatePanel = (
     <form className="form-grid" onSubmit={onCreateCompetitor}>
@@ -824,7 +846,7 @@ export default function StrategyDesk() {
         })}
         detail={null}
         detailFooter={null}
-        processSlot={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

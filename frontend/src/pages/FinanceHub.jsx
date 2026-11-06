@@ -35,6 +35,7 @@ import ResponsiveDataList from '../components/ResponsiveDataList'
 import RowActionSlots from '../components/RowActionSlots'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
@@ -626,8 +627,20 @@ export default function FinanceHub() {
 
   const hasSelection = Boolean(selected?.id)
 
+  const processCode = 'FIN_PAYABLE'
+  const processStatus =
+    tab === 'payables' && selected ? selected.payableStatus ?? null : null
+  const processSlot = (
+    <DeskProcessSlot processCode={processCode} status={processStatus} />
+  )
+
   const helpContext = useMemo(() => {
-    const base = { desk: 'finance-hub', tab, path: `/finance/${tab}` }
+    const base = {
+      desk: 'finance-hub',
+      tab,
+      path: `/finance/${tab}`,
+      processCode,
+    }
     if (!selected) return base
     const resource =
       tab === 'treasury'
@@ -1814,6 +1827,7 @@ export default function FinanceHub() {
         emptyBody={emptyBody}
         detail={detail}
         detailFooter={detailFooter}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={narrow && hasSelection}
         onCloseSheet={clearSelection}

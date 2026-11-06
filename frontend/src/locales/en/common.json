@@ -1240,7 +1240,8 @@
     "search": "Type to search…"
   },
   "process": {
-    "howItWorks": "How this works"
+    "howItWorks": "How this works",
+    "pill": "Process"
   },
   "stub": {
     "hint": "Kernel / stub — not fully implemented yet",

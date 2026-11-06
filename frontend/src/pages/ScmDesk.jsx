@@ -1212,13 +1212,12 @@ export default function ScmDesk({ desk = 'buyers' }) {
         ? selectedProd?.prodStatus
         : null
 
-  const processSlot =
-    tab === 'purchase' || tab === 'production' ? (
-      <DeskProcessSlot
-        processCode={isBuyers ? 'SCM_PO_FULFILL' : 'SCM_MAKE_TO_STOCK'}
-        status={processStatus}
-      />
-    ) : null
+  const processSlot = (
+    <DeskProcessSlot
+      processCode={isBuyers ? 'SCM_PO_FULFILL' : 'SCM_MAKE_TO_STOCK'}
+      status={processStatus}
+    />
+  )
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
@@ -2433,7 +2432,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
         emptyBody={emptyBody}
         detail={isBuyers ? null : detail}
         detailFooter={isBuyers ? null : detailFooter}
-        processSlot={isBuyers ? null : processSlot}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={isBuyers ? false : narrow && hasSelection}
         onCloseSheet={() => setSelectedId(null)}

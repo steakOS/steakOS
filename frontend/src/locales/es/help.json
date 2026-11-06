@@ -18,7 +18,7 @@
   "ticketViewAll": "Ver todas las entradas",
   "backToContext": "Volver a la página de ayuda",
   "desksTitle": "Listas y escritorios",
-  "desksHint": "Pestañas, iconos de acción (Ver · Editar · Eliminar) y modales. Relacionados como Nombre (ID único). ID único primero y de solo lectura al editar.",
+  "desksHint": "Abra un escritorio y Ayuda (?): resumen del proceso, acciones y campos. La pastilla verde Proceso abre el diagrama.",
   "unboundTitle": "Dominio no vinculado",
   "unboundBody": "Este producto de datos es solo de referencia y para uso futuro. Actualmente no impulsa ninguna lógica de negocio en escritorios o procesos."
 }

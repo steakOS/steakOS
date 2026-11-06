@@ -25,6 +25,7 @@ import DeskNewFab from '../components/DeskNewFab'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import ContentRail from '../components/ContentRail'
@@ -412,10 +413,30 @@ export default function DevelopmentDesk() {
   }
 
   const newLabel = t('development.newProject')
-  const helpContext = useMemo(
-    () => ({ desk: 'development', tab: 'projects' }),
-    [],
+  const selectedProject = useMemo(
+    () =>
+      selectedId != null && selectedId !== ''
+        ? projects.find((p) => String(p.id) === String(selectedId)) || null
+        : null,
+    [projects, selectedId],
   )
+  const processCode = 'DEV_PROJECT_DELIVER'
+  const processStatus = selectedProject?.projectStatus ?? null
+  const processSlot = (
+    <DeskProcessSlot processCode={processCode} status={processStatus} />
+  )
+  const helpContext = useMemo(() => {
+    const base = { desk: 'development', tab: 'projects', processCode }
+    if (selectedProject) {
+      return {
+        ...base,
+        resource: RESOURCE,
+        objectId: selectedProject.id,
+        status: selectedProject.projectStatus,
+      }
+    }
+    return base
+  }, [selectedProject])
 
   const newPanel = (
     <form className="form-grid" onSubmit={onCreate}>
@@ -550,7 +571,7 @@ export default function DevelopmentDesk() {
         })}
         detail={null}
         detailFooter={null}
-        processSlot={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

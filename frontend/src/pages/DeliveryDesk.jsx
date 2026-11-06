@@ -54,6 +54,7 @@ import CustomerSelect from '../components/CustomerSelect'
 import ResourceSelect from '../components/ResourceSelect'
 import DeskNewFab from '../components/DeskNewFab'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import useDeskSelection from '../hooks/useDeskSelection'
@@ -875,18 +876,23 @@ export default function DeliveryDesk() {
   }, [tab, t])
 
   const helpContext = useMemo(() => {
-    const base = { desk: 'delivery', tab }
+    const base = { desk: 'delivery', tab, processCode: 'DEL_SERVICE_ORDER' }
     if (tab === 'orders' && selected) {
       return {
         ...base,
         resource: 'ServiceOrder',
         objectId: selected.id,
         status: selected.fulfillStatus,
-        processCode: 'DEL_SERVICE_ORDER',
       }
     }
     return base
   }, [tab, selected])
+
+  const processStatus = tab === 'orders' ? selected?.fulfillStatus : null
+
+  const processSlot = (
+    <DeskProcessSlot processCode="DEL_SERVICE_ORDER" status={processStatus} />
+  )
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
@@ -1597,7 +1603,7 @@ export default function DeliveryDesk() {
         emptyBody={emptyBody}
         detail={null}
         detailFooter={null}
-        processSlot={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

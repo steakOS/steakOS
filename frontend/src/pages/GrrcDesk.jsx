@@ -20,6 +20,7 @@ import { grrcApi } from '../api/client'
 import useRecordView from '../hooks/useRecordView'
 import RowActionSlots from '../components/RowActionSlots'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ContentRail from '../components/ContentRail'
@@ -584,8 +585,14 @@ export default function GrrcDesk() {
 
   const hasSelection = Boolean(selected?.id)
 
+  const processCode = tab === 'risks' ? 'GRC_RISK_TREAT' : 'GRC_COMPLIANCE_ITEM'
+  const processStatus = selected?.status ?? null
+  const processSlot = (
+    <DeskProcessSlot processCode={processCode} status={processStatus} />
+  )
+
   const helpContext = useMemo(() => {
-    const base = { desk: 'grrc', tab }
+    const base = { desk: 'grrc', tab, processCode }
     if (selected) {
       return {
         ...base,
@@ -595,7 +602,7 @@ export default function GrrcDesk() {
       }
     }
     return base
-  }, [tab, selected])
+  }, [tab, selected, processCode])
 
   const newLabel =
     tab === 'risks'
@@ -1112,6 +1119,7 @@ export default function GrrcDesk() {
               defaultValue: 'Choose a row from the list to see details.',
             })}
             detail={detail}
+            processSlot={processSlot}
             helpContext={helpContext}
             narrowSheetOpen={narrow && hasSelection}
             onCloseSheet={() => setSelectedId(null)}

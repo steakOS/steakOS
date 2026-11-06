@@ -18,7 +18,7 @@
   "ticketViewAll": "Alle Tickets anzeigen",
   "backToContext": "Zurück zur Seitenhilfe",
   "desksTitle": "Listen & Desks",
-  "desksHint": "Tabs, Aktions-Icons (Anzeigen · Bearbeiten · Löschen) und Modals. Verknüpfungen als Name (Eindeutige ID). Eindeutige ID zuerst und schreibgeschützt beim Bearbeiten.",
+  "desksHint": "Öffnen Sie einen Desk und Hilfe (?): Prozessüberblick, Aktionen und Felder. Die grüne Prozess-Pille öffnet das Prozessdiagramm.",
   "unboundTitle": "Ungebundenes Datenprodukt",
   "unboundBody": "Dieses Datenprodukt dient nur als Referenz und für künftige Nutzung. Es steuert derzeit keine Geschäftslogik auf Desks oder in Prozessen."
 }

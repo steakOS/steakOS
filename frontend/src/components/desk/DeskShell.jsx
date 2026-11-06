@@ -68,18 +68,23 @@ export default function DeskShell({
   const showCol2 = !single && Boolean(hasSelection)
   const sheetOpen = showCol2 && Boolean(narrowSheetOpen)
   const fullWidthList = single || !showCol2
+  const showTabRow =
+    showTabs || typeof onToggleNew === 'function' || Boolean(processSlot)
 
   return (
     <div className={`desk-shell-root ${className}`.trim()} {...helpAttrs}>
-      {(title || subtitle || showTabs) && (
+      {(title || subtitle || showTabRow) && (
         <header className="desk-shell-header page-header" style={{ marginBottom: '1rem' }}>
           {title && <h1 className="page-title">{title}</h1>}
           {subtitle && <p className="page-sub">{subtitle}</p>}
-          {(showTabs || typeof onToggleNew === 'function') && (
+          {showTabRow && (
             <div
               className="tab-row desk-tabs desk-shell-tabs toolbar-scroll"
               role={showTabs ? 'tablist' : undefined}
             >
+              {processSlot ? (
+                <div className="desk-shell-process-pill">{processSlot}</div>
+              ) : null}
               {showTabs &&
                 tabs.map((tabDef) => {
                   const Icon = tabDef.icon
@@ -156,10 +161,6 @@ export default function DeskShell({
                   {t('actions.close', { ns: 'common', defaultValue: 'Close' })}
                 </button>
               </div>
-            )}
-
-            {processSlot && (
-              <div className="desk-shell-process">{processSlot}</div>
             )}
 
             <div className="desk-shell-detail">

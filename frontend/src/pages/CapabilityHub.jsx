@@ -48,6 +48,7 @@ import ResponsiveDataList from '../components/ResponsiveDataList'
 import RowActionSlots from '../components/RowActionSlots'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useNarrowViewport from '../hooks/useNarrowViewport'
@@ -1116,7 +1117,12 @@ export default function CapabilityHub() {
   ])
 
   const helpContext = useMemo(() => {
-    const base = { path: location.pathname, desk: 'capability', tab }
+    const base = {
+      path: location.pathname,
+      desk: 'capability',
+      tab,
+      ...(tab === 'projects' ? { processCode: 'CAP_PROJECT' } : {}),
+    }
     if (tab === 'portfolios' && selectedPortfolio) {
       return {
         ...base,
@@ -1177,6 +1183,24 @@ export default function CapabilityHub() {
     selectedQuality,
     selectedChange,
   ])
+
+  const processSlot = useMemo(() => {
+    if (
+      tab === 'processes' &&
+      selectedProcess?.processCode &&
+      (selectedProcess.processKind === 'SYSTEM' || selectedProcess.systemLocked)
+    ) {
+      return (
+        <DeskProcessSlot
+          processCode={selectedProcess.processCode}
+          status={selectedProcess.processStatus}
+        />
+      )
+    }
+    return (
+      <DeskProcessSlot processCode="CAP_PROJECT" status={selectedProject?.projectStatus} />
+    )
+  }, [tab, selectedProject?.projectStatus, selectedProcess])
 
   // Default kind filter is SYSTEM (A7 browser). Treat ALL/SYSTEM empty as “catalogue empty”
   // so first visit shows the seed CTA; HUMAN/AGENTIC/OTHER empty means “no matches”.
@@ -3743,6 +3767,7 @@ export default function CapabilityHub() {
         emptyTitle={emptyTitle}
         emptyBody={emptyBody}
         detail={detail}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={narrow && hasSelection}
         onCloseSheet={clearSelection}

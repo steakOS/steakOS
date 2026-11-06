@@ -20,6 +20,7 @@ import { stakeholderApi } from '../api/client'
 import useRecordView from '../hooks/useRecordView'
 import RowActionSlots from '../components/RowActionSlots'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
@@ -583,8 +584,14 @@ export default function StakeholderDesk() {
 
   const hasSelection = Boolean(selected?.id)
 
+  const processCode = 'STK_PARTY_ENGAGE'
+  const processStatus = tab === 'parties' ? selected?.status ?? null : null
+  const processSlot = (
+    <DeskProcessSlot processCode={processCode} status={processStatus} />
+  )
+
   const helpContext = useMemo(() => {
-    const base = { desk: 'stakeholder', tab }
+    const base = { desk: 'stakeholder', tab, processCode }
     if (selected) {
       return {
         ...base,
@@ -1006,6 +1013,7 @@ export default function StakeholderDesk() {
               defaultValue: 'Choose a row from the list to see details.',
             })}
             detail={detail}
+            processSlot={processSlot}
             helpContext={helpContext}
             narrowSheetOpen={narrow && hasSelection}
             onCloseSheet={() => setSelectedId(null)}

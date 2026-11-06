@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { GitBranch, X } from 'lucide-react'
 import { capabilityApi } from '../api/client'
 import ProcessDiagram from './ProcessDiagram'
-import { localizeProcess, processButtonLabel } from '../utils/localizeProcess'
+import { localizeProcess } from '../utils/localizeProcess'
 
 /**
  * Desk drawer: load SYSTEM process by processCode and show mermaid + steps (D7).
@@ -38,13 +38,10 @@ export default function ProcessHowItWorks({ processCode, label, status }) {
     queueMicrotask(() => triggerRef.current?.focus?.())
   }
 
+  // Desk tab-row pill is always the uniform label "Process" (ADR-050).
+  // Optional `label` override kept for non-desk callers.
   const buttonLabel =
-    label ||
-    processButtonLabel(
-      (key, opts) => t(key, { ns: 'processes', ...opts }),
-      processCode,
-      t('process.howItWorks', { defaultValue: 'How this works' }),
-    )
+    label || t('process.pill', { ns: 'common', defaultValue: 'Process' })
 
   useEffect(() => {
     if (!open || !processCode) return

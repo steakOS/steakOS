@@ -23,6 +23,7 @@ import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
@@ -415,6 +416,10 @@ export default function FinanceTransactions() {
     return base
   }, [selected])
 
+  const processSlot = (
+    <DeskProcessSlot processCode="FIN_LEDGER" status={selected?.accountType ?? null} />
+  )
+
   const newPanel = (
     <form className="form-grid" onSubmit={onPost}>
       <label>
@@ -782,6 +787,7 @@ export default function FinanceTransactions() {
         emptyTitle={t('wb.selectItem', { ns: 'common' })}
         emptyBody={t('desk.emptyBody', { ns: 'common' })}
         detail={detail}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={narrow && Boolean(selected)}
         onCloseSheet={() => setSelectedId(null)}

@@ -60,6 +60,7 @@ import ListSortHeader from '../components/ListSortHeader'
 
 import CustomerSelect from '../components/CustomerSelect'
 import DeskShell from '../components/desk/DeskShell'
+import DeskProcessSlot from '../components/desk/DeskProcessSlot'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
@@ -1218,7 +1219,33 @@ export default function SalesDesk() {
     return t('desk.new', { ns: 'common', defaultValue: 'New' })
   }, [tab, t])
 
-  const helpContext = useMemo(() => ({ desk: 'sales', tab }), [tab])
+  const helpContext = useMemo(() => {
+    const base = { desk: 'sales', tab, processCode: 'SALES_QUOTE_TO_ORDER' }
+    if (tab === 'quotes' && selectedQuote) {
+      return {
+        ...base,
+        resource: 'CustomerQuote',
+        objectId: selectedQuote.id,
+        status: selectedQuote.quoteStatus,
+      }
+    }
+    if (tab === 'orders' && selectedOrder) {
+      return {
+        ...base,
+        resource: 'SalesOrder',
+        objectId: selectedOrder.id,
+        status: selectedOrder.orderStatus,
+      }
+    }
+    return base
+  }, [tab, selectedQuote, selectedOrder])
+
+  const processStatus =
+    tab === 'quotes' ? selectedQuote?.quoteStatus : tab === 'orders' ? selectedOrder?.orderStatus : null
+
+  const processSlot = (
+    <DeskProcessSlot processCode="SALES_QUOTE_TO_ORDER" status={processStatus} />
+  )
 
   const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
@@ -2343,7 +2370,7 @@ export default function SalesDesk() {
         emptyBody={emptyBody}
         detail={null}
         detailFooter={null}
-        processSlot={null}
+        processSlot={processSlot}
         helpContext={helpContext}
         narrowSheetOpen={false}
       />

@@ -46,1055 +46,1604 @@ class HelpService {
             strategy    : [label: 'Strategy', desk: '/strategy', blurb: 'Competitors and strategy topics'],
             development : [label: 'Development', desk: '/development', blurb: 'NPD / revision projects'],
             asset       : [label: 'Assets', desk: '/assets', blurb: 'Physical plant, vehicles, and tools'],
+            grrc        : [label: 'Governance', desk: '/grrc', blurb: 'Risks and compliance items'],
+            stakeholder : [label: 'Stakeholder', desk: '/stakeholder', blurb: 'External parties and communications'],
             generic     : [label: 'Content catalog', desk: '/help', blurb: 'System content types'],
             configuration: [label: 'Configuration', desk: '/settings', blurb: 'Company and user settings'],
             helper      : [label: 'Reference data', desk: '/system/catalogs', blurb: 'Countries, currencies, statuses'],
     ].asImmutable()
 
-    /** Reusable operator chrome guide — append to desk help bodies */
-    private static final String HOW_DESKS = '''## How desks look
-
-Most desks show a **full-width list** — there is no empty white detail column waiting for a click.
-
-- **Tabs** and **New** share one toolbar row
-- Table **Action** column: **View (Eye) · Edit (Pencil) · Delete (Trash)** — missing actions leave blank space so icons stay aligned
-- **View** / **Edit** open in a dialog; Edit stays unavailable when the record cannot be changed (for example an issued purchase order or accepted quote)
-- Process actions for documents live at the bottom of the **View** dialog on list-style desks
-- Some desks show a **detail panel only after you select a row** (Shop Floor, Digital, Finance invoices/transactions, CRM, Pricing, HR, Capability, Agents) — never an empty panel on load
-
-Examples: Task list · Buyers desk.'''
-
-    private static final String HOW_DESKS_DE = '''## So sehen Desks aus
-
-Die meisten Desks zeigen eine **Liste über die volle Breite** — ohne leere weiße Detailspalte.
-
-- **Tabs** und **Neu** teilen eine Werkzeugleiste
-- Tabellen-Spalte **Aktion**: **Ansehen (Auge) · Bearbeiten (Stift) · Löschen (Papierkorb)** — fehlende Aktionen lassen leere Platzhalter
-- **Ansehen** / **Bearbeiten** öffnen einen Dialog; Bearbeiten bleibt gesperrt, wenn der Datensatz nicht änderbar ist (z. B. ausgestellte Bestellung / angenommenes Angebot)
-- Prozessaktionen für Belege stehen unten im **Ansichts-Dialog**
-- Manche Desks zeigen das **Detail erst nach Zeilenauswahl** (Shopfloor, Digital, Finance Rechnungen/Buchungen, CRM, Pricing, HR, Capability, Agents) — nie eine leere Spalte beim Laden
-
-Beispiele: Aufgabenliste · Einkaufs-Desk.'''
-
-    private static final String HOW_DESKS_ES = '''## Aspecto de los escritorios
-
-La mayoría de escritorios muestran una **lista a ancho completo** — sin columna de detalle blanca vacía.
-
-- **Pestañas** y **Nuevo** comparten una barra de herramientas
-- Columna **Acción**: **Ver (Ojo) · Editar (Lápiz) · Eliminar (Papelera)** — las acciones ausentes dejan huecos para alinear iconos
-- **Ver** / **Editar** abren un diálogo; Editar no está disponible si el registro no se puede cambiar (p. ej. OC emitida / oferta aceptada)
-- Las acciones de proceso de documentos viven al pie del diálogo de **Ver**
-- Algunos escritorios muestran el **detalle solo al seleccionar una fila** (Taller, Digital, facturas/asientos Finance, CRM, Pricing, RR. HH., Capability, Agents) — nunca un panel vacío al cargar
-
-Ejemplos: lista de tareas · escritorio de compradores.'''
 
     /** Optional rich copy for high-traffic master data (key = package.Resource) */
     private static final Map DOMAIN_BLURBS = [
-            'core.Task'              : '''Tasks are the **single work-item type** (personal, process-linked, or agent-assigned).
+            'core.Task': '''# Task
 
-**Fields**
-- name, description
-- **status** — humans: OPEN · IN_PROGRESS · DONE · CANCELLED; agents (API): **AI:*** only, finish with **AI:done** (never DONE)
-- **urgency** / **importance** — 1 low · 2 medium · 3 high (Eisenhower 3×3)
-- **deadlineAt**, startAt, endAt
-- **assigneeHumanNpub** and/or **assigneeAgentId**
-- Content rail for links, files, notes
+## Process overview
+No single SYSTEM processCode — tasks are the shared work-item type for personal, process-linked, and agent-assigned work. The Action - NOW board (`/work`) is the human prioritisation queue.
 
-**Tips**
-- Prefer status transitions over deleting work history
-- Agents complete with **AI:done**; a human sets **DONE** after review
-- Use **My work** (`/work`) for the Eisenhower **Action - NOW** board (and **Agentic Tasks** toggle)
-- Capability ProjectItem can link via optional taskId
-- Domain list **Action** column: **View (Eye) · Edit (Pencil) · Delete (Trash)** — View/Edit open **modals** ''',
-            'capability.Process'     : '''**Processes** are the catalogue of how work flows (APQC 13.1).
+## Actions
+- Create/edit on domain list or **New task** from Action - NOW
+- Change **status** rather than deleting history
+- Agents complete with **AI:done**; human sets **DONE** after review
 
-**Kinds:** SYSTEM (seeded product paths, read-only) · HUMAN · AGENTIC · OTHER
+## Fields
+name, description; status (humans: OPEN · IN_PROGRESS · DONE · CANCELLED; agents: AI:* only); urgency/importance 1–3; deadlineAt; assigneeHumanNpub and/or assigneeAgentId; content rail.
 
-**Status:** DRAFT · ACTIVE · RETIRED (no separate “Live” label — ACTIVE is the live catalogue state).
+## Special situations
+Agents must not finish with human DONE. Empty Action - NOW means no open work in the current filter.
 
-**SYSTEM seeds** include Purchase order, Quote→Order, Invoice settle, Service order, Inquiry, Hire, Project, HITL. Open a process for a **Mermaid** flowchart and step list.
+## Related
+- Action - NOW · CEO dashboard
+- AI / Agentic hub when agent-assigned
+''',
+            'capability.Process': '''# Process
 
-**Desks:** use **How this works** on SCM/Sales/Finance/etc. to open the matching processCode.
+## Process overview
+Catalogue of how work flows (APQC 13.1 kinds). SYSTEM seeds are read-only product paths (PO, Quote→Order, Invoice settle, Service order, Inquiry, Hire, Project, HITL, …).
 
-**Admin:** Settings → Reseed SYSTEM processes (or Capability → Reseed).''',
-            'sales.Customer'         : '''**Customer** master data: people or organisations you sell to.
+## Actions
+- Browse SYSTEM/HUMAN/AGENTIC on Capability → Processes
+- Open a process for Mermaid + steps; use desk **Process** pill for the wired processCode
+- Admin: Reseed SYSTEM processes from Settings or Capability
 
-**Fields to care about**
-- **customerKind** — PERSON or ORGANIZATION
-- email / phone / contactName
-- taxId, currencyCode, active
+## Fields
+kind (SYSTEM · HUMAN · AGENTIC · OTHER); status DRAFT · ACTIVE · RETIRED; code; step tips.
 
-**Workflow**
-1. Create customer here (or via CSV import)
-2. Use them on the **Sales desk** for quotes and orders
-3. Confirming an order can create a **draft invoice**
+## Special situations
+SYSTEM entries are not editable. Tips marked planned/stub are honest residuals.
 
-**Tips:** list **Action** column uses **Eye / Pencil / Trash**; View and Edit open **modals**.
+## Related
+- Process charts · Capability hub (CAP_PROJECT)
+''',
+            'sales.Customer': '''# Customer
 
-**Related:** Sales desk · Invoices · CSV import (Customers pack)''',
-            'sales.CustomerQuote'    : '''**Customer quotes** capture proposed pricing before an order.
+## Process overview
+Master data for **SALES_QUOTE_TO_ORDER**. Create here or via CSV, then quote/order on the Sales desk.
 
-Prefer the **Sales desk** for create → send → accept/reject. This master-data view is useful for admin browse/edit.
+## Actions
+- Create/edit customer on this domain or Sales desk
+- Use on quotes/orders; confirm order may create draft invoice (**FIN_INVOICE_SETTLE**)
 
-Quote lines live under **QuoteLine**. Content rail holds customer briefs and notes.''',
-            'sales.SalesOrder'       : '''**Sales orders** are confirmed commercial commitments.
+## Fields
+customerKind PERSON/ORGANIZATION; email/phone/contactName; taxId; currencyCode; communication language; active.
 
-Desk flow: quote accept → order → **confirm** (may post finance draft). Line detail: **OrderLine**.''',
-            'sales.QuoteLine'        : '''Line items on a **CustomerQuote** (product/service ref, qty, price).
+## Special situations
+Missing customer blocks quoting. Soft currency warnings do not block save.
 
-Usually edited via the Sales desk quote screen rather than raw master data.''',
-            'sales.OrderLine'        : '''Line items on a **SalesOrder**.
+## Related
+- Sales desk · Invoices · CSV import
+''',
+            'sales.CustomerQuote': '''# Customer quote
 
-Product vs service flags matter for Delivery and SCM hand-offs.''',
-            'procurement.Vendor'     : '''**Vendor** (supplier) master for procurement.
+## Process overview
+Part of **SALES_QUOTE_TO_ORDER** — proposed pricing before an order. Prefer the Sales desk for send/accept/reject.
 
-Create here or import via CSV, then use on the **Buyers desk** for purchase orders.
+## Actions
+- Create/send/accept/reject on Sales desk
+- Browse/edit lines under QuoteLine when needed
 
-Fields: contact, taxId, currency, active.
+## Fields
+Customer, document currency, lines (product/service, qty, price, tax).
 
-**Tips:** **Action** column **Eye / Pencil / Trash**; View/Edit open **modals** (same chrome as Buyers desk).''',
-            'procurement.PurchaseOrder': '''**Purchase orders** to suppliers.
+## Special situations
+Accepted quotes lock edit on the desk. Admin domain view is for browse/repair.
 
-Desk flow: create → send → confirm → receive (may create payables). Lines: **PurchaseOrderLine**.
+## Related
+- Sales desk · Sales orders · QuoteLine
+''',
+            'sales.SalesOrder': '''# Sales order
 
-**Tips:** **Action** column **View (Eye) · Edit (Pencil) · Delete (Trash)** — Edit/Delete only while **DRAFT**; issued/confirmed POs show View only (blank Edit placeholder). View/Edit use **modals**; process steps (send/confirm/receive) live in the **view modal footer** on the Buyers desk.''',
-            'catalogue.CatalogueItem': '''**Catalogue item** — unified goods + services master.
+## Process overview
+Confirmed commercial commitment in **SALES_QUOTE_TO_ORDER**. Confirm may post a finance draft toward **FIN_INVOICE_SETTLE**.
 
-Nature GOODS (SKU/unit, buy/sell) or SERVICE. Used by sales lines, BOMs, production, stock, and delivery.''',
-            'production.ProductionOrder': '''**Production / shop-floor orders**.
+## Actions
+- Prefer Sales desk: accept quote → order → confirm
+- Line detail via OrderLine
 
-Desk flow: create or from-sales → release → start → complete. Lots and checks support light traceability.''',
-            'finance.Account'        : '''**Chart of accounts** entry.
+## Fields
+Customer, currency, lines; status through confirm.
 
-Seed a starter COA from **General Ledger** if empty. Codes should stay unique per tenant (npub).
+## Special situations
+Product vs service flags matter for Delivery and SCM hand-offs.
 
-Posting only through the ledger service — do not invent balances by hand.''',
-            'finance.Invoice'        : '''**Invoices** are best driven from **Finance → Invoices** (issue / settle), not only this list.
+## Related
+- Sales desk · Invoices · Delivery desk
+''',
+            'sales.QuoteLine': '''# Quote line
 
-Statuses: draft → issued → paid/void. Payment options support EUR + sats rails.''',
-            'finance.JournalEntry'   : '''**Journal entries** are the ledger’s posted documents.
+## Process overview
+Line items on a CustomerQuote within **SALES_QUOTE_TO_ORDER**.
 
-Create via General Ledger tools so debit/credit balance rules apply.''',
-            'delivery.ServiceOrder'  : '''**Service / delivery orders** for fulfillment.
+## Actions
+- Edit via Sales desk quote screen (preferred)
 
-Use the **Delivery desk** for schedule, assign resource, start, complete.''',
-            'service.Inquiry'        : '''**After-sales inquiries** (customer questions/cases).
+## Fields
+Product/service ref, qty, price, tax code.
 
-Desk: start → resolve → close. Prefer AfterSales desk over raw CRUD for status flow.''',
-            'service.Claims'         : '''**Claims** against warranties/service.
+## Special situations
+Raw master-data edits are admin-only convenience.
 
-Validate → approve/reject → close. Approval may create a **draft credit** in Finance.''',
-            'human.HRFile'           : '''**HR file** (employee/contractor record).
+## Related
+- Customer quote · Sales desk
+''',
+            'sales.OrderLine': '''# Order line
 
-Sensitive name fields may be encrypted. Hire flow often starts from **Candidate**.''',
-            'human.Candidate'        : '''**Recruiting candidates**.
+## Process overview
+Line items on a SalesOrder within **SALES_QUOTE_TO_ORDER**.
 
-Stages → advance → hire (creates user/HR file) or reject. Use the **HR desk**.''',
-            'digital.ConfigItem'     : '''**Configuration items (CI)** in the IT registry.
+## Actions
+- Edit via Sales desk order flow when unlocked
 
-Link to **System** records; changes and tickets reference CIs.''',
-            'digital.ItTicket'       : '''**Internal IT tickets** (not customer AfterSales cases).
+## Fields
+Product/service flags, qty, price — flags drive Delivery/SCM hand-offs.
 
-Desk: start → resolve → close.''',
-            'agents.Agent'           : '''**AI / automation agents**.
+## Special situations
+Locked after confirm as the desk rules dictate.
 
-Seed core agents, activate/pause/retire. Pair with Hives and HITL approvals.''',
-            'capability.Project'     : '''**Projects** under portfolios/programs.
+## Related
+- Sales order · Delivery desk · Buyers/Shop floor
+''',
+            'procurement.Vendor': '''# Vendor
 
-Capability hub: start → complete/cancel; project items hold work breakdown.''',
-            'configuration.LegalEntity': '''**Legal entity** created by the setup wizard (ADR-029).
+## Process overview
+Supplier master for **SCM_PO_FULFILL**. Create here or CSV, then use on the Buyers desk.
 
-Edit carefully; preferred path for first-time setup is the **configuration wizard**.''',
-            'configuration.GlobalConfig': '''Legacy **global config** bag. Prefer **CompanySetting** / Settings for new work.''',
-            'helper.Countries'       : '''**Country** reference catalog (ISO-style codes). Seeded at bootstrap.''',
-            'helper.Currencies'      : '''**Currency** reference catalog (ISO fiat). Company **Currencies we use** (Settings) shortens dropdowns. Bitcoin is the value rail, not a catalog row. Soft warnings flag document vs company / partner / catalogue mismatches.''',
-            'generic.ContentType'    : '''**Content type** catalog for BODY companion entries (Note, Help, Risk, …).
+## Actions
+- Create/import vendor; open on Buyers for POs
 
-Files use the FILE channel — not a ContentType.''',
+## Fields
+Contact, taxId, currency, communication language, active.
+
+## Special situations
+No vendor blocks PO create.
+
+## Related
+- Buyers desk · CSV import
+''',
+            'procurement.PurchaseOrder': '''# Purchase order
+
+## Process overview
+**SCM_PO_FULFILL**: create → send → confirm → receive (stock / payable toward **FIN_PAYABLE**).
+
+## Actions
+- Prefer Buyers desk; process steps in view-modal footer
+- Edit/Delete only while **DRAFT**
+
+## Fields
+Vendor, lines (catalogue, qty, price), status.
+
+## Special situations
+Issued/confirmed POs are View-only on the desk.
+
+## Related
+- Buyers desk · Treasury payables
+''',
+            'catalogue.CatalogueItem': '''# Catalogue item
+
+## Process overview
+Unified goods + services master used by sales lines, BOMs, production, stock, and delivery — supports multiple desk processes.
+
+## Actions
+- Create/edit GOODS or SERVICE items for use on documents
+
+## Fields
+Nature GOODS (SKU/unit, buy/sell) or SERVICE; price currency; active.
+
+## Special situations
+Missing catalogue items block document lines.
+
+## Related
+- Sales desk · Buyers desk · Shop Floor Control
+''',
+            'production.ProductionOrder': '''# Production order
+
+## Process overview
+**SCM_MAKE_TO_STOCK** on Shop Floor: create or from-sales → release → start → complete.
+
+## Actions
+- Prefer Shop Floor Control desk for lifecycle actions
+
+## Fields
+Product/BOM, qty, status, lots/checks.
+
+## Special situations
+Missing BOM or stock can block release/complete.
+
+## Related
+- Shop Floor Control · Buyers desk
+''',
+            'finance.Account': '''# Account
+
+## Process overview
+Chart of accounts entry for **FIN_LEDGER**. Seed starter COA from General Ledger if empty.
+
+## Actions
+- Seed COA; maintain codes — post only via ledger service
+
+## Fields
+Code (unique per tenant), name, type.
+
+## Special situations
+Do not invent balances by hand.
+
+## Related
+- General ledger · Posting rules
+''',
+            'finance.Invoice': '''# Invoice
+
+## Process overview
+**FIN_INVOICE_SETTLE** — prefer Finance → Invoices for issue/settle. Upstream often Sales confirm.
+
+## Actions
+- Draft → issue → settle (or void)
+
+## Fields
+Amounts in primary value rail; status; payment options (EUR + sats rails).
+
+## Special situations
+DEMO mock settle only. Posting-rule failures block settle.
+
+## Related
+- Invoices desk · Sales desk · Treasury
+''',
+            'finance.JournalEntry': '''# Journal entry
+
+## Process overview
+Posted documents for **FIN_LEDGER**. Create via General Ledger tools so balance rules apply.
+
+## Actions
+- Post balanced journals from ledger tools
+
+## Fields
+Debit/credit lines; period.
+
+## Special situations
+Unbalanced journals are rejected.
+
+## Related
+- General ledger · Posting rules
+''',
+            'delivery.ServiceOrder': '''# Service order
+
+## Process overview
+**DEL_SERVICE_ORDER** — schedule, assign resource, start, complete on the Delivery desk.
+
+## Actions
+- Prefer Delivery desk lifecycle actions
+
+## Fields
+Service, resource, schedule, status.
+
+## Special situations
+Unassigned/unscheduled orders block start.
+
+## Related
+- Delivery desk · Sales desk
+''',
+            'service.Inquiry': '''# Inquiry
+
+## Process overview
+**AS_INQUIRY** — start → resolve → close on AfterSales desk.
+
+## Actions
+- Prefer AfterSales desk over raw CRUD for status flow
+
+## Fields
+Customer, case text, status.
+
+## Special situations
+Empty customer blocks create.
+
+## Related
+- AfterSales desk
+''',
+            'service.Claims': '''# Claims
+
+## Process overview
+After-sales claims against warranties/service — validate → approve/reject → close; may create Finance credit draft (toward **FIN_INVOICE_SETTLE**).
+
+## Actions
+- Prefer AfterSales desk for approval path
+
+## Fields
+Warranty/service link, amounts, status.
+
+## Special situations
+Approval may need Finance access for credits.
+
+## Related
+- AfterSales desk · Invoices
+''',
+            'human.HRFile': '''# HR file
+
+## Process overview
+Employee/contractor record supporting **HR_CANDIDATE_HIRE** outcomes and HR desk tabs.
+
+## Actions
+- Maintain via HR desk; hire often starts from Candidate
+
+## Fields
+Identity fields (may be encrypted); status; links to user.
+
+## Special situations
+Sensitive — grant Human capital See only when needed.
+
+## Related
+- HR desk · Candidate
+''',
+            'human.Candidate': '''# Candidate
+
+## Process overview
+**HR_CANDIDATE_HIRE** — stages → advance → hire or reject on the HR desk.
+
+## Actions
+- Prefer HR desk for advance/hire/reject
+
+## Fields
+Contact, stage, status.
+
+## Special situations
+Hire creates user/HR file — needs Users permission path.
+
+## Related
+- HR desk · Users invite
+''',
+            'digital.ConfigItem': '''# Config item
+
+## Process overview
+CI registry supporting **DIG_IT_TICKET** / **DIG_IT_CHANGE**. Link to System; tickets and changes reference CIs.
+
+## Actions
+- Maintain on Digital desk; IT-managed assets link here from Assets
+
+## Fields
+System link, hostname/IP and CI attributes.
+
+## Special situations
+Hostname/IP edits stay on Digital when assets are IT managed.
+
+## Related
+- Digital desk · Assets desk
+''',
+            'digital.ItTicket': '''# IT ticket
+
+## Process overview
+**DIG_IT_TICKET** — internal tickets (not AfterSales): start → resolve → close.
+
+## Actions
+- Prefer Digital desk lifecycle
+
+## Fields
+Subject, status, CI links.
+
+## Special situations
+Finance policy reseeds may open CHANGE-prefixed tickets.
+
+## Related
+- Digital desk · DIG_IT_CHANGE
+''',
+            'agents.Agent': '''# Agent
+
+## Process overview
+Automation agents paired with **AR_HITL_APPROVAL**, Hives, and Memory on the Agents hub.
+
+## Actions
+- Seed core agents; activate/pause/retire; HITL approve/reject proposals
+
+## Fields
+Identity, status, hive links.
+
+## Special situations
+Agent Basics only; agents must not settle/pay by default.
+
+## Related
+- Agents hub · Hermes activate
+''',
+            'capability.Project': '''# Project
+
+## Process overview
+**CAP_PROJECT** under portfolios/programs on the Capability hub.
+
+## Actions
+- Start → complete/cancel; project items hold WBS; optional taskId link
+
+## Fields
+Portfolio/program links, status, items.
+
+## Special situations
+SYSTEM process catalogue is separate under Processes tab.
+
+## Related
+- Capability hub · Development desk
+''',
+            'configuration.LegalEntity': '''# Legal entity
+
+## Process overview
+Administrative legal entity from setup wizard (ADR-029) — no desk SYSTEM processCode.
+
+## Actions
+- Prefer configuration wizard for first-time setup; edit carefully later
+
+## Fields
+Legal name and entity attributes from setup.
+
+## Special situations
+Wrong edits can break company identity on documents.
+
+## Related
+- Configuration wizard · Settings
+''',
+            'configuration.GlobalConfig': '''# Global config
+
+## Process overview
+Legacy config bag — prefer CompanySetting / Settings for new work. No desk SYSTEM processCode.
+
+## Actions
+- Avoid new writes here when Settings covers the need
+
+## Fields
+Legacy key/value bag.
+
+## Special situations
+May exist on older tenants only.
+
+## Related
+- Settings
+''',
+            'helper.Countries': '''# Countries
+
+## Process overview
+Reference catalog (ISO-style) seeded at bootstrap — no desk SYSTEM processCode.
+
+## Actions
+- Browse as needed for address/country dropdowns
+
+## Fields
+Country codes/names.
+
+## Special situations
+Seeded — prefer not ad-hoc deletes.
+
+## Related
+- Admin catalogs
+''',
+            'helper.Currencies': '''# Currencies
+
+## Process overview
+ISO fiat reference catalog. Company **Currencies we use** shortens dropdowns for commercial processes.
+
+## Actions
+- Enable company short list under Settings; Bitcoin is value rail, not a catalog row
+
+## Fields
+ISO codes; in-use flags.
+
+## Special situations
+Soft warnings on document vs company/partner/catalogue mismatches.
+
+## Related
+- Currencies we use · Primary value rail
+''',
+            'generic.ContentType': '''# Content type
+
+## Process overview
+Catalog for BODY companion entries (Note, Help, Risk, …). Files use FILE channel — not a ContentType.
+
+## Actions
+- Browse types used by Object Companion
+
+## Fields
+Type codes for typed BODY content.
+
+## Special situations
+Do not confuse with FILE attachments.
+
+## Related
+- Content on records
+'''
     ].asImmutable()
 
     private static final List FEATURE_SEEDS = [
             [key: 'app.dashboard', title: 'CEO dashboard', route: '/dashboard', family: 'core',
              body: '''# CEO dashboard
 
-Your cockpit for open work and process health.
+## Process overview
+No single SYSTEM processCode owns this screen. It aggregates open work, the Action - NOW board, APQC desk jumps, and system health so you can pick the next process to run on a desk.
 
-- **My work** — open tasks and deadlines
-- **Action - NOW** — 3×3 urgency × importance board (same board under **My work**)
-- **APQC groups** — jump into Sales, Finance, and other desks
-- **System health** — API / content signals
+## Actions
+- Open **My work** / **Action - NOW** — continue human or agentic tasks
+- Jump an **APQC group** tile — enter that family’s desk
+- Review **System health** signals — decide whether ops are blocked
 
-**Shortcuts:** **/** top-bar search (records) · **Ctrl+K** jump to pages · **?** or **Ctrl+/** this help drawer.
+## Fields
+No create/edit form on this screen. Cards show task counts, board cells, and health status.
 
-**See also:** Action - NOW · Settings (language & region) · Global search'''],
+## Special situations
+Empty boards mean no open work in the current filter — create a task or open a desk process. Role **See** limits which desk tiles appear.
+
+## Related
+- Action - NOW (`/work`)
+- Sales desk · Buyers desk · Finance invoices
+- [Onboarding tour](/tour/)
+'''],
             [key: 'app.search', title: 'Global search', route: '/dashboard', family: 'core',
              body: '''# Global search (top bar)
 
-Find **customers, vendors, quotes, orders, invoices, catalogue, POs, and tasks** from the top bar.
+## Process overview
+No SYSTEM processCode. Search finds records across companies you can See so you can open the right desk or domain document.
 
-| Tool | Purpose |
-|------|---------|
-| **Top-bar search** | Business **records** (type · title · status · deep link) |
-| **Ctrl+K / ⌘K** | Jump to **pages / desks** (navigation only) |
-| **List filter `q`** | Narrow **one** desk or domain list |
+## Actions
+- Type in the **top-bar search** — find customers, vendors, quotes, orders, invoices, catalogue, POs, tasks
+- **Ctrl+K / ⌘K** — jump to pages/desks (navigation only)
+- Open a result — deep-link into that record’s desk or domain view
 
-**Tips**
-- Type at least **2** characters (results debounce ~300ms)
-- Press **/** when focus is not in a field to focus search
-- Titles prefer business keys (invoice / quote / PO numbers), not raw ids
-- Results stay inside the **active company**; types you cannot See are omitted
+## Fields
+Search box needs at least **2** characters (debounce ~300ms). Results show type, title, status, and link.
 
-**See also:** CEO dashboard · My work'''],
+## Special situations
+Results stay inside the **active company**. Types you cannot See are omitted. List filter `q` on a desk only narrows that one list — it is not global search.
+
+## Related
+- CEO dashboard
+- My work / Action - NOW
+'''],
             [key: 'setup.wizard', title: 'Configuration wizard', route: '/setup', family: 'core',
              body: '''# Configuration wizard
 
-One-time tenant setup (default **Iron**).
+## Process overview
+Administrative first-run setup — not a desk SYSTEM processCode. Walks Tour → company → site → banking → Bitcoin → template → finish (default **Iron**).
 
-Tour → company → site → banking → **Bitcoin** → template → finish.
+## Actions
+- Complete each wizard step and continue
+- Choose **Bitcoin integration level** (Not now / Single address / BTCPay)
+- Finish to unlock desks for the new company
 
-Choose a **Bitcoin integration level** (Not now / Single address / BTCPay). Primary value rail (books currency) is separate.
+## Fields
+Company/legal entity, site, banking, Bitcoin level, and template tier. Primary value rail (books currency) is chosen separately from Bitcoin receive level.
 
-Admin **Settings** can reset setup for demos.'''],
+## Special situations
+Admin **Settings** can reset setup for demos. DEMO companies stay on mock settle. Incomplete wizard blocks normal desk use.
+
+## Related
+- Integrations hub · Bitcoin integration level
+- Settings
+- [Onboarding tour](/tour/)
+'''],
             [key: 'training.btc.basic', title: 'Basic Bitcoin literacy', route: '/system/integrations', family: 'finance',
              body: '''# Basic Bitcoin literacy (Level 1 nudge)
 
-Before you enable Bitcoin receive in steakOS:
+## Process overview
+Administrative training checklist before enabling Bitcoin receive — no desk SYSTEM processCode. Aligns with Integrations Bitcoin level **1 — Not now**.
 
-1. Learn the difference between **on-chain** and **Lightning**.
-2. Know that steakOS does **not** hold your keys.
-3. Prefer **BTCPay Server (Level 3)** for regular customer payments.
-4. Level 1 keeps receive deferred — books may still use a BTC primary rail with **mock** settle.
+## Actions
+- Read the literacy checklist on this topic
+- Set Bitcoin level under **System → Integrations** (or setup Bitcoin step)
 
-Set levels under **System → Integrations** (or the setup **Bitcoin** step).
+## Fields
+No form fields on this help topic. Level choice lives on Integrations.
 
-External learning: choose reputable public Bitcoin education; this topic is a checklist, not a course.'''],
+## Special situations
+steakOS does **not** hold keys. Level 1 defers live receive; books may still use a BTC primary rail with **mock** settle. Prefer **BTCPay (Level 3)** for regular customer payments.
+
+## Related
+- Bitcoin integration level · Live payments (BTCPay)
+- Advanced Bitcoin security
+'''],
             [key: 'training.btc.security-advanced', title: 'Advanced Bitcoin security', route: '/system/integrations', family: 'finance',
              body: '''# Advanced Bitcoin security (Level 2 nudge)
 
-Level 2 uses a **single software-wallet address** for **occasional** payments only.
+## Process overview
+Security checklist for Bitcoin Level **2 — Single address** (occasional payments). Administrative — no desk SYSTEM processCode.
 
-1. Back up your seed offline; never paste seeds into steakOS.
-2. Watch for phishing and malware that swap addresses.
-3. Address reuse and weak backups can cause permanent loss.
-4. Plan to upgrade to **BTCPay Server (Level 3)** for Lightning / regular receive.
+## Actions
+- Follow the backup / phishing checklist
+- Manage Level 2 under **System → Integrations**
+- Plan upgrade to **BTCPay (Level 3)** for Lightning / regular receive
 
-steakOS does not watch the chain in beta — settle is **manual mark paid**.
+## Fields
+Single software-wallet address configured on Integrations — never paste seeds into steakOS.
 
-Manage Level 2 under **System → Integrations**.'''],
+## Special situations
+Address reuse and weak backups can cause permanent loss. steakOS does not watch the chain in beta — settle is **manual mark paid**. CEO training ack required on upgrade to Level 2/3.
+
+## Related
+- Bitcoin integration level · Live payments (BTCPay)
+- Basic Bitcoin literacy
+'''],
             [key: 'system.integrations', title: 'Integrations hub', route: '/system/integrations', family: 'core',
              body: '''# Integrations hub
 
-**System → Integrations** is where operator integrations live (not Settings).
+## Process overview
+Administrative surface for operator integrations (Nostr, Bitcoin receive level, Hermes tokens) — **no desk SYSTEM processCode**. Live payment ops continue under Finance → Payments after Level 3.
 
-## What you configure here
+## Actions
+- Configure **Nostr** relay level, install/start, probe
+- Set **Bitcoin** receive level (Not now · Single address · BTCPay)
+- **Mint / revoke** Hermes agent API tokens
+- Probe connections before enabling live
 
-| Area | What it does |
-|------|----------------|
-| **Nostr** | Local private relay level (0 / 1 / 2), relay URL, install/start, probe |
-| **Bitcoin** | Receive level: Not now · Single address · BTCPay |
-| **Hermes agents** | Mint / revoke opaque API tokens for operator-owned agent hosts |
+## Fields
+Relay URL / level; Bitcoin level; BTCPay keys live under Finance → Payments; Hermes `sos_…` token (shown once).
 
-## Bitcoin levels (quick)
+## Special situations
+CEO must acknowledge training when Admin upgrades Bitcoin to Level 2 or 3. DEMO companies do not publish Nostr and stay on mock settle. Never paste `nsec`. Agent Basics only in closed beta.
 
-1. **Not now** — receive deferred; training nudge for basic literacy  
-2. **Single address** — occasional on-chain QR; manual mark paid; security warning  
-3. **BTCPay** — live Lightning/on-chain via **Finance → Payments** (keys, probe, live enable)
-
-CEO must acknowledge training when Admin upgrades to Level 2 or 3. Lightning marketing only at Level 3.
-
-## Nostr (quick)
-
-- Wizard step **after Bitcoin**, or this page  
-- Level ≥ 1 auto-installs/starts project-local `nostr-rs-relay` (loopback)  
-- **Never** paste `nsec` — link NIP-07 under **Security**  
-- DEMO companies do not publish  
-
-## Hermes / AI agents (quick)
-
-1. Mint a `sos_…` token here (shown once)  
-2. Paste into Hermes (or other host) with steakOS base URL  
-3. Smoke: `GET /api/agent/me` with Bearer  
-4. Optional HITL under **Agents**  
-
-**Agent Basics** only in closed beta — not Agent Pro.
-
-## Related Help
-
-Search **Ctrl+K**: Bitcoin, BTCPay, Nostr, Hermes, AI / Agents.
-
-Deep docs: `CONNECT-LIVE-PAYMENTS.md`, `ACTIVATE-AGENT.md`, `OPERATOR-RUNBOOK.md`, Nostr research under `docs/research/`.'''],
+## Related
+- Live payments (BTCPay) · Bitcoin integration level · Nostr integration
+- Hermes agent (API tokens) · AI / Agentic hub
+'''],
             [key: 'integrations.bitcoin', title: 'Bitcoin integration level', route: '/system/integrations', family: 'finance',
              body: '''# Bitcoin integration level
 
-How this company **receives** Bitcoin — separate from the **primary value rail** (books currency).
+## Process overview
+Administrative control of how the company **receives** Bitcoin — separate from the **primary value rail**. No desk SYSTEM processCode; settle flow is **FIN_INVOICE_SETTLE** on Invoices once payment exists.
 
-| Level | UI name | Behaviour |
-|-------|---------|-----------|
-| `DEFERRED` | 1 — Not now | No live receive; mock settle OK |
-| `SINGLE_ADDRESS` | 2 — Single address | One wallet address + QR; **manual** mark paid |
-| `BTCPAY` | 3 — BTCPay | Operator BTCPay Server (Lightning + on-chain) |
+## Actions
+- Set level in setup **Bitcoin** step or **System → Integrations**
+- For Level 3: open **Finance → Payments**, probe, enable live
 
-**Where:** setup wizard **Bitcoin** step, or **System → Integrations**.
+## Fields
+| Level | UI | Behaviour |
+|-------|-----|-----------|
+| DEFERRED | 1 — Not now | No live receive; mock settle OK |
+| SINGLE_ADDRESS | 2 — Single address | One address + QR; manual mark paid |
+| BTCPAY | 3 — BTCPay | Operator BTCPay (Lightning + on-chain) |
 
-**Rules:** Admin sets level; CEO training ack on upgrade to 2/3; Admin-only downgrade from Level 3; Level 2 warning dismissible until next login.
+## Special situations
+Admin sets level; CEO training ack on upgrade to 2/3; Admin-only downgrade from Level 3. Lightning marketing claims only at Level 3.
 
-**Live keys** for Level 3: **Finance → Payments** (probe → enable live).
-
-See also **Live payments (BTCPay)** and training topics (basic / advanced security).'''],
+## Related
+- Live payments (BTCPay) · Invoices (FIN_INVOICE_SETTLE)
+- Basic / Advanced Bitcoin training
+'''],
             [key: 'integrations.nostr', title: 'Nostr integration', route: '/system/integrations', family: 'digital',
              body: '''# Nostr integration (OI-NOSTR01)
 
-Private **local relay** (`nostr-rs-relay`) for company audit / notify — same ops idea as BTCPay (you run the node). **Per-user Alby login** is configured under **Security**, not here.
+## Process overview
+Administrative company relay / audit level for private local Nostr — no desk SYSTEM processCode. Per-user Alby login is under **Security**, not here.
 
-## Company relay / level
+## Actions
+- Set level **0 / 1 / 2** on Integrations or setup Nostr step
+- **Install / start** local relay (project `var/nostr/`, loopback)
+- **Probe** until reachable
+- People link Alby under **Security → Link browser extension**
 
-1. **System → Integrations → Nostr** (or setup wizard **Nostr** step after Bitcoin)  
-2. Choose level: **0** not now · **1** login + private audit · **2** + notify (giftwrap later)  
-3. Level ≥ 1: use **Install / start local relay** (project `var/nostr/`, loopback `ws://127.0.0.1:7777`)  
-4. **Probe** until reachable  
+## Fields
+Company relay level and URL; optional company bot metadata. Never paste `nsec`.
 
-## People signing in with Alby
+## Special situations
+DEMO companies do not publish. Without bot key, publish stays honest (`stubbed`). Level 2 giftwrap notify is still residual.
 
-Each human needs a steakOS user (password invite), then **Security → Link browser extension**. See **Sign in with Alby (Nostr)**. Never paste `nsec`.
-
-## Honesty
-
-- DEMO companies do not publish  
-- Level ≥ 1 LIVE with company bot `nsec` (Admin API): real **EVENT** to the local relay with **NIP-42 AUTH** (JDK WebSocket + secp256k1 — not nostr-java)  
-- Without bot key: intent is recorded and status stays honest (`stubbed`)  
-- Level 2 **giftwrap** notify (NIP-17) is still residual — `publishNotifyStub` only  
-
-Scripts: `scripts/install/nostr/install-nostr-relay.sh` · QUICKSTART §3b · OPERATOR-RUNBOOK.'''],
+## Related
+- Sign in with Alby (Nostr)
+- Integrations hub
+'''],
             [key: 'sales.desk', title: 'Sales desk', route: '/sales', family: 'sales',
              body: '''# Sales desk
 
-Operational path for commercial work:
+## Process overview
+SYSTEM process **SALES_QUOTE_TO_ORDER**: customer → quote → send → accept/reject → order → confirm. Confirming an order can create a draft invoice and connects downstream to **FIN_INVOICE_SETTLE**.
 
-1. **Customer** (master data or create here)
-2. **Quote** → send → accept/reject
-3. **Order** → confirm (may create draft invoice)
+## Actions
+- **New** customer / quote / order — start the commercial path
+- Row **View / Edit / Delete** — inspect or change drafts; Edit blanks when the record is locked (e.g. accepted quote)
+- View-modal footer process steps — send, accept/reject, confirm
+- Green **Process** pill — opens the SALES_QUOTE_TO_ORDER process modal
 
-Master data under Sales still available for admin lists.
+## Fields
+- Customer: kind (PERSON/ORGANIZATION), contact, preferred currency, taxId, active
+- Quote / order: partner, document currency, lines (catalogue ref, qty, price, tax code)
+- Soft currency warnings when document, partner, and catalogue currencies differ (save still allowed)
 
-**Currency:** set **Preferred currency** on the customer and **document currency** on the quote/order. Mismatches with company currency (top bar) or catalogue list-price currency show as soft warnings (save still allowed). Admin enables codes under **Settings → Currencies we use**.
+## Special situations
+Role **See / Work** on Sales required. Office can create quotes but cannot settle money. Empty customer list blocks quoting until you create or import a customer.
 
-''' + HOW_DESKS],
+## Related
+- Invoices (FIN_INVOICE_SETTLE)
+- Delivery desk (DEL_SERVICE_ORDER) when orders need fulfillment
+- Currencies we use · Partner communication language
+- [Onboarding tour](/tour/)
+'''],
             [key: 'currency.catalog', title: 'Currencies we use', route: '/settings', family: 'core',
              body: '''# Currencies we use
 
-steakOS keeps a shared ISO **currency list**. Each company enables a short **Currencies we use** set for dropdowns.
+## Process overview
+Administrative Settings surface — no desk SYSTEM processCode. Enabled codes feed dropdowns on commercial documents that later run SALES_QUOTE_TO_ORDER / SCM_PO_FULFILL / FIN_INVOICE_SETTLE.
 
-- **Company currency** shows in the top bar (before Help).
-- **Preferred currency** on customers and vendors.
-- **Price currency** on catalogue items (one list price per item in beta).
-- New writes must use an enabled + in-use code; legacy orphan codes stay readable.
-- Quote / sales order / purchase order may soft-warn when document, partner, and catalogue currencies differ — save is not blocked.
+## Actions
+- Admin: enable/disable codes under **Settings → Currencies we use**
+- Operators: pick enabled codes on customers, vendors, catalogue, and documents
 
-Admin only: Settings → Currencies we use.'''],
+## Fields
+Shared ISO list; company **Currencies we use** short set; company currency in the top bar; preferred currency on partners; price currency on catalogue items.
+
+## Special situations
+New writes need an enabled in-use code; legacy orphans stay readable. Soft mismatch warnings do not block save.
+
+## Related
+- Sales desk · Buyers desk · Invoices
+- Primary value rail & BTC FX
+'''],
             [key: 'finance.primaryRail', title: 'Primary value rail & BTC FX', route: '/settings', family: 'finance',
              body: '''# Primary value rail & BTC FX
 
-Your **primary value rail** is the money unit your books use (chosen in setup):
+## Process overview
+Administrative books-currency choice (setup / Settings) — not a desk SYSTEM processCode. Settlement amounts still post through **FIN_INVOICE_SETTLE** and treasury positions.
 
-| Rail | Meaning |
-|------|---------|
-| **EUR** / **USD** | Fiat functional currency — invoices and journals in that currency |
-| **BTC** | Bitcoin books (amounts in sats or BTC display); pick a **display fiat** (EUR/USD) for hints |
+## Actions
+- Choose primary rail in setup (EUR / USD / BTC + display fiat)
+- Read FX hints on forms; settle invoices to lock payment-time rates
 
-## What you see on forms
+## Fields
+Primary rail; display fiat for BTC books; compact FX hint and stale badge from server rate cache.
 
-Beside amounts, steakOS may show a **compact FX hint** (for example sats beside euros). Hints come from a **server-side** BTC rate cache (CoinGecko → Kraken → Coinbase). A **stale** badge means the last good rate is shown because live quotes failed.
+## Special situations
+Hints are not the books. No automatic wallet MTM. Changing rail after setup is Advanced (not closed beta). Manual FX tables unsupported.
 
-**Hints are not the books.** Issued documents keep their primary amount; tooltips can change when the market moves.
-
-## Settlement
-
-When you **settle** an invoice, steakOS records payment-time figures on the **Payment** / journal / treasury (including sats when you pay via Bitcoin rails). That settle rate is what the ledger uses — not the live tooltip.
-
-## Dual treasury
-
-Expect both a **fiat bank** position and a **Bitcoin wallet** position under Finance → Treasury (one chart of accounts).
-
-## Honest limits (Basics)
-
-- No automatic wallet mark-to-market (MTM) when BTC price moves  
-- Changing the primary rail after setup is Advanced (not in closed beta)  
-- Manual FX rate tables are not supported  
-
-**Related:** Invoices · Treasury · Live payments (BTCPay) · Company profile'''],
+## Related
+- Invoices (FIN_INVOICE_SETTLE) · Treasury (FIN_PAYABLE)
+- Live payments (BTCPay)
+'''],
             [key: 'finance.invoices', title: 'Invoices', route: '/finance/invoices', family: 'finance',
              body: '''# Invoices
 
-1. Create draft  
-2. **Issue**  
-3. **Settle** when paid  
+## Process overview
+SYSTEM process **FIN_INVOICE_SETTLE**: draft → **issue** → **settle** when paid. Upstream often **SALES_QUOTE_TO_ORDER** (confirm may create draft invoice).
 
-Amounts use your company **primary value rail** (EUR, USD, or BTC). Optional **FX hints** beside the amount are display-only — see **Primary value rail & BTC FX**.
+## Actions
+- Create draft invoice (or open sales-created draft)
+- **Issue** then **Settle** on the detail
+- Select a row for split detail (no empty pane on load)
+- Green **Process** pill — opens FIN_INVOICE_SETTLE
 
-Seed COA from General Ledger if accounts are missing.
+## Fields
+Amounts in company **primary value rail**; optional FX hints (display-only); payment option / rail including Bitcoin when configured; status draft/issued/paid/void.
 
-**Live vs mock:** DEMO companies use **mock settle only**. LIVE companies choose a **Bitcoin integration level** (Settings / setup wizard). Lightning marketing claims only at **Level 3 (BTCPay)** — see **Live payments (BTCPay)**.
+## Special situations
+DEMO companies: **mock settle only**. LIVE Bitcoin receive follows Integrations level; Lightning claims only at Level 3. Missing COA/posting rules block settle (`POSTING_RULES_*`).
 
-This surface stays a **justified split** desk: pick a row to open detail (no empty pane on load).
-
-''' + HOW_DESKS],
+## Related
+- Sales desk (SALES_QUOTE_TO_ORDER)
+- Treasury · Posting rules · Live payments (BTCPay)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'finance.payments.live', title: 'Live payments (BTCPay)', route: '/finance/payments', family: 'finance',
              body: '''# Live payments (BTCPay)
 
-steakOS does **not** custody your Bitcoin. You run **BTCPay Server**; steakOS records invoices and settlements.
+## Process overview
+Administrative LIVE receive configuration for Bitcoin Level 3. Money movement on invoices still follows **FIN_INVOICE_SETTLE**; this screen wires BTCPay so settle can be live instead of mock.
 
-## Bitcoin integration levels (OI-BTC01)
+## Actions
+- Set level to **BTCPay** on Integrations
+- Enter base URL, store id, API key, webhook secret
+- **Probe** then enable **live**
+- Issue invoice → inbound payment → pay in BTCPay → webhook or reconcile
 
-| Level | Meaning |
-|-------|---------|
-| **1 — Not now** | Receive deferred; mock settle |
-| **2 — Single address** | Occasional on-chain to one wallet address; manual mark paid |
-| **3 — BTCPay** | Operator BTCPay (Lightning + on-chain) |
+## Fields
+BTCPay connection fields above; live toggle. Fiat/SEPA settle remains available separately.
 
-Set the level in setup (**Bitcoin** step) or **System → Integrations**. Admin changes level; CEO must acknowledge training on upgrade to 2/3.
+## Special situations
+DEMO companies forced to mock settle. steakOS does not custody keys. Upgrade from Level 2 keeps occasional address until BTCPay is live.
 
-## LIVE company (Level 3)
-
-1. Set level to **BTCPay**  
-2. Open **Finance → Payments**  
-3. Enter BTCPay base URL, store id, API key, webhook secret  
-4. **Probe** the connection  
-5. Enable **live**  
-6. Issue an invoice → create inbound payment → pay in BTCPay → webhook (or reconcile)
-
-Upgrade from Level 2: keep occasional address until BTCPay is probed and live.
-
-## DEMO companies
-
-Orange Steak House and Heard & Cook Architects are **forced to mock settle** so Reset and training films stay safe. Switch to your LIVE company for real rails.
-
-## Fiat
-
-Fiat / SEPA-style settle remains available. It does not replace Level-3 Lightning claims for commercial honesty.
-
-## Docs
-
-Operator guide: `docs/installation/CONNECT-LIVE-PAYMENTS.md` (accepted residuals are listed there).'''],
+## Related
+- Invoices (FIN_INVOICE_SETTLE)
+- Bitcoin integration level · Treasury
+'''],
             [key: 'finance.ledger', title: 'General ledger', route: '/finance/transactions', family: 'finance',
              body: '''# General ledger
 
-Double-entry kernel: seed COA, post balanced journals, trial balance, period close marker.'''],
+## Process overview
+SYSTEM-oriented finance kernel **FIN_LEDGER**: seed chart of accounts, post balanced journals, trial balance, period-close marker. Not the invoice desk — postings often originate from **FIN_INVOICE_SETTLE** / payables.
+
+## Actions
+- Seed COA if empty
+- Post balanced journals via ledger tools
+- Run trial balance / period close marker
+
+## Fields
+Account codes (unique per tenant); journal lines with debit/credit; period markers.
+
+## Special situations
+Do not invent balances by hand — posting only through the ledger service. Bad posting rules block operational settle/pay upstream.
+
+## Related
+- Invoices (FIN_INVOICE_SETTLE) · Posting rules · Treasury
+'''],
             [key: 'finance.treasury', title: 'Treasury', route: '/finance/treasury', family: 'finance',
              body: '''# Treasury hub
 
-Positions, payables, budgets, tax, payroll stub, control — open the section tabs on this hub.
+## Process overview
+Treasury positions and payables lean on **FIN_PAYABLE** (and related treasury position views). Tabs cover positions, payables, budgets, tax, payroll stub, control. Dual fiat bank + Bitcoin wallet positions share one COA.
 
-**Dual positions:** a fiat bank and a Bitcoin wallet share one chart of accounts. Carrying values follow your **primary value rail** — see **Primary value rail & BTC FX**.
+## Actions
+- Open section tabs on this hub
+- Work payables / positions as each tab allows
+- Green **Process** pill — opens FIN_PAYABLE (treasury context)
 
-For **live Bitcoin receive**, see **Live payments (BTCPay)** (Finance → Payments).
+## Fields
+Position carrying values follow **primary value rail**; payable amounts and status; budget/tax/payroll stub fields per tab.
 
-''' + HOW_DESKS],
+## Special situations
+Live Bitcoin receive is configured under Live payments (BTCPay), not only here. Posting-rule failures block vendor pay.
+
+## Related
+- Invoices (FIN_INVOICE_SETTLE) · General ledger · Buyers desk
+- Primary value rail & BTC FX
+- [Onboarding tour](/tour/)
+'''],
             [key: 'finance.postingRules', title: 'Posting rules (auto journals)', route: '/finance/posting-rules', family: 'finance',
              body: '''# Posting rules
 
-steakOS posts balanced journals when money moves — **invoice settle**, **vendor pay**, and **payroll recognize / pay** — using a **company ruleset** (not hardcoded accounts). Under **Accrual**, **invoice issue** and **payable create/approve** also post.
+## Process overview
+Administrative company ruleset for auto journals — no desk SYSTEM processCode of its own. Rules fire when **FIN_INVOICE_SETTLE**, vendor pay, and payroll recognize/pay run (and under Accrual on issue / payable open).
 
-## Accounting mode
+## Actions
+- View rules / mode / change log (Admin + CEO)
+- Edit rules / mode / reseed (Admin only)
+- Save or Reseed — appends change log and opens a Digital IT ticket (`CHANGE`, prefix `[Finance policy]`)
 
-| Mode | Meaning |
-|------|---------|
-| **Cash** (default / restaurant) | Books update when paid |
-| **Accrual** | On **issue**: Dr AR / Cr Revenue; on **settle**: Dr Cash / Cr AR. On **payable open**: Dr Expense / Cr AP; on **pay**: Dr AP / Cr Cash |
+## Fields
+Accounting mode **Cash** vs **Accrual**; per-event account mappings in the ruleset.
 
-Choose mode in the **setup Finance books** step or here. Settle/pay under Accrual clear AR/AP — they do not double-count revenue/expense.
+## Special situations
+Bad or missing rules **block** settle/pay (`POSTING_RULES_*`) — no silent fallback. Reseed never wipes journals.
 
-## Who can change what
-
-| Action | Admin | CEO |
-|--------|:-----:|:---:|
-| View rules / mode / change log | ● | ● |
-| Edit rules / mode / reseed | ● | ○ |
-
-Every Admin **Save** or **Reseed** appends an immutable **change log** and opens a Digital **IT ticket** (`CHANGE`, name prefix `[Finance policy]`). Journals are never wiped by reseed.
-
-## Where
-
-**Finance → Posting rules** (`/finance/posting-rules`)
-
-Bad or missing rules **block** settle/pay (error `POSTING_RULES_*`) — no silent fallback.
-
-**Related:** General ledger · Invoices · Treasury · Payroll'''],
+## Related
+- General ledger · Invoices · Treasury · Payroll
+'''],
             [key: 'scm.desk', title: 'Buyers Desk', route: '/scm/buyers', family: 'scm',
              body: '''# Buyers Desk
 
-**Vendors · products · services · purchase orders**
+## Process overview
+SYSTEM process **SCM_PO_FULFILL**: vendor → purchase order → send → confirm → receive (stock / Finance payable). Shop floor make-to-stock is a separate process on Shop Floor Control (**SCM_MAKE_TO_STOCK**).
 
-Vendor → PO → send → confirm → receive (stock / Finance payable).
+## Actions
+- **New** vendor / product / service / PO — start procurement
+- Row **View / Edit / Delete** — Edit/Delete only while PO is **DRAFT**
+- View-modal footer — send, confirm, receive
+- Green **Process** pill — opens SCM_PO_FULFILL
 
-Shop floor (production, quality, inventory) is a **separate** desk: **Shop Floor Control** (`/scm/shopfloor`).
+## Fields
+Vendor contact, taxId, currency, active. PO header + lines (catalogue, qty, price). Receive posts stock / payable as configured.
 
-This desk is the **List with View/Edit dialogs** (no empty detail column).
+## Special situations
+Issued/confirmed POs show View only. Missing vendors or catalogue items block PO create. Finance payable hand-off needs posting rules healthy.
 
-''' + HOW_DESKS],
+## Related
+- Shop Floor Control (SCM_MAKE_TO_STOCK)
+- Treasury / payables (FIN_PAYABLE)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'scm.shopfloor', title: 'Shop Floor Control', route: '/scm/shopfloor', family: 'scm',
              body: '''# Shop Floor Control
 
-**Production orders · quality / lots · inventory on-hand**
+## Process overview
+SYSTEM process **SCM_MAKE_TO_STOCK**: product/BOM → production order → release → start → complete, with lot checks and inventory on-hand. Purchasing stays on Buyers (**SCM_PO_FULFILL**).
 
-Product/BOM → production order → release → complete · lot checks · stock.
+## Actions
+- **New** production order (or from sales demand where offered)
+- Select a row — open detail (split layout)
+- Release / start / complete and lot / quality actions on the detail
+- Green **Process** pill — opens SCM_MAKE_TO_STOCK
 
-Purchasing (vendors, POs) lives on the **Buyers Desk** (`/scm/buyers`).
+## Fields
+Product/BOM reference, qty, status, lot/check fields, on-hand inventory views.
 
-Justified **split** layout: detail opens when you select a row.
+## Special situations
+Detail pane stays empty until you select a row. Missing BOM or stock can block release/complete. Role Work on production/SCM required.
 
-''' + HOW_DESKS],
+## Related
+- Buyers Desk (SCM_PO_FULFILL)
+- Assets desk when plant tools are involved
+- [Onboarding tour](/tour/)
+'''],
             [key: 'delivery.desk', title: 'Delivery desk', route: '/delivery', family: 'delivery',
              body: '''# Delivery desk
 
-Services & resources → service orders (from sales or manual) → schedule → assign → start → complete.
+## Process overview
+SYSTEM process **DEL_SERVICE_ORDER**: services & resources → service order (from sales or manual) → schedule → assign → start → complete.
 
-''' + HOW_DESKS],
+## Actions
+- **New** service / resource / service order
+- Row View / Edit; schedule, assign, start, complete on the process path
+- Green **Process** pill — opens DEL_SERVICE_ORDER
+
+## Fields
+Service and resource masters; order schedule window, assigned resource, status.
+
+## Special situations
+No free resource or unscheduled order blocks start. Sales-origin orders need a confirmed sales order upstream.
+
+## Related
+- Sales desk (SALES_QUOTE_TO_ORDER)
+- AfterSales desk (AS_INQUIRY, AS_RMA)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'aftersales.desk', title: 'AfterSales desk', route: '/aftersales', family: 'service',
              body: '''# AfterSales desk
 
-Inquiries, warranties, claims, RMAs. Claims may create Finance credit drafts; RMAs can post stock receipts.
+## Process overview
+SYSTEM processes **AS_INQUIRY** (customer questions/cases: start → resolve → close) and **AS_RMA** (returns). Claims may create Finance credit drafts; RMAs can post stock receipts. Tab-aware: Inquiry vs RMA use their own processCode.
 
-''' + HOW_DESKS],
+## Actions
+- **New** inquiry / warranty / claim / RMA
+- Advance status (start, resolve/approve, close) on the active tab
+- Green **Process** pill — opens AS_INQUIRY or AS_RMA for the current tab
+
+## Fields
+Customer link, case text, warranty refs, claim amounts, RMA lines / stock disposition.
+
+## Special situations
+Claim approval may need Finance access for credit drafts. Empty customer or missing warranty can block claim create.
+
+## Related
+- Sales desk · Delivery desk
+- Invoices / credits (FIN_INVOICE_SETTLE)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'hr.desk', title: 'HR desk', route: '/hr', family: 'human',
              body: '''# HR desk
 
-Candidates → hire · HR files · time · payroll periods · goals · policies · party access.
+## Process overview
+SYSTEM process **HR_CANDIDATE_HIRE**: candidates → advance stages → hire (creates user/HR file) or reject. Same desk also holds HR files, time, payroll periods, goals, policies, party access (supporting HUMAN processes).
 
-Justified **split** layout: detail opens when you select a row.
+## Actions
+- **New** candidate / HR file / time / goal as tabs allow
+- Select row for split detail; advance / hire / reject on candidates
+- Green **Process** pill — opens HR_CANDIDATE_HIRE
 
-''' + HOW_DESKS],
+## Fields
+Candidate stages and contact; HR file identity (sensitive fields may be encrypted); time and payroll period markers.
+
+## Special situations
+Hire needs Users permission path for account creation. HR **See** is sensitive — grant only when needed. Detail pane empty until row select.
+
+## Related
+- Users / invite · Roles
+- [Onboarding tour](/tour/)
+'''],
             [key: 'digital.desk', title: 'Digital desk', route: '/digital', family: 'digital',
              body: '''# Digital / IT desk
 
-Systems, data assets, solutions, IT changes, CIs, internal tickets.
+## Process overview
+SYSTEM processes **DIG_IT_TICKET** (internal tickets: start → resolve → close) and **DIG_IT_CHANGE**. Systems, data assets, solutions, and CIs support those flows.
 
-Justified **split** layout: detail opens when you select a row.
+## Actions
+- **New** system / CI / change / ticket
+- Select row for split detail; start / resolve / close tickets; progress changes
+- Green **Process** pill — opens DIG_IT_TICKET or DIG_IT_CHANGE for the active context
 
-''' + HOW_DESKS],
+## Fields
+CI link to System; ticket subject/status; change record fields.
+
+## Special situations
+Tickets here are **internal IT**, not AfterSales customer cases. Detail empty until row select. Agent-opened Finance policy tickets may appear as CHANGE-named items.
+
+## Related
+- Agents hub (AR_HITL_APPROVAL) when agents propose changes
+- Integrations hub
+- [Onboarding tour](/tour/)
+'''],
             [key: 'asset.desk', title: 'Assets desk', route: '/assets', family: 'asset',
              body: '''# Assets desk
 
-Physical plant, vehicles, and tools (AssetBasics register).
+## Process overview
+SYSTEM process **AST_ASSET_LIFECYCLE**: register physical plant, vehicles, and tools; maintain status and optional IT / finance / maintenance flags.
 
-- **Register** — name, tag, location, owner, status
-- **IT managed** — permanent link to a Digital ConfigItem (edit hostname/IP on the Digital desk)
-- **Financial depreciation** — when checked, Finance-module agents may pick the asset up and post depreciation values in a financial period
-- **Asset requires maintenance** — when checked, physical maintenance is expected; attach the manufacturer schedule (XLSX or PDF) on the record via Object Companion. Later, agents may create shopfloor or maintenance activities to extend asset life
+## Actions
+- **New** asset on the register
+- View / Edit / Delete; attach maintenance schedule via content rail
+- Green **Process** pill — opens AST_ASSET_LIFECYCLE
 
-Flags are Basics intent markers; automatic depreciation posting and maintenance work orders deepen later.
+## Fields
+Name, tag, location, owner, status. **IT managed** links a Digital ConfigItem. **Financial depreciation** and **Asset requires maintenance** are Basics intent flags.
 
-''' + HOW_DESKS],
+## Special situations
+Hostname/IP edits stay on the Digital desk when IT managed. Automatic depreciation posting and maintenance work orders deepen later — flags only mark intent in Basics.
+
+## Related
+- Digital desk (DIG_IT_TICKET / CIs)
+- Shop Floor Control · Finance ledger
+- [Onboarding tour](/tour/)
+'''],
             [key: 'strategy.desk', title: 'Strategy desk', route: '/strategy', family: 'strategy',
              body: '''# Strategy desk
 
-**Competitors** (name, type, sources, status, Link/File/Content attachments) and **Strategy topics** (name, type, description, kind, status, Link/File/Content) — list with View/Edit dialogs.
+## Process overview
+SYSTEM processes **STR_STRATEGY_ITEM** (strategy topics) and **STR_COMPETITOR_WATCH** (competitors). Attach Link/File/Content on either.
 
-Use tabs + **New** in the tab row; Action column **Eye · Pencil · Trash**.
+## Actions
+- Tabs + **New** for competitors or strategy topics
+- View / Edit / Delete; content rail on the record
+- Green **Process** pill — opens the tab’s processCode
 
-''' + HOW_DESKS],
+## Fields
+Competitor: name, type, sources, status. Strategy topic: name, type, description, kind, status.
+
+## Special situations
+Empty lists are fine for early companies — create the first competitor or topic to start. No money movement on this desk.
+
+## Related
+- Capability hub (CAP_PROJECT)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'development.desk', title: 'Development desk', route: '/development', family: 'development',
              body: '''# Development desk
 
-**Development projects** (NPD / revisions) — single-column desk with modal view/edit.
+## Process overview
+SYSTEM process **DEV_PROJECT_DELIVER**: NPD / revision development projects from create through delivery milestones on this desk.
 
-Tabs + **New** in the tab row; Action column **Eye · Pencil · Trash**.
+## Actions
+- **New** development project
+- View / Edit / Delete; advance project status on the modal/detail
+- Green **Process** pill — opens DEV_PROJECT_DELIVER
 
-''' + HOW_DESKS],
+## Fields
+Project name, type (NPD / revision), description, status, linked artefacts via content rail.
+
+## Special situations
+Day-to-day portfolio work may also appear under Capability projects (**CAP_PROJECT**) — use this desk for product/development delivery specifically.
+
+## Related
+- Capability hub (CAP_PROJECT)
+- [Onboarding tour](/tour/)
+'''],
+            [key: 'grrc.desk', title: 'Governance desk', route: '/grrc', family: 'grrc',
+             body: '''# Governance desk
+
+## Process overview
+SYSTEM processes **GRC_RISK_TREAT** (Risks tab: open → mitigate → close or accept) and **GRC_COMPLIANCE_ITEM** (Compliance tab: draft → activate → retire). Silver Governance surface; pairs with Stakeholder (**STK_PARTY_ENGAGE**).
+
+## Actions
+- Tabs **Risks** / **Compliance** — switch processCode on the green **Process** pill
+- **New** risk or compliance item — start the tab’s path
+- Row View / Edit / Delete; close or accept risk; activate or retire compliance
+- Green **Process** pill — opens GRC_RISK_TREAT or GRC_COMPLIANCE_ITEM for the active tab
+
+## Fields
+- Risk: name, severity, likelihood, owner, treatment note, status (OPEN → …), description
+- Compliance: name, item kind (policy / obligation / control), owner, effective from, status (DRAFT → ACTIVE → RETIRED), description
+- Content rail on the selected record
+
+## Special situations
+Requires **Silver** (or higher) metal selection. Empty lists are fine until the first risk or obligation is registered. No money movement on this desk.
+
+## Related
+- Stakeholder desk (STK_PARTY_ENGAGE)
+- Capability hub (CAP_PROJECT)
+- [Onboarding tour](/tour/)
+'''],
+            [key: 'stakeholder.desk', title: 'Stakeholder desk', route: '/stakeholder', family: 'stakeholder',
+             body: '''# Stakeholder desk
+
+## Process overview
+SYSTEM process **STK_PARTY_ENGAGE**: register external parties (active → watch → inactive) and log communications. Complements Governance (**GRC_RISK_TREAT** / **GRC_COMPLIANCE_ITEM**).
+
+## Actions
+- Tabs **Parties** / **Communications**
+- **New** party or communication log
+- Row View / Edit / Delete; change party status (ACTIVE / WATCH / INACTIVE)
+- Green **Process** pill — opens STK_PARTY_ENGAGE
+
+## Fields
+- Party: name, party kind (regulator, community, media, partner, NGO, investor, other), status, contact, ethics note, description
+- Communication: party, subject, summary, channel, direction, occurred at, status
+- Content rail on the selected record
+
+## Special situations
+Requires **Silver** (or higher). Communications need an existing party. Ethics notes are operator guidance — not a legal archive.
+
+## Related
+- Governance desk (GRC_RISK_TREAT / GRC_COMPLIANCE_ITEM)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'capability.hub', title: 'Capability hub', route: '/capability', family: 'capability',
              body: '''# Capability hub
 
-Projects, processes, quality, changes, knowledge — use the section tabs.
+## Process overview
+SYSTEM process **CAP_PROJECT** plus the process **catalogue** (SYSTEM / HUMAN / AGENTIC). Section tabs cover projects, processes, quality, changes, knowledge.
 
-**Process charts:** open **Processes**, pick a SYSTEM process, then hover/focus a step for What / Who / Where — see **Process charts**.
+## Actions
+- Section tabs — switch projects / processes / quality / changes / knowledge
+- Select a row for split detail; start / complete / cancel projects
+- Open a SYSTEM process — Mermaid chart and steps (see Process charts)
+- Green **Process** pill — opens CAP_PROJECT (or the active process context)
 
-Justified **split** layout: detail opens when you select a row.
+## Fields
+Project portfolio fields; process kind/status (SYSTEM read-only seeds); quality and change records as tabs provide.
 
-''' + HOW_DESKS],
+## Special situations
+SYSTEM catalogue entries are read-only. Reseed from Settings or Capability → Reseed. Detail empty until row select.
+
+## Related
+- Process charts
+- Development desk (DEV_PROJECT_DELIVER)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'process.chart', title: 'Process charts', route: '/capability/processes', family: 'capability',
              body: '''# Process charts
 
-steakOS shows **SYSTEM** process diagrams as learning aids (not process mining).
+## Process overview
+Learning aid for **SYSTEM** catalogue processes (**CAP_PROJECT** family / process catalogue) — not process mining. Deep link example: `/capability/processes?code=FIN_INVOICE_SETTLE`.
 
-1. Open **Capability → Processes** (defaults to SYSTEM)  
-2. Select a process (or use How-it-works on a desk)  
-3. **Hover** or **keyboard-focus** a step for What / Who / Where + pitfall  
-4. On touch, **tap** to pin the tip; **Esc** closes  
+## Actions
+- Open **Capability → Processes** (defaults to SYSTEM)
+- Select a process (or use How-it-works / Process pill on a desk)
+- Hover or keyboard-focus a step for What / Who / Where + pitfall; tap to pin on touch; Esc closes
 
-Tips that say **planned / stub** are honest about unfinished depth.
+## Fields
+Process code, kind (SYSTEM/HUMAN/AGENTIC/OTHER), status (DRAFT/ACTIVE/RETIRED), Mermaid chart, step tips.
 
-Deep link example: `/capability/processes?code=FIN_INVOICE_SETTLE`  
-Reseed tips: Settings or Capability → Reseed SYSTEM catalogue.'''],
+## Special situations
+Tips marked **planned / stub** are honest about unfinished depth. SYSTEM seeds are read-only; reseed from Settings or Capability.
+
+## Related
+- Capability hub
+- Any desk Process pill for that desk’s processCode
+'''],
             [key: 'agents.hub', title: 'AI / Agentic hub', route: '/agents', family: 'agents',
              body: '''# AI / Agentic resources
 
-**Agents**, **Hives**, **HITL** approvals, **Memory**. Seed core agents on first use.
+## Process overview
+SYSTEM process **AR_HITL_APPROVAL** for human-in-the-loop approvals. Hub also covers Agents, Hives, and Memory. Closed beta claims **Agent Basics** only — not Agent Pro.
 
-Closed beta claims **Agent Basics** only — not Agent Pro.
+## Actions
+- Seed core agents on first use; activate / pause / retire
+- **HITL** tab — approve or reject agent proposals
+- Green **Process** pill — opens AR_HITL_APPROVAL
+- Connect operator runtime via Hermes token (Integrations)
 
-To connect an **operator-owned** runtime (Hermes or similar), see **Activate agent / Hermes** — mint a token under **System → Integrations**, paste into the host, smoke-read, optional HITL.
+## Fields
+Agent identity/status; hive membership; HITL proposal payload; memory entries.
 
-Open **Agents** from the nav or Ctrl+K → **AI / Agents**.
+## Special situations
+Agents use the API (not the browser). They do **not** settle or pay money by default — humans keep money risk. Detail empty until row select.
 
-Justified **split** layout: detail opens when you select a row.
-
-''' + HOW_DESKS],
+## Related
+- Hermes agent (API tokens) · Integrations hub
+- Digital desk (agent-opened IT tickets)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'agents.activate', title: 'Hermes agent (API tokens)', route: '/system/integrations', family: 'agents',
              body: '''# Hermes agent (API tokens)
 
-**Agent Basics** only — not Agent Pro.
+## Process overview
+Administrative path to connect an operator-owned agent host — pairs with **AR_HITL_APPROVAL** on the Agents hub. No separate desk SYSTEM processCode on Integrations itself.
 
-1. **System → Integrations → Hermes agents** — mint a `sos_…` token (shown once)  
-2. Paste into your **operator-owned** agent host (e.g. Hermes) with steakOS `baseUrl`  
-3. **Smoke read:** `GET /api/agent/me` and `/api/agent/l0/summary` with Bearer  
-4. **Optional HITL:** agent proposes → **Agents → HITL** → human approve/reject  
+## Actions
+- **System → Integrations → Hermes agents** — mint a `sos_…` token (shown once)
+- Paste into the host with steakOS baseUrl
+- Smoke: `GET /api/agent/me` and `/api/agent/l0/summary` with Bearer
+- Optional: agent proposes → **Agents → HITL** → human approve/reject
 
-Agents use the API (not the browser). They do **not** settle or pay money by default — humans keep money risk.
+## Fields
+Opaque API token (once); base URL on the host. No browser session for the agent.
 
-Guide: `docs/installation/ACTIVATE-AGENT.md` · deep profile: `HERMES-PROFILE.md`.
+## Special situations
+Agent Basics only. Revoke tokens if a host is compromised. Agents must not be given settle/pay powers by default.
 
-Also search Ctrl+K: **Hermes**, **AI**, **Agents**.'''],
+## Related
+- AI / Agentic hub (AR_HITL_APPROVAL)
+- Integrations hub
+'''],
             [key: 'system.import', title: 'Data import', route: '/system/import', family: 'core',
              body: '''# Data & import
 
-CSV packs: **Customers**, **Vendors**, **COA**. Preview mapping, then commit. Opening-balance pack is preview-only.'''],
+## Process overview
+Administrative CSV import — no desk SYSTEM processCode. Packs feed masters used later by Sales / Buyers / Finance processes.
+
+## Actions
+- Choose pack (**Customers**, **Vendors**, **COA**)
+- Preview mapping, then commit
+- Opening-balance pack is preview-only
+
+## Fields
+CSV columns mapped to master fields per pack.
+
+## Special situations
+Import permission required (Admin/CEO typical). Bad rows fail preview — fix the file before commit.
+
+## Related
+- Sales desk · Buyers desk · General ledger
+'''],
             [key: 'system.settings', title: 'Settings', route: '/settings', family: 'core',
              body: '''# Settings
 
-**Language & region** is the first card — it controls **your screen language** (EN / DE / ES) and date/money formats for this account.
+## Process overview
+Administrative company/user settings — **no desk SYSTEM processCode**. Language, currencies, tax codes, and demo/setup controls live here; Integrations is a separate hub.
 
-## Language & region
+## Actions
+- Set **Language & region** for your screen locale
+- Admin: **Currencies we use**, tax codes in use, reset setup
+- Open **System → Integrations** for Nostr / Bitcoin / Hermes (not on this page)
 
-1. Open **System → Settings**
-2. Choose a locale (e.g. German (Germany) `de_DE`)
-3. Labels and formats update for your user
+## Fields
+Locale; currency short list; tax codes; demo/setup status.
 
-This is **not** the language of outbound PDFs to customers/vendors. That is **Communication language** on each Customer / Vendor master.
+## Special situations
+Screen language is not partner PDF language — that is Communication language on Customer/Vendor. Reset setup is Admin and destructive for demos.
 
-## Other cards on this page
-
-- **Currencies we use** — short list for dropdowns (company currency stays on)
-- Tax codes in use (when Finance pack is enabled)
-- Demo / setup status and admin **reset setup** (Admin)
-
-**Integrations** (Nostr, Bitcoin level, Hermes tokens) live under **System → Integrations**.
-
-**See also:** Partner communication language · Currencies we use'''],
+## Related
+- Currencies we use · German VAT tax codes
+- Partner communication language · Integrations hub
+'''],
             [key: 'system.catalogs', title: 'Admin catalogs', route: '/system/catalogs', family: 'core',
              body: '''# Admin catalogs
 
-Reference data, content types, legacy config domains — power-user lists, not daily desks.'''],
+## Process overview
+Administrative reference-data lists — no desk SYSTEM processCode. Power-user catalogues, not daily operational desks.
+
+## Actions
+- Browse/edit reference and content-type domains as permitted
+- Prefer family desks for day-to-day process work
+
+## Fields
+Varies by catalog resource (countries, currencies, content types, legacy config).
+
+## Special situations
+Catalog permission required. Editing reference data can affect dropdowns on process desks.
+
+## Related
+- Settings · Capability process catalogue
+'''],
             [key: 'app.about', title: 'About steakOS', route: '/about', family: 'core',
              body: '''# About
 
-Product line, SemVer, template tier, and golden/polish milestones.
+## Process overview
+Product metadata screen — no SYSTEM processCode. Shows line, SemVer, template tier, and milestones.
 
-**Security:** report privately to **security@steakos.org** — see Help **Report a security issue** and `docs/installation/SECURITY-DISCLOSURE.md`.'''],
+## Actions
+- Read version / tier information
+- Follow security disclosure guidance when needed
+
+## Fields
+None editable for process work.
+
+## Special situations
+Security issues go privately to **security@steakos.org** — not public exploit posts.
+
+## Related
+- Report a security issue
+'''],
             [key: 'security.disclose', title: 'Report a security issue', route: '/about', family: 'core',
              body: '''# Report a security issue
 
-Email **security@steakos.org** privately. Do not post exploit details in public issues.
+## Process overview
+Administrative security intake — no desk SYSTEM processCode. Private email process for steakOS core and documented install configs.
 
-- Ack target: ≤ 3 business days  
-- Triage target: ≤ 10 business days  
-- Scope: steakOS core + documented install configs (not your BTCPay/Hermes unless our glue leaks data)
+## Actions
+- Email **security@steakos.org** privately
+- Do not post exploit details in public issues
 
-Full process: `docs/installation/SECURITY-DISCLOSURE.md` · machine-readable `/.well-known/security.txt` · root `SECURITY.md`.
+## Fields
+N/A on-screen; include product version and repro in email.
 
-We are **not** claiming CRA certification.'''],
+## Special situations
+Ack target ≤ 3 business days; triage ≤ 10. Not CRA certification. Third-party BTCPay/Hermes hosts are out of scope unless steakOS glue leaks data.
+
+## Related
+- About steakOS
+'''],
             [key: 'app.tour', title: 'Onboarding tour', route: '/tour', family: 'core',
              body: '''# Onboarding tour
 
-Open **`/tour/index.html`**. Template choice is remembered for the setup wizard.'''],
+## Process overview
+Product learning surface at `/tour/` — not a desk SYSTEM processCode. Template choice here is remembered for the setup wizard.
 
-            // —— PDR-025 Roles + Users (substantial Help, R7) ——
+## Actions
+- Open **`/tour/index.html`**
+- Complete tour modules; continue to setup when prompted
+
+## Fields
+Tour progress / template preference as the tour app stores them.
+
+## Special situations
+Tour is optional after first run; desks remain available based on setup completion and roles.
+
+## Related
+- Configuration wizard
+- CEO dashboard
+'''],
             [key: 'help.roles.overview', title: 'Roles for a small team', route: '/roles', family: 'core',
              body: '''# Roles for a small team
 
-steakOS is built for a **small company** (about 2–5 people). Give each person a **role profile** (Office, Ops, Finance…). Roles come with **defaults** for which desks they see and what they may change.
+## Process overview
+Administrative access model for a small company (about 2–5 people) — no desk SYSTEM processCode. Roles decide which desks/processes a person can See and Work.
 
-**Admin** and **CEO** adjust those defaults under **System → Roles** and invite people under **System → Users**.
+## Actions
+- Open **System → Roles** — adjust profile defaults
+- Open **System → Users** — assign a profile and invite
+- Keep presets unless someone needs an extra desk
 
-You do not need an IT department. If unsure, **keep the presets** and only open extra desks when someone needs them.
+## Fields
+Role profile (Admin, CEO, Office, Ops, Finance, User, Read only); desk See/Work verbs; system actions (Users, Import, Settle money, …).
 
-## Quick start
+## Special situations
+No IT department required. Deny wins over allow. Humans never get ROLE_AI from Users.
 
-1. Open **System → Users**
-2. Add a person with profile **Office** (front desk) or **Finance** (bookkeeping)
-3. Tell them the temporary password; they should set **Security → authenticator** soon
-4. Confirm their left nav shows only the desks they need
-
-## Where to go
-
-- **Roles** (`/roles`) — change defaults for a profile
-- **Users** (`/users`) — assign a profile to a person
-- Help topics: presets · permission matrix · invite steps · safety
-
-**Tip:** Open this drawer with **?** or **Ctrl+/** on any screen.'''],
+## Related
+- Which role to pick · Permission matrix · Invite a teammate
+- Safety: Admin, CEO & disable
+'''],
             [key: 'help.roles.presets', title: 'Which role to pick', route: null, family: 'core',
              body: '''# Which role to pick
 
-Presets are **starting fills**, not frozen forever. Change them on **System → Roles** when needed.
+## Process overview
+Administrative guidance for choosing a role profile — no desk SYSTEM processCode. Presets are starting fills under **System → Roles**.
 
-| Role | Typical person | Sees / does | Avoid when… |
-|------|----------------|-------------|-------------|
-| **Admin** | Installer / IT-minded co-owner | All enabled desks + Users, Import, Catalogs, Agents | Everyday business work (use CEO) |
-| **CEO** | Owner / GM | All enabled business desks + Users / Import | You need a second full Admin (Admin mints Admin) |
-| **Office** | Front-of-house / office | Sales, Delivery, After-sales (+ Capability light); **no settle money** | They must book payments |
-| **Ops** | Kitchen / production / floor | SCM, Delivery, Assets; Sales **see** only | They own customer quotes end-to-end |
-| **Finance** | Bookkeeper | Finance + Sales **see**; **settle** money | They should invite users (no Users) |
-| **User** | Generic desk worker | Conservative Sales + Delivery (+ After-sales see) | You already know Office/Ops/Finance fits better |
-| **Read only** | Visitor / auditor / trainee watch | Browse enabled desks; **writes blocked** | They need to create or edit anything |
+## Actions
+- Pick a profile when inviting under Users
+- Change defaults on Roles when the team’s needs change
 
-## Restaurant / café examples
+## Fields
+Profile name and typical desk grants (see matrix Help for verbs).
 
-- Host / phone: **Office**
-- Kitchen lead: **Ops**
-- Accountant (part-time): **Finance**
-- Owner: **CEO** (+ keep one **Admin** account separate)
-- Trainee shadowing: **Read only** on the demo or live instance
+## Special situations
+One person → one profile. Prefer changing the profile over inventing a new role in v1. CEO cannot mint Admin.
 
-**Rule:** one person → one profile. Prefer changing the profile over inventing a new role in v1.'''],
+## Related
+- Roles for a small team · Permission matrix · Practice roles
+'''],
             [key: 'help.roles.matrix', title: 'Permission matrix (Advanced)', route: null, family: 'core',
              body: '''# Permission matrix (Advanced)
 
-The matrix is the **source of truth**. Presets fill it; Advanced lets Admin/CEO tune cells.
+## Process overview
+Administrative source of truth for desk and system verbs — no desk SYSTEM processCode. Intersects with company-enabled families.
 
-## Desks (families)
+## Actions
+- View/tune matrix cells (Admin/CEO Advanced)
+- Apply profile changes carefully (confirm before apply-to-all)
 
-For each desk (Sales, Finance, SCM…):
+## Fields
+Per desk: See, Create, Change, Delete, Work. System actions: Users/invite, Import, Catalogs, Agents, Setup, Settle money, reset 2FA.
 
-| Verb | Meaning |
-|------|---------|
-| **See** | Appears in nav; can open lists and read |
-| **Create** | New records (POST) |
-| **Change** | Edit / workflow actions (PUT/PATCH / start / complete…) |
-| **Delete** | Delete / void where the product allows |
-| **Work** | Shortcut = Create **or** Change (Simple view) |
+## Special situations
+Deny wins. Protect the last Admin. Settle money is a Finance special — Office does not have it by default. API returns MATRIX_*_FORBIDDEN when blocked.
 
-Grants are intersected with the company’s **enabled families** (metal / template). A grant on a disabled desk does nothing.
-
-## System actions
-
-Examples: **Users / invite**, **Import**, **Catalogs**, **Agents**, **Setup**, **Settle money**, reset others’ 2FA.
-
-Settle is a **money special** — Finance has it by default; Office does not.
-
-## Safety
-
-- **Deny wins** over allow when combining role + optional user override
-- Protect the **last Admin**
-- Confirm before **Apply to all users** with that profile
-- Humans never get `ROLE_AI` from the Users screen
-
-## API enforcement
-
-Mutating `/api/**` calls check this matrix (see codes `MATRIX_DESK_FORBIDDEN`, `MATRIX_SYSTEM_FORBIDDEN`). Nav **See** uses the same effective permissions.'''],
+## Related
+- Roles overview · Which role to pick · Safety
+'''],
             [key: 'help.users.invite', title: 'Invite a teammate', route: '/users', family: 'core',
              body: '''# Invite a teammate
 
-Path: **System → Users**
+## Process overview
+Administrative user provisioning — no desk SYSTEM processCode. Creates the account that later may run desk processes per role.
 
-1. Choose a **role profile** (start with Office / Ops / Finance — not Admin)
-2. Set username + **temporary password** (12+ characters: lower, upper, digit, special)
-3. Create the user
-4. Share credentials out-of-band (chat / paper) — not in a public ticket
-5. Ask them to sign in with that password and open **Security** to enrol an **authenticator** (Admin/CEO already have 2FA from setup)
-6. **Optional — Alby / Nostr login:** after password sign-in, they open **Security → Link browser extension** with **Alby** unlocked. The Users table **Extension** column then shows Yes. Only then can they use **Sign in with browser extension** on the login page.
+## Actions
+- **System → Users** — choose profile, username, temporary password, create
+- Share credentials out-of-band
+- Ask them to enrol authenticator under Security; optional Alby link
 
-## Sign in with Alby (summary)
+## Fields
+Username; temporary password (12+ with complexity); role profile; Extension column after Alby link.
 
-steakOS does **not** invent a Nostr identity at invite time. The account must exist first (username + password). The person links their own Alby public key under **Security** while logged in. Never paste an `nsec` (secret key) into steakOS.
+## Special situations
+Admin and CEO may invite; CEO cannot assign Admin. Prefer Disable over delete. Never paste nsec.
 
-Full steps: Help → **Sign in with Alby (Nostr)**.
-
-## After invite
-
-- Change profile anytime from the Users table
-- **Disable** (preferred) instead of deleting — keeps history
-- **Clear authenticator** only if their phone was lost (they re-enrol under Security)
-
-## Who may invite
-
-**Admin** and **CEO**. CEO **cannot** assign the **Admin** profile (cannot mint Admin).
-
-Related: [Which role to pick] · [Safety: Admin & CEO] · [Sign in with Alby] · [Roles overview]'''],
+## Related
+- Sign in with Alby · Roles overview · Safety
+'''],
             [key: 'help.security.nostrLogin', title: 'Sign in with Alby (Nostr)', route: '/security', family: 'core',
              body: '''# Sign in with Alby (Nostr)
 
-Use a **NIP-07** browser extension (e.g. **Alby**) so you can approve a short login request instead of typing your password every time. Your **secret key stays in the extension** — steakOS never asks for `nsec`.
+## Process overview
+Administrative per-user NIP-07 login — no desk SYSTEM processCode. Company relay level on Integrations is separate.
 
-## What must be true
+## Actions
+- Password sign-in once → **Security → Link browser extension** → approve in Alby
+- Later: login page **Sign in with browser extension**
 
-1. A steakOS **user account** already exists (Admin created you under **System → Users**, or you are the setup Admin).
-2. You can sign in once with **username + temporary password**.
-3. **Alby** (or similar) is installed in this browser and **unlocked**.
-4. On **Security**, **Linked** shows **Yes** after you click **Link browser extension** (or Re-link).
+## Fields
+Linked Yes/No on Security; Users Extension column.
 
-Until step 4 succeeds, the login page button **Sign in with browser extension** returns *This login key is not linked to a steakOS user*.
+## Special situations
+Until Linked, extension login fails. Never paste nsec. One Alby identity ↔ one steakOS user. Password login remains available.
 
-## Setup checklist (person using Alby)
-
-1. Install [Alby](https://getalby.com/) (or another NIP-07 extension) and create or import a Nostr identity there.
-2. Sign in to steakOS with **username + password**.
-3. Open **System → Security** (or the Security link in the shell).
-4. Under **Sign in with browser extension**, click **Link browser extension**.
-5. Approve the request in Alby.
-6. Confirm **Linked: Yes**.
-7. Sign out. On the login page, click **Sign in with browser extension** and approve again in Alby.
-
-## Admin checklist (invite someone else)
-
-1. **System → Users → Add user** — username, temporary password, role profile.
-2. Tell them the password out-of-band.
-3. Tell them to complete the **Setup checklist** above (password first, then link Alby).
-4. On Users, the **Extension** column turns **Yes** when linking succeeded.
-
-## Company Nostr level (wizard / Integrations)
-
-The setup wizard **Nostr** step and **System → Integrations → Nostr** control the **company** relay / audit level (0 / 1 / 2). That is separate from per-user Alby login:
-
-- **Level 0** — skip publish; Alby login still works after each user links under Security.
-- **Level 1+** — also run the local private relay for audit events.
-
-Operator public id in the wizard is optional company metadata — it does **not** replace linking each human account under Security.
-
-## Safety
-
-- **Never** paste `nsec` / seed / private key into steakOS, the wizard, or Users.
-- One Alby identity can link to **one** steakOS user (already linked → conflict).
-- Password login remains available after linking.
-- Prefer Disable over delete when someone leaves; they can re-link Alby after a new invite if needed.
-
-Related: [Invite a teammate] · [Nostr integration] · Security page.'''],
+## Related
+- Invite a teammate · Nostr integration
+'''],
             [key: 'help.users.danger', title: 'Safety: Admin, CEO & disable', route: null, family: 'core',
              body: '''# Safety: Admin, CEO & disable
 
-## Do
+## Process overview
+Administrative safety rules — no desk SYSTEM processCode. Protects control of roles that gate every desk process.
 
-- Keep **Admin** and **CEO** as **separate logins**
-- Prefer **Disable** over delete when someone leaves
-- Use **Clear authenticator** only for lost devices
-- Confirm before applying a role change to **all** users on that profile
+## Actions
+- Keep Admin and CEO as separate logins
+- Prefer Disable over delete; Clear authenticator only for lost devices
+- Confirm before apply-to-all role changes
 
-## Don’t
+## Fields
+N/A — behavioural rules on Users/Roles screens.
 
-- Share the Admin password
-- Make every owner an Admin “just in case”
-- Leave the last Admin disabled (product blocks this)
-- Give humans agent (`ROLE_AI`) access from Users
+## Special situations
+Cannot disable/demote the last Admin. Only Settle money profiles may settle invoices. Do not grant ROLE_AI to humans from Users.
 
-## Last Admin / last CEO
-
-- You cannot disable or demote the **last Admin**
-- Demoting the last CEO is a business risk — keep at least one owner account
-
-## Money
-
-Only profiles with **Settle money** (Finance, Admin, CEO by default) may settle invoices / run payment specials. Office creating a customer is fine; Office settling is blocked.'''],
+## Related
+- Invite a teammate · Roles matrix
+'''],
             [key: 'help.users.privacy', title: 'Privacy, HR & Read only', route: null, family: 'core',
              body: '''# Privacy, HR & Read only
 
-- **HR** desks and people records are sensitive. Grant **See** on Human capital only when needed (Bronze+ privacy ack still applies where shipped).
-- **Read only** is for visitors, auditors, and trainees who should **watch**, not change data.
-- **Demo / training instances** may use Read only or Office freely — prefer not testing destructive Admin actions on live books.
-- Content on records (files, notes) follows the same desk access as the host record.
+## Process overview
+Administrative privacy guidance — no desk SYSTEM processCode. Especially relevant before granting **See** on Human capital (**HR_CANDIDATE_HIRE** desk).
 
-When in doubt: **Read only** for observation, **Office** for daily front desk, escalate to Admin only for system work.'''],
+## Actions
+- Grant HR See only when needed
+- Use **Read only** for visitors/auditors/trainees who must not write
+
+## Fields
+N/A — access posture guidance.
+
+## Special situations
+Content on records follows host desk access. Avoid destructive Admin practice on live books.
+
+## Related
+- HR desk · Roles presets
+'''],
             [key: 'help.roles.demo', title: 'Practice roles (demo / training)', route: null, family: 'core',
              body: '''# Practice roles (demo / training)
 
-On a **demo restaurant** or training tenant:
+## Process overview
+Administrative training guidance on demo tenants — no desk SYSTEM processCode. Practice the same profiles you will use on live desks.
 
-| Goal | Use profile |
-|------|-------------|
-| Browse without breaking data | **Read only** (or seeded `demo` user) |
-| Take orders / quotes | **Office** |
-| Stock / kitchen flows | **Ops** |
-| Invoices & settle | **Finance** |
-| Invite people / change defaults | **CEO** (or Admin for catalogs / import) |
+## Actions
+- Use Read only / Office / Ops / Finance / CEO as the goal table suggests
+- Disable throwaway users after practice
 
-**Tips**
+## Fields
+N/A.
 
-- Practice on demo first; then mirror the same profiles on the live company
-- After practice, **disable** throwaway users
-- Help drawer (**?**) on **Roles** and **Users** shows these articles in context'''],
+## Special situations
+Prefer demo before live. Help drawer on Roles/Users shows these articles in context.
 
-            // OI-I18N02 — partner communication language
+## Related
+- Which role to pick · Roles overview
+'''],
             [key: 'help.partners.locale', title: 'Partner communication language', route: null, family: 'core',
              body: '''# Communication language
 
-On **Customer** and **Vendor** masters, set **Communication language** (e.g. German / English).
+## Process overview
+Partner master field used when commercial documents run (SALES_QUOTE_TO_ORDER, SCM_PO_FULFILL, FIN_INVOICE_SETTLE). Not your screen language in Settings.
 
-## What it controls
+## Actions
+- Set **Communication language** on Customer / Vendor masters
+- Download PDFs / send email — labels follow the partner language
 
-- **PDF labels** on quotes, orders, purchase orders, and invoices to that partner
-- **Email** subject and body to that partner when messaging is enabled (same language)
-- Draft previews follow the live setting; after send / confirm / issue the document **freezes** its language
+## Fields
+Communication language (e.g. German / English). Blank → English (en_US) for outbound docs.
 
-## Defaults
+## Special situations
+Draft previews follow live setting; after send/confirm/issue the document freezes language. Catalogue descriptions not dual-language yet. Nostr partner DMs still residual.
 
-Leave blank to use **English (en_US)** for outbound docs and email. This is separate from your screen language in Settings.
-
-## Honest limits (v1)
-
-- Catalogue item descriptions are not dual-language yet
-- **Nostr partner DMs** still residual (PL-TR4 giftwrap) — email uses partner locale today'''],
-
-            // OI-F23 / L14 — German VAT operator help
+## Related
+- Business PDFs · Settings (screen language) · Sales desk
+'''],
             [key: 'help.tax.ust', title: 'German VAT (USt) tax codes', route: '/settings', family: 'finance',
              body: '''# German VAT (USt) tax codes
 
-steakOS ships a **DE/AT tax-code pack**. Enable codes under **System → Settings → Tax codes we use**, then pick them on quote / sales order / PO lines.
+## Process overview
+Administrative tax-code pack (Settings) used on sales/PO lines during commercial processes — no desk SYSTEM processCode of its own.
 
-## Common DE codes
+## Actions
+- Enable codes under **Settings → Tax codes we use**
+- Pick codes on quote / sales order / PO lines
 
-| Code | Rate | Use |
-|------|------|-----|
-| **DE_USt_STD** | 19% | Standard goods & services |
-| **DE_USt_RED** | 7% | Reduced (operator chooses eligibility) |
-| **DE_USt_0** | 0% | Explicit zero-rated / exempt line |
-| **DE_RC** | 0% + reverse charge | B2B reverse charge — buyer accounts for VAT |
-| **DE_IG** | 0% + IG | Intra-community supply (valid VAT ID) |
-| **DE_EXPORT** | 0% | Export outside EU |
+## Fields
+DE_USt_STD 19%, DE_USt_RED 7%, DE_USt_0, DE_RC, DE_IG, DE_EXPORT (AT equivalents similarly). Regime: Germany/Austria VAT vs Kleinunternehmer/None.
 
-Austria uses the same pattern (`AT_USt_STD` 20%, `AT_USt_RED` 10%, …).
+## Special situations
+Operator owns rates — seed is not legal advice. Not UStVA/ELSTER filing. Wrong code is operator error.
 
-## Regime
-
-- **Germany VAT / Austria VAT** — line tax required; default code applies when a line has no pick
-- **Kleinunternehmer / None** — **no VAT** on sales documents (D7)
-
-## Honest limits
-
-- Operator owns rates — seed is a starting point, not legal advice
-- Not UStVA / ELSTER filing
-- US multi-state depth is out of this launch module
-
-**See also:** Reverse charge & IG · Business PDFs · Tax tab on Finance hub'''],
-
+## Related
+- Reverse charge & IG · Business PDFs · Finance tax tab
+'''],
             [key: 'help.tax.reverseCharge', title: 'Reverse charge & intra-community (IG)', route: '/sales', family: 'finance',
              body: '''# Reverse charge & intra-community (IG)
 
-Use tax codes **DE_RC** / **AT_RC** (reverse charge) or **DE_IG** / **AT_IG** (intra-community) on sales lines when those rules apply.
+## Process overview
+Tax-code usage on sales lines within **SALES_QUOTE_TO_ORDER** (and related documents) when RC/IG rules apply.
 
-## What steakOS does
+## Actions
+- Confirm valid VAT ID when required
+- Pick DE_RC / DE_IG (or AT) on the line
+- Download PDF and check the legal note block
 
-- Line **output VAT is 0%** for RC / IG codes
-- PDF and document notes add a **legal phrase** (EN + DE):
-  - Reverse charge — VAT accounted for by the recipient / *Steuerschuldnerschaft des Leistungsempfängers*
-  - Intra-community supply (0% VAT) / *Innergemeinschaftliche Lieferung*
+## Fields
+RC/IG codes force 0% output VAT and add EN+DE legal phrases on PDF/notes.
 
-## Operator checklist
+## Special situations
+No VIES validation in v1. Filing/Intrastat/OSS out of scope. Wrong code not auto-corrected.
 
-1. Confirm the customer has a valid VAT ID when required
-2. Pick **DE_RC** or **DE_IG** (or AT equivalents) on the line — do not leave the standard 19%/20% code
-3. Download the PDF and check the note block
-
-## Honest limits
-
-- steakOS does **not** validate EU VIES IDs in v1
-- Filing / Intrastat / OSS are out of scope for this module
-- Wrong code choice is an operator error — not auto-corrected
-
-**See also:** German VAT (USt) tax codes · Business PDFs'''],
-
-            // A8 — European A4 commercial PDFs
+## Related
+- German VAT tax codes · Business PDFs · Sales desk
+'''],
             [key: 'help.docs.pdf', title: 'Business PDFs (A4)', route: '/sales', family: 'core',
              body: '''# Business PDFs (A4)
 
-Quote, sales order, purchase order, and invoice screens offer **Download … PDF**.
+## Process overview
+Document output for commercial processes (quotes, orders, POs, invoices) — supports SALES_QUOTE_TO_ORDER, SCM_PO_FULFILL, FIN_INVOICE_SETTLE artefacts. Not a SYSTEM processCode itself.
 
-## What you get
+## Actions
+- **Download … PDF** on quote, sales order, PO, invoice screens
+- Print from the browser if needed
 
-- **ISO A4** portrait business letter (European filing margins)
-- **Multi-line** tables: description, qty, unit price, line total (long text wraps)
-- **Totals** match the amounts on the screen for that document
+## Fields
+A4 portrait layout; multi-line tables; totals matching on-screen amounts. Labels follow partner Communication language.
 
-Open the PDF in a new tab (inline). Print from the browser if needed.
+## Special situations
+Not e-invoice XML, not digitally signed. Language freezes after send/confirm/issue.
 
-## Language
-
-PDF **labels** follow each partner’s **Communication language** (Customer / Vendor). English, German, and Spanish packs ship in the alpha; other locales fall back to English until more packs exist. Catalogue line descriptions stay as stored.
-
-Draft PDFs follow the live partner setting. After you **send / confirm / issue**, the document freezes that language (changing the partner later does not rewrite history).
-
-## Honest limits (alpha)
-
-- Not e-invoice XML (ZUGFeRD / XRechnung)
-- Not digitally signed
-- Not a marketing template — a credible trade document'''],
-
-            // Action - NOW / My work board (OI-I18N03 residual)
+## Related
+- Partner communication language · Sales desk · Invoices
+'''],
             [key: 'help.work.actionNow', title: 'Action - NOW', route: '/work', family: 'core',
              body: '''# Action - NOW
 
-**My work** (`/work`) is the **Action - NOW** Eisenhower board for prioritising tasks (urgency × importance). A mini board also appears on the CEO dashboard.
+## Process overview
+Human work queue on the Eisenhower board — **no SYSTEM processCode**. Tasks may be personal, process-linked, or agent-assigned; agentic AI:* items wait for human confirmation to **DONE**.
 
-## Toolbar
-
-- **New task** — create a task (returns here afterward)
+## Actions
+- **New task** — create and return here
 - **Refresh** — reload the board
-- **Agentic Tasks** (violet toggle) — switch between the human open board and the agentic AI:* queue (see below)
-- **Task list** — open the full Task domain list when you need search, sort, or bulk browsing
+- **Agentic Tasks** toggle — human open board ↔ AI:* queue
+- **Task list** — full domain list for search/sort
+- Open a cell/task — edit urgency, importance, deadline, assignee
 
-## How to read the board
+## Fields
+Urgency and importance (low/medium/high); status (human OPEN/IN_PROGRESS/DONE/CANCELLED; agents AI:* → human DONE); deadline; assignees.
 
-- **Rows** = urgency (high → low)
-- **Columns** = importance (low → high)
-- Each cell groups tasks that share the same urgency × importance — open a task to edit urgency, importance, deadline, or assignee
+## Special situations
+Board does not invent priorities. Done/cancelled stay off the human board. Agents finish with **AI:done**; a human sets **DONE** after review.
 
-## Human board (toggle off)
-
-Shows **open** human work (`OPEN` / `IN_PROGRESS`, plus in-flight AI:* that still counts as open). Done / cancelled stay off the board.
-
-## Agentic Tasks (toggle on)
-
-Shows tasks that still have an agentic AI: status (for example AI:waiting-go or AI:done) and that a human has **not** yet confirmed as **DONE**. Violet chips mark agentic statuses. Turn the toggle **off** to return to the human board.
-
-Hover the toggle for a short reminder of what on vs off means.
-
-## Where else
-
-- **Dashboard** — mini board + jump to My work
-- Task form / modal — set **Urgency** and **Importance** (low / medium / high)
-
-## Honest limits
-
-- The board does not invent priorities — you set urgency and importance on each task
-- Full list filters (overdue, assignee, …) live on the **Task** domain list, not on this board
-
-**Tip:** Open this drawer with **?** or **Ctrl+/** from My work or the dashboard.'''],
-
-            // NOT bound to /domains — only linked as related tip on master-data pages
+## Related
+- CEO dashboard
+- AI / Agentic hub (AR_HITL_APPROVAL)
+- [Onboarding tour](/tour/)
+'''],
             [key: 'content.rail', title: 'Content on records', route: null, family: 'core',
              body: '''# Object Companion (content rail)
 
-On list/detail screens for a record:
+## Process overview
+No SYSTEM processCode. Companion channel on records used while running desk processes — links, files, and typed BODY content without leaving the page.
 
-- **Link** — external or internal URL  
-- **File** — attachment  
-- **Content** — typed BODY (Note, Help, Risk, …)
+## Actions
+- Add **Link**, **File**, or **Content** (Note, Help, Risk, …) on the open record
+- Open/remove attachments from the rail
 
-Master-data pages use the same rail as desks.'''],
+## Fields
+URL for links; file blob; content type code + body for typed notes.
+
+## Special situations
+Access follows the host record’s desk permissions. Files use the FILE channel — not a ContentType row.
+
+## Related
+- Any operational desk where the rail appears
+'''],
             [key: 'app.desks', title: 'Lists & desks', route: '/help', family: 'core',
              body: '''# Lists & desks
 
-How lists and desks work in steakOS. Examples: **Tasks** and **Buyers**.
+## Process overview
+No single SYSTEM process owns this topic. Desks each run their own processCode (for example SALES_QUOTE_TO_ORDER, SCM_PO_FULFILL, FIN_INVOICE_SETTLE). Open Help (**?**) on a desk for that screen’s process, actions, and fields.
 
-''' + HOW_DESKS + '''
+## Actions
+- Open a desk from the nav
+- Open **Help** on that desk — Process overview, Actions, Fields
+- Use the green **Process** pill on a desk — process modal for that desk’s code
 
-## Single vs split
+## Fields
+None on this pointer topic.
 
-| Pattern | When | Detail |
-|---------|------|--------|
-| **Single** | Sales, Buyers, Delivery, AfterSales, Assets, Strategy, Development | Full-width list; View/Edit in modals; process actions in view-modal footer |
-| **Split** | Shop Floor, Digital, Finance invoices/transactions, CRM, Pricing, HR, Capability, Agents | Detail pane only after you select a row — never an empty white column on load |
+## Special situations
+If a desk is missing from nav, check Roles **See** and company-enabled families.
 
-## Action column
-
-Fixed order **View · Edit · Delete**. Icons stay column-aligned because gated actions leave blank placeholders. Edit is blank when the record cannot be changed (issued PO, accepted quote, …).
-
-**See also:** any desk Help drawer · Buyers Desk · Task master list'''],
+## Related
+- Sales desk · Buyers desk · Shop Floor Control · Delivery · AfterSales
+- HR · Digital · Assets · Strategy · Development · Capability · Agents
+- Finance invoices · Treasury · Action - NOW
+- [Onboarding tour](/tour/)
+''']
+    
     ].asImmutable()
 
     void ensureSeeded() {
@@ -1368,158 +1917,345 @@ Fixed order **View · Edit · Delete**. Icons stay column-aligned because gated 
     }
 
     private static final Map DOMAIN_BLURBS_DE = [
-            'core.Task'      : '''**Aufgaben** sind der **einzige Arbeitstyp** (persönlich, prozessgebunden oder Agent).
+            'core.Task': '''# Aufgabe
 
-**Felder:** Status (OPEN/IN_PROGRESS/DONE/CANCELLED), Dringlichkeit & Wichtigkeit (1–3), Fristen, Zuweisung (Mensch und/oder Agent), Content-Leiste.
+## Prozessüberblick
+Kein einzelnes SYSTEM-processCode — Aufgaben sind der gemeinsame Arbeitstyp. Board **Aktivitäten - JETZT** (`/work`).
 
-**Tipps**
-- Status ändern statt Historie zu löschen
-- **Meine Arbeit** (`/work`) = Eisenhower **Aktivitäten - JETZT** (Schalter **Agentische Aufgaben** für AI:*)
-- ProjectItem kann optional taskId verknüpfen
-- Spalte **Aktion**: **Ansehen (Auge) · Bearbeiten (Stift) · Löschen (Papierkorb)** — Ansehen/Bearbeiten öffnen **Modals**''',
-            'capability.Process': '''**Prozesse** sind der Katalog der Arbeitsflüsse (APQC 13.1).
+## Aktionen
+- Anlegen/bearbeiten; Status ändern statt Historie löschen
+- Agenten: **AI:done**; Mensch setzt danach **DONE**
 
-**Arten:** SYSTEM (geseedet, nur lesen) · HUMAN · AGENTIC · OTHER. Status: DRAFT · ACTIVE · RETIRED.
+## Felder
+Status, Dringlichkeit/Wichtigkeit 1–3, Fristen, Zuweisung, Content-Leiste.
 
-SYSTEM-Seeds: Bestellung, Angebot→Auftrag, Rechnung, Serviceauftrag, Anfrage, Einstellung, Projekt, HITL. Mermaid-Diagramm auf der Prozess-Detailansicht; **So funktioniert’s** auf den Desks.''',
-            'sales.Customer' : '''**Kunde** (Person oder Organisation).
+## Besondere Situationen
+Agenten dürfen nicht mit menschlichem DONE abschließen.
 
-**Wichtige Felder:** customerKind (PERSON/ORGANIZATION), E-Mail, Kontakt, taxId, Währung, active.
+## Verwandt
+- Aktivitäten - JETZT · CEO-Dashboard · Agenten-Hub
+''',
+            'capability.Process': '''# Prozess
 
-**Ablauf:** Kunde anlegen → im **Vertriebstisch** Angebot/Auftrag → Bestätigung kann eine **Entwurfsrechnung** erzeugen.
+## Prozessüberblick
+Katalog der Arbeitsflüsse. SYSTEM-Seeds nur lesen (Bestellung, Angebot→Auftrag, Rechnung, …).
 
-**Tipps:** Spalte **Aktion** mit **Auge / Stift / Papierkorb**; Ansehen und Bearbeiten öffnen **Modals**.
+## Aktionen
+- Capability → Prozesse; Desk-**Prozess**-Pille für processCode
+- Admin: SYSTEM neu seeden
 
-**Verwandt:** Vertriebstisch · Rechnungen · CSV-Import''',
-            'sales.CustomerQuote': '''**Kundenangebote** vor dem Auftrag.
+## Felder
+Art SYSTEM/HUMAN/AGENTIC/OTHER; Status DRAFT/ACTIVE/RETIRED; Code; Schritte.
 
-Bevorzugt im **Vertriebstisch**: anlegen → senden → annehmen/ablehnen. Positionen unter **QuoteLine**.''',
-            'sales.SalesOrder': '''**Verkaufsaufträge** als verbindliche Bestellung.
+## Besondere Situationen
+SYSTEM nicht editierbar; Tipps planned/stub sind ehrlich.
 
-Ablauf: Angebot annehmen → Auftrag → **bestätigen** (optional Finanz-Entwurf).''',
-            'procurement.Vendor': '''**Lieferant** für den Einkauf.
+## Verwandt
+- Prozessdiagramme · Capability-Hub
+''',
+            'sales.Customer': '''# Kunde
 
-Hier anlegen oder per CSV importieren, dann am **Einkaufs-Desk** für Bestellungen nutzen.
+## Prozessüberblick
+Stammdaten für **SALES_QUOTE_TO_ORDER**.
 
-**Tipps:** **Aktion** **Auge / Stift / Papierkorb**; Ansehen/Bearbeiten öffnen **Modals**.''',
-            'procurement.PurchaseOrder': '''**Bestellungen** an Lieferanten.
+## Aktionen
+- Anlegen/CSV; im Vertriebs-Desk Angebot/Auftrag
 
-Ablauf: anlegen → senden → bestätigen → Wareneingang. **Aktion**: Bearbeiten/Löschen nur im Status **DRAFT**; danach nur Ansehen. Prozessschritte im **Ansichts-Modal**.''',
+## Felder
+customerKind, Kontakt, taxId, Währung, Kommunikationssprache, active.
+
+## Besondere Situationen
+Ohne Kunde kein Angebot.
+
+## Verwandt
+- Vertriebs-Desk · Rechnungen · CSV-Import
+''',
+            'sales.CustomerQuote': '''# Kundenangebot
+
+## Prozessüberblick
+Teil von **SALES_QUOTE_TO_ORDER** — bevorzugt am Vertriebs-Desk.
+
+## Aktionen
+- Anlegen → senden → annehmen/ablehnen
+
+## Felder
+Kunde, Belegwährung, Positionen.
+
+## Besondere Situationen
+Angenommenes Angebot sperrt Bearbeiten am Desk.
+
+## Verwandt
+- Vertriebs-Desk · Verkaufsauftrag
+''',
+            'sales.SalesOrder': '''# Verkaufsauftrag
+
+## Prozessüberblick
+**SALES_QUOTE_TO_ORDER** — Bestätigung kann Finanz-Entwurf erzeugen (**FIN_INVOICE_SETTLE**).
+
+## Aktionen
+- Desk: Angebot annehmen → Auftrag → bestätigen
+
+## Felder
+Kunde, Währung, Positionen, Status.
+
+## Besondere Situationen
+Produkt/Service-Flags für Delivery/SCM.
+
+## Verwandt
+- Vertriebs-Desk · Rechnungen · Delivery
+''',
+            'procurement.Vendor': '''# Lieferant
+
+## Prozessüberblick
+Stammdaten für **SCM_PO_FULFILL**.
+
+## Aktionen
+- Anlegen/CSV; am Einkaufs-Desk für Bestellungen
+
+## Felder
+Kontakt, taxId, Währung, active.
+
+## Besondere Situationen
+Ohne Lieferant keine Bestellung.
+
+## Verwandt
+- Einkaufs-Desk · CSV-Import
+''',
+            'procurement.PurchaseOrder': '''# Bestellung
+
+## Prozessüberblick
+**SCM_PO_FULFILL**: anlegen → senden → bestätigen → Wareneingang (**FIN_PAYABLE**).
+
+## Aktionen
+- Einkaufs-Desk; Bearbeiten/Löschen nur **DRAFT**
+
+## Felder
+Lieferant, Positionen, Status.
+
+## Besondere Situationen
+Ausgestellt/bestätigt nur Ansehen.
+
+## Verwandt
+- Einkaufs-Desk · Treasury
+'''
     ].asImmutable()
 
     private static final Map DOMAIN_BLURBS_ES = [
-            'core.Task'      : '''Las **tareas** son el **único tipo de trabajo** (personal, ligado a un proceso o a un agente).
+            'core.Task': '''# Tarea
 
-**Campos:** estado (OPEN/IN_PROGRESS/DONE/CANCELLED), urgencia e importancia (1–3), plazos, asignación (persona y/o agente), barra de contenido.
+## Resumen del proceso
+Sin processCode SYSTEM único — tipo de trabajo compartido. Tablero **Actividades - AHORA** (`/work`).
 
-**Consejos**
-- Cambie el estado en lugar de borrar el historial
-- **Mi trabajo** (`/work`) = Eisenhower **Actividades - AHORA** (interruptor **Tareas agénticas** para AI:*)
-- ProjectItem puede vincular opcionalmente un taskId
-- Columna **Acción**: **Ver (Ojo) · Editar (Lápiz) · Eliminar (Papelera)** — Ver/Editar abren **modales**''',
-            'capability.Process': '''Los **procesos** son el catálogo de flujos de trabajo (APQC 13.1).
+## Acciones
+- Crear/editar; cambiar estado en lugar de borrar historial
+- Agentes: **AI:done**; humano confirma **DONE**
 
-**Tipos:** SYSTEM (sembrados, solo lectura) · HUMAN · AGENTIC · OTHER. Estado: DRAFT · ACTIVE · RETIRED.
+## Campos
+Estado, urgencia/importancia 1–3, plazos, asignación, barra de contenido.
 
-Semillas SYSTEM: pedido de compra, oferta→pedido, factura, orden de servicio, consulta, contratación, proyecto, HITL. Diagrama Mermaid en el detalle del proceso; **Cómo funciona** en los escritorios.''',
-            'sales.Customer' : '''**Cliente** (persona u organización).
+## Situaciones especiales
+Los agentes no deben cerrar con DONE humano.
 
-**Campos importantes:** customerKind (PERSON/ORGANIZATION), correo, contacto, taxId, moneda, active.
+## Relacionado
+- Actividades - AHORA · Panel CEO · Hub de agentes
+''',
+            'capability.Process': '''# Proceso
 
-**Flujo:** crear cliente → en el **escritorio de ventas** oferta/pedido → la confirmación puede generar una **factura borrador**.
+## Resumen del proceso
+Catálogo de flujos. Semillas SYSTEM de solo lectura.
 
-**Consejos:** columna **Acción** con **Ojo / Lápiz / Papelera**; Ver y Editar abren **modales**.
+## Acciones
+- Capability → Procesos; pastilla **Proceso** en el escritorio
+- Admin: reseeding SYSTEM
 
-**Relacionado:** escritorio de ventas · facturas · importación CSV''',
-            'sales.CustomerQuote': '''**Ofertas de cliente** antes del pedido.
+## Campos
+Tipo SYSTEM/HUMAN/AGENTIC/OTHER; estado; código; pasos.
 
-Prefiera el **escritorio de ventas**: crear → enviar → aceptar/rechazar. Líneas en **QuoteLine**.''',
-            'sales.SalesOrder': '''**Pedidos de venta** como compromiso comercial vinculante.
+## Situaciones especiales
+SYSTEM no editable; tips planned/stub son honestos.
 
-Flujo: aceptar oferta → pedido → **confirmar** (opcional borrador financiero).''',
-            'procurement.Vendor': '''**Proveedor** para compras.
+## Relacionado
+- Diagramas de proceso · Hub de capacidades
+''',
+            'sales.Customer': '''# Cliente
 
-Créelo aquí o importe por CSV; úselo en el **escritorio de compradores** para pedidos de compra.
+## Resumen del proceso
+Maestro para **SALES_QUOTE_TO_ORDER**.
 
-**Consejos:** **Acción** **Ojo / Lápiz / Papelera**; Ver/Editar abren **modales**.''',
-            'procurement.PurchaseOrder': '''**Pedidos de compra** a proveedores.
+## Acciones
+- Crear/CSV; ofertas/pedidos en escritorio de ventas
 
-Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar solo en **DRAFT**; después solo Ver. Pasos de proceso en el **modal de vista**.''',
+## Campos
+customerKind, contacto, taxId, moneda, idioma de comunicación, active.
+
+## Situaciones especiales
+Sin cliente no hay oferta.
+
+## Relacionado
+- Escritorio de ventas · Facturas · Importación CSV
+''',
+            'sales.CustomerQuote': '''# Oferta de cliente
+
+## Resumen del proceso
+Parte de **SALES_QUOTE_TO_ORDER** — preferir escritorio de ventas.
+
+## Acciones
+- Crear → enviar → aceptar/rechazar
+
+## Campos
+Cliente, moneda del documento, líneas.
+
+## Situaciones especiales
+Oferta aceptada bloquea edición en el escritorio.
+
+## Relacionado
+- Escritorio de ventas · Pedido de venta
+''',
+            'sales.SalesOrder': '''# Pedido de venta
+
+## Resumen del proceso
+**SALES_QUOTE_TO_ORDER** — confirmar puede crear borrador financiero (**FIN_INVOICE_SETTLE**).
+
+## Acciones
+- Escritorio: aceptar oferta → pedido → confirmar
+
+## Campos
+Cliente, moneda, líneas, estado.
+
+## Situaciones especiales
+Flags producto/servicio para Delivery/SCM.
+
+## Relacionado
+- Escritorio de ventas · Facturas · Delivery
+''',
+            'procurement.Vendor': '''# Proveedor
+
+## Resumen del proceso
+Maestro para **SCM_PO_FULFILL**.
+
+## Acciones
+- Crear/CSV; usar en escritorio de compradores
+
+## Campos
+Contacto, taxId, moneda, active.
+
+## Situaciones especiales
+Sin proveedor no hay OC.
+
+## Relacionado
+- Escritorio de compradores · Importación CSV
+''',
+            'procurement.PurchaseOrder': '''# Pedido de compra
+
+## Resumen del proceso
+**SCM_PO_FULFILL**: crear → enviar → confirmar → recibir (**FIN_PAYABLE**).
+
+## Acciones
+- Escritorio de compradores; Editar/Eliminar solo **DRAFT**
+
+## Campos
+Proveedor, líneas, estado.
+
+## Situaciones especiales
+Emitido/confirmado solo Ver.
+
+## Relacionado
+- Escritorio de compradores · Tesorería
+'''
     ].asImmutable()
 
+    /** ADR-055 domain/master help — fixed section order. */
     private static String buildDomainMarkdown(String title, String pkg, String res, String humanRes,
                                               String mode, String modeLabel, Map fam, String specific, Map ctx, String lang) {
         StringBuilder sb = new StringBuilder()
         sb.append("# ${title}\n\n")
         if (lang == 'de') {
-            sb.append("**${humanRes}**-Stammdaten in **${fam.label}**.\n\n")
-            sb.append(fam.blurb ?: '').append("\n\n")
-            sb.append("## Was Sie gerade tun\n\n")
+            sb.append("## Prozessüberblick\n\n")
+            sb.append("Kein Desk-SYSTEM-processCode auf dieser Stammdaten-Oberfläche. ")
+            sb.append("**${humanRes}** in **${fam.label}**")
+            if (fam.desk) sb.append(" — operative Arbeit oft unter ${fam.desk}")
+            sb.append(".\n\n")
+            if (fam.blurb) sb.append(fam.blurb).append("\n\n")
+            sb.append("## Aktionen\n\n")
             switch (mode) {
                 case 'create':
-                    sb.append("Sie sind im **Anlegen**-Formular. Pflichtfelder ausfüllen und speichern.\n\n"); break
+                    sb.append("- Pflichtfelder ausfüllen und **speichern** (Anlegen).\n\n"); break
                 case 'edit':
-                    sb.append("Sie **bearbeiten** Datensatz **#${ctx.recordId}**. Speichern übernimmt die Änderungen. Content-Leiste für Notizen/Dateien.\n\n"); break
+                    sb.append("- Datensatz **#${ctx.recordId}** bearbeiten und speichern.\n")
+                    sb.append("- Content-Leiste für Links/Dateien/Notizen.\n\n"); break
                 default:
-                    sb.append("Sie sehen die **Liste** der ${humanRes}-Datensätze. Zeile öffnen zum Bearbeiten oder neu anlegen.\n\n")
+                    sb.append("- Liste der ${humanRes}-Datensätze öffnen; Zeile bearbeiten oder neu anlegen.\n\n")
             }
+            sb.append("## Felder\n\n")
             if (specific) {
-                sb.append("## Über dieses Objekt\n\n").append(specific).append("\n\n")
+                sb.append(specific).append("\n\n")
             } else {
-                sb.append("## Über dieses Objekt\n\nAdmin-Liste/Formular für **`${pkg}.${res}`**. Tagesarbeit oft bequemer im Fach-**Desk**.\n\n")
+                sb.append("Admin-Liste/Formular für **`${pkg}.${res}`**. Materialfelder je Ressource.\n\n")
             }
-            sb.append("## Paket\n\n")
-            sb.append("- **Familie:** ${fam.label} (`${pkg}`)\n")
-            sb.append("- **Ressource:** `${res}`\n")
-            sb.append("- **Route:** `${ctx.path}`\n")
-            if (fam.desk) sb.append("- **Operativer Desk:** ${fam.desk}\n")
-            sb.append("\n## Content-Leiste\n\nLinks, Dateien und Notizen am Datensatz ohne die Seite zu verlassen.\n")
+            sb.append("## Besondere Situationen\n\n")
+            sb.append("- Tagesarbeit oft bequemer im Fach-**Desk**, wenn vorhanden.\n")
+            sb.append("- Rechte folgen Desk-**See/Work** und Matrix.\n\n")
+            sb.append("## Verwandt\n\n")
+            if (fam.desk) sb.append("- Operativer Desk: ${fam.desk}\n")
+            sb.append("- Familie **${fam.label}** (`${pkg}`) · Ressource `${res}` · Route `${ctx.path}`\n")
         } else if (lang == 'es') {
-            sb.append("Datos maestros de **${humanRes}** en **${fam.label}**.\n\n")
-            sb.append(fam.blurb ?: '').append("\n\n")
-            sb.append("## Qué está haciendo\n\n")
+            sb.append("## Resumen del proceso\n\n")
+            sb.append("Sin processCode SYSTEM de escritorio en esta superficie maestra. ")
+            sb.append("**${humanRes}** en **${fam.label}**")
+            if (fam.desk) sb.append(" — el trabajo diario suele estar en ${fam.desk}")
+            sb.append(".\n\n")
+            if (fam.blurb) sb.append(fam.blurb).append("\n\n")
+            sb.append("## Acciones\n\n")
             switch (mode) {
                 case 'create':
-                    sb.append("Está en el formulario de **crear**. Complete los campos obligatorios y guarde.\n\n"); break
+                    sb.append("- Completar campos obligatorios y **guardar** (crear).\n\n"); break
                 case 'edit':
-                    sb.append("Está **editando** el registro **#${ctx.recordId}**. Guardar aplica los cambios. Use la barra de contenido para notas/archivos.\n\n"); break
+                    sb.append("- Editar registro **#${ctx.recordId}** y guardar.\n")
+                    sb.append("- Barra de contenido para enlaces/archivos/notas.\n\n"); break
                 default:
-                    sb.append("Está viendo la **lista** de registros de ${humanRes}. Abra una fila para editar o cree uno nuevo.\n\n")
+                    sb.append("- Ver la lista de ${humanRes}; abrir una fila o crear uno nuevo.\n\n")
             }
+            sb.append("## Campos\n\n")
             if (specific) {
-                sb.append("## Sobre este objeto\n\n").append(specific).append("\n\n")
+                sb.append(specific).append("\n\n")
             } else {
-                sb.append("## Sobre este objeto\n\nLista/formulario Admin para **`${pkg}.${res}`**. El trabajo diario suele ser más cómodo en el **escritorio** de la familia.\n\n")
+                sb.append("Lista/formulario Admin para **`${pkg}.${res}`**. Campos materiales según el recurso.\n\n")
             }
-            sb.append("## Paquete\n\n")
-            sb.append("- **Familia:** ${fam.label} (`${pkg}`)\n")
-            sb.append("- **Recurso:** `${res}`\n")
-            sb.append("- **Ruta:** `${ctx.path}`\n")
-            if (fam.desk) sb.append("- **Escritorio operativo:** ${fam.desk}\n")
-            sb.append("\n## Barra de contenido\n\nEnlaces, archivos y notas en el registro sin salir de la página.\n")
+            sb.append("## Situaciones especiales\n\n")
+            sb.append("- El trabajo diario suele ser más cómodo en el **escritorio** de la familia.\n")
+            sb.append("- Los permisos siguen **See/Work** del escritorio y la matriz.\n\n")
+            sb.append("## Relacionado\n\n")
+            if (fam.desk) sb.append("- Escritorio operativo: ${fam.desk}\n")
+            sb.append("- Familia **${fam.label}** (`${pkg}`) · Recurso `${res}` · Ruta `${ctx.path}`\n")
         } else {
-            sb.append("**${humanRes}** master data in **${fam.label}**.\n\n")
-            sb.append(fam.blurb ?: '').append("\n\n")
-            sb.append("## What you are doing\n\n")
+            sb.append("## Process overview\n\n")
+            sb.append("No desk SYSTEM processCode on this master-data surface. ")
+            sb.append("**${humanRes}** in **${fam.label}**")
+            if (fam.desk) sb.append(" — day-to-day work is often on ${fam.desk}")
+            sb.append(".\n\n")
+            if (fam.blurb) sb.append(fam.blurb).append("\n\n")
+            sb.append("## Actions\n\n")
             switch (mode) {
                 case 'create':
-                    sb.append("You are on the **create** form. Fill required fields and save to add a new ${humanRes}.\n\n"); break
+                    sb.append("- Fill required fields and **save** to create.\n\n"); break
                 case 'edit':
-                    sb.append("You are **editing** record **#${ctx.recordId}**. Changes apply after save. Use the content rail for notes/files.\n\n"); break
+                    sb.append("- Edit record **#${ctx.recordId}** and save.\n")
+                    sb.append("- Content rail for links/files/notes.\n\n"); break
                 default:
-                    sb.append("You are on the **list** of ${humanRes} records. Open a row to edit, or create a new one.\n\n")
+                    sb.append("- Browse the ${humanRes} list; open a row to edit or create a new one.\n\n")
             }
+            sb.append("## Fields\n\n")
             if (specific) {
-                sb.append("## About this object\n\n").append(specific).append("\n\n")
+                sb.append(specific).append("\n\n")
             } else {
-                sb.append("## About this object\n\nStandard admin list/form for **`${pkg}.${res}`**. Day-to-day work is often easier on the family **desk** when one exists.\n\n")
+                sb.append("Admin list/form for **`${pkg}.${res}`**. Material fields vary by resource.\n\n")
             }
-            sb.append("## Package\n\n")
-            sb.append("- **Family:** ${fam.label} (`${pkg}`)\n")
-            sb.append("- **Resource:** `${res}`\n")
-            sb.append("- **Route:** `${ctx.path}`\n")
-            if (fam.desk) sb.append("- **Operational desk:** ${fam.desk}\n")
-            sb.append("\n## Content rail\n\nAttach **links**, **files**, and typed **notes** without leaving the page.\n")
+            sb.append("## Special situations\n\n")
+            sb.append("- Day-to-day work is often easier on the family **desk** when one exists.\n")
+            sb.append("- Access follows desk **See/Work** and the permission matrix.\n\n")
+            sb.append("## Related\n\n")
+            if (fam.desk) sb.append("- Operational desk: ${fam.desk}\n")
+            sb.append("- Family **${fam.label}** (`${pkg}`) · Resource `${res}` · Route `${ctx.path}`\n")
         }
         return sb.toString()
     }
@@ -1746,7 +2482,7 @@ Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar 
             actions << [label: 'Integrations', path: '/system/integrations']
             actions << [label: 'Help center', path: '/help']
         }
-        actions << [label: 'Onboarding tour', path: '/tour/index.html', external: true]
+        // ADR-055: onboarding tour belongs only as last Related link in topic bodies — not a standing suggested action.
         actions
     }
 
@@ -1868,6 +2604,8 @@ Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar 
             'asset.desk'         : 'Asset-Arbeitsplatz',
             'strategy.desk'      : 'Strategie-Desk',
             'development.desk'   : 'Development-Desk',
+            'grrc.desk'          : 'Governance-Desk',
+            'stakeholder.desk'   : 'Stakeholder-Desk',
             'capability.hub'     : 'Capability-Hub',
             'agents.hub'         : 'KI- / Agenten-Hub',
             'finance.treasury'   : 'Treasury',
@@ -1898,6 +2636,8 @@ Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar 
             'asset.desk'         : 'Escritorio de activos',
             'strategy.desk'      : 'Escritorio de estrategia',
             'development.desk'   : 'Escritorio de desarrollo',
+            'grrc.desk'          : 'Escritorio de gobernanza',
+            'stakeholder.desk'   : 'Escritorio de stakeholders',
             'capability.hub'     : 'Hub de capacidades',
             'agents.hub'         : 'Hub de IA / agentes',
             'finance.treasury'   : 'Tesorería',
@@ -1905,948 +2645,1977 @@ Flujo: crear → enviar → confirmar → recibir. **Acción**: Editar/Eliminar 
     ].asImmutable()
 
     private static final Map FEATURE_BODIES_DE = [
-            'finance.primaryRail': '''# Primärschiene & BTC-FX
+            'app.dashboard': '''# CEO-Dashboard
 
-Ihre **Primärschiene** ist die Geldeinheit Ihrer Bücher (im Setup gewählt):
+## Prozessüberblick
+Kein einzelnes SYSTEM-processCode. Aggregiert offene Arbeit, Aktivitäten - JETZT, APQC-Sprünge und Systemstatus.
 
-| Schiene | Bedeutung |
-|---------|-----------|
-| **EUR** / **USD** | Funktionale Fiat-Währung — Rechnungen und Journals in dieser Währung |
-| **BTC** | Bitcoin-Bücher (Beträge in Sats oder BTC-Anzeige); wählen Sie ein **Anzeige-Fiat** (EUR/USD) für Hinweise |
+## Aktionen
+- **Meine Arbeit** / **Aktivitäten - JETZT** öffnen
+- APQC-Kachel → Desk der Familie
+- Systemstatus prüfen
 
-## Was Sie auf Formularen sehen
+## Felder
+Keine Erfassungsformulare — Karten mit Zählern und Board-Zellen.
 
-Neben Beträgen kann steakOS einen **kompakten FX-Hinweis** zeigen (z. B. Sats neben Euro). Hinweise kommen aus einem **serverseitigen** BTC-Kurs-Cache (CoinGecko → Kraken → Coinbase). Ein Badge **veraltet** bedeutet: letzter guter Kurs, weil Live-Quotes fehlgeschlagen sind.
+## Besondere Situationen
+Leeres Board = keine offene Arbeit im Filter. Rolle **See** begrenzt sichtbare Desks.
 
-**Hinweise sind nicht die Bücher.** Ausgestellte Belege behalten den Primärbetrag; Tooltips können sich mit dem Markt ändern.
+## Verwandt
+- Aktivitäten - JETZT · Vertrieb · Einkauf · Rechnungen
+- [Onboarding-Tour](/tour/)
+''',
+            'app.desks': '''# Listen & Desks
 
-## Ausgleich
+## Prozessüberblick
+Kein einzelnes SYSTEM-processCode. Jeder Desk hat eigenen processCode. Hilfe (**?**) am Desk zeigt Prozess, Aktionen und Felder.
 
-Beim **Ausgleichen** einer Rechnung erfasst steakOS Zahlungszeitpunkte auf **Zahlung** / Journal / Treasury (inkl. Sats bei Bitcoin-Schienen). Dieser Ausgleichskurs geht in die Bücher — nicht der Live-Tooltip.
+## Aktionen
+- Desk in der Navigation öffnen
+- **Hilfe** am Desk öffnen
+- Grüne **Prozess**-Pille — Prozessmodal
 
-## Doppelte Treasury
+## Felder
+Keine auf diesem Hinweis-Thema.
 
-Erwarten Sie eine **Fiat-Bank**- und eine **Bitcoin-Wallet**-Position unter Finance → Treasury (ein Kontenplan).
+## Besondere Situationen
+Fehlt ein Desk in der Nav: Rollen-**See** und freigeschaltete Familien prüfen.
 
-## Ehrliche Grenzen (Basics)
+## Verwandt
+- Vertrieb · Einkauf · Shopfloor · Delivery · AfterSales · HR · Digital · Assets
+- Strategie · Development · Capability · Agenten · Rechnungen · Treasury · Aktivitäten - JETZT
+- [Onboarding-Tour](/tour/)
+''',
+            'sales.desk': '''# Innendienst
 
-- Kein automatisches Wallet-Mark-to-Market (MTM) bei BTC-Kursänderung  
-- Primärschiene nach dem Setup ändern ist Advanced (nicht in der Closed Beta)  
-- Keine manuellen FX-Tabellen  
+## Prozessüberblick
+SYSTEM-Prozess **SALES_QUOTE_TO_ORDER**: Kunde → Angebot → senden → annehmen/ablehnen → Auftrag → bestätigen. Verbindet sich mit **FIN_INVOICE_SETTLE**.
 
-**Verwandt:** Rechnungen · Treasury · Live-Zahlungen (BTCPay) · Firmenprofil''',
-            'sales.desk'    : '''# Innendienst
+## Aktionen
+- **Neu** Kunde/Angebot/Auftrag
+- Zeile Ansehen/Bearbeiten/Löschen — Bearbeiten gesperrt wenn Beleg verriegelt
+- Prozessschritte im Ansichts-Modal
+- Grüne **Prozess**-Pille — SALES_QUOTE_TO_ORDER
 
-Operativer Verkauf:
+## Felder
+Kunde (Art, Kontakt, Währung, taxId); Angebot/Auftrag (Belegwährung, Positionen, Steuer).
 
-1. **Kunde** anlegen
-2. **Angebot** → senden → annehmen/ablehnen
-3. **Auftrag** → bestätigen (kann Entwurfsrechnung erzeugen)
+## Besondere Situationen
+Office darf anlegen, aber kein Geld ausgleichen. Ohne Kunde kein Angebot.
 
-Stammdaten unter Vertrieb bleiben für Admin-Listen verfügbar.
+## Verwandt
+- Rechnungen (FIN_INVOICE_SETTLE) · Delivery (DEL_SERVICE_ORDER)
+- [Onboarding-Tour](/tour/)
+''',
+            'scm.desk': '''# Einkaufs-Desk
 
-''' + HOW_DESKS_DE,
-            'scm.desk'      : '''# Einkaufs-Desk
+## Prozessüberblick
+SYSTEM-Prozess **SCM_PO_FULFILL**: Lieferant → Bestellung → senden → bestätigen → Wareneingang. Shopfloor separat (**SCM_MAKE_TO_STOCK**).
 
-**Lieferanten · Produkte · Services · Bestellungen**
+## Aktionen
+- **Neu** Lieferant/Produkt/Service/Bestellung
+- Bearbeiten/Löschen nur im Status **DRAFT**
+- Modal-Fuß: senden, bestätigen, Wareneingang
+- Grüne **Prozess**-Pille — SCM_PO_FULFILL
 
-Lieferant → Bestellung → senden → bestätigen → Wareneingang.
+## Felder
+Lieferant Kontakt/Währung; Bestellkopf und Positionen.
 
-Shopfloor ist ein **separater** Desk (`/scm/shopfloor`). Dies ist die **UI-2.0-Vorlage** (`layout=single` + Modals).
+## Besondere Situationen
+Ausgestellte Bestellungen nur Ansehen. Fehlende Buchungsregeln blockieren Verbindlichkeiten.
 
-''' + HOW_DESKS_DE,
-            'scm.shopfloor' : '''# Shopfloor-Steuerung
+## Verwandt
+- Shopfloor (SCM_MAKE_TO_STOCK) · Treasury (FIN_PAYABLE)
+- [Onboarding-Tour](/tour/)
+''',
+            'scm.shopfloor': '''# Shopfloor-Steuerung
 
-**Fertigungsaufträge · Qualität / Lose · Bestand**
+## Prozessüberblick
+SYSTEM-Prozess **SCM_MAKE_TO_STOCK**: Produkt/BOM → Fertigungsauftrag → freigeben → starten → abschließen.
 
-Geteiltes Layout: Detail erst nach Zeilenauswahl.
+## Aktionen
+- Fertigungsauftrag neu / aus Bedarf
+- Zeile wählen — Detail (Split)
+- Freigeben/Start/Complete, Lose/Qualität
+- Grüne **Prozess**-Pille — SCM_MAKE_TO_STOCK
 
-''' + HOW_DESKS_DE,
-            'delivery.desk' : '''# Delivery-Desk
+## Felder
+Produkt/BOM, Menge, Status, Lose, Bestand.
 
-Services & Ressourcen → Serviceaufträge → planen → zuweisen → starten → abschließen.
+## Besondere Situationen
+Detail erst nach Zeilenauswahl. Fehlende BOM/Bestand kann blockieren.
 
-''' + HOW_DESKS_DE,
+## Verwandt
+- Einkaufs-Desk · Assets
+- [Onboarding-Tour](/tour/)
+''',
+            'delivery.desk': '''# Delivery-Desk
+
+## Prozessüberblick
+SYSTEM-Prozess **DEL_SERVICE_ORDER**: Services/Ressourcen → Serviceauftrag → planen → zuweisen → starten → abschließen.
+
+## Aktionen
+- Neu Service/Ressource/Auftrag; planen, zuweisen, starten, abschließen
+- Grüne **Prozess**-Pille — DEL_SERVICE_ORDER
+
+## Felder
+Service, Ressource, Zeitfenster, Status.
+
+## Besondere Situationen
+Ohne Ressource/Plan kein Start. Verkaufsaufträge brauchen Bestätigung upstream.
+
+## Verwandt
+- Vertriebs-Desk · AfterSales
+- [Onboarding-Tour](/tour/)
+''',
             'aftersales.desk': '''# AfterSales-Desk
 
-Anfragen, Garantien, Claims, RMAs. Claims können Finanz-Gutschrift-Entwürfe erzeugen.
+## Prozessüberblick
+SYSTEM-Prozesse **AS_INQUIRY** und **AS_RMA**. Claims können Finanz-Gutschriften erzeugen; RMAs Wareneingang.
 
-''' + HOW_DESKS_DE,
-            'hr.desk'       : '''# HR-Desk
+## Aktionen
+- Neu Anfrage/Garantie/Claim/RMA; Status voranbringen
+- Grüne **Prozess**-Pille — AS_INQUIRY oder AS_RMA je Tab
 
-Kandidaten → Einstellung · Personalakten · Zeit · Payroll · Ziele.
+## Felder
+Kunde, Falltext, Claim-Beträge, RMA-Positionen.
 
-Geteiltes Layout: Detail erst nach Zeilenauswahl.
+## Besondere Situationen
+Claim-Freigabe kann Finance-Zugriff brauchen.
 
-''' + HOW_DESKS_DE,
-            'digital.desk'  : '''# Digital-Desk
+## Verwandt
+- Vertrieb · Delivery · Rechnungen
+- [Onboarding-Tour](/tour/)
+''',
+            'hr.desk': '''# HR-Desk
 
-Systeme, Datenassets, Solutions, IT-Changes, CIs, interne Tickets.
+## Prozessüberblick
+SYSTEM-Prozess **HR_CANDIDATE_HIRE**: Kandidaten → Stufen → Einstellung oder Ablehnung. Dazu Personalakten, Zeit, Payroll, Ziele.
 
-Geteiltes Layout: Detail erst nach Zeilenauswahl.
+## Aktionen
+- Neu je Tab; Split-Detail nach Zeilenauswahl; einstellen/ablehnen
+- Grüne **Prozess**-Pille — HR_CANDIDATE_HIRE
 
-''' + HOW_DESKS_DE,
-            'strategy.desk' : '''# Strategie-Desk
+## Felder
+Kandidatenstufen; HR-Akte (sensible Felder ggf. verschlüsselt); Zeit/Payroll.
 
-**Wettbewerber** und **Strategiethemen** — einspaltige Liste mit Modal Ansehen/Bearbeiten.
+## Besondere Situationen
+Einstellung braucht Users-Pfad. HR-See nur bei Bedarf.
 
-''' + HOW_DESKS_DE,
+## Verwandt
+- Benutzer einladen · Rollen
+- [Onboarding-Tour](/tour/)
+''',
+            'digital.desk': '''# Digital-Desk
+
+## Prozessüberblick
+SYSTEM-Prozesse **DIG_IT_TICKET** und **DIG_IT_CHANGE**. Systeme, CIs, Datenassets unterstützen sie.
+
+## Aktionen
+- Neu System/CI/Change/Ticket; Start/Resolve/Close
+- Grüne **Prozess**-Pille — DIG_IT_TICKET oder DIG_IT_CHANGE
+
+## Felder
+CI-System-Link; Ticket-Betreff/Status; Change-Felder.
+
+## Besondere Situationen
+Interne IT-Tickets — nicht AfterSales. Detail erst nach Auswahl.
+
+## Verwandt
+- Agenten-Hub · Integrationen
+- [Onboarding-Tour](/tour/)
+''',
+            'asset.desk': '''# Asset-Arbeitsplatz
+
+## Prozessüberblick
+SYSTEM-Prozess **AST_ASSET_LIFECYCLE**: Register für Anlagen, Fahrzeuge, Werkzeuge.
+
+## Aktionen
+- Neu im Register; Ansehen/Bearbeiten; Wartungsplan per Content-Leiste
+- Grüne **Prozess**-Pille — AST_ASSET_LIFECYCLE
+
+## Felder
+Name, Kennzeichen, Ort, Owner, Status; Flags IT-verwaltet, Abschreibung, Wartung.
+
+## Besondere Situationen
+Hostname/IP nur am Digital-Desk. Automatische Abschreibung/Wartungsaufträge kommen später.
+
+## Verwandt
+- Digital-Desk · Shopfloor · Hauptbuch
+- [Onboarding-Tour](/tour/)
+''',
+            'strategy.desk': '''# Strategie-Desk
+
+## Prozessüberblick
+SYSTEM-Prozesse **STR_STRATEGY_ITEM** und **STR_COMPETITOR_WATCH**.
+
+## Aktionen
+- Tabs + Neu; Ansehen/Bearbeiten; Content-Leiste
+- Grüne **Prozess**-Pille — processCode des Tabs
+
+## Felder
+Wettbewerber: Name, Typ, Quellen, Status. Thema: Name, Typ, Beschreibung, Art, Status.
+
+## Besondere Situationen
+Leere Listen sind früh ok. Keine Geldbewegung.
+
+## Verwandt
+- Capability-Hub (CAP_PROJECT)
+- [Onboarding-Tour](/tour/)
+''',
             'development.desk': '''# Development-Desk
 
-**Development-Projekte** (NPD / Revisionen) — einspaltiger Desk mit Modal Ansehen/Bearbeiten.
+## Prozessüberblick
+SYSTEM-Prozess **DEV_PROJECT_DELIVER**: NPD-/Revisionsprojekte.
 
-''' + HOW_DESKS_DE,
+## Aktionen
+- Neu Projekt; Status voranbringen
+- Grüne **Prozess**-Pille — DEV_PROJECT_DELIVER
+
+## Felder
+Name, Typ, Beschreibung, Status; Anhänge über Content-Leiste.
+
+## Besondere Situationen
+Portfolio-Arbeit auch unter Capability (**CAP_PROJECT**).
+
+## Verwandt
+- Capability-Hub
+- [Onboarding-Tour](/tour/)
+''',
+            'grrc.desk': '''# Governance-Desk
+
+## Prozessüberblick
+SYSTEM-Prozesse **GRC_RISK_TREAT** (Risiken: öffnen → mindern → schließen/akzeptieren) und **GRC_COMPLIANCE_ITEM** (Compliance: Entwurf → aktiv → außer Kraft). Silver; ergänzt Stakeholder (**STK_PARTY_ENGAGE**).
+
+## Aktionen
+- Tabs Risiken / Compliance — processCode der grünen **Prozess**-Pille
+- Neu Risiko oder Compliance-Eintrag; Ansehen/Bearbeiten; Risiko schließen/akzeptieren; Compliance aktivieren/außer Kraft setzen
+- Grüne **Prozess**-Pille — GRC_RISK_TREAT oder GRC_COMPLIANCE_ITEM
+
+## Felder
+Risiko: Name, Schwere, Wahrscheinlichkeit, Owner, Maßnahmennotiz, Status, Beschreibung. Compliance: Name, Art, Owner, wirksam ab, Status, Beschreibung. Content-Leiste am Datensatz.
+
+## Besondere Situationen
+Erfordert **Silver** (oder höher). Leere Listen sind ok. Keine Geldbewegung.
+
+## Verwandt
+- Stakeholder-Desk (STK_PARTY_ENGAGE)
+- Capability-Hub
+- [Onboarding-Tour](/tour/)
+''',
+            'stakeholder.desk': '''# Stakeholder-Desk
+
+## Prozessüberblick
+SYSTEM-Prozess **STK_PARTY_ENGAGE**: Parteien registrieren (aktiv → beobachten → inaktiv) und Kommunikation protokollieren. Ergänzt Governance.
+
+## Aktionen
+- Tabs Parteien / Kommunikation; Neu; Ansehen/Bearbeiten; Status ACTIVE/WATCH/INACTIVE
+- Grüne **Prozess**-Pille — STK_PARTY_ENGAGE
+
+## Felder
+Partei: Name, Art, Status, Kontakt, Ethiknotiz, Beschreibung. Kommunikation: Partei, Betreff, Kanal, Richtung, Zeitpunkt, Status. Content-Leiste.
+
+## Besondere Situationen
+Erfordert **Silver**. Kommunikation braucht eine bestehende Partei. Ethiknotizen sind Operator-Hinweise — kein Rechtsarchiv.
+
+## Verwandt
+- Governance-Desk (GRC_RISK_TREAT / GRC_COMPLIANCE_ITEM)
+- [Onboarding-Tour](/tour/)
+''',
             'capability.hub': '''# Capability-Hub
 
-Projekte, Prozesse, Qualität, Changes, Wissen — Abschnitt-Tabs.
+## Prozessüberblick
+SYSTEM-Prozess **CAP_PROJECT** plus Prozesskatalog. Tabs: Projekte, Prozesse, Qualität, Changes, Wissen.
 
-Geteiltes Layout: Detail erst nach Zeilenauswahl.
+## Aktionen
+- Tabs wechseln; Projekt starten/abschließen; SYSTEM-Prozess öffnen (Mermaid)
+- Grüne **Prozess**-Pille — CAP_PROJECT
 
-''' + HOW_DESKS_DE,
-            'agents.hub'    : '''# KI- / Agenten-Hub
+## Felder
+Projektfelder; Prozessart/Status; Qualitäts-/Change-Datensätze.
 
-**Agents**, **Hives**, **HITL**, **Memory**. Closed Beta: nur Agent Basics.
+## Besondere Situationen
+SYSTEM nur lesen; Reseed unter Einstellungen/Capability.
 
-Geteiltes Layout: Detail erst nach Zeilenauswahl.
+## Verwandt
+- Prozessdiagramme · Development-Desk
+- [Onboarding-Tour](/tour/)
+''',
+            'agents.hub': '''# KI- / Agenten-Hub
 
-''' + HOW_DESKS_DE,
-            'finance.treasury': '''# Treasury
+## Prozessüberblick
+SYSTEM-Prozess **AR_HITL_APPROVAL**. Agents, Hives, Memory. Closed Beta: nur Agent Basics.
 
-Positionen, Verbindlichkeiten, Budgets, Steuer, Payroll-Stub — Tabs auf diesem Hub.
+## Aktionen
+- Agents seeden/aktivieren; HITL freigeben/ablehnen
+- Grüne **Prozess**-Pille — AR_HITL_APPROVAL
 
-''' + HOW_DESKS_DE,
+## Felder
+Agent-Status; Hive; HITL-Vorschlag; Memory.
+
+## Besondere Situationen
+Agenten zahlen/settlen nicht standardmäßig. Detail erst nach Auswahl.
+
+## Verwandt
+- Hermes-Tokens · Integrationen · Digital-Desk
+- [Onboarding-Tour](/tour/)
+''',
             'finance.invoices': '''# Rechnungen
 
-1. Entwurf anlegen  
-2. **Ausstellen**  
-3. **Ausgleichen** bei Zahlung  
+## Prozessüberblick
+SYSTEM-Prozess **FIN_INVOICE_SETTLE**: Entwurf → ausstellen → ausgleichen. Upstream oft **SALES_QUOTE_TO_ORDER**.
 
-Geteiltes Layout: Detail erst nach Zeilenauswahl.
+## Aktionen
+- Entwurf anlegen; **Ausstellen** / **Ausgleichen**; Zeile für Split-Detail
+- Grüne **Prozess**-Pille — FIN_INVOICE_SETTLE
 
-''' + HOW_DESKS_DE,
-            'app.desks'      : '''# Listen & Desks
+## Felder
+Beträge in Primärschiene; FX-Hinweise nur Anzeige; Status; Zahlungsoptionen.
 
-Operator-Chrome für Listen und Desks (ADR-050 / PDR-034). Vorlagen: **Aufgaben** (`/domains/core/Task`) und **Einkauf** (`/scm/buyers`).
+## Besondere Situationen
+DEMO nur Mock-Settle. Fehlende Buchungsregeln blockieren (`POSTING_RULES_*`).
 
-''' + HOW_DESKS_DE + '''
+## Verwandt
+- Vertriebs-Desk · Treasury · Buchungsregeln · Live-Zahlungen
+- [Onboarding-Tour](/tour/)
+''',
+            'finance.treasury': '''# Treasury
 
-## Einspaltig vs. geteilt
+## Prozessüberblick
+**FIN_PAYABLE** und Treasury-Positionen. Tabs: Positionen, Verbindlichkeiten, Budgets, Steuer, Payroll-Stub. Fiat-Bank + Bitcoin-Wallet, ein Kontenplan.
 
-| Muster | Wann | Detail |
-|--------|------|--------|
-| **Single** | Vertrieb, Einkauf, Delivery, AfterSales, Assets, Strategie, Development | Volle Liste; Ansehen/Bearbeiten in Modals |
-| **Split** | Shopfloor, Digital, Finance, CRM, Pricing, HR, Capability, Agents | Detail nur nach Zeilenauswahl |
+## Aktionen
+- Abschnitt-Tabs; Verbindlichkeiten/Positionen bearbeiten
+- Grüne **Prozess**-Pille — FIN_PAYABLE
 
-**Siehe auch:** Hilfeschublade an jedem Desk · Einkaufs-Desk · Aufgabenliste''',
-            'app.dashboard' : '''# CEO-Dashboard
+## Felder
+Positionswerte nach Primärschiene; Verbindlichkeitsstatus; Tab-Felder.
 
-Cockpit für offene Arbeit und Prozessgesundheit.
+## Besondere Situationen
+Live-Bitcoin unter Live-Zahlungen (BTCPay). Buchungsregeln können Vendor-Pay blockieren.
 
-- **Meine Arbeit** — offene Aufgaben und Fristen
-- **Aktivitäten - JETZT** — 3×3-Board Dringlichkeit × Wichtigkeit (dasselbe Board unter **Meine Arbeit**)
-- **APQC-Gruppen** — Sprung in Vertrieb, Finanzen, …
-- **Systemstatus**
+## Verwandt
+- Rechnungen · Hauptbuch · Einkauf · Primärschiene
+- [Onboarding-Tour](/tour/)
+''',
+            'finance.primaryRail': '''# Primärschiene & BTC-FX
 
-**Kurzbefehle:** **Ctrl+K** · **?** oder **Ctrl+/** Hilfeschublade
+## Prozessüberblick
+Administrative Bücherwährung — kein Desk-SYSTEM-processCode. Ausgleich läuft über **FIN_INVOICE_SETTLE**.
 
-**Siehe auch:** Aktivitäten - JETZT · Einstellungen (Sprache & Region)''',
-            'system.settings': '''# Einstellungen
+## Aktionen
+- Primärschiene im Setup wählen; FX-Hinweise lesen; Rechnung ausgleichen für Zahlungskurs
 
-**Sprache & Region** ist die erste Karte — sie steuert **Ihre Bildschirmsprache** (EN / DE / ES) und Datums-/Währungsformate für dieses Konto.
+## Felder
+Schiene EUR/USD/BTC; Anzeige-Fiat; FX-Hinweis und Badge veraltet.
 
-## Sprache & Region
+## Besondere Situationen
+Hinweise sind nicht die Bücher. Kein automatisches MTM. Schiene wechseln nach Setup = Advanced.
 
-1. **System → Einstellungen** öffnen
-2. Locale wählen (z. B. Deutsch (Deutschland) `de_DE`)
-3. Beschriftungen und Formate gelten für Ihren Benutzer
-
-Das ist **nicht** die Sprache ausgehender PDFs an Kunden/Lieferanten. Dafür gilt die **Kommunikationssprache** am Kunden- bzw. Lieferantenstamm.
-
-## Weitere Karten auf dieser Seite
-
-- **Verwendete Währungen** — Kurzliste für Dropdowns (Firmenwährung bleibt aktiv)
-- Verwendete Steuercodes (wenn Finance-Pack freigeschaltet)
-- Demo- / Setup-Status und Admin-**Setup zurücksetzen**
-
-**Integrationen** (Nostr, Bitcoin-Stufe, Hermes-Tokens) liegen unter **System → Integrationen**.
-
-**Siehe auch:** Partnersprache (Kommunikation) · Verwendete Währungen''',
-            'help.work.actionNow': '''# Aktivitäten - JETZT
-
-**Meine Arbeit** (`/work`) ist das Eisenhower-Board **Aktivitäten - JETZT** (Dringlichkeit × Wichtigkeit). Auf dem CEO-Dashboard gibt es dasselbe als Mini-Board.
-
-## Werkzeugleiste
-
-- **Neue Aufgabe** — Aufgabe anlegen (Rückkehr hierher)
-- **Aktualisieren** — Board neu laden
-- **Agentische Aufgaben** (violetter Schalter) — menschliches offenes Board ↔ agentische AI:*-Warteschlange
-- **Aufgabenliste** — vollständige Task-Domainliste (Suche, Sortierung, Überblick)
-
-## Board lesen
-
-- **Zeilen** = Dringlichkeit (hoch → niedrig)
-- **Spalten** = Wichtigkeit (niedrig → hoch)
-- Jede Zelle gruppiert gleiche Dringlichkeit × Wichtigkeit — Aufgabe öffnen zum Bearbeiten
-
-## Menschliches Board (Schalter aus)
-
-**Offene** menschliche Arbeit (`OPEN` / `IN_PROGRESS`, plus laufende AI:*-Status die noch als offen gelten). Erledigt / abgebrochen bleiben weg.
-
-## Agentische Aufgaben (Schalter an)
-
-Aufgaben mit agentischem AI:-Status (z. B. AI:waiting-go oder AI:done), die ein Mensch noch **nicht** als **DONE** bestätigt hat. Violette Chips markieren agentische Status. Schalter **aus** = zurück zum menschlichen Board.
-
-Mauszeiger über den Schalter zeigt kurz, was an/aus bedeutet.
-
-## Wohin sonst
-
-- **Dashboard** — Mini-Board + Sprung zu Meine Arbeit
-- Aufgabenformular / Modal — **Dringlichkeit** und **Wichtigkeit** setzen
-
-## Ehrliche Grenzen
-
-- Das Board erfindet keine Prioritäten — Sie setzen sie an der Aufgabe
-- Listenfilter (überfällig, Zuweisung, …) liegen in der **Task**-Domainliste, nicht auf diesem Board
-
-**Tipp:** Hilfeschublade mit **?** oder **Ctrl+/** von Meine Arbeit oder dem Dashboard.''',
-            'help.partners.locale': '''# Partnersprache (Kommunikation)
-
-Am **Kunden**- und **Lieferanten**-Stamm **Kommunikationssprache** setzen (z. B. Deutsch / Englisch).
-
-## Was sie steuert
-
-- **PDF-Beschriftungen** auf Angeboten, Aufträgen, Bestellungen und Rechnungen an diesen Partner
-- **E-Mail**-Betreff und -Text an diesen Partner, wenn Messaging aktiviert ist (gleiche Sprache)
-- Entwurfsvorschauen folgen der Live-Einstellung; nach Senden / Bestätigen / Ausstellen **friert** der Beleg die Sprache ein
-
-## Vorgaben
-
-Leer lassen → **Englisch (en_US)** für ausgehende Belege und E-Mail. Das ist getrennt von Ihrer Bildschirmsprache unter **Einstellungen**.
-
-## Ehrliche Grenzen (v1)
-
-- Katalogbeschreibungen sind noch nicht zweisprachig
-- **Nostr-Partner-DMs** noch Residual (PL-TR4 Giftwrap) — E-Mail nutzt heute die Partnersprache''',
-            'help.tax.ust': '''# Deutsche USt-Steuercodes
-
-steakOS liefert ein **DE/AT-Steuercode-Paket**. Codes unter **System → Einstellungen → Verwendete Steuercodes** aktivieren, dann auf Angebots-/Auftrags-/Bestellpositionen wählen.
-
-## Häufige DE-Codes
-
-| Code | Satz | Verwendung |
-|------|------|------------|
-| **DE_USt_STD** | 19% | Regelbesteuerung |
-| **DE_USt_RED** | 7% | Ermäßigt (Betreiber entscheidet die Eignung) |
-| **DE_USt_0** | 0% | Explizit steuerfrei / Nullsatz |
-| **DE_RC** | 0% + Reverse Charge | B2B Reverse Charge — Empfänger schuldet die USt |
-| **DE_IG** | 0% + IG | Innergemeinschaftliche Lieferung (gültige USt-IdNr.) |
-| **DE_EXPORT** | 0% | Ausfuhr außerhalb der EU |
-
-Österreich folgt demselben Muster (`AT_USt_STD` 20%, `AT_USt_RED` 10%, …).
-
-## Regime
-
-- **Deutschland USt / Österreich USt** — Positionssteuer erforderlich; Firmenstandard wenn keine Auswahl
-- **Kleinunternehmer / Keine** — **keine USt** auf Verkaufsbelegen
-
-## Ehrliche Grenzen
-
-- Betreiber verantwortet Sätze — Seed ist Startpunkt, keine Rechtsberatung
-- Kein UStVA-/ELSTER-Filing
-- US-Mehrastaaten-Tiefe ist nicht Teil dieses Launch-Moduls
-
-**Siehe auch:** Reverse Charge & IG · Geschäfts-PDFs · Steuer-Tab im Finance-Hub''',
-
-            'help.tax.reverseCharge': '''# Reverse Charge & innergemeinschaftliche Lieferung (IG)
-
-Steuercodes **DE_RC** / **AT_RC** (Reverse Charge) oder **DE_IG** / **AT_IG** (IG) auf Verkaufspositionen wählen, wenn diese Regeln greifen.
-
-## Was steakOS macht
-
-- **Ausgangs-USt** der Position ist **0%** bei RC-/IG-Codes
-- PDF und Belegnotizen ergänzen einen **Rechtshinweis** (EN + DE):
-  - Reverse charge — VAT accounted for by the recipient / *Steuerschuldnerschaft des Leistungsempfängers*
-  - Intra-community supply (0% VAT) / *Innergemeinschaftliche Lieferung*
-
-## Checkliste für Betreiber
-
-1. Gültige USt-IdNr. des Kunden prüfen, wenn erforderlich
-2. **DE_RC** oder **DE_IG** (bzw. AT) auf der Position wählen — nicht den Standard 19%/20%
-3. PDF herunterladen und den Hinweisblock prüfen
-
-## Ehrliche Grenzen
-
-- Keine VIES-Prüfung der EU-USt-IdNr. in v1
-- Filing / Intrastat / OSS außerhalb dieses Moduls
-- Falscher Code ist Bedienfehler — keine Autokorrektur
-
-**Siehe auch:** Deutsche USt-Steuercodes · Geschäfts-PDFs''',
-
+## Verwandt
+- Rechnungen · Treasury · Live-Zahlungen (BTCPay)
+''',
             'finance.postingRules': '''# Buchungsregeln
 
-steakOS bucht ausgeglichene Journale bei Geldbewegungen — **Rechnung begleichen**, **Lieferant zahlen** und **Lohn erkennen / zahlen** — über ein **Firmen-Regelsatz** (keine hartcodierten Konten). Unter **Accrual** buchen auch **Rechnungsausgabe** und **Verbindlichkeit anlegen/freigeben**.
+## Prozessüberblick
+Administrativer Firmen-Regelsatz — kein eigenes Desk-processCode. Greift bei **FIN_INVOICE_SETTLE**, Vendor-Pay, Payroll.
 
-## Buchungsmodus
+## Aktionen
+- Regeln/Modus sehen (Admin+CEO); ändern/Reseed (nur Admin)
+- Speichern/Reseed → Änderungslog + Digital-IT-Ticket `[Finance policy]`
 
-| Modus | Bedeutung |
-|-------|-----------|
-| **Cash** (Standard / Restaurant) | Bücher bei Zahlung |
-| **Accrual** | Bei **Ausgabe**: Soll AR / Haben Erlös; bei **Begleichen**: Soll Cash / Haben AR. Bei **Verbindlichkeit offen**: Soll Aufwand / Haben AP; bei **Zahlen**: Soll AP / Haben Cash |
+## Felder
+Modus Cash vs Accrual; Kontenzuordnungen je Ereignis.
 
-Modus im Setup-Schritt **Finanzbücher** oder hier wählen. Begleichen/Zahlen unter Accrual lösen AR/AP auf — kein doppelter Erlös/Aufwand.
+## Besondere Situationen
+Fehlerhafte Regeln **blockieren** settle/pay (`POSTING_RULES_*`). Reseed löscht keine Journale.
 
-## Wer darf was
+## Verwandt
+- Hauptbuch · Rechnungen · Treasury
+''',
+            'system.settings': '''# Einstellungen
 
-| Aktion | Admin | CEO |
-|--------|:-----:|:---:|
-| Regeln / Modus / Änderungslog sehen | ● | ● |
-| Regeln / Modus / Reseed ändern | ● | ○ |
+## Prozessüberblick
+Administrative Oberfläche — **kein Desk-SYSTEM-processCode**. Sprache, Währungen, Steuercodes, Demo/Setup.
 
-Jedes Admin-**Speichern** oder **Reseed** hängt ein unveränderliches **Änderungslog** an und öffnet ein Digital-**IT-Ticket** (`CHANGE`, Namenspräfix `[Finance policy]`). Reseed löscht keine Journale.
+## Aktionen
+- Sprache & Region setzen; Admin: Währungen/Steuern/Setup zurücksetzen
+- Integrationen unter **System → Integrationen**
 
-## Wo
+## Felder
+Locale; Währungskurzliste; Steuercodes; Setup-Status.
 
-**Finance → Buchungsregeln** (`/finance/posting-rules`)
+## Besondere Situationen
+Bildschirmsprache ≠ Partner-PDF-Sprache. Setup-Reset ist destruktiv (Demos).
 
-Fehlende oder ungültige Regeln **blockieren** settle/pay (Fehler `POSTING_RULES_*`) — kein stiller Fallback.
+## Verwandt
+- Verwendete Währungen · USt-Steuercodes · Partnersprache · Integrationen
+''',
+            'help.work.actionNow': '''# Aktivitäten - JETZT
 
-**Siehe auch:** Hauptbuch · Forderungen · Treasury · Lohn''',
+## Prozessüberblick
+Menschliche Arbeitswarteschlange (Eisenhower) — **kein SYSTEM-processCode**. Agentische AI:*-Aufgaben warten auf menschliche **DONE**-Bestätigung.
 
+## Aktionen
+- Neue Aufgabe · Aktualisieren · Schalter Agentische Aufgaben · Aufgabenliste
+- Zelle/Aufgabe öffnen — Dringlichkeit, Wichtigkeit, Frist, Zuweisung
+
+## Felder
+Dringlichkeit/Wichtigkeit; Status (OPEN/IN_PROGRESS/DONE/CANCELLED bzw. AI:*); Frist; Zuweisung.
+
+## Besondere Situationen
+Board erfindet keine Prioritäten. Agenten enden mit AI:done; Mensch setzt DONE.
+
+## Verwandt
+- CEO-Dashboard · Agenten-Hub
+- [Onboarding-Tour](/tour/)
+''',
+            'content.rail': '''# Object Companion (Content-Leiste)
+
+## Prozessüberblick
+Kein SYSTEM-processCode. Begleitkanal an Datensätzen während Desk-Prozessen.
+
+## Aktionen
+- Link, Datei oder Inhalt (Notiz, Hilfe, Risiko, …) hinzufügen
+
+## Felder
+URL; Datei; Content-Typ + Text.
+
+## Besondere Situationen
+Zugriff folgt dem Host-Datensatz. Dateien = FILE-Kanal, kein ContentType.
+
+## Verwandt
+- Beliebiger operativer Desk mit Leiste
+''',
+            'help.partners.locale': '''# Partnersprache (Kommunikation)
+
+## Prozessüberblick
+Partnerfeld für Belege in SALES_QUOTE_TO_ORDER / SCM_PO_FULFILL / FIN_INVOICE_SETTLE — nicht die Bildschirmsprache.
+
+## Aktionen
+- Kommunikationssprache am Kunden/Lieferanten setzen; PDF/E-Mail folgen
+
+## Felder
+Kommunikationssprache; leer → Englisch (en_US).
+
+## Besondere Situationen
+Nach Senden/Bestätigen/Ausstellen friert die Sprache ein. Katalogtexte noch nicht zweisprachig.
+
+## Verwandt
+- Geschäfts-PDFs · Einstellungen · Vertriebs-Desk
+''',
+            'help.tax.ust': '''# Deutsche USt-Steuercodes
+
+## Prozessüberblick
+Administratives Steuercode-Paket (Einstellungen) für Positionen in Verkaufs-/Einkaufsprozessen — kein eigenes Desk-processCode.
+
+## Aktionen
+- Codes unter Einstellungen aktivieren; auf Positionen wählen
+
+## Felder
+DE_USt_STD 19%, RED 7%, 0, RC, IG, EXPORT (AT analog). Regime DE/AT USt vs Kleinunternehmer/Keine.
+
+## Besondere Situationen
+Keine Rechtsberatung; kein ELSTER. Falscher Code = Bedienfehler.
+
+## Verwandt
+- Reverse Charge & IG · Geschäfts-PDFs
+''',
+            'help.tax.reverseCharge': '''# Reverse Charge & IG
+
+## Prozessüberblick
+Steuercodes auf Verkaufspositionen in **SALES_QUOTE_TO_ORDER**, wenn RC/IG greift.
+
+## Aktionen
+- USt-IdNr. prüfen; DE_RC/DE_IG (oder AT) wählen; PDF-Hinweis prüfen
+
+## Felder
+RC/IG → 0% Ausgangs-USt + Rechtshinweis EN+DE.
+
+## Besondere Situationen
+Kein VIES in v1; kein Intrastat/OSS; keine Autokorrektur.
+
+## Verwandt
+- Deutsche USt-Steuercodes · Geschäfts-PDFs · Vertrieb
+''',
             'help.roles.overview': '''# Rollen für ein kleines Team
 
-steakOS ist für ein **kleines Unternehmen** (etwa 2–5 Personen). Jeder Person ein **Rollenprofil** geben (Office, Ops, Finance…). Rollen liefern **Vorgaben**, welche Desks sichtbar sind und was geändert werden darf.
+## Prozessüberblick
+Administratives Zugangsmodell — kein Desk-SYSTEM-processCode. Rollen steuern See/Work auf Desks.
 
-**Admin** und **CEO** passen Vorgaben unter **System → Rollen** an und laden Personen unter **System → Benutzer** ein.
+## Aktionen
+- System → Rollen (Vorgaben) · System → Benutzer (zuweisen/einladen)
 
-Kein IT-Abteilung nötig. Im Zweifel **Vorgaben behalten** und nur bei Bedarf weitere Desks öffnen.
+## Felder
+Rollenprofil; Desk-Verben; Systemaktionen (Users, Import, Geld ausgleichen, …).
 
-## Schnellstart
+## Besondere Situationen
+Deny gewinnt. Kein ROLE_AI über Benutzer.
 
-1. **System → Benutzer** öffnen
-2. Person mit Profil **Office** (Empfang) oder **Finance** (Buchhaltung) anlegen
-3. Temporäres Passwort mitteilen; bald **Sicherheit → Authenticator** einrichten lassen
-4. Linke Navigation prüfen: nur die benötigten Desks
-
-## Wohin
-
-- **Rollen** (`/roles`) — Vorgaben eines Profils ändern
-- **Benutzer** (`/users`) — Profil einer Person zuweisen
-- Hilfethemen: Rollenwahl · Berechtigungsmatrix · Einladen · Sicherheit
-
-**Tipp:** Hilfeschublade mit **?** oder **Ctrl+/**.''',
+## Verwandt
+- Welche Rolle · Matrix · Einladen · Sicherheit
+''',
             'help.roles.presets': '''# Welche Rolle wählen
 
-Vorgaben sind **Startwerte**, keine ewigen Sperren. Bei Bedarf unter **System → Rollen** anpassen.
+## Prozessüberblick
+Administrative Rollenwahl — kein Desk-SYSTEM-processCode. Vorgaben unter System → Rollen.
 
-| Rolle | Typische Person | Sieht / macht | Vermeiden, wenn… |
-|------|-----------------|---------------|------------------|
-| **Admin** | Installer / IT-affiner Mitinhaber | Alle freigeschalteten Desks + Benutzer, Import, Kataloge, Agenten | Alltag (dann CEO) |
-| **CEO** | Inhaber / GF | Alle Business-Desks + Benutzer / Import | Zweiten vollen Admin brauchen (nur Admin legt Admin an) |
-| **Office** | Empfang / Büro | Vertrieb, Delivery, After-Sales (+ Capability leicht); **kein Geld ausgleichen** | Zahlungen buchen müssen |
-| **Ops** | Küche / Produktion / Fläche | SCM, Delivery, Assets; Vertrieb nur **sehen** | Angebote end-to-end verantworten |
-| **Finance** | Buchhaltung | Finance + Vertrieb **sehen**; Geld **ausgleichen** | Benutzer einladen (kein Users) |
-| **User** | Allgemeiner Desk | Konservativ Vertrieb + Delivery | Office/Ops/Finance passt besser |
-| **Read only** | Gast / Auditor / Trainee | Desks browsen; **Schreiben gesperrt** | Anlegen oder Bearbeiten nötig |
+## Aktionen
+- Profil beim Einladen wählen; Vorgaben bei Bedarf anpassen
 
-## Gastronomie-Beispiele
+## Felder
+Profilname und typische Desk-Rechte.
 
-- Empfang / Telefon: **Office**
-- Küchenleitung: **Ops**
-- Buchhaltung (Teilzeit): **Finance**
-- Inhaber: **CEO** (+ ein separates **Admin**-Konto)
-- Trainee: **Read only**
+## Besondere Situationen
+Eine Person → ein Profil. CEO legt keinen Admin an.
 
-**Regel:** eine Person → ein Profil. Im v1 lieber Profil wechseln als neue Rolle erfinden.''',
+## Verwandt
+- Rollen-Überblick · Matrix · Demo-Rollen
+''',
             'help.roles.matrix': '''# Berechtigungsmatrix (Erweitert)
 
-Die Matrix ist die **Wahrheit**. Vorgaben füllen sie; Erweitert lässt Admin/CEO Zellen feinjustieren.
+## Prozessüberblick
+Administrative Wahrheit für Desk- und Systemverben — kein Desk-SYSTEM-processCode.
 
-## Desks (Familien)
+## Aktionen
+- Zellen sehen/feinjustieren (Admin/CEO); Apply-to-all nur mit Bestätigung
 
-Je Desk (Vertrieb, Finance, SCM…):
+## Felder
+See/Create/Change/Delete/Work; Systemaktionen inkl. Geld ausgleichen.
 
-| Verb | Bedeutung |
-|------|-----------|
-| **See** | In der Navigation; Listen öffnen und lesen |
-| **Create** | Neue Datensätze (POST) |
-| **Change** | Bearbeiten / Workflow (PUT/PATCH / starten / abschließen…) |
-| **Delete** | Löschen / stornieren, wo erlaubt |
-| **Work** | Kurz = Create **oder** Change (Einfach-Ansicht) |
+## Besondere Situationen
+Deny gewinnt; letzten Admin schützen; API MATRIX_*_FORBIDDEN.
 
-Rechte schneiden sich mit den **freigeschalteten Familien** (Metall / Vorlage).
-
-## Systemaktionen
-
-Beispiele: **Benutzer / einladen**, **Import**, **Kataloge**, **Agenten**, **Setup**, **Geld ausgleichen**, 2FA anderer zurücksetzen.
-
-Ausgleichen ist ein **Geld-Spezial** — Finance hat es standardmäßig; Office nicht.
-
-## Sicherheit
-
-- **Deny gewinnt** über Allow
-- Letzten **Admin** schützen
-- Vor **Auf alle Benutzer mit diesem Profil anwenden** bestätigen
-- Menschen bekommen kein `ROLE_AI` über Benutzer
-
-## API
-
-Schreibende `/api/**`-Aufrufe prüfen diese Matrix (`MATRIX_DESK_FORBIDDEN`, `MATRIX_SYSTEM_FORBIDDEN`).''',
+## Verwandt
+- Rollen-Überblick · Sicherheit
+''',
             'help.users.invite': '''# Teammitglied einladen
 
-Pfad: **System → Benutzer**
+## Prozessüberblick
+Administrative Benutzeranlage — kein Desk-SYSTEM-processCode.
 
-1. **Rollenprofil** wählen (Office / Ops / Finance — nicht Admin)
-2. Benutzername + **temporäres Passwort** (12+ Zeichen: klein, groß, Ziffer, Sonderzeichen)
-3. Anlegen und Zugangsdaten außerhalb öffentlicher Tickets weitergeben
-4. Mit Passwort anmelden und unter **Sicherheit** den **Authenticator** einrichten
-5. **Optional — Alby / Nostr:** unter **Sicherheit → Browser-Erweiterung verknüpfen** (Alby entsperrt). Spalte **Erweiterung** wird **Ja**. Danach Login-Seite: **Mit Browsererweiterung anmelden**.
+## Aktionen
+- System → Benutzer: Profil, Name, Temp-Passwort; Authenticator; optional Alby
 
-steakOS legt bei der Einladung **keine** Nostr-Identität an. Die Person verknüpft den eigenen Alby-Schlüssel selbst. Niemals `nsec` einfügen.
+## Felder
+Benutzername; Temp-Passwort; Profil; Spalte Erweiterung.
 
-Vollständig: Hilfe → **Mit Alby anmelden (Nostr)**.
+## Besondere Situationen
+CEO vergibt kein Admin. Lieber deaktivieren als löschen. Nie nsec einfügen.
 
-## Danach
-
-- Profil jederzeit in der Benutzertabelle ändern
-- Lieber **Deaktivieren** als löschen — Historie bleibt
-- **Authenticator löschen** nur bei verlorenem Gerät
-
-## Wer darf einladen
-
-**Admin** und **CEO**. CEO kann das Profil **Admin** nicht vergeben.''',
+## Verwandt
+- Alby-Login · Rollen · Sicherheit
+''',
             'help.security.nostrLogin': '''# Mit Alby anmelden (Nostr)
 
-**NIP-07**-Browsererweiterung (z. B. **Alby**): kurze Freigabe statt jedes Mal Passwort. Der **geheime Schlüssel bleibt in der Erweiterung** — steakOS fragt nie nach `nsec`.
+## Prozessüberblick
+Administrativer NIP-07-Login — kein Desk-SYSTEM-processCode. Firmen-Relay unter Integrationen ist getrennt.
 
-## Voraussetzungen
+## Aktionen
+- Passwort-Login → Sicherheit → Browser-Erweiterung verknüpfen → später Extension-Login
 
-1. steakOS-**Benutzerkonto** existiert (Einladung unter **System → Benutzer** oder Setup-Admin).
-2. Einmal mit **Benutzername + Passwort** anmelden können.
-3. **Alby** installiert und in diesem Browser **entsperrt**.
-4. Unter **Sicherheit** nach **Browser-Erweiterung verknüpfen** steht **Verknüpft: Ja**.
+## Felder
+Verknüpft Ja/Nein; Users-Spalte Erweiterung.
 
-Ohne Schritt 4 meldet die Login-Seite, dass der Schlüssel keinem Benutzer zugeordnet ist.
+## Besondere Situationen
+Ohne Verknüpfung schlägt Extension-Login fehl. Nie nsec. Eine Alby-ID ↔ ein Benutzer.
 
-## Checkliste (Person mit Alby)
-
-1. Alby installieren und Nostr-Identität anlegen/importieren.
-2. Mit Passwort bei steakOS anmelden.
-3. **System → Sicherheit** öffnen.
-4. **Browser-Erweiterung verknüpfen** → in Alby freigeben.
-5. **Verknüpft: Ja** prüfen.
-6. Abmelden → Login-Seite **Mit Browsererweiterung anmelden**.
-
-## Admin
-
-1. Benutzer anlegen (Passwort + Profil).
-2. Person bittet um Passwort-Login, dann Alby verknüpfen (siehe oben).
-3. Spalte **Erweiterung** = Ja.
-
-Firmen-Nostr-Level (Wizard / Integrationen) steuert Relay/Audit — das ersetzt **nicht** die persönliche Verknüpfung unter Sicherheit.
-
-## Sicherheit
-
-- Niemals `nsec` / Seed einfügen.
-- Eine Alby-Identität ↔ ein steakOS-Benutzer.
-- Passwort-Login bleibt möglich.''',
+## Verwandt
+- Einladen · Nostr-Integration
+''',
             'help.users.danger': '''# Sicherheit: Admin, CEO & Deaktivieren
 
-## Tun
+## Prozessüberblick
+Administrative Sicherheitsregeln — kein Desk-SYSTEM-processCode.
 
-- **Admin** und **CEO** als **getrennte Logins** halten
-- Beim Ausscheiden lieber **Deaktivieren** als löschen
-- **Authenticator löschen** nur bei Geräteverlust
-- Vor Rollenänderung für **alle** Nutzer dieses Profils bestätigen
+## Aktionen
+- Admin/CEO getrennt halten; Deaktivieren bevorzugen; Apply-to-all bestätigen
 
-## Nicht tun
+## Felder
+N/A — Verhaltensregeln.
 
-- Admin-Passwort teilen
-- Jeden Inhaber „sicherheitshalber“ zum Admin machen
-- Letzten Admin deaktivieren (Produkt blockiert das)
-- Menschen Agenten-Zugang (`ROLE_AI`) über Benutzer geben
+## Besondere Situationen
+Letzten Admin nicht deaktivieren. Nur Settle-Profile gleichen Rechnungen aus.
 
-## Letzter Admin / CEO
-
-- Letzten **Admin** kann man nicht deaktivieren oder degradieren
-- Mindestens ein Inhaber-Konto behalten
-
-## Geld
-
-Nur Profile mit **Geld ausgleichen** (Finance, Admin, CEO standardmäßig) dürfen Rechnungen ausgleichen. Office darf Kunden anlegen; Ausgleichen ist gesperrt.''',
+## Verwandt
+- Einladen · Matrix
+''',
             'help.users.privacy': '''# Datenschutz, HR & Nur lesen
 
-- **HR**-Desks und Personenakten sind sensibel. **See** auf Human Capital nur bei Bedarf.
-- **Read only** für Gäste, Auditoren und Trainees, die **zuschauen**, nicht ändern.
-- **Demo-/Trainingsinstanzen** dürfen Read only oder Office frei nutzen — destruktive Admin-Aktionen nicht auf Live-Büchern üben.
-- Inhalte an Datensätzen folgen dem Desk-Zugriff des Host-Datensatzes.
+## Prozessüberblick
+Administrative Datenschutzhinweise — relevant vor **See** auf Human Capital (**HR_CANDIDATE_HIRE**).
 
-Im Zweifel: **Read only** zum Beobachten, **Office** für den Empfang, Admin nur für Systemarbeit.''',
+## Aktionen
+- HR-See nur bei Bedarf; Read only für Zuschauer
+
+## Felder
+N/A.
+
+## Besondere Situationen
+Inhalte folgen Host-Desk-Rechten. Keine destruktiven Admin-Übungen auf Live-Büchern.
+
+## Verwandt
+- HR-Desk · Rollenwahl
+''',
             'help.roles.demo': '''# Rollen üben (Demo / Training)
 
-Auf einem **Demo-Restaurant** oder Training-Mandanten:
+## Prozessüberblick
+Administrative Übung auf Demo-Mandanten — kein Desk-SYSTEM-processCode.
 
-| Ziel | Profil |
-|------|--------|
-| Browsen ohne Daten zu ruinieren | **Read only** (oder geseedeter `demo`-User) |
-| Aufträge / Angebote | **Office** |
-| Lager / Küche | **Ops** |
-| Rechnungen & Ausgleichen | **Finance** |
-| Einladen / Vorgaben ändern | **CEO** (oder Admin für Kataloge / Import) |
+## Aktionen
+- Read only / Office / Ops / Finance / CEO je Ziel; Wegwerf-User deaktivieren
 
-**Tipps**
+## Felder
+N/A.
 
-- Zuerst Demo üben; dieselben Profile danach auf der Live-Firma
-- Wegwerf-Benutzer danach **deaktivieren**
-- Hilfeschublade (**?**) auf **Rollen** und **Benutzer** zeigt diese Artikel im Kontext''',
-            'content.rail'  : '''# Object Companion (Content-Leiste)
+## Besondere Situationen
+Zuerst Demo, dann Live spiegeln.
 
-Am Datensatz:
+## Verwandt
+- Welche Rolle · Rollen-Überblick
+''',
+            'app.search': '''# Globale Suche (obere Leiste)
 
-- **Link**
-- **Datei**
-- **Inhalt** (Notiz, Hilfe, Risiko, …)''',
-            'asset.desk'    : '''# Asset-Arbeitsplatz
+## Prozessüberblick
+Kein SYSTEM-processCode. Suche findet Datensätze in Unternehmen mit **See**, damit Sie den richtigen Desk oder Beleg öffnen.
 
-Physische Anlagen, Fahrzeuge und Werkzeuge (AssetBasics-Register).
+## Aktionen
+- In der **Suchleiste oben** tippen — Kunden, Lieferanten, Angebote, Aufträge, Rechnungen, Katalog, Bestellungen, Aufgaben
+- **Ctrl+K / ⌘K** — zu Seiten/Desks springen (nur Navigation)
+- Treffer öffnen — Deep-Link in Desk oder Domänenansicht
 
-- **Register** — Name, Kennzeichen, Ort, Verantwortlicher, Status
-- **IT-verwaltet** — dauerhafter Link zu einem Digital-ConfigItem (Hostname/IP nur am Digital-Desk)
-- **Finanzielle Abschreibung** — wenn aktiv, können Finanz-Agenten das Asset aufgreifen und Abschreibungswerte in einer Finanzperiode buchen
-- **Asset erfordert Wartung** — wenn aktiv, ist physische Wartung vorgesehen; Hersteller-Wartungsplan (XLSX oder PDF) am Datensatz über Object Companion anhängen. Später können Agenten Shopfloor- oder Wartungsaktivitäten anlegen, um die Nutzungsdauer zu verlängern
+## Felder
+Suchfeld braucht mindestens **2** Zeichen (Debounce ~300ms). Treffer zeigen Typ, Titel, Status und Link.
 
-Die Flags sind Basics-Absichtsmarker; automatische Abschreibungsbuchung und Wartungsaufträge vertiefen später.
+## Besondere Situationen
+Ergebnisse bleiben im **aktiven Mandanten**. Typen ohne **See** entfallen. Listenfilter `q` auf einem Desk ist keine globale Suche.
 
-''' + HOW_DESKS_DE,
+## Verwandt
+- CEO-Dashboard
+- Meine Arbeit / Aktivitäten - JETZT
+''',
+            'setup.wizard': '''# Konfigurationsassistent
+
+## Prozessüberblick
+Administratives Erst-Setup — kein Desk-SYSTEM-processCode. Ablauf: Tour → Firma → Standort → Banking → Bitcoin → Vorlage → Fertig (Standard **Iron**).
+
+## Aktionen
+- Jeden Assistentenschritt abschließen und weiter
+- **Bitcoin-Integrationsstufe** wählen (Nicht jetzt / Einzeladresse / BTCPay)
+- Fertigstellen, um Desks für die neue Firma freizuschalten
+
+## Felder
+Firma/Rechtsträger, Standort, Banking, Bitcoin-Stufe und Vorlagen-Tier. Primärschiene (Bücherwährung) ist getrennt von der Bitcoin-Empfangsstufe.
+
+## Besondere Situationen
+Admin kann Setup unter **Einstellungen** für Demos zurücksetzen. DEMO-Firmen bleiben auf Mock-Settle. Unvollständiger Assistent blockiert normalen Desk-Betrieb.
+
+## Verwandt
+- Integrationen · Bitcoin-Integrationsstufe
+- Einstellungen
+- [Onboarding-Tour](/tour/)
+''',
+            'training.btc.basic': '''# Bitcoin-Grundkenntnisse (Stufe-1-Hinweis)
+
+## Prozessüberblick
+Administrative Checkliste vor dem Bitcoin-Empfang — kein Desk-SYSTEM-processCode. Entspricht Integrationsstufe **1 — Nicht jetzt**.
+
+## Aktionen
+- Literacy-Checkliste zu diesem Thema lesen
+- Bitcoin-Stufe unter **System → Integrationen** (oder Setup-Schritt Bitcoin) setzen
+
+## Felder
+Keine Formularfelder auf diesem Hilfethema. Stufenwahl liegt unter Integrationen.
+
+## Besondere Situationen
+steakOS hält **keine** Schlüssel. Stufe 1 verschiebt Live-Empfang; Bücher können trotzdem BTC-Primärschiene mit **Mock**-Settle nutzen. Für regelmäßige Kundenzahlungen **BTCPay (Stufe 3)** bevorzugen.
+
+## Verwandt
+- Bitcoin-Integrationsstufe · Live-Zahlungen (BTCPay)
+- Erweiterte Bitcoin-Sicherheit
+''',
+            'training.btc.security-advanced': '''# Erweiterte Bitcoin-Sicherheit (Stufe-2-Hinweis)
+
+## Prozessüberblick
+Sicherheits-Checkliste für Bitcoin-Stufe **2 — Einzeladresse** (gelegentliche Zahlungen). Administrativ — kein Desk-SYSTEM-processCode.
+
+## Aktionen
+- Backup-/Phishing-Checkliste befolgen
+- Stufe 2 unter **System → Integrationen** verwalten
+- Upgrade auf **BTCPay (Stufe 3)** für Lightning / regelmäßigen Empfang planen
+
+## Felder
+Eine Software-Wallet-Adresse unter Integrationen — niemals Seeds in steakOS einfügen.
+
+## Besondere Situationen
+Adress-Wiederverwendung und schwache Backups können zu dauerhaftem Verlust führen. steakOS beobachtet die Chain in der Beta nicht — Settle ist **manuell als bezahlt markieren**. CEO-Schulungsbestätigung nötig bei Upgrade auf Stufe 2/3.
+
+## Verwandt
+- Bitcoin-Integrationsstufe · Live-Zahlungen (BTCPay)
+- Bitcoin-Grundkenntnisse
+''',
+            'system.integrations': '''# Integrationen-Hub
+
+## Prozessüberblick
+Administrative Fläche für Betreiber-Integrationen (Nostr, Bitcoin-Empfangsstufe, Hermes-Tokens) — **kein Desk-SYSTEM-processCode**. Live-Zahlungsbetrieb danach unter Finance → Payments (Stufe 3).
+
+## Aktionen
+- **Nostr**-Relay-Stufe konfigurieren, installieren/starten, prüfen
+- **Bitcoin**-Empfangsstufe setzen (Nicht jetzt · Einzeladresse · BTCPay)
+- Hermes-Agent-API-Tokens **erzeugen / widerrufen**
+- Verbindungen prüfen, bevor Live aktiviert wird
+
+## Felder
+Relay-URL / Stufe; Bitcoin-Stufe; BTCPay-Schlüssel unter Finance → Payments; Hermes-Token `sos_…` (einmalig sichtbar).
+
+## Besondere Situationen
+CEO muss Schulung bestätigen, wenn Admin Bitcoin auf Stufe 2 oder 3 anhebt. DEMO publiziert kein Nostr und bleibt auf Mock-Settle. Niemals `nsec` einfügen. Agent Basics nur in Closed Beta.
+
+## Verwandt
+- Live-Zahlungen (BTCPay) · Bitcoin-Integrationsstufe · Nostr-Integration
+- Hermes-Agent (API-Tokens) · KI- / Agenten-Hub
+''',
+            'integrations.bitcoin': '''# Bitcoin-Integrationsstufe
+
+## Prozessüberblick
+Administrative Steuerung, wie die Firma Bitcoin **empfängt** — getrennt von der **Primärschiene**. Kein Desk-SYSTEM-processCode; Settle läuft über **FIN_INVOICE_SETTLE** auf Rechnungen, sobald Zahlung vorliegt.
+
+## Aktionen
+- Stufe im Setup-Schritt **Bitcoin** oder unter **System → Integrationen** setzen
+- Für Stufe 3: **Finance → Payments** öffnen, prüfen, Live aktivieren
+
+## Felder
+| Stufe | UI | Verhalten |
+|-------|-----|-----------|
+| DEFERRED | 1 — Nicht jetzt | Kein Live-Empfang; Mock-Settle OK |
+| SINGLE_ADDRESS | 2 — Einzeladresse | Eine Adresse + QR; manuell als bezahlt |
+| BTCPAY | 3 — BTCPay | Betreiber-BTCPay (Lightning + On-Chain) |
+
+## Besondere Situationen
+Admin setzt Stufe; CEO-Schulungsbestätigung bei Upgrade auf 2/3; Downgrade von Stufe 3 nur Admin. Lightning-Marketing nur bei Stufe 3.
+
+## Verwandt
+- Live-Zahlungen (BTCPay) · Rechnungen (FIN_INVOICE_SETTLE)
+- Bitcoin-Grundkenntnisse / Erweiterte Sicherheit
+''',
+            'integrations.nostr': '''# Nostr-Integration (OI-NOSTR01)
+
+## Prozessüberblick
+Administrative Firmen-Relay- / Audit-Stufe für privates lokales Nostr — kein Desk-SYSTEM-processCode. Per-User-Alby-Login liegt unter **Sicherheit**, nicht hier.
+
+## Aktionen
+- Stufe **0 / 1 / 2** unter Integrationen oder Setup-Schritt Nostr setzen
+- Lokales Relay **installieren / starten** (Projekt `var/nostr/`, Loopback)
+- **Prüfen**, bis erreichbar
+- Personen verknüpfen Alby unter **Sicherheit → Browser-Erweiterung verknüpfen**
+
+## Felder
+Firmen-Relay-Stufe und URL; optionale Bot-Metadaten. Niemals `nsec` einfügen.
+
+## Besondere Situationen
+DEMO publiziert nicht. Ohne Bot-Key bleibt Publish ehrlich (`stubbed`). Stufe-2-Giftwrap-Notify ist noch residual.
+
+## Verwandt
+- Mit Alby anmelden (Nostr)
+- Integrationen-Hub
+''',
+            'currency.catalog': '''# Verwendete Währungen
+
+## Prozessüberblick
+Administrative Einstellungsfläche — kein Desk-SYSTEM-processCode. Freigeschaltete Codes speisen Dropdowns auf Belegen, die später SALES_QUOTE_TO_ORDER / SCM_PO_FULFILL / FIN_INVOICE_SETTLE durchlaufen.
+
+## Aktionen
+- Admin: Codes unter **Einstellungen → Verwendete Währungen** aktivieren/deaktivieren
+- Operatoren: freigeschaltete Codes auf Kunden, Lieferanten, Katalog und Belegen wählen
+
+## Felder
+Gemeinsame ISO-Liste; Firmen-Kurzsatz **Verwendete Währungen**; Firmenwährung in der oberen Leiste; bevorzugte Partnerwährung; Preiswährung am Katalogartikel.
+
+## Besondere Situationen
+Neue Schreibvorgänge brauchen einen freigeschalteten Code; Legacy-Waisen bleiben lesbar. Soft-Mismatch-Warnungen blockieren Speichern nicht.
+
+## Verwandt
+- Vertrieb · Einkauf · Rechnungen
+- Primärschiene & BTC-FX
+''',
+            'finance.payments.live': '''# Live-Zahlungen (BTCPay)
+
+## Prozessüberblick
+Administrative LIVE-Empfangskonfiguration für Bitcoin-Stufe 3. Geldbewegung auf Rechnungen folgt weiterhin **FIN_INVOICE_SETTLE**; dieser Screen verdrahtet BTCPay, damit Settle live statt Mock sein kann.
+
+## Aktionen
+- Stufe auf **BTCPay** unter Integrationen setzen
+- Basis-URL, Store-ID, API-Key, Webhook-Secret eintragen
+- **Prüfen**, dann **Live** aktivieren
+- Rechnung ausstellen → Zahlung eingehend → in BTCPay bezahlen → Webhook oder Abgleich
+
+## Felder
+BTCPay-Verbindungsfelder oben; Live-Schalter. Fiat/SEPA-Settle bleibt separat verfügbar.
+
+## Besondere Situationen
+DEMO-Firmen erzwungen auf Mock-Settle. steakOS verwahrt keine Schlüssel. Upgrade von Stufe 2 behält Gelegenheitsadresse, bis BTCPay live ist.
+
+## Verwandt
+- Rechnungen (FIN_INVOICE_SETTLE)
+- Bitcoin-Integrationsstufe · Treasury
+''',
+            'finance.ledger': '''# Hauptbuch
+
+## Prozessüberblick
+SYSTEM-orientierter Finance-Kern **FIN_LEDGER**: Kontenplan seeden, ausgeglichene Journale buchen, Saldenliste, Periodenabschluss-Marker. Nicht der Rechnungs-Desk — Buchungen entstehen oft aus **FIN_INVOICE_SETTLE** / Verbindlichkeiten.
+
+## Aktionen
+- Kontenplan seeden, wenn leer
+- Ausgeglichene Journale über Ledger-Werkzeuge buchen
+- Saldenliste / Periodenabschluss-Marker ausführen
+
+## Felder
+Kontencodes (eindeutig je Mandant); Journalzeilen Soll/Haben; Periodenmarker.
+
+## Besondere Situationen
+Keine Salden von Hand erfinden — nur über den Ledger-Service. Schlechte Buchungsregeln blockieren Settle/Pay upstream.
+
+## Verwandt
+- Rechnungen (FIN_INVOICE_SETTLE) · Buchungsregeln · Treasury
+''',
+            'process.chart': '''# Prozessdiagramme
+
+## Prozessüberblick
+Lernhilfe für **SYSTEM**-Katalogprozesse (**CAP_PROJECT**-Familie / Prozesskatalog) — kein Process Mining. Deep-Link-Beispiel: `/capability/processes?code=FIN_INVOICE_SETTLE`.
+
+## Aktionen
+- **Capability → Prozesse** öffnen (Standard SYSTEM)
+- Prozess wählen (oder How-it-works / Prozess-Pille am Desk)
+- Hover oder Tastaturfokus auf Schritt für Was / Wer / Wo + Fallstrick; Tippen pinnt auf Touch; Esc schließt
+
+## Felder
+Prozesscode, Art (SYSTEM/HUMAN/AGENTIC/OTHER), Status (DRAFT/ACTIVE/RETIRED), Mermaid-Diagramm, Schritt-Tipps.
+
+## Besondere Situationen
+Tipps mit **planned / stub** sind ehrlich über unfertige Tiefe. SYSTEM-Seeds sind schreibgeschützt; Reseed aus Einstellungen oder Capability.
+
+## Verwandt
+- Capability-Hub
+- Prozess-Pille am jeweiligen Desk für dessen processCode
+''',
+            'agents.activate': '''# Hermes-Agent (API-Tokens)
+
+## Prozessüberblick
+Administrativer Weg, einen betreibereigenen Agent-Host anzubinden — gehört zu **AR_HITL_APPROVAL** am Agenten-Hub. Kein eigenes Desk-SYSTEM-processCode auf Integrationen selbst.
+
+## Aktionen
+- **System → Integrationen → Hermes-Agenten** — `sos_…`-Token erzeugen (einmalig sichtbar)
+- In den Host mit steakOS-baseUrl einfügen
+- Smoke: `GET /api/agent/me` und `/api/agent/l0/summary` mit Bearer
+- Optional: Agent schlägt vor → **Agenten → HITL** → Mensch genehmigt/ablehnt
+
+## Felder
+Opakes API-Token (einmalig); Basis-URL am Host. Keine Browser-Session für den Agenten.
+
+## Besondere Situationen
+Nur Agent Basics. Tokens widerrufen bei kompromittiertem Host. Agenten standardmäßig keine Settle/Pay-Rechte geben.
+
+## Verwandt
+- KI- / Agenten-Hub (AR_HITL_APPROVAL)
+- Integrationen-Hub
+''',
+            'system.import': '''# Daten & Import
+
+## Prozessüberblick
+Administrativer CSV-Import — kein Desk-SYSTEM-processCode. Packs speisen Stammdaten für spätere Sales-/Buyers-/Finance-Prozesse.
+
+## Aktionen
+- Pack wählen (**Customers**, **Vendors**, **COA**)
+- Mapping prüfen, dann committen
+- Opening-Balance-Pack ist nur Vorschau
+
+## Felder
+CSV-Spalten auf Stammdatenfelder je Pack gemappt.
+
+## Besondere Situationen
+Import-Berechtigung nötig (typisch Admin/CEO). Schlechte Zeilen scheitern in der Vorschau — Datei vor Commit korrigieren.
+
+## Verwandt
+- Vertrieb · Einkauf · Hauptbuch
+''',
+            'system.catalogs': '''# Admin-Kataloge
+
+## Prozessüberblick
+Administrative Referenzdatenlisten — kein Desk-SYSTEM-processCode. Power-User-Kataloge, keine täglichen Betriebs-Desks.
+
+## Aktionen
+- Referenz- und Content-Type-Domänen nach Berechtigung browsen/bearbeiten
+- Für den Tagesprozess die Familien-Desks bevorzugen
+
+## Felder
+Variiert je Katalogressource (Länder, Währungen, Content-Typen, Legacy-Config).
+
+## Besondere Situationen
+Katalog-Berechtigung erforderlich. Änderungen an Referenzdaten wirken auf Dropdowns an Prozess-Desks.
+
+## Verwandt
+- Einstellungen · Capability-Prozesskatalog
+''',
+            'app.about': '''# Über steakOS
+
+## Prozessüberblick
+Produkt-Metadatenbildschirm — kein SYSTEM-processCode. Zeigt Linie, SemVer, Vorlagen-Tier und Meilensteine.
+
+## Aktionen
+- Versions-/Tier-Informationen lesen
+- Bei Bedarf Sicherheitshinweise zur Meldung befolgen
+
+## Felder
+Nichts editierbar für Prozessarbeit.
+
+## Besondere Situationen
+Sicherheitsprobleme privat an **security@steakos.org** — keine öffentlichen Exploit-Posts.
+
+## Verwandt
+- Sicherheitsproblem melden
+''',
+            'security.disclose': '''# Sicherheitsproblem melden
+
+## Prozessüberblick
+Administrative Sicherheitsaufnahme — kein Desk-SYSTEM-processCode. Privater E-Mail-Prozess für steakOS-Kern und dokumentierte Install-Konfigurationen.
+
+## Aktionen
+- Privat an **security@steakos.org** schreiben
+- Keine Exploit-Details in öffentlichen Issues posten
+
+## Felder
+N/A auf dem Bildschirm; Produktversion und Repro in der E-Mail angeben.
+
+## Besondere Situationen
+Ack-Ziel ≤ 3 Werktage; Triage ≤ 10. Keine CRA-Zertifizierung. Dritt-Hosts BTCPay/Hermes außer Scope, außer steakOS-Glue leakt Daten.
+
+## Verwandt
+- Über steakOS
+''',
+            'app.tour': '''# Onboarding-Tour
+
+## Prozessüberblick
+Produkt-Lernfläche unter `/tour/` — kein Desk-SYSTEM-processCode. Vorlagenwahl hier wird für den Setup-Assistenten gemerkt.
+
+## Aktionen
+- **`/tour/index.html`** öffnen
+- Tour-Module absolvieren; bei Aufforderung zum Setup weiter
+
+## Felder
+Tour-Fortschritt / Vorlagenpräferenz, wie die Tour-App speichert.
+
+## Besondere Situationen
+Tour nach dem ersten Lauf optional; Desks bleiben je nach Setup-Abschluss und Rollen verfügbar.
+
+## Verwandt
+- Konfigurationsassistent
+- CEO-Dashboard
+''',
+            'help.docs.pdf': '''# Geschäfts-PDFs (A4)
+
+## Prozessüberblick
+Dokumentausgabe für kommerzielle Prozesse (Angebote, Aufträge, Bestellungen, Rechnungen) — unterstützt Artefakte von SALES_QUOTE_TO_ORDER, SCM_PO_FULFILL, FIN_INVOICE_SETTLE. Kein eigenes SYSTEM-processCode.
+
+## Aktionen
+- **… PDF herunterladen** auf Angebot-, Auftrags-, Bestell- und Rechnungsbildschirmen
+- Bei Bedarf aus dem Browser drucken
+
+## Felder
+A4-Hochformat; mehrzeilige Tabellen; Summen wie auf dem Bildschirm. Beschriftungen folgen der Partner-Kommunikationssprache.
+
+## Besondere Situationen
+Kein E-Invoice-XML, keine digitale Signatur. Sprache friert nach Senden/Bestätigen/Ausstellen ein.
+
+## Verwandt
+- Partnersprache · Vertrieb · Rechnungen
+'''
     ].asImmutable()
 
     private static final Map FEATURE_BODIES_ES = [
-            'finance.primaryRail': '''# Carril primario y BTC-FX
+            'app.dashboard': '''# Panel CEO
 
-Su **carril primario** es la unidad monetaria de sus libros (elegida en el setup):
+## Resumen del proceso
+Sin processCode SYSTEM único. Agrega trabajo abierto, Actividades - AHORA, saltos APQC y salud del sistema.
 
-| Carril | Significado |
-|--------|-------------|
-| **EUR** / **USD** | Moneda funcional fiat — facturas y diarios en esta moneda |
-| **BTC** | Libros en Bitcoin (importes en sats o visualización BTC); elija un **fiat de visualización** (EUR/USD) para las pistas |
+## Acciones
+- Abrir **Mi trabajo** / **Actividades - AHORA**
+- Baldosa APQC → escritorio de la familia
+- Revisar señales de salud
 
-## Qué ve en los formularios
+## Campos
+Sin formularios — tarjetas con contadores y celdas del tablero.
 
-Junto a los importes, steakOS puede mostrar una **pista FX compacta** (p. ej. sats junto a euros). Las pistas vienen de una caché de tipo BTC **en el servidor** (CoinGecko → Kraken → Coinbase). Un distintivo **obsoleto** significa: último tipo bueno, porque fallaron las cotizaciones en vivo.
+## Situaciones especiales
+Tablero vacío = sin trabajo abierto en el filtro. **See** limita escritorios visibles.
 
-**Las pistas no son los libros.** Los documentos emitidos conservan el importe primario; las tooltips pueden cambiar con el mercado.
+## Relacionado
+- Actividades - AHORA · Ventas · Compradores · Facturas
+- [Tour de incorporación](/tour/)
+''',
+            'app.desks': '''# Listas y escritorios
 
-## Liquidación
+## Resumen del proceso
+Sin processCode SYSTEM único. Cada escritorio tiene su código. Ayuda (**?**) muestra proceso, acciones y campos.
 
-Al **liquidar** una factura, steakOS registra el momento del pago en **Payment** / diario / Treasury (incl. sats en carriles Bitcoin). Ese tipo de liquidación entra en los libros — no el tooltip en vivo.
+## Acciones
+- Abrir un escritorio · abrir **Ayuda** · pastilla verde **Proceso**
 
-## Tesorería dual
+## Campos
+Ninguno en este tema puntero.
 
-Espere una posición de **banco fiat** y otra de **cartera Bitcoin** bajo Finance → Treasury (un solo plan de cuentas).
+## Situaciones especiales
+Si falta un escritorio en la nav: revisar **See** y familias habilitadas.
 
-## Límites honestos (Basics)
+## Relacionado
+- Ventas · Compradores · Taller · Entrega · Posventa · RR. HH. · Digital · Activos
+- Estrategia · Desarrollo · Capability · Agentes · Facturas · Tesorería · Actividades - AHORA
+- [Tour de incorporación](/tour/)
+''',
+            'sales.desk': '''# Escritorio de ventas
 
-- Sin mark-to-market (MTM) automático de cartera al cambiar el tipo BTC  
-- Cambiar el carril primario tras el setup es Advanced (no en la closed beta)  
-- Sin tablas FX manuales  
+## Resumen del proceso
+Proceso SYSTEM **SALES_QUOTE_TO_ORDER**: cliente → oferta → enviar → aceptar/rechazar → pedido → confirmar. Conecta con **FIN_INVOICE_SETTLE**.
 
-**Relacionado:** facturas · Treasury · pagos en vivo (BTCPay) · perfil de empresa''',
-            'sales.desk'    : '''# Escritorio de ventas
+## Acciones
+- **Nuevo** cliente/oferta/pedido
+- Ver/Editar/Eliminar — Editar bloqueado si el documento está cerrado
+- Pasos de proceso en el modal de vista
+- Pastilla verde **Proceso** — SALES_QUOTE_TO_ORDER
 
-Venta operativa:
+## Campos
+Cliente (tipo, contacto, moneda, taxId); oferta/pedido (moneda del documento, líneas, impuesto).
 
-1. Crear **cliente**
-2. **Oferta** → enviar → aceptar/rechazar
-3. **Pedido** → confirmar (puede generar factura borrador)
+## Situaciones especiales
+Office puede crear pero no liquidar dinero. Sin cliente no hay oferta.
 
-Los datos maestros de ventas siguen disponibles para listas Admin.
+## Relacionado
+- Facturas (FIN_INVOICE_SETTLE) · Entrega (DEL_SERVICE_ORDER)
+- [Tour de incorporación](/tour/)
+''',
+            'scm.desk': '''# Escritorio de compradores
 
-''' + HOW_DESKS_ES,
-            'scm.desk'      : '''# Escritorio de compradores
+## Resumen del proceso
+Proceso SYSTEM **SCM_PO_FULFILL**: proveedor → OC → enviar → confirmar → recibir. Taller aparte (**SCM_MAKE_TO_STOCK**).
 
-**Proveedores · productos · servicios · pedidos de compra**
+## Acciones
+- **Nuevo** proveedor/producto/servicio/OC
+- Editar/Eliminar solo en **DRAFT**
+- Pie del modal: enviar, confirmar, recibir
+- Pastilla verde **Proceso** — SCM_PO_FULFILL
 
-Proveedor → OC → enviar → confirmar → recibir.
+## Campos
+Proveedor contacto/moneda; cabecera y líneas de OC.
 
-El taller es un escritorio **aparte** (`/scm/shopfloor`). Lista con diálogos Ver/Editar (sin columna de detalle vacía).
+## Situaciones especiales
+OC emitidas solo Ver. Reglas de asiento rotas bloquean payables.
 
-''' + HOW_DESKS_ES,
-            'scm.shopfloor' : '''# Control de taller
+## Relacionado
+- Taller (SCM_MAKE_TO_STOCK) · Tesorería (FIN_PAYABLE)
+- [Tour de incorporación](/tour/)
+''',
+            'scm.shopfloor': '''# Control de taller
 
-**Órdenes de producción · calidad / lotes · inventario**
+## Resumen del proceso
+Proceso SYSTEM **SCM_MAKE_TO_STOCK**: producto/BOM → orden de producción → liberar → iniciar → completar.
 
-Layout **split**: el detalle solo al seleccionar una fila.
+## Acciones
+- Nueva orden; seleccionar fila (detalle partido); liberar/iniciar/completar
+- Pastilla verde **Proceso** — SCM_MAKE_TO_STOCK
 
-''' + HOW_DESKS_ES,
-            'delivery.desk' : '''# Escritorio de entrega
+## Campos
+Producto/BOM, cantidad, estado, lotes, existencias.
 
-Servicios y recursos → órdenes de servicio → programar → asignar → iniciar → completar.
+## Situaciones especiales
+Detalle solo tras seleccionar fila. BOM/stock faltante puede bloquear.
 
-''' + HOW_DESKS_ES,
+## Relacionado
+- Compradores · Activos
+- [Tour de incorporación](/tour/)
+''',
+            'delivery.desk': '''# Escritorio de entrega
+
+## Resumen del proceso
+Proceso SYSTEM **DEL_SERVICE_ORDER**: servicios/recursos → orden → planificar → asignar → iniciar → completar.
+
+## Acciones
+- Nuevo servicio/recurso/orden; planificar, asignar, iniciar, completar
+- Pastilla verde **Proceso** — DEL_SERVICE_ORDER
+
+## Campos
+Servicio, recurso, ventana, estado.
+
+## Situaciones especiales
+Sin recurso/plan no se inicia. Pedidos de venta necesitan confirmación upstream.
+
+## Relacionado
+- Ventas · Posventa
+- [Tour de incorporación](/tour/)
+''',
             'aftersales.desk': '''# Escritorio posventa
 
-Consultas, garantías, reclamaciones, RMAs. Las reclamaciones pueden crear borradores de abono en Finance.
+## Resumen del proceso
+Procesos SYSTEM **AS_INQUIRY** y **AS_RMA**. Claims pueden crear abonos; RMAs reciben stock.
 
-''' + HOW_DESKS_ES,
-            'hr.desk'       : '''# Escritorio de RR. HH.
+## Acciones
+- Nueva consulta/garantía/claim/RMA; avanzar estado
+- Pastilla verde **Proceso** — AS_INQUIRY o AS_RMA según pestaña
 
-Candidatos → contratación · expedientes · tiempo · nómina · objetivos.
+## Campos
+Cliente, texto del caso, importes, líneas RMA.
 
-Layout **split**: el detalle solo al seleccionar una fila.
+## Situaciones especiales
+Aprobar claim puede requerir acceso Finance.
 
-''' + HOW_DESKS_ES,
-            'digital.desk'  : '''# Escritorio digital
+## Relacionado
+- Ventas · Entrega · Facturas
+- [Tour de incorporación](/tour/)
+''',
+            'hr.desk': '''# Escritorio de RR. HH.
 
-Sistemas, activos de datos, soluciones, cambios de TI, CIs, tickets internos.
+## Resumen del proceso
+Proceso SYSTEM **HR_CANDIDATE_HIRE**: candidatos → etapas → contratar o rechazar. También expedientes, tiempo, nómina, metas.
 
-Layout **split**: el detalle solo al seleccionar una fila.
+## Acciones
+- Nuevo por pestaña; detalle partido; contratar/rechazar
+- Pastilla verde **Proceso** — HR_CANDIDATE_HIRE
 
-''' + HOW_DESKS_ES,
-            'strategy.desk' : '''# Escritorio de estrategia
+## Campos
+Etapas de candidato; expediente (campos sensibles); tiempo/nómina.
 
-**Competidores** y **temas de estrategia** — lista de una columna con modal Ver/Editar.
+## Situaciones especiales
+Contratar necesita ruta Users. See de RR. HH. solo si hace falta.
 
-''' + HOW_DESKS_ES,
+## Relacionado
+- Invitar usuario · Roles
+- [Tour de incorporación](/tour/)
+''',
+            'digital.desk': '''# Escritorio digital
+
+## Resumen del proceso
+Procesos SYSTEM **DIG_IT_TICKET** y **DIG_IT_CHANGE**. Sistemas y CIs los sostienen.
+
+## Acciones
+- Nuevo sistema/CI/cambio/ticket; start/resolve/close
+- Pastilla verde **Proceso** — DIG_IT_TICKET o DIG_IT_CHANGE
+
+## Campos
+Enlace CI–sistema; asunto/estado del ticket; campos de cambio.
+
+## Situaciones especiales
+Tickets de TI interna, no posventa. Detalle tras seleccionar fila.
+
+## Relacionado
+- Hub de agentes · Integraciones
+- [Tour de incorporación](/tour/)
+''',
+            'asset.desk': '''# Escritorio de activos
+
+## Resumen del proceso
+Proceso SYSTEM **AST_ASSET_LIFECYCLE**: registro de planta, vehículos y herramientas.
+
+## Acciones
+- Nuevo en el registro; ver/editar; plan de mantenimiento en la barra de contenido
+- Pastilla verde **Proceso** — AST_ASSET_LIFECYCLE
+
+## Campos
+Nombre, etiqueta, ubicación, owner, estado; flags IT, depreciación, mantenimiento.
+
+## Situaciones especiales
+Hostname/IP solo en Digital. Depreciación/OT automáticas llegan después.
+
+## Relacionado
+- Digital · Taller · Libro mayor
+- [Tour de incorporación](/tour/)
+''',
+            'strategy.desk': '''# Escritorio de estrategia
+
+## Resumen del proceso
+Procesos SYSTEM **STR_STRATEGY_ITEM** y **STR_COMPETITOR_WATCH**.
+
+## Acciones
+- Pestañas + Nuevo; ver/editar; barra de contenido
+- Pastilla verde **Proceso** — código de la pestaña
+
+## Campos
+Competidor: nombre, tipo, fuentes, estado. Tema: nombre, tipo, descripción, kind, estado.
+
+## Situaciones especiales
+Listas vacías están bien al inicio. Sin movimiento de dinero.
+
+## Relacionado
+- Hub de capacidades (CAP_PROJECT)
+- [Tour de incorporación](/tour/)
+''',
             'development.desk': '''# Escritorio de desarrollo
 
-**Proyectos de desarrollo** (NPD / revisiones) — escritorio de una columna con modal Ver/Editar.
+## Resumen del proceso
+Proceso SYSTEM **DEV_PROJECT_DELIVER**: proyectos NPD / revisiones.
 
-''' + HOW_DESKS_ES,
+## Acciones
+- Nuevo proyecto; avanzar estado
+- Pastilla verde **Proceso** — DEV_PROJECT_DELIVER
+
+## Campos
+Nombre, tipo, descripción, estado; adjuntos en la barra de contenido.
+
+## Situaciones especiales
+Trabajo de portafolio también en Capability (**CAP_PROJECT**).
+
+## Relacionado
+- Hub de capacidades
+- [Tour de incorporación](/tour/)
+''',
+            'grrc.desk': '''# Escritorio de gobernanza
+
+## Resumen del proceso
+Procesos SYSTEM **GRC_RISK_TREAT** (riesgos: abrir → mitigar → cerrar/aceptar) y **GRC_COMPLIANCE_ITEM** (cumplimiento: borrador → activo → retirar). Silver; complementa Stakeholder (**STK_PARTY_ENGAGE**).
+
+## Acciones
+- Pestañas Riesgos / Cumplimiento — processCode de la pastilla verde **Proceso**
+- Nuevo riesgo o ítem; ver/editar; cerrar/aceptar riesgo; activar/retirar cumplimiento
+- Pastilla verde **Proceso** — GRC_RISK_TREAT o GRC_COMPLIANCE_ITEM
+
+## Campos
+Riesgo: nombre, severidad, probabilidad, owner, nota de tratamiento, estado, descripción. Cumplimiento: nombre, tipo, owner, vigente desde, estado, descripción. Barra de contenido.
+
+## Situaciones especiales
+Requiere **Silver** (o superior). Listas vacías están bien. Sin movimiento de dinero.
+
+## Relacionado
+- Escritorio de stakeholders (STK_PARTY_ENGAGE)
+- Hub de capacidades
+- [Tour de incorporación](/tour/)
+''',
+            'stakeholder.desk': '''# Escritorio de stakeholders
+
+## Resumen del proceso
+Proceso SYSTEM **STK_PARTY_ENGAGE**: registrar partes (activo → vigilancia → inactivo) y registrar comunicaciones. Complementa Gobernanza.
+
+## Acciones
+- Pestañas Partes / Comunicaciones; Nuevo; ver/editar; estado ACTIVE/WATCH/INACTIVE
+- Pastilla verde **Proceso** — STK_PARTY_ENGAGE
+
+## Campos
+Parte: nombre, tipo, estado, contacto, nota ética, descripción. Comunicación: parte, asunto, canal, dirección, fecha, estado. Barra de contenido.
+
+## Situaciones especiales
+Requiere **Silver**. Las comunicaciones necesitan una parte existente. Las notas éticas son orientación del operador — no un archivo legal.
+
+## Relacionado
+- Escritorio de gobernanza (GRC_RISK_TREAT / GRC_COMPLIANCE_ITEM)
+- [Tour de incorporación](/tour/)
+''',
             'capability.hub': '''# Hub de capacidades
 
-Proyectos, procesos, calidad, cambios, conocimiento — pestañas de sección.
+## Resumen del proceso
+Proceso SYSTEM **CAP_PROJECT** más catálogo de procesos. Pestañas: proyectos, procesos, calidad, cambios, conocimiento.
 
-Layout **split**: el detalle solo al seleccionar una fila.
+## Acciones
+- Cambiar pestañas; iniciar/completar proyectos; abrir proceso SYSTEM (Mermaid)
+- Pastilla verde **Proceso** — CAP_PROJECT
 
-''' + HOW_DESKS_ES,
-            'agents.hub'    : '''# Hub de IA / agentes
+## Campos
+Campos de proyecto; tipo/estado de proceso; calidad/cambios.
 
-**Agents**, **Hives**, **HITL**, **Memory**. Closed beta: solo Agent Basics.
+## Situaciones especiales
+SYSTEM solo lectura; reseed en Ajustes/Capability.
 
-Layout **split**: el detalle solo al seleccionar una fila.
+## Relacionado
+- Diagramas de proceso · Desarrollo
+- [Tour de incorporación](/tour/)
+''',
+            'agents.hub': '''# Hub de IA / agentes
 
-''' + HOW_DESKS_ES,
-            'finance.treasury': '''# Tesorería
+## Resumen del proceso
+Proceso SYSTEM **AR_HITL_APPROVAL**. Agents, Hives, Memory. Closed beta: solo Agent Basics.
 
-Posiciones, pagos, presupuestos, impuestos, nómina stub — pestañas de este hub.
+## Acciones
+- Sembrar/activar agentes; aprobar/rechazar HITL
+- Pastilla verde **Proceso** — AR_HITL_APPROVAL
 
-''' + HOW_DESKS_ES,
+## Campos
+Estado del agente; hive; propuesta HITL; memoria.
+
+## Situaciones especiales
+Los agentes no liquidan/pagan por defecto. Detalle tras seleccionar fila.
+
+## Relacionado
+- Tokens Hermes · Integraciones · Digital
+- [Tour de incorporación](/tour/)
+''',
             'finance.invoices': '''# Facturas
 
-1. Crear borrador  
-2. **Emitir**  
-3. **Liquidar** al pagar  
+## Resumen del proceso
+Proceso SYSTEM **FIN_INVOICE_SETTLE**: borrador → emitir → liquidar. Upstream a menudo **SALES_QUOTE_TO_ORDER**.
 
-Layout **split**: el detalle solo al seleccionar una fila.
+## Acciones
+- Crear borrador; **Emitir** / **Liquidar**; fila para detalle partido
+- Pastilla verde **Proceso** — FIN_INVOICE_SETTLE
 
-''' + HOW_DESKS_ES,
-            'app.desks'      : '''# Listas y escritorios
+## Campos
+Importes en carril primario; pistas FX solo visuales; estado; opciones de pago.
 
-Chrome de operador para listas y escritorios (ADR-050 / PDR-034). Plantillas: **Tareas** (`/domains/core/Task`) y **Compradores** (`/scm/buyers`).
+## Situaciones especiales
+DEMO solo mock settle. Reglas de asiento rotas bloquean (`POSTING_RULES_*`).
 
-''' + HOW_DESKS_ES + '''
+## Relacionado
+- Ventas · Tesorería · Reglas de asiento · Pagos en vivo
+- [Tour de incorporación](/tour/)
+''',
+            'finance.treasury': '''# Tesorería
 
-## Una columna vs. split
+## Resumen del proceso
+**FIN_PAYABLE** y posiciones de tesorería. Pestañas: posiciones, payables, presupuestos, impuestos, nómina stub. Banco fiat + monedero Bitcoin, un plan contable.
 
-| Patrón | Cuándo | Detalle |
-|--------|--------|---------|
-| **Single** | Ventas, Compradores, Entrega, Posventa, Activos, Estrategia, Desarrollo | Lista completa; Ver/Editar en modales |
-| **Split** | Taller, Digital, Finance, CRM, Pricing, RR. HH., Capability, Agents | Detalle solo tras seleccionar una fila |
+## Acciones
+- Pestañas; trabajar payables/posiciones
+- Pastilla verde **Proceso** — FIN_PAYABLE
 
-**Ver también:** cajón de ayuda en cada escritorio · Compradores · lista de tareas''',
-            'app.dashboard' : '''# Panel CEO
+## Campos
+Valores según carril primario; estado de payables; campos por pestaña.
 
-Cabina de mando para trabajo abierto y salud de procesos.
+## Situaciones especiales
+Bitcoin en vivo en Pagos (BTCPay). Reglas de asiento pueden bloquear pago a proveedor.
 
-- **Mi trabajo** — tareas abiertas y plazos
-- **Actividades - AHORA** — tablero 3×3 urgencia × importancia (el mismo bajo **Mi trabajo**)
-- **Grupos APQC** — salto a ventas, finanzas, …
-- **Estado del sistema**
+## Relacionado
+- Facturas · Libro mayor · Compradores · Carril primario
+- [Tour de incorporación](/tour/)
+''',
+            'finance.primaryRail': '''# Carril primario y BTC-FX
 
-**Atajos:** **Ctrl+K** · **?** o **Ctrl+/** cajón de ayuda
+## Resumen del proceso
+Elección administrativa de moneda de libros — sin processCode SYSTEM de escritorio. La liquidación sigue **FIN_INVOICE_SETTLE**.
 
-**Ver también:** Actividades - AHORA · Configuración (idioma y región)''',
+## Acciones
+- Elegir carril en setup; leer pistas FX; liquidar factura para fijar tipo de pago
+
+## Campos
+Carril EUR/USD/BTC; fiat de visualización; pista FX y badge obsoleto.
+
+## Situaciones especiales
+Las pistas no son los libros. Sin MTM automático. Cambiar carril tras setup es Advanced.
+
+## Relacionado
+- Facturas · Tesorería · Pagos en vivo (BTCPay)
+''',
             'system.settings': '''# Configuración
 
-**Idioma y región** es la primera tarjeta — controla **el idioma de su pantalla** (EN / DE / ES) y los formatos de fecha/dinero de esta cuenta.
+## Resumen del proceso
+Superficie administrativa — **sin processCode SYSTEM de escritorio**. Idioma, monedas, impuestos, demo/setup.
 
-## Idioma y región
+## Acciones
+- Idioma y región; Admin: monedas/impuestos/reset setup
+- Integraciones en **Sistema → Integraciones**
 
-1. Abra **System → Configuración**
-2. Elija una configuración regional (p. ej. Español (España) `es_ES`)
-3. Etiquetas y formatos se aplican a su usuario
+## Campos
+Locale; lista corta de monedas; códigos fiscales; estado de setup.
 
-Esto **no** es el idioma de los PDF salientes a clientes/proveedores. Eso es el **Idioma de comunicación** en cada maestro Cliente / Proveedor.
+## Situaciones especiales
+Idioma de pantalla ≠ idioma PDF del socio. Reset de setup es destructivo (demos).
 
-## Otras tarjetas en esta página
-
-- **Monedas que usamos** — lista corta para desplegables (la moneda de la empresa permanece activa)
-- Códigos fiscales en uso (cuando el pack Finance está habilitado)
-- Estado demo / setup y **restablecer setup** de Admin
-
-**Integraciones** (Nostr, nivel Bitcoin, tokens Hermes) están en **System → Integraciones**.
-
-**Ver también:** Idioma de comunicación del socio · Monedas que usamos''',
+## Relacionado
+- Monedas que usamos · Idioma del socio · Integraciones
+''',
             'help.work.actionNow': '''# Actividades - AHORA
 
-**Mi trabajo** (`/work`) es el tablero Eisenhower **Actividades - AHORA** (urgencia × importancia). En el panel CEO aparece el mismo mini tablero.
+## Resumen del proceso
+Cola de trabajo humana (Eisenhower) — **sin processCode SYSTEM**. Ítems AI:* esperan **DONE** humano.
 
-## Barra de herramientas
+## Acciones
+- Nueva tarea · Actualizar · interruptor Tareas agénticas · Lista de tareas
+- Abrir celda/tarea — urgencia, importancia, plazo, asignación
 
-- **Nueva tarea** — crear una tarea (vuelve aquí)
-- **Actualizar** — recargar el tablero
-- **Tareas agénticas** (interruptor violeta) — tablero humano abierto ↔ cola AI:*
-- **Lista de tareas** — lista de dominio Task completa (búsqueda, orden, exploración)
+## Campos
+Urgencia/importancia; estado; plazo; asignación.
 
-## Cómo leer el tablero
+## Situaciones especiales
+El tablero no inventa prioridades. Agentes terminan con AI:done; humano pone DONE.
 
-- **Filas** = urgencia (alta → baja)
-- **Columnas** = importancia (baja → alta)
-- Cada celda agrupa la misma urgencia × importancia — abra una tarea para editarla
+## Relacionado
+- Panel CEO · Hub de agentes
+- [Tour de incorporación](/tour/)
+''',
+            'content.rail': '''# Object Companion (barra de contenido)
 
-## Tablero humano (interruptor apagado)
+## Resumen del proceso
+Sin processCode SYSTEM. Canal compañero en registros durante procesos de escritorio.
 
-Trabajo humano **abierto** (`OPEN` / `IN_PROGRESS`, más AI:* en curso que aún cuenta como abierto). Hechas / canceladas no salen.
+## Acciones
+- Añadir Enlace, Archivo o Contenido (Nota, Ayuda, Riesgo, …)
 
-## Tareas agénticas (interruptor encendido)
+## Campos
+URL; archivo; tipo de contenido + texto.
 
-Tareas con estado agéntico AI: (por ejemplo AI:waiting-go o AI:done) que un humano **aún no** ha confirmado como **DONE**. Chips violetas marcan estados agénticos. Apague el interruptor para volver al tablero humano.
+## Situaciones especiales
+El acceso sigue al registro anfitrión. Archivos = canal FILE, no ContentType.
 
-Pase el ratón por el interruptor para un recordatorio breve de encendido / apagado.
-
-## Dónde más
-
-- **Dashboard** — mini tablero + salto a Mi trabajo
-- Formulario / modal de tarea — fijar **Urgencia** e **Importancia**
-
-## Límites honestos
-
-- El tablero no inventa prioridades — usted las fija en cada tarea
-- Filtros de lista (atrasadas, asignado, …) viven en la lista de dominio **Task**, no en este tablero
-
-**Consejo:** abra este cajón con **?** o **Ctrl+/** desde Mi trabajo o el panel.''',
+## Relacionado
+- Cualquier escritorio operativo con la barra
+''',
             'help.partners.locale': '''# Idioma de comunicación del socio
 
-En los maestros **Cliente** y **Proveedor**, fije el **Idioma de comunicación** (p. ej. alemán / inglés / español).
+## Resumen del proceso
+Campo maestro usado en documentos de SALES_QUOTE_TO_ORDER / SCM_PO_FULFILL / FIN_INVOICE_SETTLE — no el idioma de pantalla.
 
-## Qué controla
+## Acciones
+- Fijar idioma de comunicación en Cliente/Proveedor; PDF/correo lo siguen
 
-- **Etiquetas PDF** en ofertas, pedidos, órdenes de compra y facturas a ese socio
-- **Correo** asunto y cuerpo a ese socio cuando el mensajería está activado (mismo idioma)
-- Las vistas previas de borrador siguen el ajuste en vivo; tras enviar / confirmar / emitir el documento **congela** su idioma
+## Campos
+Idioma de comunicación; vacío → inglés (en_US).
 
-## Valores por defecto
+## Situaciones especiales
+Tras enviar/confirmar/emitir el idioma se congela. Descripciones de catálogo aún no bilingües.
 
-Déjelo en blanco para usar **inglés (en_US)** en documentos y correo salientes. Es independiente del idioma de pantalla en **Configuración**.
-
-## Límites honestos (v1)
-
-- Las descripciones de catálogo aún no son bilingües
-- Los **DM Nostr al socio** siguen residuales (PL-TR4 giftwrap) — el correo ya usa el idioma del socio''',
+## Relacionado
+- PDFs comerciales · Configuración · Ventas
+''',
             'help.roles.overview': '''# Roles para un equipo pequeño
 
-steakOS está pensado para una **empresa pequeña** (unas 2–5 personas). Asigne a cada persona un **perfil de rol** (Office, Ops, Finance…). Los roles aportan **valores por defecto** sobre qué escritorios se ven y qué se puede cambiar.
+## Resumen del proceso
+Modelo de acceso administrativo — sin processCode SYSTEM de escritorio.
 
-**Admin** y **CEO** ajustan los valores por defecto en **System → Roles** e invitan personas en **System → Users**.
+## Acciones
+- Sistema → Roles · Sistema → Usuarios (asignar/invitar)
 
-No hace falta un departamento de TI. En caso de duda, **mantenga los valores por defecto** y abra más escritorios solo si hace falta.
+## Campos
+Perfil de rol; verbos de escritorio; acciones de sistema.
 
-## Inicio rápido
+## Situaciones especiales
+Deny gana. Sin ROLE_AI desde Usuarios.
 
-1. Abra **System → Users**
-2. Cree la persona con perfil **Office** (recepción) o **Finance** (contabilidad)
-3. Comunique la contraseña temporal; haga que configure pronto **Security → Authenticator**
-4. Revise la navegación izquierda: solo los escritorios necesarios
-
-## Dónde
-
-- **Roles** (`/roles`) — cambiar los valores por defecto de un perfil
-- **Users** (`/users`) — asignar un perfil a una persona
-- Temas de ayuda: elección de rol · matriz de permisos · invitar · seguridad
-
-**Consejo:** cajón de ayuda con **?** o **Ctrl+/**.''',
+## Relacionado
+- Qué rol elegir · Matriz · Invitar · Seguridad
+''',
             'help.roles.presets': '''# Qué rol elegir
 
-Los valores por defecto son **puntos de partida**, no bloqueos eternos. Ajústelos en **System → Roles** si hace falta.
+## Resumen del proceso
+Guía administrativa de perfiles — sin processCode SYSTEM de escritorio.
 
-| Rol | Persona típica | Ve / hace | Evite si… |
-|-----|----------------|-----------|-----------|
-| **Admin** | Instalador / socio con afinidad TI | Todos los escritorios habilitados + Users, Import, catálogos, agentes | Uso diario (entonces CEO) |
-| **CEO** | Propietario / dirección | Todos los escritorios de negocio + Users / Import | Necesita un segundo Admin completo (solo Admin crea Admin) |
-| **Office** | Recepción / oficina | Ventas, Delivery, After-Sales (+ Capability ligero); **no liquida dinero** | Debe registrar pagos |
-| **Ops** | Cocina / producción / sala | SCM, Delivery, Assets; ventas solo **ver** | Debe responsabilizarse de ofertas de punta a punta |
-| **Finance** | Contabilidad | Finance + ventas **ver**; dinero **liquidar** | Invitar usuarios (sin Users) |
-| **User** | Escritorio general | Conservador: ventas + Delivery | Office/Ops/Finance encaja mejor |
-| **Read only** | Invitado / auditor / aprendiz | Explorar escritorios; **escritura bloqueada** | Debe crear o editar |
+## Acciones
+- Elegir perfil al invitar; ajustar valores por defecto en Roles
 
-## Ejemplos de hostelería
+## Campos
+Nombre de perfil y permisos típicos.
 
-- Recepción / teléfono: **Office**
-- Jefe de cocina: **Ops**
-- Contabilidad (parcial): **Finance**
-- Propietario: **CEO** (+ una cuenta **Admin** separada)
-- Aprendiz: **Read only**
+## Situaciones especiales
+Una persona → un perfil. CEO no crea Admin.
 
-**Regla:** una persona → un perfil. En v1 prefiera cambiar de perfil antes que inventar un rol nuevo.''',
+## Relacionado
+- Roles · Matriz · Roles de práctica
+''',
             'help.roles.matrix': '''# Matriz de permisos (Avanzado)
 
-La matriz es la **verdad**. Los valores por defecto la rellenan; Avanzado permite a Admin/CEO afinar celdas.
+## Resumen del proceso
+Fuente de verdad administrativa de verbos — sin processCode SYSTEM de escritorio.
 
-## Escritorios (familias)
+## Acciones
+- Ver/ajustar celdas (Admin/CEO); confirmar apply-to-all
 
-Por cada escritorio (ventas, Finance, SCM…):
+## Campos
+See/Create/Change/Delete/Work; acciones de sistema incl. liquidar dinero.
 
-| Verbo | Significado |
-|-------|-------------|
-| **See** | En la navegación; abrir y leer listas |
-| **Create** | Nuevos registros (POST) |
-| **Change** | Editar / flujo de trabajo (PUT/PATCH / iniciar / completar…) |
-| **Delete** | Borrar / anular, donde esté permitido |
-| **Work** | Atajo = Create **o** Change (vista simple) |
+## Situaciones especiales
+Deny gana; proteger último Admin; API MATRIX_*_FORBIDDEN.
 
-Los derechos se cruzan con las **familias habilitadas** (metal / plantilla).
-
-## Acciones de sistema
-
-Ejemplos: **Users / invitar**, **Import**, **catálogos**, **agentes**, **Setup**, **liquidar dinero**, restablecer 2FA de otros.
-
-Liquidar es un **especial de dinero** — Finance lo tiene por defecto; Office no.
-
-## Seguridad
-
-- **Deny gana** sobre Allow
-- Proteja al último **Admin**
-- Confirme antes de **aplicar a todos los usuarios con este perfil**
-- Las personas no reciben `ROLE_AI` vía Users
-
-## API
-
-Las llamadas de escritura a `/api/**` comprueban esta matriz (`MATRIX_DESK_FORBIDDEN`, `MATRIX_SYSTEM_FORBIDDEN`).''',
+## Relacionado
+- Roles · Seguridad
+''',
             'help.users.invite': '''# Invitar a un miembro del equipo
 
-Ruta: **System → Users**
+## Resumen del proceso
+Alta administrativa de usuarios — sin processCode SYSTEM de escritorio.
 
-1. Elija el **perfil de rol** (Office / Ops / Finance — no Admin)
-2. Nombre de usuario + **contraseña temporal** (12+ caracteres: minúscula, mayúscula, dígito, carácter especial)
-3. Cree y entregue las credenciales fuera de tickets públicos
-4. Inicie sesión con esa contraseña y configure el **Authenticator** en **Security**
-5. **Opcional — Alby / Nostr:** **Security → Vincular extensión del navegador** (Alby desbloqueada). La columna **Extensión** pasa a **Sí**. Después, en el login: **Entrar con extensión del navegador**.
+## Acciones
+- Sistema → Usuarios: perfil, nombre, contraseña temporal; authenticator; Alby opcional
 
-steakOS **no** crea una identidad Nostr al invitar. La persona vincula su propia clave Alby. Nunca pegue `nsec`.
+## Campos
+Usuario; contraseña temporal; perfil; columna Extensión.
 
-Completo: Ayuda → **Iniciar sesión con Alby (Nostr)**.
+## Situaciones especiales
+CEO no asigna Admin. Preferir desactivar. Nunca pegar nsec.
 
-## Después
-
-- Cambie el perfil en cualquier momento en la tabla de usuarios
-- Prefiera **desactivar** a borrar — el historial se conserva
-- **Borrar Authenticator** solo si se perdió el dispositivo
-
-## Quién puede invitar
-
-**Admin** y **CEO**. El CEO no puede asignar el perfil **Admin**.''',
+## Relacionado
+- Alby · Roles · Seguridad
+''',
             'help.security.nostrLogin': '''# Iniciar sesión con Alby (Nostr)
 
-Extensión **NIP-07** (p. ej. **Alby**): aprobar una solicitud breve en lugar de escribir la contraseña cada vez. La **clave secreta permanece en la extensión** — steakOS nunca pide `nsec`.
+## Resumen del proceso
+Login NIP-07 por usuario — sin processCode SYSTEM de escritorio. El relay de empresa está en Integraciones.
 
-## Requisitos
+## Acciones
+- Login con contraseña → Seguridad → Vincular extensión → luego login con extensión
 
-1. Ya existe una **cuenta** de steakOS (invitación en **System → Users** o Admin del setup).
-2. Puede iniciar sesión una vez con **usuario + contraseña**.
-3. **Alby** instalada y **desbloqueada** en este navegador.
-4. En **Security**, tras **Vincular extensión**, **Vinculado: Sí**.
+## Campos
+Vinculado Sí/No; columna Extensión en Usuarios.
 
-Sin el paso 4, el login indica que la clave no está vinculada a un usuario.
+## Situaciones especiales
+Sin vínculo falla el login por extensión. Nunca nsec. Una identidad Alby ↔ un usuario.
 
-## Lista (persona con Alby)
-
-1. Instale Alby y cree/importe una identidad Nostr.
-2. Entre en steakOS con contraseña.
-3. Abra **System → Security**.
-4. **Vincular extensión del navegador** → apruebe en Alby.
-5. Confirme **Vinculado: Sí**.
-6. Cierre sesión → **Entrar con extensión del navegador**.
-
-## Admin
-
-1. Cree el usuario (contraseña + perfil).
-2. La persona inicia con contraseña y vincula Alby.
-3. Columna **Extensión** = Sí.
-
-El nivel Nostr de la empresa (asistente / Integraciones) controla el relay/auditoría — **no** sustituye la vinculación personal en Security.
-
-## Seguridad
-
-- Nunca pegue `nsec` / semilla.
-- Una identidad Alby ↔ un usuario steakOS.
-- El login con contraseña sigue disponible.''',
+## Relacionado
+- Invitar · Integración Nostr
+''',
             'help.users.danger': '''# Seguridad: Admin, CEO y desactivar
 
-## Haga
+## Resumen del proceso
+Reglas administrativas de seguridad — sin processCode SYSTEM de escritorio.
 
-- Mantenga **Admin** y **CEO** como **inicios de sesión separados**
-- Al salir, prefiera **desactivar** a borrar
-- **Borrar Authenticator** solo si se perdió el dispositivo
-- Confirme antes de cambiar el rol para **todos** los usuarios de ese perfil
+## Acciones
+- Mantener Admin y CEO separados; preferir desactivar; confirmar apply-to-all
 
-## No haga
+## Campos
+N/A.
 
-- Compartir la contraseña de Admin
-- Convertir a cada propietario en Admin «por si acaso»
-- Desactivar al último Admin (el producto lo bloquea)
-- Dar acceso de agente (`ROLE_AI`) a personas vía Users
+## Situaciones especiales
+No desactivar el último Admin. Solo perfiles con liquidar pueden liquidar facturas.
 
-## Último Admin / CEO
-
-- No se puede desactivar ni degradar al último **Admin**
-- Conserve al menos una cuenta de propietario
-
-## Dinero
-
-Solo los perfiles con **liquidar dinero** (Finance, Admin, CEO por defecto) pueden liquidar facturas. Office puede crear clientes; liquidar está bloqueado.''',
+## Relacionado
+- Invitar · Matriz
+''',
             'help.users.privacy': '''# Privacidad, RR. HH. y solo lectura
 
-- Los escritorios de **HR** y los expedientes de personas son sensibles. **See** en Human Capital solo si hace falta.
-- **Read only** para invitados, auditores y aprendices que **observan**, no cambian.
-- Las instancias **Demo / formación** pueden usar Read only u Office con libertad — no practique acciones Admin destructivas sobre libros en vivo.
-- El contenido de los registros sigue el acceso de escritorio del registro anfitrión.
+## Resumen del proceso
+Guía administrativa de privacidad — relevante antes de **See** en capital humano (**HR_CANDIDATE_HIRE**).
 
-En caso de duda: **Read only** para observar, **Office** para recepción, Admin solo para trabajo de sistema.''',
+## Acciones
+- Conceder See de RR. HH. solo si hace falta; Read only para observadores
+
+## Campos
+N/A.
+
+## Situaciones especiales
+El contenido sigue el acceso del registro anfitrión.
+
+## Relacionado
+- Escritorio RR. HH. · Qué rol elegir
+''',
             'help.roles.demo': '''# Practicar roles (Demo / formación)
 
-En un **restaurante Demo** o un inquilino de formación:
+## Resumen del proceso
+Guía administrativa en tenants demo — sin processCode SYSTEM de escritorio.
 
-| Objetivo | Perfil |
-|----------|--------|
-| Explorar sin arruinar datos | **Read only** (o el usuario `demo` sembrado) |
-| Pedidos / ofertas | **Office** |
-| Almacén / cocina | **Ops** |
-| Facturas y liquidar | **Finance** |
-| Invitar / cambiar valores por defecto | **CEO** (o Admin para catálogos / Import) |
+## Acciones
+- Usar Read only / Office / Ops / Finance / CEO según el objetivo; desactivar usuarios de práctica
 
-**Consejos**
+## Campos
+N/A.
 
-- Practique primero en Demo; luego los mismos perfiles en la empresa en vivo
-- **Desactive** después los usuarios desechables
-- El cajón de ayuda (**?**) en **Roles** y **Users** muestra estos artículos en contexto''',
-            'content.rail'  : '''# Object Companion (barra de contenido)
+## Situaciones especiales
+Practicar en demo antes de live.
 
-En el registro:
+## Relacionado
+- Qué rol elegir · Roles
+''',
+            'app.search': '''# Búsqueda global (barra superior)
 
-- **Enlace**
-- **Archivo**
-- **Contenido** (nota, ayuda, riesgo, …)''',
-            'asset.desk'    : '''# Escritorio de activos
+## Resumen del proceso
+Sin processCode SYSTEM. La búsqueda encuentra registros en empresas con **See** para abrir el escritorio o documento correcto.
 
-Planta física, vehículos y herramientas (registro AssetBasics).
+## Acciones
+- Escribir en la **búsqueda de la barra superior** — clientes, proveedores, ofertas, pedidos, facturas, catálogo, OC, tareas
+- **Ctrl+K / ⌘K** — saltar a páginas/escritorios (solo navegación)
+- Abrir un resultado — enlace profundo al escritorio o vista de dominio
 
-- **Registro** — nombre, etiqueta, ubicación, responsable, estado
-- **Gestionado por TI** — enlace permanente a un ConfigItem Digital (edite hostname/IP en el escritorio Digital)
-- **Depreciación financiera** — si está marcado, los agentes de Finanzas pueden tomar el activo y contabilizar depreciación en un periodo financiero
-- **El activo requiere mantenimiento** — si está marcado, se espera mantenimiento físico; adjunte el plan del fabricante (XLSX o PDF) en el registro con Object Companion. Más adelante los agentes podrán crear actividades de taller o mantenimiento para alargar la vida del activo
+## Campos
+La caja necesita al menos **2** caracteres (debounce ~300ms). Resultados muestran tipo, título, estado y enlace.
 
-Los flags son marcadores de intención Basics; la contabilización automática de depreciación y las órdenes de mantenimiento se profundizan más adelante.
+## Situaciones especiales
+Los resultados quedan en la **empresa activa**. Se omiten tipos sin **See**. El filtro `q` de una lista de escritorio no es búsqueda global.
 
-''' + HOW_DESKS_ES,
+## Relacionado
+- Panel CEO
+- Mi trabajo / Actividades - AHORA
+''',
+            'setup.wizard': '''# Asistente de configuración
+
+## Resumen del proceso
+Configuración administrativa inicial — sin processCode SYSTEM de escritorio. Recorre Tour → empresa → sitio → banca → Bitcoin → plantilla → fin (por defecto **Iron**).
+
+## Acciones
+- Completar cada paso del asistente y continuar
+- Elegir **nivel de integración Bitcoin** (Ahora no / Dirección única / BTCPay)
+- Finalizar para desbloquear escritorios de la nueva empresa
+
+## Campos
+Empresa/entidad legal, sitio, banca, nivel Bitcoin y nivel de plantilla. El rail primario (moneda de libros) se elige aparte del nivel de recepción Bitcoin.
+
+## Situaciones especiales
+Admin puede restablecer el setup en **Configuración** para demos. Empresas DEMO se quedan en settle mock. Un asistente incompleto bloquea el uso normal de escritorios.
+
+## Relacionado
+- Integraciones · Nivel de integración Bitcoin
+- Configuración
+- [Tour de incorporación](/tour/)
+''',
+            'training.btc.basic': '''# Alfabetización básica en Bitcoin (aviso nivel 1)
+
+## Resumen del proceso
+Lista de comprobación administrativa antes de habilitar recepción Bitcoin — sin processCode SYSTEM de escritorio. Alinea con el nivel de Integraciones **1 — Ahora no**.
+
+## Acciones
+- Leer la lista de alfabetización de este tema
+- Fijar el nivel Bitcoin en **Sistema → Integraciones** (o paso Bitcoin del setup)
+
+## Campos
+Sin campos de formulario en este tema de ayuda. La elección de nivel vive en Integraciones.
+
+## Situaciones especiales
+steakOS **no** custodia claves. El nivel 1 aplaza la recepción en vivo; los libros pueden usar rail primario BTC con settle **mock**. Preferir **BTCPay (nivel 3)** para pagos regulares de clientes.
+
+## Relacionado
+- Nivel de integración Bitcoin · Pagos en vivo (BTCPay)
+- Seguridad avanzada de Bitcoin
+''',
+            'training.btc.security-advanced': '''# Seguridad avanzada de Bitcoin (aviso nivel 2)
+
+## Resumen del proceso
+Lista de seguridad para Bitcoin nivel **2 — Dirección única** (pagos ocasionales). Administrativa — sin processCode SYSTEM de escritorio.
+
+## Acciones
+- Seguir la lista de copia de seguridad / phishing
+- Gestionar el nivel 2 en **Sistema → Integraciones**
+- Planear el salto a **BTCPay (nivel 3)** para Lightning / recepción regular
+
+## Campos
+Una dirección de monedero de software en Integraciones — nunca pegar semillas en steakOS.
+
+## Situaciones especiales
+Reutilizar direcciones y copias débiles pueden causar pérdida permanente. steakOS no observa la cadena en beta — el settle es **marcar pagado manualmente**. Se requiere acuse de formación del CEO al subir a nivel 2/3.
+
+## Relacionado
+- Nivel de integración Bitcoin · Pagos en vivo (BTCPay)
+- Alfabetización básica en Bitcoin
+''',
+            'system.integrations': '''# Hub de integraciones
+
+## Resumen del proceso
+Superficie administrativa para integraciones del operador (Nostr, nivel de recepción Bitcoin, tokens Hermes) — **sin processCode SYSTEM de escritorio**. Las operaciones de pago en vivo continúan en Finance → Payments tras el nivel 3.
+
+## Acciones
+- Configurar nivel de relay **Nostr**, instalar/iniciar, probar
+- Fijar nivel de recepción **Bitcoin** (Ahora no · Dirección única · BTCPay)
+- **Crear / revocar** tokens API de agentes Hermes
+- Probar conexiones antes de activar en vivo
+
+## Campos
+URL / nivel del relay; nivel Bitcoin; claves BTCPay en Finance → Payments; token Hermes `sos_…` (visible una vez).
+
+## Situaciones especiales
+El CEO debe acusar la formación cuando Admin sube Bitcoin a nivel 2 o 3. DEMO no publica Nostr y permanece en settle mock. Nunca pegar `nsec`. Solo Agent Basics en beta cerrada.
+
+## Relacionado
+- Pagos en vivo (BTCPay) · Nivel de integración Bitcoin · Integración Nostr
+- Agente Hermes (tokens API) · Hub de IA / agentes
+''',
+            'integrations.bitcoin': '''# Nivel de integración Bitcoin
+
+## Resumen del proceso
+Control administrativo de cómo la empresa **recibe** Bitcoin — separado del **rail primario de valor**. Sin processCode SYSTEM de escritorio; el flujo de settle es **FIN_INVOICE_SETTLE** en Facturas cuando existe el pago.
+
+## Acciones
+- Fijar el nivel en el paso **Bitcoin** del setup o en **Sistema → Integraciones**
+- Para nivel 3: abrir **Finance → Payments**, probar, activar en vivo
+
+## Campos
+| Nivel | UI | Comportamiento |
+|-------|-----|----------------|
+| DEFERRED | 1 — Ahora no | Sin recepción en vivo; settle mock OK |
+| SINGLE_ADDRESS | 2 — Dirección única | Una dirección + QR; marcar pagado manual |
+| BTCPAY | 3 — BTCPay | BTCPay del operador (Lightning + on-chain) |
+
+## Situaciones especiales
+Admin fija el nivel; acuse de formación del CEO al subir a 2/3; downgrade desde nivel 3 solo Admin. Afirmaciones de marketing Lightning solo en nivel 3.
+
+## Relacionado
+- Pagos en vivo (BTCPay) · Facturas (FIN_INVOICE_SETTLE)
+- Formación básica / avanzada de Bitcoin
+''',
+            'integrations.nostr': '''# Integración Nostr (OI-NOSTR01)
+
+## Resumen del proceso
+Nivel administrativo de relay / auditoría de la empresa para Nostr local privado — sin processCode SYSTEM de escritorio. El login Alby por usuario está en **Seguridad**, no aquí.
+
+## Acciones
+- Fijar nivel **0 / 1 / 2** en Integraciones o paso Nostr del setup
+- **Instalar / iniciar** relay local (proyecto `var/nostr/`, loopback)
+- **Probar** hasta que sea alcanzable
+- Las personas vinculan Alby en **Seguridad → Vincular extensión del navegador**
+
+## Campos
+Nivel y URL del relay de empresa; metadatos opcionales del bot. Nunca pegar `nsec`.
+
+## Situaciones especiales
+DEMO no publica. Sin clave de bot, publicar permanece honesto (`stubbed`). Giftwrap notify de nivel 2 sigue residual.
+
+## Relacionado
+- Iniciar sesión con Alby (Nostr)
+- Hub de integraciones
+''',
+            'currency.catalog': '''# Monedas que usamos
+
+## Resumen del proceso
+Superficie administrativa de Configuración — sin processCode SYSTEM de escritorio. Los códigos habilitados alimentan desplegables en documentos comerciales que luego ejecutan SALES_QUOTE_TO_ORDER / SCM_PO_FULFILL / FIN_INVOICE_SETTLE.
+
+## Acciones
+- Admin: habilitar/deshabilitar códigos en **Configuración → Monedas que usamos**
+- Operadores: elegir códigos habilitados en clientes, proveedores, catálogo y documentos
+
+## Campos
+Lista ISO compartida; conjunto corto de empresa **Monedas que usamos**; moneda de empresa en la barra superior; moneda preferida en socios; moneda de precio en ítems de catálogo.
+
+## Situaciones especiales
+Las escrituras nuevas necesitan un código habilitado; huérfanos legacy siguen legibles. Avisos suaves de desajuste no bloquean guardar.
+
+## Relacionado
+- Escritorio de ventas · Escritorio de compradores · Facturas
+- Rail primario y FX BTC
+''',
+            'finance.payments.live': '''# Pagos en vivo (BTCPay)
+
+## Resumen del proceso
+Configuración administrativa de recepción LIVE para Bitcoin nivel 3. El movimiento de dinero en facturas sigue **FIN_INVOICE_SETTLE**; esta pantalla cablea BTCPay para que el settle pueda ser en vivo en lugar de mock.
+
+## Acciones
+- Fijar nivel **BTCPay** en Integraciones
+- Introducir URL base, store id, API key, secreto de webhook
+- **Probar** y luego activar **en vivo**
+- Emitir factura → pago entrante → pagar en BTCPay → webhook o conciliar
+
+## Campos
+Campos de conexión BTCPay anteriores; interruptor en vivo. Settle fiat/SEPA sigue disponible por separado.
+
+## Situaciones especiales
+Empresas DEMO forzadas a settle mock. steakOS no custodia claves. El salto desde nivel 2 mantiene la dirección ocasional hasta que BTCPay esté en vivo.
+
+## Relacionado
+- Facturas (FIN_INVOICE_SETTLE)
+- Nivel de integración Bitcoin · Tesorería
+''',
+            'finance.ledger': '''# Libro mayor
+
+## Resumen del proceso
+Núcleo financiero orientado a SYSTEM **FIN_LEDGER**: sembrar plan de cuentas, asentar diarios equilibrados, balance de comprobación, marcador de cierre de periodo. No es el escritorio de facturas — los asientos suelen originarse en **FIN_INVOICE_SETTLE** / payables.
+
+## Acciones
+- Sembrar COA si está vacío
+- Asentar diarios equilibrados con herramientas del libro
+- Ejecutar balance de comprobación / marcador de cierre
+
+## Campos
+Códigos de cuenta (únicos por tenant); líneas de diario debe/haber; marcadores de periodo.
+
+## Situaciones especiales
+No inventar saldos a mano — solo a través del servicio de libro. Reglas de asiento malas bloquean settle/pay aguas arriba.
+
+## Relacionado
+- Facturas (FIN_INVOICE_SETTLE) · Reglas de asiento · Tesorería
+''',
+            'finance.postingRules': '''# Reglas de asiento
+
+## Resumen del proceso
+Conjunto de reglas administrativas de la empresa para diarios automáticos — sin processCode SYSTEM de escritorio propio. Se disparan en **FIN_INVOICE_SETTLE**, pago a proveedor y nómina (y bajo Accrual al emitir / abrir payable).
+
+## Acciones
+- Ver reglas / modo / registro de cambios (Admin + CEO)
+- Editar reglas / modo / reseed (solo Admin)
+- Guardar o Reseed — añade al registro y abre ticket Digital IT (`CHANGE`, prefijo `[Finance policy]`)
+
+## Campos
+Modo contable **Cash** vs **Accrual**; mapeos de cuentas por evento en el ruleset.
+
+## Situaciones especiales
+Reglas malas o ausentes **bloquean** settle/pay (`POSTING_RULES_*`) — sin fallback silencioso. Reseed nunca borra diarios.
+
+## Relacionado
+- Libro mayor · Facturas · Tesorería · Nómina
+''',
+            'process.chart': '''# Diagramas de proceso
+
+## Resumen del proceso
+Ayuda de aprendizaje para procesos del catálogo **SYSTEM** (familia **CAP_PROJECT** / catálogo de procesos) — no es process mining. Ejemplo de enlace profundo: `/capability/processes?code=FIN_INVOICE_SETTLE`.
+
+## Acciones
+- Abrir **Capability → Procesos** (por defecto SYSTEM)
+- Seleccionar un proceso (o How-it-works / pastilla Proceso en un escritorio)
+- Pasar el ratón o enfocar con teclado un paso para Qué / Quién / Dónde + trampa; tocar para fijar en touch; Esc cierra
+
+## Campos
+Código de proceso, tipo (SYSTEM/HUMAN/AGENTIC/OTHER), estado (DRAFT/ACTIVE/RETIRED), diagrama Mermaid, consejos de paso.
+
+## Situaciones especiales
+Consejos marcados **planned / stub** son honestos sobre profundidad incompleta. Las semillas SYSTEM son de solo lectura; reseed desde Configuración o Capability.
+
+## Relacionado
+- Hub de capacidades
+- Pastilla Proceso de cualquier escritorio para su processCode
+''',
+            'agents.activate': '''# Agente Hermes (tokens API)
+
+## Resumen del proceso
+Ruta administrativa para conectar un host de agente del operador — se empareja con **AR_HITL_APPROVAL** en el hub de agentes. Sin processCode SYSTEM de escritorio propio en Integraciones.
+
+## Acciones
+- **Sistema → Integraciones → Agentes Hermes** — crear token `sos_…` (visible una vez)
+- Pegarlo en el host con baseUrl de steakOS
+- Smoke: `GET /api/agent/me` y `/api/agent/l0/summary` con Bearer
+- Opcional: el agente propone → **Agentes → HITL** → humano aprueba/rechaza
+
+## Campos
+Token API opaco (una vez); URL base en el host. Sin sesión de navegador para el agente.
+
+## Situaciones especiales
+Solo Agent Basics. Revocar tokens si un host se compromete. Por defecto no dar a los agentes poderes de settle/pay.
+
+## Relacionado
+- Hub de IA / agentes (AR_HITL_APPROVAL)
+- Hub de integraciones
+''',
+            'system.import': '''# Datos e importación
+
+## Resumen del proceso
+Importación CSV administrativa — sin processCode SYSTEM de escritorio. Los packs alimentan maestros usados luego por procesos de Ventas / Compradores / Finanzas.
+
+## Acciones
+- Elegir pack (**Customers**, **Vendors**, **COA**)
+- Previsualizar mapeo y luego confirmar
+- El pack de saldos de apertura es solo vista previa
+
+## Campos
+Columnas CSV mapeadas a campos maestros por pack.
+
+## Situaciones especiales
+Se requiere permiso de importación (típico Admin/CEO). Filas malas fallan en la vista previa — corregir el archivo antes de confirmar.
+
+## Relacionado
+- Escritorio de ventas · Escritorio de compradores · Libro mayor
+''',
+            'system.catalogs': '''# Catálogos de administración
+
+## Resumen del proceso
+Listas administrativas de datos de referencia — sin processCode SYSTEM de escritorio. Catálogos de power-user, no escritorios operativos diarios.
+
+## Acciones
+- Explorar/editar dominios de referencia y tipos de contenido según permiso
+- Preferir escritorios de familia para el trabajo diario de proceso
+
+## Campos
+Varía por recurso de catálogo (países, monedas, tipos de contenido, config legacy).
+
+## Situaciones especiales
+Se requiere permiso de catálogo. Editar datos de referencia puede afectar desplegables en escritorios de proceso.
+
+## Relacionado
+- Configuración · Catálogo de procesos Capability
+''',
+            'app.about': '''# Acerca de
+
+## Resumen del proceso
+Pantalla de metadatos del producto — sin processCode SYSTEM. Muestra línea, SemVer, nivel de plantilla e hitos.
+
+## Acciones
+- Leer información de versión / nivel
+- Seguir la guía de divulgación de seguridad cuando haga falta
+
+## Campos
+Ninguno editable para trabajo de proceso.
+
+## Situaciones especiales
+Los problemas de seguridad van en privado a **security@steakos.org** — no publicaciones públicas de exploits.
+
+## Relacionado
+- Informar de un problema de seguridad
+''',
+            'security.disclose': '''# Informar de un problema de seguridad
+
+## Resumen del proceso
+Entrada administrativa de seguridad — sin processCode SYSTEM de escritorio. Proceso de correo privado para el núcleo steakOS y configs de instalación documentadas.
+
+## Acciones
+- Escribir en privado a **security@steakos.org**
+- No publicar detalles de exploits en issues públicas
+
+## Campos
+N/A en pantalla; incluir versión del producto y repro en el correo.
+
+## Situaciones especiales
+Objetivo de acuse ≤ 3 días laborables; triage ≤ 10. No es certificación CRA. Hosts de terceros BTCPay/Hermes fuera de alcance salvo que el pegamento steakOS filtre datos.
+
+## Relacionado
+- Acerca de steakOS
+''',
+            'app.tour': '''# Tour de incorporación
+
+## Resumen del proceso
+Superficie de aprendizaje del producto en `/tour/` — sin processCode SYSTEM de escritorio. La elección de plantilla aquí se recuerda para el asistente de configuración.
+
+## Acciones
+- Abrir **`/tour/index.html`**
+- Completar módulos del tour; continuar al setup cuando se indique
+
+## Campos
+Progreso del tour / preferencia de plantilla según los almacene la app del tour.
+
+## Situaciones especiales
+El tour es opcional tras la primera ejecución; los escritorios siguen disponibles según el setup y los roles.
+
+## Relacionado
+- Asistente de configuración
+- Panel CEO
+''',
+            'help.tax.ust': '''# Códigos fiscales USt alemanes
+
+## Resumen del proceso
+Paquete administrativo de códigos fiscales (Configuración) usado en líneas de venta/OC durante procesos comerciales — sin processCode SYSTEM de escritorio propio.
+
+## Acciones
+- Habilitar códigos en **Configuración → Códigos fiscales que usamos**
+- Elegir códigos en líneas de oferta / pedido de venta / OC
+
+## Campos
+DE_USt_STD 19%, DE_USt_RED 7%, DE_USt_0, DE_RC, DE_IG, DE_EXPORT (equivalentes AT similares). Régimen: IVA Alemania/Austria vs Kleinunternehmer/Ninguno.
+
+## Situaciones especiales
+El operador es dueño de los tipos — la semilla no es asesoramiento legal. No es presentación UStVA/ELSTER. Código incorrecto = error del operador.
+
+## Relacionado
+- Reverse charge e IG · PDFs comerciales · Pestaña fiscal de Finanzas
+''',
+            'help.tax.reverseCharge': '''# Reverse charge e intracomunitario (IG)
+
+## Resumen del proceso
+Uso de códigos fiscales en líneas de venta dentro de **SALES_QUOTE_TO_ORDER** (y documentos relacionados) cuando aplican reglas RC/IG.
+
+## Acciones
+- Confirmar NIF-IVA válido cuando se requiera
+- Elegir DE_RC / DE_IG (o AT) en la línea
+- Descargar PDF y comprobar el bloque de nota legal
+
+## Campos
+Los códigos RC/IG fuerzan 0% de IVA de salida y añaden frases legales EN+DE en PDF/notas.
+
+## Situaciones especiales
+Sin validación VIES en v1. Presentación/Intrastat/OSS fuera de alcance. Código incorrecto no se auto-corrige.
+
+## Relacionado
+- Códigos fiscales USt alemanes · PDFs comerciales · Escritorio de ventas
+''',
+            'help.docs.pdf': '''# PDFs comerciales (A4)
+
+## Resumen del proceso
+Salida de documentos para procesos comerciales (ofertas, pedidos, OC, facturas) — soporta artefactos de SALES_QUOTE_TO_ORDER, SCM_PO_FULFILL, FIN_INVOICE_SETTLE. No es un processCode SYSTEM propio.
+
+## Acciones
+- **Descargar … PDF** en pantallas de oferta, pedido de venta, OC y factura
+- Imprimir desde el navegador si hace falta
+
+## Campos
+Diseño A4 vertical; tablas multilínea; totales que coinciden con pantallas. Etiquetas siguen el idioma de comunicación del socio.
+
+## Situaciones especiales
+No es XML de factura electrónica ni firma digital. El idioma se congela tras enviar/confirmar/emitir.
+
+## Relacionado
+- Idioma de comunicación del socio · Escritorio de ventas · Facturas
+'''
     ].asImmutable()
 
     private static String humanize(String resource) {
