@@ -120,11 +120,15 @@ function poStatusOf(row) {
   return row?.poStatus || row?.status || null
 }
 
+function soStatusOf(row) {
+  return row?.orderStatus || row?.status || null
+}
+
 /**
  * Edit modal for domain records — same chrome behaviour as RecordViewModal
  * (backdrop, Escape, click-outside, breadcrumb top bar, identity row).
  * Supports Task (core), master-form resources (Vendor, CatalogueItem, …),
- * and DRAFT PurchaseOrder (header + lines).
+ * DRAFT PurchaseOrder and DRAFT SalesOrder (header + lines).
  */
 export default function RecordEditModal({
   open,
@@ -150,21 +154,27 @@ export default function RecordEditModal({
   )
   const isMaster = !!masterSpec
   const isPurchaseOrder = resource === 'PurchaseOrder'
+  const isSalesOrder = resource === 'SalesOrder'
+  const isLineDocument = isPurchaseOrder || isSalesOrder
   const isCatalogueItem = resource === 'CatalogueItem'
   const isOpportunity = pkg === 'sales' && resource === 'Opportunity'
 
   const [form, setForm] = useState(() =>
     isTask ? formFromTaskRow(seed || {}) : masterSpec ? masterSpec.fromRow(seed || {}, masterSpec.empty()) : {},
   )
-  const [lines, setLines] = useState(() => (isPurchaseOrder ? linesFromRecord(seed) : []))
+  const [lines, setLines] = useState(() => (isLineDocument ? linesFromRecord(seed) : []))
   const [recordMeta, setRecordMeta] = useState(seed || null)
   const [agentStatusHint, setAgentStatusHint] = useState(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
-  const poStatus = isPurchaseOrder ? poStatusOf(recordMeta) : null
-  const poEditable = !isPurchaseOrder || poStatus === 'DRAFT'
+  const docStatus = isPurchaseOrder
+    ? poStatusOf(recordMeta)
+    : isSalesOrder
+      ? soStatusOf(recordMeta)
+      : null
+  const docEditable = !isLineDocument || docStatus === 'DRAFT'
   const contentRail =
     showContentRail &&
     open &&
@@ -225,7 +235,7 @@ export default function RecordEditModal({
     if (seed && seed.id === recordId) {
       setForm(spec.fromRow(seed, spec.empty()))
       setRecordMeta(seed)
-      if (isPurchaseOrder) setLines(linesFromRecord(seed))
+      if (isLineDocument) setLines(linesFromRecord(seed))
     }
 
     let cancelled = false
@@ -237,6 +247,9 @@ export default function RecordEditModal({
         if (isOpportunity) {
           // CRM map includes stage, amounts, contact — domains toMap omits several fields.
           row = await salesApi.crm.getOpportunity(recordId)
+        } else if (isSalesOrder) {
+          // Sales API map includes lines; domains get often omits them.
+          row = await salesApi.orders.get(recordId)
         } else {
           row = await domainsApi.get(pkg, resource, recordId)
         }
@@ -255,14 +268,14 @@ export default function RecordEditModal({
         if (cancelled) return
         setRecordMeta(row)
         setForm(spec.fromRow(row, spec.empty()))
-        if (isPurchaseOrder) setLines(linesFromRecord(row))
+        if (isLineDocument) setLines(linesFromRecord(row))
       } catch (e) {
         if (cancelled) return
         setError(e.message || String(e))
         if (seed) {
           setRecordMeta(seed)
           setForm(spec.fromRow(seed, spec.empty()))
-          if (isPurchaseOrder) setLines(linesFromRecord(seed))
+          if (isLineDocument) setLines(linesFromRecord(seed))
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -273,7 +286,20 @@ export default function RecordEditModal({
     return () => {
       cancelled = true
     }
-  }, [open, pkg, resource, recordId, seed, isTask, isMaster, isPurchaseOrder, isOpportunity, masterSpec])
+  }, [
+    open,
+    pkg,
+    resource,
+    recordId,
+    seed,
+    isTask,
+    isMaster,
+    isPurchaseOrder,
+    isSalesOrder,
+    isLineDocument,
+    isOpportunity,
+    masterSpec,
+  ])
 
   useEffect(() => {
     if (!open) return undefined
@@ -307,11 +333,14 @@ export default function RecordEditModal({
 
   const onSubmitMaster = async (e) => {
     e.preventDefault()
-    if (!isMaster || recordId == null || saving || !poEditable) return
+    if (!isMaster || recordId == null || saving || !docEditable) return
     setError(null)
     setSaving(true)
     try {
       const body = masterSpec.toBody(form)
+      // Status transitions for SO/PO go through confirm/cancel APIs — keep header DRAFT here.
+      if (isSalesOrder && body.orderStatus) delete body.orderStatus
+      if (isPurchaseOrder && body.poStatus) delete body.poStatus
       let updated
       try {
         if (isOpportunity) {
@@ -328,7 +357,7 @@ export default function RecordEditModal({
         }
       }
 
-      if (isPurchaseOrder) {
+      if (isLineDocument) {
         const payload = linesToApiPayload(lines)
         if (!payload.length) {
           setError(
@@ -340,7 +369,11 @@ export default function RecordEditModal({
           setSaving(false)
           return
         }
-        updated = await scmApi.purchaseOrders.setLines(recordId, { lines: payload })
+        if (isPurchaseOrder) {
+          updated = await scmApi.purchaseOrders.setLines(recordId, { lines: payload })
+        } else if (isSalesOrder) {
+          updated = await salesApi.orders.setLines(recordId, payload)
+        }
       }
 
       onSaved?.(updated || { id: recordId, ...body })
@@ -362,14 +395,20 @@ export default function RecordEditModal({
   )
   const statusVal = isTask
     ? form.status || null
-    : isPurchaseOrder
-      ? poStatus
+    : isLineDocument
+      ? docStatus
       : null
 
   const fieldsSpecForRender = masterSpec
     ? {
         ...masterSpec,
-        fields: (masterSpec.fields || []).filter((f) => f.name !== 'name'),
+        fields: (masterSpec.fields || []).filter((f) => {
+          if (f.name === 'name') return false
+          // Status shown as badge; confirm/cancel stay on the desk actions.
+          if (isSalesOrder && f.name === 'orderStatus') return false
+          if (isPurchaseOrder && (f.name === 'poStatus' || f.name === 'status')) return false
+          return true
+        }),
       }
     : null
 
@@ -425,14 +464,20 @@ export default function RecordEditModal({
               </button>
             </footer>
           </div>
-        ) : isPurchaseOrder && !poEditable ? (
+        ) : isLineDocument && !docEditable ? (
           <div className="content-view-body">
             <p className="muted">
-              {t('edit.poNotDraft', {
-                defaultValue:
-                  'Only DRAFT purchase orders can be edited here. Status: {{status}}.',
-                status: poStatus || '—',
-              })}
+              {isSalesOrder
+                ? t('edit.soNotDraft', {
+                    defaultValue:
+                      'Only DRAFT sales orders can be edited here. Status: {{status}}.',
+                    status: docStatus || '—',
+                  })
+                : t('edit.poNotDraft', {
+                    defaultValue:
+                      'Only DRAFT purchase orders can be edited here. Status: {{status}}.',
+                    status: docStatus || '—',
+                  })}
             </p>
             {contentRail}
             <footer className="content-view-footer" style={{ marginTop: '1rem' }}>
@@ -703,12 +748,12 @@ export default function RecordEditModal({
                 />
               </div>
 
-              {isPurchaseOrder ? (
+              {isLineDocument ? (
                 <div style={{ marginTop: '1rem' }}>
                   <DocumentLinesEditor
                     lines={lines}
                     onChange={setLines}
-                    forChannel="purchase"
+                    forChannel={isSalesOrder ? 'sale' : 'purchase'}
                     disabled={loading || saving}
                   />
                 </div>

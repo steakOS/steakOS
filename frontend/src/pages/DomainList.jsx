@@ -176,6 +176,10 @@ export default function DomainList() {
         const st = row.poStatus || row.status
         return st === 'DRAFT'
       }
+      if (resource === 'SalesOrder') {
+        const st = row.orderStatus || row.status
+        return st === 'DRAFT'
+      }
       return true
     },
     [supportsModalEdit, resource],

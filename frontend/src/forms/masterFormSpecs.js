@@ -654,45 +654,40 @@ const customerQuoteSpec = {
   ],
 }
 
-/** DRAFT sales order header only — lines shown in RecordView belowFields. */
+/**
+ * DRAFT sales order header + lines in RecordEditModal (confirm/cancel stay on desk).
+ * orderStatus is read for the badge; not written from the modal.
+ */
 const salesOrderSpec = {
   resource: 'SalesOrder',
   packages: ['sales'],
   empty: () => ({
     name: '',
     description: '',
+    currencyCode: 'EUR',
     orderStatus: 'DRAFT',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
     { name: 'description', label: 'Description', type: 'textarea' },
-    {
-      name: 'orderStatus',
-      label: 'Status',
-      type: 'select',
-      required: true,
-      options: [
-        { value: 'DRAFT', label: 'Draft' },
-        { value: 'CONFIRMED', label: 'Confirmed' },
-        { value: 'CLOSED', label: 'Closed' },
-        { value: 'CANCELLED', label: 'Cancelled' },
-      ],
-    },
+    { name: 'currencyCode', label: 'Currency', type: 'currency', required: true },
   ],
   toBody: (f) => ({
     name: f.name,
     description: f.description || null,
-    orderStatus: f.orderStatus || 'DRAFT',
+    currencyCode: f.currencyCode || 'EUR',
   }),
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
     description: row.description || '',
+    currencyCode: row.currencyCode || 'EUR',
     orderStatus: row.orderStatus || 'DRAFT',
   }),
   listColumns: [
     { key: 'orderNumber', label: 'Number', mono: true },
     { key: 'orderStatus', label: 'Status' },
+    { key: 'currencyCode', label: 'Ccy', mono: true },
   ],
 }
 
