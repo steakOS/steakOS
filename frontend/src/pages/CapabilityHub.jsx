@@ -338,13 +338,13 @@ export default function CapabilityHub() {
     [],
   )
 
-  const [portForm, setPortForm] = useState({ name: '', ownerRef: '' })
-  const [progForm, setProgForm] = useState({ name: '', portfolioId: '' })
-  const [projForm, setProjForm] = useState({ name: '', portfolioId: '', programId: '' })
-  const [itemForm, setItemForm] = useState({ name: '', taskId: '' })
-  const [procForm, setProcForm] = useState({ name: '', processCode: '', processKind: 'HUMAN' })
-  const [stepForm, setStepForm] = useState({ name: '', predecessorId: '' })
-  const [procedureForm, setProcedureForm] = useState({ name: '', processId: '', versionLabel: '' })
+  const [portForm, setPortForm] = useState({ name: '', description: '', ownerRef: '' })
+  const [progForm, setProgForm] = useState({ name: '', description: '', portfolioId: '' })
+  const [projForm, setProjForm] = useState({ name: '', description: '', portfolioId: '', programId: '' })
+  const [itemForm, setItemForm] = useState({ name: '', description: '', taskId: '' })
+  const [procForm, setProcForm] = useState({ name: '', description: '', processCode: '', processKind: 'HUMAN' })
+  const [stepForm, setStepForm] = useState({ name: '', description: '', predecessorId: '' })
+  const [procedureForm, setProcedureForm] = useState({ name: '', description: '', processId: '', versionLabel: '' })
   // A7 browser MVP — default to SYSTEM catalogue
   const [kindFilter, setKindFilter] = useState(() => {
     const k = searchParams.get('kind')
@@ -353,12 +353,12 @@ export default function CapabilityHub() {
   })
   const [processMermaid, setProcessMermaid] = useState('')
   const deepCode = searchParams.get('code')
-  const [qualForm, setQualForm] = useState({ name: '', qualityCode: '' })
-  const [qItemForm, setQItemForm] = useState({ name: '', itemKind: 'REQ' })
-  const [chgForm, setChgForm] = useState({ name: '', impactNote: '' })
-  const [cItemForm, setCItemForm] = useState({ name: '' })
-  const [knowForm, setKnowForm] = useState({ name: '', areaCode: '', parentId: '' })
-  const [stdForm, setStdForm] = useState({ name: '', metricCode: '', targetValue: '', unit: '' })
+  const [qualForm, setQualForm] = useState({ name: '', description: '', qualityCode: '' })
+  const [qItemForm, setQItemForm] = useState({ name: '', description: '', itemKind: 'REQ' })
+  const [chgForm, setChgForm] = useState({ name: '', description: '', impactNote: '' })
+  const [cItemForm, setCItemForm] = useState({ name: '', description: '' })
+  const [knowForm, setKnowForm] = useState({ name: '', description: '', areaCode: '', parentId: '' })
+  const [stdForm, setStdForm] = useState({ name: '', description: '', metricCode: '', targetValue: '', unit: '' })
 
   useEffect(() => {
     saveMemory({ tab })
@@ -772,9 +772,9 @@ export default function CapabilityHub() {
   }, [])
 
   const resetCreateForms = useCallback(() => {
-    setPortForm({ name: '', ownerRef: '' })
-    setProgForm({ name: '', portfolioId: '' })
-    setProjForm({ name: '', portfolioId: '', programId: '' })
+    setPortForm({ name: '', description: '', ownerRef: '' })
+    setProgForm({ name: '', description: '', portfolioId: '' })
+    setProjForm({ name: '', description: '', portfolioId: '', programId: '' })
     setPendingPortfolioContent([])
     setPendingProgramContent([])
     setPendingProjectContent([])
@@ -784,12 +784,12 @@ export default function CapabilityHub() {
     setPendingChangeContent([])
     setPendingKnowledgeContent([])
     setPendingStandardContent([])
-    setProcForm({ name: '', processCode: '', processKind: 'HUMAN' })
-    setProcedureForm({ name: '', processId: '', versionLabel: '' })
-    setQualForm({ name: '', qualityCode: '' })
-    setChgForm({ name: '', impactNote: '' })
-    setKnowForm({ name: '', areaCode: '', parentId: '' })
-    setStdForm({ name: '', metricCode: '', targetValue: '', unit: '' })
+    setProcForm({ name: '', description: '', processCode: '', processKind: 'HUMAN' })
+    setProcedureForm({ name: '', description: '', processId: '', versionLabel: '' })
+    setQualForm({ name: '', description: '', qualityCode: '' })
+    setChgForm({ name: '', description: '', impactNote: '' })
+    setKnowForm({ name: '', description: '', areaCode: '', parentId: '' })
+    setStdForm({ name: '', description: '', metricCode: '', targetValue: '', unit: '' })
   }, [])
 
   const collapsedContentRail = useCallback(
@@ -814,18 +814,23 @@ export default function CapabilityHub() {
     if (tab === 'portfolios') {
       return Boolean(
         (portForm.name || '').trim() ||
+          (portForm.description || '').trim() ||
           (portForm.ownerRef || '').trim() ||
           pendingPortfolioContent.length,
       )
     }
     if (tab === 'programs') {
       return Boolean(
-        (progForm.name || '').trim() || progForm.portfolioId || pendingProgramContent.length,
+        (progForm.name || '').trim() ||
+          (progForm.description || '').trim() ||
+          progForm.portfolioId ||
+          pendingProgramContent.length,
       )
     }
     if (tab === 'projects') {
       return Boolean(
         (projForm.name || '').trim() ||
+          (projForm.description || '').trim() ||
           projForm.portfolioId ||
           projForm.programId ||
           pendingProjectContent.length,
@@ -834,8 +839,10 @@ export default function CapabilityHub() {
     if (tab === 'processes') {
       return Boolean(
         (procForm.name || '').trim() ||
+          (procForm.description || '').trim() ||
           (procForm.processCode || '').trim() ||
           (procedureForm.name || '').trim() ||
+          (procedureForm.description || '').trim() ||
           procedureForm.processId ||
           (procedureForm.versionLabel || '').trim() ||
           pendingProcessContent.length ||
@@ -845,6 +852,7 @@ export default function CapabilityHub() {
     if (tab === 'quality') {
       return Boolean(
         (qualForm.name || '').trim() ||
+          (qualForm.description || '').trim() ||
           (qualForm.qualityCode || '').trim() ||
           pendingQualityContent.length,
       )
@@ -852,6 +860,7 @@ export default function CapabilityHub() {
     if (tab === 'changes') {
       return Boolean(
         (chgForm.name || '').trim() ||
+          (chgForm.description || '').trim() ||
           (chgForm.impactNote || '').trim() ||
           pendingChangeContent.length,
       )
@@ -859,9 +868,11 @@ export default function CapabilityHub() {
     if (tab === 'knowledge') {
       return Boolean(
         (knowForm.name || '').trim() ||
+          (knowForm.description || '').trim() ||
           (knowForm.areaCode || '').trim() ||
           knowForm.parentId ||
           (stdForm.name || '').trim() ||
+          (stdForm.description || '').trim() ||
           (stdForm.metricCode || '').trim() ||
           (stdForm.targetValue || '').trim() ||
           (stdForm.unit || '').trim() ||
@@ -1191,7 +1202,7 @@ export default function CapabilityHub() {
                 name: p.name,
               }),
             )
-            setPortForm({ name: '', ownerRef: '' })
+            setPortForm({ name: '', description: '', ownerRef: '' })
             setNewExpanded(false)
           })
         }}
@@ -1202,6 +1213,14 @@ export default function CapabilityHub() {
             required
             value={portForm.name}
             onChange={(e) => setPortForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={portForm.description || ''}
+            onChange={(e) => setPortForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <label>
@@ -1236,6 +1255,7 @@ export default function CapabilityHub() {
           run('prog', async () => {
             const body = {
               name: progForm.name,
+              description: (progForm.description || '').trim() || null,
               portfolioId: progForm.portfolioId || null,
             }
             const p = await capabilityApi.programs.create(body)
@@ -1255,7 +1275,7 @@ export default function CapabilityHub() {
                 name: p.name,
               }),
             )
-            setProgForm({ name: '', portfolioId: '' })
+            setProgForm({ name: '', description: '', portfolioId: '' })
             setNewExpanded(false)
           })
         }}
@@ -1266,6 +1286,14 @@ export default function CapabilityHub() {
             required
             value={progForm.name}
             onChange={(e) => setProgForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={progForm.description || ''}
+            onChange={(e) => setProgForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <label>
@@ -1307,6 +1335,7 @@ export default function CapabilityHub() {
           run('proj', async () => {
             const body = {
               name: projForm.name,
+              description: (projForm.description || '').trim() || null,
               portfolioId: projForm.portfolioId || null,
               programId: projForm.programId || null,
             }
@@ -1321,7 +1350,7 @@ export default function CapabilityHub() {
               setPendingProjectContent([])
             }
             setInfo(t('toast.projectStandalone', { ns: 'common', name: p.name }))
-            setProjForm({ name: '', portfolioId: '', programId: '' })
+            setProjForm({ name: '', description: '', portfolioId: '', programId: '' })
             setNewExpanded(false)
           })
         }}
@@ -1332,6 +1361,14 @@ export default function CapabilityHub() {
             required
             value={projForm.name}
             onChange={(e) => setProjForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={projForm.description || ''}
+            onChange={(e) => setProjForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <div className="form-row-2">
@@ -1407,7 +1444,7 @@ export default function CapabilityHub() {
                 name: p.name,
               }),
             )
-            setProcForm({ name: '', processCode: '', processKind: 'HUMAN' })
+            setProcForm({ name: '', description: '', processCode: '', processKind: 'HUMAN' })
             setNewExpanded(false)
           })
         }}
@@ -1418,6 +1455,14 @@ export default function CapabilityHub() {
             required
             value={procForm.name}
             onChange={(e) => setProcForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={procForm.description || ''}
+            onChange={(e) => setProcForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <label>
@@ -1468,6 +1513,7 @@ export default function CapabilityHub() {
           run('procedure', async () => {
             const created = await capabilityApi.procedures.create({
               name: procedureForm.name,
+              description: (procedureForm.description || '').trim() || null,
               processId: procedureForm.processId || null,
               versionLabel: procedureForm.versionLabel || null,
             })
@@ -1481,7 +1527,7 @@ export default function CapabilityHub() {
               setPendingProcedureContent([])
             }
             setInfo(t('capability.procedureCreated'))
-            setProcedureForm({ name: '', processId: '', versionLabel: '' })
+            setProcedureForm({ name: '', description: '', processId: '', versionLabel: '' })
             setNewExpanded(false)
           })
         }}
@@ -1492,6 +1538,14 @@ export default function CapabilityHub() {
             required
             value={procedureForm.name}
             onChange={(e) => setProcedureForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={procedureForm.description || ''}
+            onChange={(e) => setProcedureForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <label>
@@ -1544,7 +1598,7 @@ export default function CapabilityHub() {
               name: q.name,
             }),
           )
-          setQualForm({ name: '', qualityCode: '' })
+          setQualForm({ name: '', description: '', qualityCode: '' })
           setNewExpanded(false)
         })
       }}
@@ -1555,6 +1609,14 @@ export default function CapabilityHub() {
           required
           value={qualForm.name}
           onChange={(e) => setQualForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={qualForm.description || ''}
+          onChange={(e) => setQualForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <label>
@@ -1603,7 +1665,7 @@ export default function CapabilityHub() {
                 name: c.name,
               }),
             )
-            setChgForm({ name: '', impactNote: '' })
+            setChgForm({ name: '', description: '', impactNote: '' })
             setNewExpanded(false)
           })
         }}
@@ -1614,6 +1676,14 @@ export default function CapabilityHub() {
             required
             value={chgForm.name}
             onChange={(e) => setChgForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={chgForm.description || ''}
+            onChange={(e) => setChgForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <label>
@@ -1649,6 +1719,7 @@ export default function CapabilityHub() {
           run('know', async () => {
             const created = await capabilityApi.knowledge.create({
               name: knowForm.name,
+              description: (knowForm.description || '').trim() || null,
               areaCode: knowForm.areaCode || null,
               parentId: knowForm.parentId || null,
             })
@@ -1662,7 +1733,7 @@ export default function CapabilityHub() {
               setPendingKnowledgeContent([])
             }
             setInfo(t('capability.knowledgeAreaCreated'))
-            setKnowForm({ name: '', areaCode: '', parentId: '' })
+            setKnowForm({ name: '', description: '', areaCode: '', parentId: '' })
             setNewExpanded(false)
           })
         }}
@@ -1673,6 +1744,14 @@ export default function CapabilityHub() {
             required
             value={knowForm.name}
             onChange={(e) => setKnowForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={knowForm.description || ''}
+            onChange={(e) => setKnowForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <div className="form-row-2">
@@ -1726,7 +1805,7 @@ export default function CapabilityHub() {
               setPendingStandardContent([])
             }
             setInfo(t('capability.standardCreated'))
-            setStdForm({ name: '', metricCode: '', targetValue: '', unit: '' })
+            setStdForm({ name: '', description: '', metricCode: '', targetValue: '', unit: '' })
             setNewExpanded(false)
           })
         }}
@@ -1737,6 +1816,14 @@ export default function CapabilityHub() {
             required
             value={stdForm.name}
             onChange={(e) => setStdForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={stdForm.description || ''}
+            onChange={(e) => setStdForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <div className="form-row-2">
@@ -3136,10 +3223,11 @@ export default function CapabilityHub() {
             run('item', async () => {
               await capabilityApi.projects.addItem(selectedProject.id, {
                 name: itemForm.name,
+                description: (itemForm.description || '').trim() || null,
                 taskId: itemForm.taskId || null,
               })
               setInfo(t('capability.itemAdded'))
-              setItemForm({ name: '', taskId: '' })
+              setItemForm({ name: '', description: '', taskId: '' })
               await selectProject(selectedProject)
             })
           }}
@@ -3161,6 +3249,14 @@ export default function CapabilityHub() {
               />
             </label>
           </div>
+          <label>
+            Description
+            <textarea
+              rows={2}
+              value={itemForm.description || ''}
+              onChange={(e) => setItemForm((f) => ({ ...f, description: e.target.value }))}
+            />
+          </label>
           <button type="submit" className="btn btn-primary" disabled={!!busy}>
             <Plus size={16} /> {t('actions.create', { ns: 'common' })}
           </button>
@@ -3256,10 +3352,11 @@ export default function CapabilityHub() {
               run('step', async () => {
                 await capabilityApi.processes.addStep(selectedProcess.id, {
                   name: stepForm.name,
+                  description: (stepForm.description || '').trim() || null,
                   predecessorId: stepForm.predecessorId || null,
                 })
                 setInfo(t('capability.stepAdded'))
-                setStepForm({ name: '', predecessorId: '' })
+                setStepForm({ name: '', description: '', predecessorId: '' })
                 await selectProcess(selectedProcess)
               })
             }}
@@ -3270,6 +3367,14 @@ export default function CapabilityHub() {
                 required
                 value={stepForm.name}
                 onChange={(e) => setStepForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </label>
+            <label>
+              Description
+              <textarea
+                rows={2}
+                value={stepForm.description || ''}
+                onChange={(e) => setStepForm((f) => ({ ...f, description: e.target.value }))}
               />
             </label>
             <label>
@@ -3316,7 +3421,7 @@ export default function CapabilityHub() {
             run('qi', async () => {
               await capabilityApi.qualities.addItem(selectedQuality.id, qItemForm)
               setInfo(t('capability.itemAdded'))
-              setQItemForm({ name: '', itemKind: 'REQ' })
+              setQItemForm({ name: '', description: '', itemKind: 'REQ' })
               await selectQuality(selectedQuality)
             })
           }}
@@ -3341,6 +3446,14 @@ export default function CapabilityHub() {
               </select>
             </label>
           </div>
+          <label>
+            Description
+            <textarea
+              rows={2}
+              value={qItemForm.description || ''}
+              onChange={(e) => setQItemForm((f) => ({ ...f, description: e.target.value }))}
+            />
+          </label>
           <button type="submit" className="btn btn-primary" disabled={!!busy}>
             <Plus size={16} /> {t('actions.create', { ns: 'common' })}
           </button>
@@ -3384,7 +3497,7 @@ export default function CapabilityHub() {
             run('ci', async () => {
               await capabilityApi.changes.addItem(selectedChange.id, cItemForm)
               setInfo(t('capability.lineAdded'))
-              setCItemForm({ name: '' })
+              setCItemForm({ name: '', description: '' })
               await selectChange(selectedChange)
             })
           }}
@@ -3395,6 +3508,14 @@ export default function CapabilityHub() {
               required
               value={cItemForm.name}
               onChange={(e) => setCItemForm((f) => ({ ...f, name: e.target.value }))}
+            />
+          </label>
+          <label>
+            Description
+            <textarea
+              rows={2}
+              value={cItemForm.description || ''}
+              onChange={(e) => setCItemForm((f) => ({ ...f, description: e.target.value }))}
             />
           </label>
           <button type="submit" className="btn btn-primary" disabled={!!busy}>

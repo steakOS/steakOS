@@ -178,6 +178,7 @@ export default function AfterSalesDesk() {
 
   const [levelForm, setLevelForm] = useState({
     name: '',
+    description: '',
     code: '',
     responseHours: '24',
     resolveHours: '72',
@@ -194,6 +195,7 @@ export default function AfterSalesDesk() {
   })
   const [warForm, setWarForm] = useState({
     name: '',
+    description: '',
     customerId: '',
     productName: '',
     catalogueItemId: '',
@@ -621,11 +623,19 @@ export default function AfterSalesDesk() {
     try {
       const s = await aftersalesApi.serviceLevels.create({
         ...levelForm,
+        description: levelForm.description?.trim() || null,
         responseHours: levelForm.responseHours || null,
         resolveHours: levelForm.resolveHours || null,
       })
       setInfo(t('toast.levelCreated', { ns: 'common', name: s.name }))
-      setLevelForm({ name: '', code: '', responseHours: '24', resolveHours: '72', channel: 'ANY' })
+      setLevelForm({
+        name: '',
+        description: '',
+        code: '',
+        responseHours: '24',
+        resolveHours: '72',
+        channel: 'ANY',
+      })
       setLevelPage((pg) => ({ ...pg, offset: 0 }))
       await loadAll()
       setNewExpanded(false)
@@ -715,6 +725,7 @@ export default function AfterSalesDesk() {
       const item = goodsItems.find((x) => String(x.id) === String(warForm.catalogueItemId))
       const w = await aftersalesApi.warranties.create({
         name: warForm.name || undefined,
+        description: warForm.description?.trim() || null,
         customerId: warForm.customerId || undefined,
         customerName: c?.name || undefined,
         productName: warForm.productName || item?.name || undefined,
@@ -722,7 +733,7 @@ export default function AfterSalesDesk() {
         coverStatus: 'ACTIVE',
       })
       setInfo(t('toast.warrantyReg', { ns: 'common', number: w.warrantyNumber }))
-      setWarForm({ name: '', customerId: '', productName: '', catalogueItemId: '' })
+      setWarForm({ name: '', description: '', customerId: '', productName: '', catalogueItemId: '' })
       setWarPage((pg) => ({ ...pg, offset: 0 }))
       setNewExpanded(false)
       await loadAll()
@@ -1012,7 +1023,14 @@ export default function AfterSalesDesk() {
 
 
   const resetCreateForms = useCallback(() => {
-    setLevelForm({ name: '', code: '', responseHours: '24', resolveHours: '72', channel: 'ANY' })
+    setLevelForm({
+      name: '',
+      description: '',
+      code: '',
+      responseHours: '24',
+      resolveHours: '72',
+      channel: 'ANY',
+    })
     setInqForm({
       name: '',
       kind: 'REQUEST',
@@ -1022,7 +1040,7 @@ export default function AfterSalesDesk() {
       serviceLevelId: '',
       description: '',
     })
-    setWarForm({ name: '', customerId: '', productName: '', catalogueItemId: '' })
+    setWarForm({ name: '', description: '', customerId: '', productName: '', catalogueItemId: '' })
     setClaimForm({ warrantyId: '', claimAmountEur: '0', claimAmountSats: '', description: '' })
     setRmaForm({
       customerId: '',
@@ -1039,7 +1057,11 @@ export default function AfterSalesDesk() {
 
   const createDirty = useMemo(() => {
     if (tab === 'levels') {
-      return Boolean((levelForm.name || '').trim() || (levelForm.code || '').trim())
+      return Boolean(
+        (levelForm.name || '').trim() ||
+          (levelForm.code || '').trim() ||
+          (levelForm.description || '').trim(),
+      )
     }
     if (tab === 'inquiries') {
       return Boolean(
@@ -1056,6 +1078,7 @@ export default function AfterSalesDesk() {
     if (tab === 'warranties') {
       return Boolean(
         (warForm.name || '').trim() ||
+          (warForm.description || '').trim() ||
           warForm.customerId ||
           warForm.productName ||
           warForm.catalogueItemId,
@@ -1207,6 +1230,14 @@ export default function AfterSalesDesk() {
                   value={levelForm.name}
                   onChange={(e) => setLevelForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder={t('ph.gold', { ns: 'common' })}
+                />
+              </label>
+              <label>
+                Description
+                <textarea
+                  rows={2}
+                  value={levelForm.description}
+                  onChange={(e) => setLevelForm((f) => ({ ...f, description: e.target.value }))}
                 />
               </label>
               <div className="form-row-2">
@@ -1361,6 +1392,14 @@ export default function AfterSalesDesk() {
                   value={warForm.name}
                   onChange={(e) => setWarForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder={t('aftersales.coverLabel')}
+                />
+              </label>
+              <label>
+                Description
+                <textarea
+                  rows={2}
+                  value={warForm.description}
+                  onChange={(e) => setWarForm((f) => ({ ...f, description: e.target.value }))}
                 />
               </label>
               <CustomerField

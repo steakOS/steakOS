@@ -379,7 +379,13 @@ export default function HrDesk() {
     username: '',
     employmentKind: 'EMPLOYEE',
   })
-  const [candForm, setCandForm] = useState({ name: '', email: '', roleLabel: '', source: '' })
+  const [candForm, setCandForm] = useState({
+    name: '',
+    description: '',
+    email: '',
+    roleLabel: '',
+    source: '',
+  })
   const [timeForm, setTimeForm] = useState({
     hrFileId: '',
     hours: '8',
@@ -395,8 +401,18 @@ export default function HrDesk() {
     amountEur: '1000',
     amountSats: '',
   })
-  const [planForm, setPlanForm] = useState({ name: '', plannedCount: '1', roleLabel: '' })
-  const [goalForm, setGoalForm] = useState({ name: '', hrFileId: '', progress: '0' })
+  const [planForm, setPlanForm] = useState({
+    name: '',
+    description: '',
+    plannedCount: '1',
+    roleLabel: '',
+  })
+  const [goalForm, setGoalForm] = useState({
+    name: '',
+    description: '',
+    hrFileId: '',
+    progress: '0',
+  })
   const [policyForm, setPolicyForm] = useState({
     name: '',
     code: '',
@@ -643,7 +659,7 @@ export default function HrDesk() {
         setPendingCandContent([])
       }
       setInfo(t('toast.namedStatus', { ns: 'common', what: t('labels.customer', { ns: 'common' }), name: c.name, status: c.stage }))
-      setCandForm({ name: '', email: '', roleLabel: '', source: '' })
+      setCandForm({ name: '', description: '', email: '', roleLabel: '', source: '' })
       setNewExpanded(false)
       await loadAll()
       setTab('candidates')
@@ -797,7 +813,7 @@ export default function HrDesk() {
     try {
       const p = await hrApi.plans.create(planForm)
       setInfo(t('toast.planCreated', { ns: 'common', name: p.name, count: p.plannedCount }))
-      setPlanForm({ name: '', plannedCount: '1', roleLabel: '' })
+      setPlanForm({ name: '', description: '', plannedCount: '1', roleLabel: '' })
       setNewExpanded(false)
       await loadAll()
     } catch (err) {
@@ -817,7 +833,7 @@ export default function HrDesk() {
         hrFileId: goalForm.hrFileId || undefined,
       })
       setInfo(t('toast.namedCreated', { ns: 'common', what: t('labels.goal', { ns: 'common' }), name: g.name }))
-      setGoalForm({ name: '', hrFileId: '', progress: '0' })
+      setGoalForm({ name: '', description: '', hrFileId: '', progress: '0' })
       setNewExpanded(false)
       await loadAll()
     } catch (err) {
@@ -867,11 +883,11 @@ export default function HrDesk() {
   }
   const resetCreateForms = useCallback(() => {
     setFileForm({ name: '', email: '', username: '', employmentKind: 'EMPLOYEE' })
-    setCandForm({ name: '', email: '', roleLabel: '', source: '' })
+    setCandForm({ name: '', description: '', email: '', roleLabel: '', source: '' })
     setTimeForm({ hrFileId: '', hours: '8', timeKind: 'WORK', name: '' })
     setPayForm({ period: currentPayrollPeriod(), name: '' })
-    setPlanForm({ name: '', plannedCount: '1', roleLabel: '' })
-    setGoalForm({ name: '', hrFileId: '', progress: '0' })
+    setPlanForm({ name: '', description: '', plannedCount: '1', roleLabel: '' })
+    setGoalForm({ name: '', description: '', hrFileId: '', progress: '0' })
     setPolicyForm({ name: '', code: '', policyKind: 'OTHER', description: '' })
     setPartyForm({ name: '', partyKind: 'BUSINESS_PARTNER', username: '' })
     setPendingFileContent([])
@@ -891,6 +907,7 @@ export default function HrDesk() {
     if (tab === 'candidates') {
       return Boolean(
         (candForm.name || '').trim() ||
+          (candForm.description || '').trim() ||
           (candForm.email || '').trim() ||
           (candForm.roleLabel || '').trim() ||
           (candForm.source || '').trim() ||
@@ -911,13 +928,17 @@ export default function HrDesk() {
     if (tab === 'plans') {
       return Boolean(
         (planForm.name || '').trim() ||
+          (planForm.description || '').trim() ||
           (planForm.roleLabel || '').trim() ||
           planForm.plannedCount !== '1',
       )
     }
     if (tab === 'goals') {
       return Boolean(
-        (goalForm.name || '').trim() || goalForm.hrFileId || goalForm.progress !== '0',
+        (goalForm.name || '').trim() ||
+          (goalForm.description || '').trim() ||
+          goalForm.hrFileId ||
+          goalForm.progress !== '0',
       )
     }
     if (tab === 'policies') {
@@ -1133,6 +1154,14 @@ export default function HrDesk() {
         />
       </label>
       <label>
+        Description
+        <textarea
+          rows={2}
+          value={candForm.description}
+          onChange={(e) => setCandForm((f) => ({ ...f, description: e.target.value }))}
+        />
+      </label>
+      <label>
         Email
         <input
           value={candForm.email}
@@ -1252,6 +1281,14 @@ export default function HrDesk() {
           onChange={(e) => setPlanForm((f) => ({ ...f, name: e.target.value }))}
         />
       </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={planForm.description}
+          onChange={(e) => setPlanForm((f) => ({ ...f, description: e.target.value }))}
+        />
+      </label>
       <div className="form-row-2">
         <label>
           Count
@@ -1282,6 +1319,14 @@ export default function HrDesk() {
           required
           value={goalForm.name}
           onChange={(e) => setGoalForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={goalForm.description}
+          onChange={(e) => setGoalForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <label>

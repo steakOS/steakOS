@@ -348,7 +348,12 @@ export default function FinanceHub() {
   }
 
   const [apForm, setApForm] = useState({ vendorName: '', amountEur: '50', name: '' })
-  const [budForm, setBudForm] = useState({ name: '', amountEur: '1000', period: periodNow() })
+  const [budForm, setBudForm] = useState({
+    name: '',
+    description: '',
+    amountEur: '1000',
+    period: periodNow(),
+  })
   const [payForm, setPayForm] = useState({ personRef: '', amountEur: '100', period: periodNow() })
 
   const run = async (fn, msg) => {
@@ -511,7 +516,7 @@ export default function FinanceHub() {
 
   const resetCreateForms = useCallback(() => {
     setApForm({ vendorName: '', amountEur: '50', name: '' })
-    setBudForm({ name: '', amountEur: '1000', period: periodNow() })
+    setBudForm({ name: '', description: '', amountEur: '1000', period: periodNow() })
     setPayForm({ personRef: '', amountEur: '100', period: periodNow() })
   }, [])
 
@@ -526,6 +531,7 @@ export default function FinanceHub() {
     if (tab === 'budgets') {
       return Boolean(
         (budForm.name || '').trim() ||
+          (budForm.description || '').trim() ||
           budForm.amountEur !== '1000' ||
           budForm.period !== periodNow(),
       )
@@ -701,9 +707,12 @@ export default function FinanceHub() {
         onSubmit={(e) => {
           e.preventDefault()
           run(async () => {
-            const created = await financeOpsApi.budgetCreate(budForm)
+            const created = await financeOpsApi.budgetCreate({
+              ...budForm,
+              description: budForm.description?.trim() || null,
+            })
             await loadTab()
-            setBudForm({ name: '', amountEur: '1000', period: periodNow() })
+            setBudForm({ name: '', description: '', amountEur: '1000', period: periodNow() })
             setNewExpanded(false)
             if (created?.id != null) setSelectedId(String(created.id))
           }, t('finance.budgetSaved'))
@@ -715,6 +724,14 @@ export default function FinanceHub() {
             value={budForm.name}
             onChange={(e) => setBudForm((f) => ({ ...f, name: e.target.value }))}
             placeholder={t('ph.opsBudget', { ns: 'common' })}
+          />
+        </label>
+        <label>
+          {t('wb.description', { ns: 'common', defaultValue: 'Description' })}
+          <textarea
+            rows={2}
+            value={budForm.description}
+            onChange={(e) => setBudForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <label>

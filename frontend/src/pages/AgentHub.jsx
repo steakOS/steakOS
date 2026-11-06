@@ -253,6 +253,7 @@ export default function AgentHub() {
 
   const [agentForm, setAgentForm] = useState({
     name: '',
+    description: '',
     agentKey: '',
     runtimeKind: 'HERMES',
     endpointRef: '',
@@ -261,11 +262,13 @@ export default function AgentHub() {
   })
   const [hiveForm, setHiveForm] = useState({
     name: '',
+    description: '',
     apqcAreaCode: '',
     hiveMasterAgentId: '',
   })
   const [approvalForm, setApprovalForm] = useState({
     name: '',
+    description: '',
     agentId: '',
     riskLevel: 'LOW',
     targetFamily: '',
@@ -546,6 +549,7 @@ export default function AgentHub() {
   const resetCreateForms = useCallback(() => {
     setAgentForm({
       name: '',
+      description: '',
       agentKey: '',
       runtimeKind: 'HERMES',
       endpointRef: '',
@@ -553,9 +557,10 @@ export default function AgentHub() {
       soul: '',
     })
     setPendingAgentContent([])
-    setHiveForm({ name: '', apqcAreaCode: '', hiveMasterAgentId: '' })
+    setHiveForm({ name: '', description: '', apqcAreaCode: '', hiveMasterAgentId: '' })
     setApprovalForm({
       name: '',
+      description: '',
       agentId: '',
       riskLevel: 'LOW',
       targetFamily: '',
@@ -575,6 +580,7 @@ export default function AgentHub() {
     if (tab === 'agents') {
       return Boolean(
         (agentForm.name || '').trim() ||
+          (agentForm.description || '').trim() ||
           (agentForm.agentKey || '').trim() ||
           agentForm.runtimeKind !== 'HERMES' ||
           (agentForm.endpointRef || '').trim() ||
@@ -587,6 +593,7 @@ export default function AgentHub() {
     if (tab === 'hives') {
       return Boolean(
         (hiveForm.name || '').trim() ||
+          (hiveForm.description || '').trim() ||
           (hiveForm.apqcAreaCode || '').trim() ||
           hiveForm.hiveMasterAgentId,
       )
@@ -594,6 +601,7 @@ export default function AgentHub() {
     if (tab === 'hitl') {
       return Boolean(
         (approvalForm.name || '').trim() ||
+          (approvalForm.description || '').trim() ||
           approvalForm.agentId ||
           approvalForm.riskLevel !== 'LOW' ||
           (approvalForm.targetFamily || '').trim() ||
@@ -832,6 +840,14 @@ export default function AgentHub() {
             onChange={(e) => setAgentForm((f) => ({ ...f, name: e.target.value }))}
           />
         </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={agentForm.description}
+            onChange={(e) => setAgentForm((f) => ({ ...f, description: e.target.value }))}
+          />
+        </label>
         <div className="form-row-2">
           <label>
             Key
@@ -956,6 +972,7 @@ export default function AgentHub() {
           run('hive', async () => {
             const created = await agentsApi.hives.create({
               name: hiveForm.name,
+              description: hiveForm.description || null,
               apqcAreaCode: hiveForm.apqcAreaCode || null,
               hiveMasterAgentId: hiveForm.hiveMasterAgentId || null,
             })
@@ -972,6 +989,14 @@ export default function AgentHub() {
             required
             value={hiveForm.name}
             onChange={(e) => setHiveForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={hiveForm.description}
+            onChange={(e) => setHiveForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <div className="form-row-2">
@@ -1020,6 +1045,7 @@ export default function AgentHub() {
           run('sub', async () => {
             const created = await agentsApi.approvals.submit({
               name: approvalForm.name,
+              description: approvalForm.description || null,
               agentId: approvalForm.agentId || null,
               riskLevel: approvalForm.riskLevel,
               targetFamily: approvalForm.targetFamily || null,
@@ -1038,6 +1064,14 @@ export default function AgentHub() {
             required
             value={approvalForm.name}
             onChange={(e) => setApprovalForm((f) => ({ ...f, name: e.target.value }))}
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            rows={2}
+            value={approvalForm.description}
+            onChange={(e) => setApprovalForm((f) => ({ ...f, description: e.target.value }))}
           />
         </label>
         <div className="form-row-2">

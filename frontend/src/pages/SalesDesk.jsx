@@ -280,6 +280,7 @@ export default function SalesDesk() {
   const [quoteForm, setQuoteForm] = useState({
     customerId: '',
     name: '',
+    description: '',
     currencyCode: 'EUR',
   })
   const [quoteWarnings, setQuoteWarnings] = useState([])
@@ -704,7 +705,7 @@ export default function SalesDesk() {
   }, [loadAll])
 
   const resetCreateForms = useCallback(() => {
-    setQuoteForm({ customerId: '', name: '', currencyCode: 'EUR' })
+    setQuoteForm({ customerId: '', name: '', description: '', currencyCode: 'EUR' })
     setQuoteLines(DEFAULT_QUOTE_LINES())
     setPendingQuoteContent([])
     setQuoteWarnings([])
@@ -725,6 +726,7 @@ export default function SalesDesk() {
       return Boolean(
         quoteForm.customerId ||
           (quoteForm.name || '').trim() ||
+          (quoteForm.description || '').trim() ||
           quoteForm.currencyCode !== 'EUR' ||
           pendingQuoteContent.length ||
           linesDirty(quoteLines, DEFAULT_QUOTE_LINES),
@@ -983,6 +985,7 @@ export default function SalesDesk() {
       }
       const body = {
         name: quoteForm.name || undefined,
+        description: quoteForm.description?.trim() || null,
         customerId: quoteForm.customerId || undefined,
         currencyCode: quoteForm.currencyCode || undefined,
         lines,
@@ -990,7 +993,7 @@ export default function SalesDesk() {
       const q = await salesApi.quotes.create(body)
       setQuoteWarnings(Array.isArray(q?.warnings) ? q.warnings : [])
       setQuoteLines(DEFAULT_QUOTE_LINES())
-      setQuoteForm({ customerId: '', name: '', currencyCode: 'EUR' })
+      setQuoteForm({ customerId: '', name: '', description: '', currencyCode: 'EUR' })
       let contentNote = ''
       if (pendingQuoteContent.length) {
         const att = await attachPendingContent(
@@ -1243,6 +1246,14 @@ export default function SalesDesk() {
           value={quoteForm.name}
           onChange={(e) => setQuoteForm((f) => ({ ...f, name: e.target.value }))}
           placeholder={t('wb.autoIfEmpty', { ns: 'common' })}
+        />
+      </label>
+      <label>
+        {t('wb.description', { ns: 'common', defaultValue: 'Description' })}
+        <textarea
+          rows={2}
+          value={quoteForm.description}
+          onChange={(e) => setQuoteForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <label>

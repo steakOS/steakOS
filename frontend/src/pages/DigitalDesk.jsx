@@ -285,28 +285,33 @@ export default function DigitalDesk() {
 
   const [sysForm, setSysForm] = useState({
     name: '',
+    description: '',
     systemKey: '',
     environment: 'PROD',
   })
   const [dataForm, setDataForm] = useState({
     name: '',
+    description: '',
     dataClass: 'INTERNAL',
     retentionDays: '365',
   })
   const [solForm, setSolForm] = useState({
     name: '',
+    description: '',
     integrationType: 'OTHER',
     systemId: '',
     versionLabel: '',
   })
   const [chgForm, setChgForm] = useState({
     name: '',
+    description: '',
     changeKind: 'CHANGE',
     riskLevel: 'LOW',
     cabNote: '',
   })
   const [ciForm, setCiForm] = useState({
     name: '',
+    description: '',
     ciKind: 'HOST',
     hostname: '',
     systemId: '',
@@ -528,11 +533,30 @@ export default function DigitalDesk() {
     }
   }
   const resetCreateForms = useCallback(() => {
-    setSysForm({ name: '', systemKey: '', environment: 'PROD' })
-    setDataForm({ name: '', dataClass: 'INTERNAL', retentionDays: '365' })
-    setSolForm({ name: '', integrationType: 'OTHER', systemId: '', versionLabel: '' })
-    setChgForm({ name: '', changeKind: 'CHANGE', riskLevel: 'LOW', cabNote: '' })
-    setCiForm({ name: '', ciKind: 'HOST', hostname: '', systemId: '', solutionId: '' })
+    setSysForm({ name: '', description: '', systemKey: '', environment: 'PROD' })
+    setDataForm({ name: '', description: '', dataClass: 'INTERNAL', retentionDays: '365' })
+    setSolForm({
+      name: '',
+      description: '',
+      integrationType: 'OTHER',
+      systemId: '',
+      versionLabel: '',
+    })
+    setChgForm({
+      name: '',
+      description: '',
+      changeKind: 'CHANGE',
+      riskLevel: 'LOW',
+      cabNote: '',
+    })
+    setCiForm({
+      name: '',
+      description: '',
+      ciKind: 'HOST',
+      hostname: '',
+      systemId: '',
+      solutionId: '',
+    })
     setTixForm({
       name: '',
       ticketKind: 'INCIDENT',
@@ -552,6 +576,7 @@ export default function DigitalDesk() {
     if (tab === 'systems') {
       return Boolean(
         (sysForm.name || '').trim() ||
+          (sysForm.description || '').trim() ||
           (sysForm.systemKey || '').trim() ||
           sysForm.environment !== 'PROD' ||
           pendingSystemContent.length,
@@ -560,6 +585,7 @@ export default function DigitalDesk() {
     if (tab === 'data') {
       return Boolean(
         (dataForm.name || '').trim() ||
+          (dataForm.description || '').trim() ||
           dataForm.dataClass !== 'INTERNAL' ||
           dataForm.retentionDays !== '365' ||
           pendingDataContent.length,
@@ -568,6 +594,7 @@ export default function DigitalDesk() {
     if (tab === 'solutions') {
       return Boolean(
         (solForm.name || '').trim() ||
+          (solForm.description || '').trim() ||
           solForm.systemId ||
           (solForm.versionLabel || '').trim() ||
           solForm.integrationType !== 'OTHER' ||
@@ -577,6 +604,7 @@ export default function DigitalDesk() {
     if (tab === 'changes') {
       return Boolean(
         (chgForm.name || '').trim() ||
+          (chgForm.description || '').trim() ||
           (chgForm.cabNote || '').trim() ||
           chgForm.changeKind !== 'CHANGE' ||
           chgForm.riskLevel !== 'LOW' ||
@@ -586,6 +614,7 @@ export default function DigitalDesk() {
     if (tab === 'cmdb') {
       return Boolean(
         (ciForm.name || '').trim() ||
+          (ciForm.description || '').trim() ||
           (ciForm.hostname || '').trim() ||
           ciForm.systemId ||
           ciForm.solutionId ||
@@ -780,7 +809,7 @@ export default function DigitalDesk() {
               name: s.name,
             }),
           )
-          setSysForm({ name: '', systemKey: '', environment: 'PROD' })
+          setSysForm({ name: '', description: '', systemKey: '', environment: 'PROD' })
           setNewExpanded(false)
         })
       }}
@@ -791,6 +820,14 @@ export default function DigitalDesk() {
           required
           value={sysForm.name}
           onChange={(e) => setSysForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={sysForm.description}
+          onChange={(e) => setSysForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <div className="form-row-2">
@@ -849,7 +886,7 @@ export default function DigitalDesk() {
               status: d.dataClass,
             }),
           )
-          setDataForm({ name: '', dataClass: 'INTERNAL', retentionDays: '365' })
+          setDataForm({ name: '', description: '', dataClass: 'INTERNAL', retentionDays: '365' })
           setNewExpanded(false)
         })
       }}
@@ -860,6 +897,14 @@ export default function DigitalDesk() {
           required
           value={dataForm.name}
           onChange={(e) => setDataForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={dataForm.description}
+          onChange={(e) => setDataForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <div className="form-row-2">
@@ -918,7 +963,13 @@ export default function DigitalDesk() {
               status: s.lifecycleStatus,
             }),
           )
-          setSolForm({ name: '', integrationType: 'OTHER', systemId: '', versionLabel: '' })
+          setSolForm({
+            name: '',
+            description: '',
+            integrationType: 'OTHER',
+            systemId: '',
+            versionLabel: '',
+          })
           setNewExpanded(false)
         })
       }}
@@ -929,6 +980,14 @@ export default function DigitalDesk() {
           required
           value={solForm.name}
           onChange={(e) => setSolForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={solForm.description}
+          onChange={(e) => setSolForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <div className="form-row-2">
@@ -998,7 +1057,13 @@ export default function DigitalDesk() {
               status: c.changeKind,
             }),
           )
-          setChgForm({ name: '', changeKind: 'CHANGE', riskLevel: 'LOW', cabNote: '' })
+          setChgForm({
+            name: '',
+            description: '',
+            changeKind: 'CHANGE',
+            riskLevel: 'LOW',
+            cabNote: '',
+          })
           setNewExpanded(false)
           setSelectedId(String(c.id))
         })
@@ -1010,6 +1075,14 @@ export default function DigitalDesk() {
           required
           value={chgForm.name}
           onChange={(e) => setChgForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={chgForm.description}
+          onChange={(e) => setChgForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <div className="form-row-2">
@@ -1083,7 +1156,14 @@ export default function DigitalDesk() {
               status: c.ciKind,
             }),
           )
-          setCiForm({ name: '', ciKind: 'HOST', hostname: '', systemId: '', solutionId: '' })
+          setCiForm({
+            name: '',
+            description: '',
+            ciKind: 'HOST',
+            hostname: '',
+            systemId: '',
+            solutionId: '',
+          })
           setNewExpanded(false)
         })
       }}
@@ -1097,6 +1177,14 @@ export default function DigitalDesk() {
           required
           value={ciForm.name}
           onChange={(e) => setCiForm((f) => ({ ...f, name: e.target.value }))}
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          rows={2}
+          value={ciForm.description}
+          onChange={(e) => setCiForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
       <div className="form-row-2">

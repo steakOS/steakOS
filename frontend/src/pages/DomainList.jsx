@@ -197,7 +197,7 @@ export default function DomainList() {
           resource === 'Account' ||
           resource === 'Treasury'
         ? 5 + (lineChild ? 1 : 0)
-        : 4 + (lineChild ? 1 : 0)
+        : 3 + (lineChild ? 1 : 0)
 
   const createMode = createMeta.createMode || 'domain'
   const interaction =
@@ -497,7 +497,7 @@ export default function DomainList() {
       const due = row.deadlineAt ? String(row.deadlineAt).slice(0, 10) : null
       return [row.status || 'OPEN', due].filter(Boolean).join(' · ')
     }
-    return row.description || row.status || '—'
+    return row.status || '—'
   }
 
   const rowMeta = (row) => {
@@ -681,13 +681,10 @@ export default function DomainList() {
         { key: 'assigneeHumanNpub', label: 'Assignee' },
       ]
     }
+    // Description stays on CRUD forms / view modal — not a default list column.
     return [
       idCol,
       nameCol,
-      {
-        key: 'description',
-        label: t('wb.description', { ns: 'common', defaultValue: 'Description' }),
-      },
       { key: 'status', label: t('wb.status', { ns: 'common', defaultValue: 'Status' }) },
     ]
   }, [listColumns, pkg, resource, t])
@@ -962,12 +959,7 @@ export default function DomainList() {
                       )}
                     </>
                   ) : (
-                    <>
-                      <th className="col-priority-low">
-                        {t('wb.description', { ns: 'common' })}
-                      </th>
-                      {thSort('status', t('wb.status', { ns: 'common' }))}
-                    </>
+                    <>{thSort('status', t('wb.status', { ns: 'common' }))}</>
                   )}
                   <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                 </tr>
@@ -1087,16 +1079,13 @@ export default function DomainList() {
                         </td>
                       </>
                     ) : (
-                      <>
-                        <td className="muted col-priority-low">{row.description || '—'}</td>
-                        <td>
-                          {row.status ? (
-                            <span className={statusBadgeClass(row.status)}>{row.status}</span>
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                      </>
+                      <td>
+                        {row.status ? (
+                          <span className={statusBadgeClass(row.status)}>{row.status}</span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                     )}
                     <td style={{ whiteSpace: 'nowrap' }}>{rowActions(row)}</td>
                   </tr>
