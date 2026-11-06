@@ -23,9 +23,11 @@ import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ContentRail from '../components/ContentRail'
+import ContentChannelIcons from '../components/ContentChannelIcons'
 import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
+import { fetchContentMap } from '../utils/contentSummary'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
@@ -137,6 +139,8 @@ export default function GrrcDesk() {
 
   const [risks, setRisks] = useState([])
   const [compliance, setCompliance] = useState([])
+  const [riskContentMap, setRiskContentMap] = useState({})
+  const [compContentMap, setCompContentMap] = useState({})
   const [riskTotal, setRiskTotal] = useState(0)
   const [compTotal, setCompTotal] = useState(0)
   const [selected, setSelected] = useState(null)
@@ -156,6 +160,8 @@ export default function GrrcDesk() {
   const [riskOrder, setRiskOrder] = useState('desc')
   const [compSort, setCompSort] = useState('id')
   const [compOrder, setCompOrder] = useState('desc')
+  const risksRef = useRef([])
+  const complianceRef = useRef([])
 
   const onRiskSortChange = useCallback(({ sort: s, order: o }) => {
     setRiskSort(s || 'id')
@@ -182,16 +188,30 @@ export default function GrrcDesk() {
         grrcApi.risks.list({ max: 50, offset: 0, sort: riskSort, order: riskOrder }),
         grrcApi.compliance.list({ max: 50, offset: 0, sort: compSort, order: compOrder }),
       ])
-      setRisks(r?.items || [])
-      setRiskTotal(r?.total ?? (r?.items || []).length)
-      setCompliance(c?.items || [])
-      setCompTotal(c?.total ?? (c?.items || []).length)
+      const riskItems = r?.items || []
+      const compItems = c?.items || []
+      setRisks(riskItems)
+      setRiskTotal(r?.total ?? riskItems.length)
+      setCompliance(compItems)
+      setCompTotal(c?.total ?? compItems.length)
+      risksRef.current = riskItems
+      complianceRef.current = compItems
+      const [rMap, cMap] = await Promise.all([
+        fetchContentMap(PKG, RISK_RESOURCE, riskItems),
+        fetchContentMap(PKG, COMP_RESOURCE, compItems),
+      ])
+      setRiskContentMap(rMap)
+      setCompContentMap(cMap)
       setSilverGate(false)
     } catch (e) {
       setRisks([])
       setCompliance([])
       setRiskTotal(0)
       setCompTotal(0)
+      risksRef.current = []
+      complianceRef.current = []
+      setRiskContentMap({})
+      setCompContentMap({})
       if (isSilverGate(e)) {
         setSilverGate(true)
         setError(null)
@@ -326,19 +346,26 @@ export default function GrrcDesk() {
     setPendingCompContent([])
   }, [])
 
-  const collapsedContentRail = (resource, id) => (
+  const collapsedContentRail = (resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
       <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
         {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
       </summary>
-      <ContentRail package={PKG} resource={resource} id={id} />
+      <ContentRail package={PKG} resource={resource} id={id} onChanged={onChanged} />
     </details>
   )
 
   getBelowFieldsRef.current = ({ resource, record }) => {
     if (!record?.id) return null
-    if (resource === RISK_RESOURCE || resource === COMP_RESOURCE) {
-      return collapsedContentRail(resource, record.id)
+    if (resource === RISK_RESOURCE) {
+      return collapsedContentRail(resource, record.id, async () =>
+        setRiskContentMap(await fetchContentMap(PKG, RISK_RESOURCE, risksRef.current)),
+      )
+    }
+    if (resource === COMP_RESOURCE) {
+      return collapsedContentRail(resource, record.id, async () =>
+        setCompContentMap(await fetchContentMap(PKG, COMP_RESOURCE, complianceRef.current)),
+      )
     }
     return null
   }
@@ -652,7 +679,7 @@ export default function GrrcDesk() {
       </form>
     )
 
-  const listTable = (cols, emptyKey, emptyDefault, actionKind, sortProps = null) =>
+  const listTable = (cols, emptyKey, emptyDefault, actionKind, sortProps = null, contentMap = {}) =>
     items.length === 0 ? (
       <p className="muted">{t(emptyKey, { defaultValue: emptyDefault })}</p>
     ) : (
@@ -674,6 +701,7 @@ export default function GrrcDesk() {
                   <th key={c.key}>{c.label}</th>
                 ),
               )}
+              <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
               <th>{ACTION_TH(t)}</th>
             </tr>
           </thead>
@@ -688,6 +716,9 @@ export default function GrrcDesk() {
                 {cols.map((c) => (
                   <td key={c.key}>{c.render(row)}</td>
                 ))}
+                <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                  <ContentChannelIcons summary={contentMap[row.id]} />
+                </td>
                 <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   {renderRowActions(actionKind, row)}
                 </td>
@@ -729,6 +760,7 @@ export default function GrrcDesk() {
             'No risks yet. Add one with New to start the register.',
             'risks',
             { sort: riskSort, order: riskOrder, onSortChange: onRiskSortChange },
+            riskContentMap,
           )
         )}
       </>
@@ -762,6 +794,7 @@ export default function GrrcDesk() {
             'No compliance items yet. Register a policy or control with New.',
             'compliance',
             { sort: compSort, order: compOrder, onSortChange: onCompSortChange },
+            compContentMap,
           )
         )}
       </>
@@ -803,7 +836,9 @@ export default function GrrcDesk() {
                 {selected.treatmentNote}
               </p>
             )}
-            {collapsedContentRail(RISK_RESOURCE, selected.id)}
+            {collapsedContentRail(RISK_RESOURCE, selected.id, async () =>
+              setRiskContentMap(await fetchContentMap(PKG, RISK_RESOURCE, risksRef.current)),
+            )}
             <div className="toolbar">
               <button
                 type="button"
@@ -929,7 +964,9 @@ export default function GrrcDesk() {
               </div>
             </div>
             {selected.description && <p>{selected.description}</p>}
-            {collapsedContentRail(COMP_RESOURCE, selected.id)}
+            {collapsedContentRail(COMP_RESOURCE, selected.id, async () =>
+              setCompContentMap(await fetchContentMap(PKG, COMP_RESOURCE, complianceRef.current)),
+            )}
             <div className="toolbar">
               <button
                 type="button"

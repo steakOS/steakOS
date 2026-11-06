@@ -1341,6 +1341,11 @@ export default function DeliveryDesk() {
             render: (o) =>
               o.amountEur != null ? `${Number(o.amountEur).toFixed(2)} EUR` : '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (o) => <ContentChannelIcons summary={orderContentMap[o.id]} />,
+          },
         ]}
         actions={(o) =>
           renderRowActions('delivery', 'ServiceOrder', o, { onView: () => openOrderView(o) })
@@ -1378,6 +1383,7 @@ export default function DeliveryDesk() {
                   order={orderOrder}
                   onSortChange={onOrderSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -1393,6 +1399,9 @@ export default function DeliveryDesk() {
                   <td>{o.amountEur != null ? Number(o.amountEur).toFixed(2) : '—'}</td>
                   <td>
                     <span className={statusClass(o.fulfillStatus)}>{o.fulfillStatus}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={orderContentMap[o.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     {renderRowActions('delivery', 'ServiceOrder', o, {
@@ -1547,7 +1556,6 @@ export default function DeliveryDesk() {
     defaultValue: 'Use + New to create, or View on a row for the full record.',
   })
 
-  void orderContentMap
 
   return (
     <div className="page delivery-desk-page">

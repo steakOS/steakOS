@@ -37,9 +37,11 @@ import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import ContentRail from '../components/ContentRail'
+import ContentChannelIcons from '../components/ContentChannelIcons'
 import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
+import { fetchContentMap } from '../utils/contentSummary'
 import useRecordView from '../hooks/useRecordView'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
@@ -176,6 +178,7 @@ export default function SalesCrmPage() {
     [],
   )
   const [items, setItems] = useState([])
+  const [oppContentMap, setOppContentMap] = useState({})
   const [selected, setSelected] = useState(null)
   const [activities, setActivities] = useState([])
   const [form, setForm] = useState(emptyOpp())
@@ -186,6 +189,7 @@ export default function SalesCrmPage() {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
+  const itemsRef = useRef([])
 
   selectedRef.current = selected
   activitiesRef.current = activities
@@ -218,9 +222,14 @@ export default function SalesCrmPage() {
     try {
       // Full list — no page search / Open·All chips (ADR-050); use top-bar FTS.
       const data = await salesApi.crm.listOpportunities({ max: 50, offset: 0, sort, order })
-      setItems(data?.items || [])
+      const list = data?.items || []
+      setItems(list)
+      itemsRef.current = list
+      setOppContentMap(await fetchContentMap(PKG, RESOURCE, list))
     } catch (e) {
       setItems([])
+      itemsRef.current = []
+      setOppContentMap({})
       setError(friendlyErr(e, t))
     } finally {
       setLoading(false)
@@ -760,6 +769,11 @@ export default function SalesCrmPage() {
                 ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
                 : '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (row) => <ContentChannelIcons summary={oppContentMap[row.id]} />,
+          },
         ]}
         actions={(row) => renderRowActions(row)}
       >
@@ -795,13 +809,14 @@ export default function SalesCrmPage() {
                   order={order}
                   onSortChange={onSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     {t('crm.emptyAll', {
                       defaultValue: 'No opportunities yet. Create one with New.',
                     })}
@@ -826,6 +841,9 @@ export default function SalesCrmPage() {
                     {row.expectedAmountEur != null
                       ? `${Number(row.expectedAmountEur).toFixed(2)} ${row.currencyCode || ''}`
                       : '—'}
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={oppContentMap[row.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>{renderRowActions(row)}</td>
                 </tr>
@@ -929,7 +947,14 @@ export default function SalesCrmPage() {
           <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
             {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
           </summary>
-          <ContentRail package={PKG} resource={RESOURCE} id={opp.id} />
+          <ContentRail
+            package={PKG}
+            resource={RESOURCE}
+            id={opp.id}
+            onChanged={async () =>
+              setOppContentMap(await fetchContentMap(PKG, RESOURCE, itemsRef.current))
+            }
+          />
         </details>
       </>
     )

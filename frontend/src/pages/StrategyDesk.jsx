@@ -27,9 +27,11 @@ import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import ContentRail from '../components/ContentRail'
+import ContentChannelIcons from '../components/ContentChannelIcons'
 import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
+import { fetchContentMap } from '../utils/contentSummary'
 import useRecordView from '../hooks/useRecordView'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
@@ -131,10 +133,14 @@ export default function StrategyDesk() {
 
   const [competitors, setCompetitors] = useState([])
   const [topics, setTopics] = useState([])
+  const [competitorContentMap, setCompetitorContentMap] = useState({})
+  const [topicContentMap, setTopicContentMap] = useState({})
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
+  const competitorsRef = useRef([])
+  const topicsRef = useRef([])
 
   const [competitorForm, setCompetitorForm] = useState(() => competitorMasterSpec.empty())
   const [topicForm, setTopicForm] = useState(() => strategyItemMasterSpec.empty())
@@ -192,22 +198,30 @@ export default function StrategyDesk() {
     getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
   })
 
-  const collapsedContentRail = (pkg, resource, id) => (
+  const collapsedContentRail = (pkg, resource, id, onChanged) => (
     <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
       <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
         {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
       </summary>
-      <ContentRail package={pkg} resource={resource} id={id} />
+      <ContentRail package={pkg} resource={resource} id={id} onChanged={onChanged} />
     </details>
   )
 
   getBelowFieldsRef.current = ({ resource, record }) => {
     if (!record?.id) return null
     if (resource === 'Competitor') {
-      return collapsedContentRail('strategy', 'Competitor', record.id)
+      return collapsedContentRail('strategy', 'Competitor', record.id, async () =>
+        setCompetitorContentMap(
+          await fetchContentMap('strategy', 'Competitor', competitorsRef.current),
+        ),
+      )
     }
     if (resource === 'StrategyItem') {
-      return collapsedContentRail('strategy', 'StrategyItem', record.id)
+      return collapsedContentRail('strategy', 'StrategyItem', record.id, async () =>
+        setTopicContentMap(
+          await fetchContentMap('strategy', 'StrategyItem', topicsRef.current),
+        ),
+      )
     }
     return null
   }
@@ -227,19 +241,29 @@ export default function StrategyDesk() {
         order: topicOrder,
       }),
     ])
-    setCompetitors(c.items || [])
-    setTopics(items.items || [])
+    const comps = c.items || []
+    const tops = items.items || []
+    setCompetitors(comps)
+    setTopics(tops)
+    competitorsRef.current = comps
+    topicsRef.current = tops
+    const [cMap, tMap] = await Promise.all([
+      fetchContentMap('strategy', 'Competitor', comps),
+      fetchContentMap('strategy', 'StrategyItem', tops),
+    ])
+    setCompetitorContentMap(cMap)
+    setTopicContentMap(tMap)
     setCompetitorPage((pg) => ({
       ...pg,
       max: c.max ?? pg.max,
       offset: c.offset ?? pg.offset,
-      total: c.total ?? (c.items || []).length,
+      total: c.total ?? comps.length,
     }))
     setTopicPage((pg) => ({
       ...pg,
       max: items.max ?? pg.max,
       offset: items.offset ?? pg.offset,
-      total: items.total ?? (items.items || []).length,
+      total: items.total ?? tops.length,
     }))
   }, [
     competitorPage.max,
@@ -583,6 +607,11 @@ export default function StrategyDesk() {
           { id: 'name', primary: true, render: (v) => v.name },
           { id: 'type', secondary: true, render: (v) => v.type || '—' },
           { id: 'status', meta: true, render: (v) => v.status || '—' },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (v) => <ContentChannelIcons summary={competitorContentMap[v.id]} />,
+          },
         ]}
         actions={(v) => renderRowActions('Competitor', v)}
       >
@@ -611,6 +640,7 @@ export default function StrategyDesk() {
                   order={competitorOrder}
                   onSortChange={onCompetitorSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -625,6 +655,9 @@ export default function StrategyDesk() {
                   <td>{v.type || '—'}</td>
                   <td>
                     <span className={statusBadgeClass(v.status)}>{v.status || '—'}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={competitorContentMap[v.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     {renderRowActions('Competitor', v)}
@@ -670,6 +703,11 @@ export default function StrategyDesk() {
           },
           { id: 'itemKind', meta: true, render: (v) => v.itemKind || '—' },
           { id: 'status', meta: true, render: (v) => v.status || '—' },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (v) => <ContentChannelIcons summary={topicContentMap[v.id]} />,
+          },
         ]}
         actions={(v) => renderRowActions('StrategyItem', v)}
       >
@@ -700,6 +738,7 @@ export default function StrategyDesk() {
                   order={topicOrder}
                   onSortChange={onTopicSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -722,6 +761,9 @@ export default function StrategyDesk() {
                   <td>{v.itemKind || '—'}</td>
                   <td>
                     <span className={statusBadgeClass(v.status)}>{v.status || '—'}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={topicContentMap[v.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     {renderRowActions('StrategyItem', v)}

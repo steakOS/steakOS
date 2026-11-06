@@ -1908,15 +1908,18 @@ table.data tbody tr.row-selected td:last-child {
   font-weight: 600;
 }
 
-.content-channel-icons {
+.content-channel-icons,
+.content-presence {
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
   vertical-align: middle;
   color: var(--steak-muted, #78716c);
+  min-height: 1.35rem;
 }
 
-.content-channel-icons.empty {
+.content-channel-icons.empty,
+.content-presence.empty {
   opacity: 0.45;
   font-size: 0.85rem;
 }
@@ -1924,6 +1927,25 @@ table.data tbody tr.row-selected td:last-child {
 .content-ch-icon {
   display: inline-flex;
   color: var(--steak-accent, #b45309);
+}
+
+/* List Content column — paperclip pill when companion items exist */
+.content-presence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--steak-accent, #b45309) 14%, transparent);
+  color: var(--steak-accent, #b45309);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+
+.content-presence-count {
+  font-variant-numeric: tabular-nums;
 }
 
 .pending-content-composer {

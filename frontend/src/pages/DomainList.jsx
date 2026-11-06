@@ -34,7 +34,9 @@ import ErrorDialog from '../components/ErrorDialog'
 import RecordViewModal from '../components/RecordViewModal'
 import RecordEditModal from '../components/RecordEditModal'
 import ContentRail from '../components/ContentRail'
+import ContentChannelIcons from '../components/ContentChannelIcons'
 import { isContentCompanionHost } from '../utils/contentCompanion'
+import { fetchContentMap } from '../utils/contentSummary'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import RowActionSlots from '../components/RowActionSlots'
 import DomainParentLines from '../components/DomainParentLines'
@@ -188,16 +190,17 @@ export default function DomainList() {
     })
   }
 
+  const showContentCol = isContentCompanionHost(pkg, resource)
   const tableColSpan = listColumns
-    ? 2 + listColumns.length + (lineChild ? 1 : 0)
+    ? 2 + listColumns.length + (lineChild ? 1 : 0) + (showContentCol ? 1 : 0)
     : resource === 'Task' && pkg === 'core'
-      ? 7 + (lineChild ? 1 : 0)
+      ? 7 + (lineChild ? 1 : 0) + (showContentCol ? 1 : 0)
       : resource === 'Address' ||
           resource === 'Invoice' ||
           resource === 'Account' ||
           resource === 'Treasury'
-        ? 5 + (lineChild ? 1 : 0)
-        : 3 + (lineChild ? 1 : 0)
+        ? 5 + (lineChild ? 1 : 0) + (showContentCol ? 1 : 0)
+        : 3 + (lineChild ? 1 : 0) + (showContentCol ? 1 : 0)
 
   const createMode = createMeta.createMode || 'domain'
   const interaction =
@@ -280,12 +283,28 @@ export default function DomainList() {
     deps: [pkg, resource],
   })
 
+  const [contentMap, setContentMap] = useState({})
+  useEffect(() => {
+    if (!isContentCompanionHost(pkg, resource)) {
+      setContentMap({})
+      return undefined
+    }
+    let cancelled = false
+    fetchContentMap(pkg, resource, items).then((map) => {
+      if (!cancelled) setContentMap(map)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [pkg, resource, items])
+
   useEffect(() => {
     setViewing(null)
     setEditing(null)
     setError(null)
     setErrorDetail(null)
     setExpandedIds(new Set())
+    setContentMap({})
     returnOffsetApplied.current = false
     const params = new URLSearchParams(
       typeof window !== 'undefined' ? window.location.search : '',
@@ -890,6 +909,15 @@ export default function DomainList() {
                   },
                 ]
               : []),
+            ...(showContentCol
+              ? [
+                  {
+                    id: 'content',
+                    priority: 'low',
+                    render: (row) => <ContentChannelIcons summary={contentMap[row.id]} />,
+                  },
+                ]
+              : []),
           ]}
           actions={rowActions}
         >
@@ -961,6 +989,11 @@ export default function DomainList() {
                   ) : (
                     <>{thSort('status', t('wb.status', { ns: 'common' }))}</>
                   )}
+                  {showContentCol ? (
+                    <th className="col-priority-low">
+                      {t('wb.content', { ns: 'common', defaultValue: 'Content' })}
+                    </th>
+                  ) : null}
                   <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                 </tr>
               </thead>
@@ -1087,6 +1120,11 @@ export default function DomainList() {
                         )}
                       </td>
                     )}
+                    {showContentCol ? (
+                      <td className="col-priority-low">
+                        <ContentChannelIcons summary={contentMap[row.id]} />
+                      </td>
+                    ) : null}
                     <td style={{ whiteSpace: 'nowrap' }}>{rowActions(row)}</td>
                   </tr>
                   {lineChild && expandedIds.has(row.id) && (

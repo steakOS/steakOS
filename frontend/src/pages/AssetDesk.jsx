@@ -28,9 +28,11 @@ import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import ContentRail from '../components/ContentRail'
+import ContentChannelIcons from '../components/ContentChannelIcons'
 import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
+import { fetchContentMap } from '../utils/contentSummary'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 
@@ -128,6 +130,7 @@ export default function AssetDesk() {
   }, [])
 
   const [assets, setAssets] = useState([])
+  const [assetContentMap, setAssetContentMap] = useState({})
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -138,6 +141,7 @@ export default function AssetDesk() {
   const [assetSort, setAssetSort] = useState('id')
   const [assetOrder, setAssetOrder] = useState('desc')
   const getBelowFieldsRef = useRef(null)
+  const assetsRef = useRef([])
   const onAssetSortChange = useCallback(({ sort: s, order: o }) => {
     setAssetSort(s || 'id')
     setAssetOrder(o === 'asc' ? 'asc' : 'desc')
@@ -173,7 +177,14 @@ export default function AssetDesk() {
         <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
           {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
         </summary>
-        <ContentRail package={PKG} resource={RESOURCE} id={record.id} />
+        <ContentRail
+          package={PKG}
+          resource={RESOURCE}
+          id={record.id}
+          onChanged={async () =>
+            setAssetContentMap(await fetchContentMap(PKG, RESOURCE, assetsRef.current))
+          }
+        />
       </details>
     )
   }
@@ -186,12 +197,15 @@ export default function AssetDesk() {
       order: assetOrder,
     })
     const items = res.items || res || []
-    setAssets(Array.isArray(items) ? items : [])
+    const list = Array.isArray(items) ? items : []
+    setAssets(list)
+    assetsRef.current = list
+    setAssetContentMap(await fetchContentMap(PKG, RESOURCE, list))
     setAssetPage((pg) => ({
       ...pg,
       max: res.max ?? pg.max,
       offset: res.offset ?? pg.offset,
-      total: res.total ?? (Array.isArray(items) ? items.length : 0),
+      total: res.total ?? list.length,
     }))
   }, [assetPage.max, assetPage.offset, assetSort, assetOrder])
 
@@ -442,6 +456,11 @@ export default function AssetDesk() {
           { id: 'name', primary: true, render: (a) => a.name },
           { id: 'assetTag', secondary: true, render: (a) => a.assetTag || '—' },
           { id: 'status', meta: true, render: (a) => a.status || '—' },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (a) => <ContentChannelIcons summary={assetContentMap[a.id]} />,
+          },
         ]}
         actions={(a) => renderRowActions(a)}
       >
@@ -465,6 +484,7 @@ export default function AssetDesk() {
                   order={assetOrder}
                   onSortChange={onAssetSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -480,6 +500,9 @@ export default function AssetDesk() {
                   <td>{a.location || '—'}</td>
                   <td>
                     <span className={statusBadgeClass(a.status)}>{a.status || '—'}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={assetContentMap[a.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>{renderRowActions(a)}</td>
                 </tr>

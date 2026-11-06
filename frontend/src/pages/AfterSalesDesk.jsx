@@ -160,6 +160,8 @@ export default function AfterSalesDesk() {
   const [inqContentMap, setInqContentMap] = useState({})
   const [claimContentMap, setClaimContentMap] = useState({})
   const [rmaContentMap, setRmaContentMap] = useState({})
+  const [levelContentMap, setLevelContentMap] = useState({})
+  const [warContentMap, setWarContentMap] = useState({})
   const [pendingInqContent, setPendingInqContent] = useState([])
   const [pendingClaimContent, setPendingClaimContent] = useState([])
   const [pendingRmaContent, setPendingRmaContent] = useState([])
@@ -424,14 +426,18 @@ export default function AfterSalesDesk() {
       offset: r.offset ?? pg.offset,
       total: r.total ?? rms.length,
     }))
-    const [im, cm, rm] = await Promise.all([
+    const [im, cm, rm, lm, wm] = await Promise.all([
       fetchContentMap('service', 'Inquiry', inqs),
       fetchContentMap('service', 'Claims', cls),
       fetchContentMap('service', 'Rma', rms),
+      fetchContentMap('service', 'ServiceLevel', lvls),
+      fetchContentMap('service', 'Warranty', wars),
     ])
     setInqContentMap(im)
     setClaimContentMap(cm)
     setRmaContentMap(rm)
+    setLevelContentMap(lm)
+    setWarContentMap(wm)
   }, [
     levelPage.max,
     levelPage.offset,
@@ -1603,6 +1609,11 @@ export default function AfterSalesDesk() {
                             .filter(Boolean)
                             .join(' · ') || '—',
                       },
+                      {
+                        id: 'content',
+                        priority: 'low',
+                        render: (sl) => <ContentChannelIcons summary={levelContentMap[sl.id]} />,
+                      },
                     ]}
                     actions={(sl) => renderRowActions('service', 'ServiceLevel', sl)}
                   >
@@ -1616,6 +1627,9 @@ export default function AfterSalesDesk() {
                               {t('wb.period', { ns: 'common' }) /* Response hours */}
                             </th>
                             <th className="col-priority-low">{t('aftersales.resolve')}</th>
+                            <th className="col-priority-low">
+                              {t('wb.content', { ns: 'common', defaultValue: 'Content' })}
+                            </th>
                             <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
@@ -1633,6 +1647,9 @@ export default function AfterSalesDesk() {
                               </td>
                               <td className="col-priority-low">
                                 {sl.resolveHours != null ? `${sl.resolveHours}h` : '—'}
+                              </td>
+                              <td className="col-priority-low">
+                                <ContentChannelIcons summary={levelContentMap[sl.id]} />
                               </td>
                               <td
                                 style={{ whiteSpace: 'nowrap' }}
@@ -1692,6 +1709,11 @@ export default function AfterSalesDesk() {
                         meta: true,
                         render: (w) => w.productName || '—',
                       },
+                      {
+                        id: 'content',
+                        priority: 'low',
+                        render: (w) => <ContentChannelIcons summary={warContentMap[w.id]} />,
+                      },
                     ]}
                     actions={(w) => renderRowActions('service', 'Warranty', w)}
                   >
@@ -1728,6 +1750,9 @@ export default function AfterSalesDesk() {
                               order={warOrder}
                               onSortChange={onWarSortChange}
                             />
+                            <th className="col-priority-low">
+                              {t('wb.content', { ns: 'common', defaultValue: 'Content' })}
+                            </th>
                             <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
                           </tr>
                         </thead>
@@ -1748,6 +1773,9 @@ export default function AfterSalesDesk() {
                                   {w.coverStatus}
                                   {w.inForce ? ' · in force' : ''}
                                 </span>
+                              </td>
+                              <td className="col-priority-low">
+                                <ContentChannelIcons summary={warContentMap[w.id]} />
                               </td>
                               <td
                                 style={{ whiteSpace: 'nowrap' }}
@@ -2153,6 +2181,16 @@ export default function AfterSalesDesk() {
 
   getBelowFieldsRef.current = ({ resource, record }) => {
     if (!record) return null
+    if (resource === 'ServiceLevel') {
+      return collapsedContentRail('service', 'ServiceLevel', record.id, async () =>
+        setLevelContentMap(await fetchContentMap('service', 'ServiceLevel', levels)),
+      )
+    }
+    if (resource === 'Warranty') {
+      return collapsedContentRail('service', 'Warranty', record.id, async () =>
+        setWarContentMap(await fetchContentMap('service', 'Warranty', warranties)),
+      )
+    }
     if (resource === 'Inquiry') {
       const live = selectedInqRef.current
       const inq = live?.id === record.id ? live : record

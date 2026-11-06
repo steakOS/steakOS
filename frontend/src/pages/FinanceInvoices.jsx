@@ -25,6 +25,7 @@ import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
 import { fetchContentMap } from '../utils/contentSummary'
+import ContentChannelIcons from '../components/ContentChannelIcons'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
@@ -550,6 +551,11 @@ export default function FinanceInvoices() {
             render: (inv) =>
               inv.amountEur != null ? `${Number(inv.amountEur).toFixed(2)} EUR` : '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (inv) => <ContentChannelIcons summary={invoiceContentMap[inv.id]} />,
+          },
         ]}
         actions={(inv) => <ViewButton pkg="finance" resource="Invoice" record={inv} />}
       >
@@ -585,13 +591,14 @@ export default function FinanceInvoices() {
                   order={listOrder}
                   onSortChange={onListSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th />
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     {t('finance.noInvoicesYet')}
                   </td>
                 </tr>
@@ -608,6 +615,9 @@ export default function FinanceInvoices() {
                   <td>{inv.amountEur != null ? Number(inv.amountEur).toFixed(2) : '—'}</td>
                   <td>
                     <span className={statusClass(inv.invoiceStatus)}>{inv.invoiceStatus}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={invoiceContentMap[inv.id]} />
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     <ViewButton pkg="finance" resource="Invoice" record={inv} />
@@ -821,8 +831,6 @@ export default function FinanceInvoices() {
     }
   }
 
-  // silence unused content map (kept for ContentRail refresh parity)
-  void invoiceContentMap
 
   return (
     <div className="page finance-inv-page">

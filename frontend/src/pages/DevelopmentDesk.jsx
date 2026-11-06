@@ -28,9 +28,11 @@ import DeskShell from '../components/desk/DeskShell'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowActionSlots from '../components/RowActionSlots'
 import ContentRail from '../components/ContentRail'
+import ContentChannelIcons from '../components/ContentChannelIcons'
 import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
+import { fetchContentMap } from '../utils/contentSummary'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 
@@ -123,6 +125,7 @@ export default function DevelopmentDesk() {
   }, [])
 
   const [projects, setProjects] = useState([])
+  const [projectContentMap, setProjectContentMap] = useState({})
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -133,6 +136,7 @@ export default function DevelopmentDesk() {
   const [projectSort, setProjectSort] = useState('id')
   const [projectOrder, setProjectOrder] = useState('desc')
   const getBelowFieldsRef = useRef(null)
+  const projectsRef = useRef([])
   const onProjectSortChange = useCallback(({ sort: s, order: o }) => {
     setProjectSort(s || 'id')
     setProjectOrder(o === 'asc' ? 'asc' : 'desc')
@@ -168,7 +172,14 @@ export default function DevelopmentDesk() {
         <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
           {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
         </summary>
-        <ContentRail package={PKG} resource={RESOURCE} id={record.id} />
+        <ContentRail
+          package={PKG}
+          resource={RESOURCE}
+          id={record.id}
+          onChanged={async () =>
+            setProjectContentMap(await fetchContentMap(PKG, RESOURCE, projectsRef.current))
+          }
+        />
       </details>
     )
   }
@@ -181,12 +192,15 @@ export default function DevelopmentDesk() {
       order: projectOrder,
     })
     const items = res.items || res || []
-    setProjects(Array.isArray(items) ? items : [])
+    const list = Array.isArray(items) ? items : []
+    setProjects(list)
+    projectsRef.current = list
+    setProjectContentMap(await fetchContentMap(PKG, RESOURCE, list))
     setProjectPage((pg) => ({
       ...pg,
       max: res.max ?? pg.max,
       offset: res.offset ?? pg.offset,
-      total: res.total ?? (Array.isArray(items) ? items.length : 0),
+      total: res.total ?? list.length,
     }))
   }, [projectPage.max, projectPage.offset, projectSort, projectOrder])
 
@@ -437,6 +451,11 @@ export default function DevelopmentDesk() {
           { id: 'name', primary: true, render: (p) => p.name },
           { id: 'kind', secondary: true, render: (p) => p.projectKind || '—' },
           { id: 'status', meta: true, render: (p) => p.projectStatus || '—' },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (p) => <ContentChannelIcons summary={projectContentMap[p.id]} />,
+          },
         ]}
         actions={(p) => renderRowActions(p)}
       >
@@ -459,6 +478,7 @@ export default function DevelopmentDesk() {
                   order={projectOrder}
                   onSortChange={onProjectSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -472,6 +492,9 @@ export default function DevelopmentDesk() {
                   <td>{p.name}</td>
                   <td>{p.projectKind || '—'}</td>
                   <td>{p.projectStatus || '—'}</td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={projectContentMap[p.id]} />
+                  </td>
                   <td onClick={(e) => e.stopPropagation()}>{renderRowActions(p)}</td>
                 </tr>
               ))}

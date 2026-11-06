@@ -13,39 +13,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Link2, Paperclip, FileText } from 'lucide-react'
+import { Paperclip } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+/** True when companion summary has any LINK / FILE / BODY. */
+export function hasCompanionContent(summary) {
+  if (!summary) return false
+  return Boolean(
+    summary.hasLink ||
+      summary.hasFile ||
+      summary.hasBody ||
+      summary.linkCount > 0 ||
+      summary.fileCount > 0 ||
+      summary.bodyCount > 0 ||
+      summary.total > 0 ||
+      summary.totalCount > 0,
+  )
+}
+
 /**
- * Compact icons for desk list rows when companion content exists.
- * @param {{ hasLink?: boolean, hasFile?: boolean, hasBody?: boolean, linkCount?: number, fileCount?: number, bodyCount?: number }} summary
+ * List “Content” cell — paperclip pill when the host has Object Companion items.
+ * Empty when none (column still reserved left of Actions).
  */
 export default function ContentChannelIcons({ summary, className = '' }) {
-  const { t } = useTranslation('content')
-  if (!summary) return <span className={`content-channel-icons empty ${className}`}>—</span>
-  const hasLink = summary.hasLink || summary.linkCount > 0
-  const hasFile = summary.hasFile || summary.fileCount > 0
-  const hasBody = summary.hasBody || summary.bodyCount > 0
-  if (!hasLink && !hasFile && !hasBody) {
-    return <span className={`content-channel-icons empty ${className}`}>—</span>
+  const { t } = useTranslation(['content', 'common'])
+  if (!hasCompanionContent(summary)) {
+    return <span className={`content-presence empty ${className}`} aria-hidden="true" />
   }
+  const total =
+    (summary.total != null
+      ? Number(summary.total)
+      : summary.totalCount != null
+        ? Number(summary.totalCount)
+        : (Number(summary.linkCount) || 0) +
+          (Number(summary.fileCount) || 0) +
+          (Number(summary.bodyCount) || 0)) || 1
+  const label = t('icons.companion', {
+    ns: 'content',
+    defaultValue: 'Has content',
+  })
   return (
-    <span className={`content-channel-icons ${className}`} title={t('icons.companion')}>
-      {hasLink && (
-        <span className="content-ch-icon" title={t('icons.links', { count: summary.linkCount || 1 })}>
-          <Link2 size={13} />
-        </span>
-      )}
-      {hasFile && (
-        <span className="content-ch-icon" title={t('icons.files', { count: summary.fileCount || 1 })}>
-          <Paperclip size={13} />
-        </span>
-      )}
-      {hasBody && (
-        <span className="content-ch-icon" title={t('icons.notes', { count: summary.bodyCount || 1 })}>
-          <FileText size={13} />
-        </span>
-      )}
+    <span
+      className={`content-presence-pill ${className}`}
+      title={label}
+      aria-label={label}
+    >
+      <Paperclip size={13} aria-hidden />
+      {total > 1 ? <span className="content-presence-count">{total}</span> : null}
     </span>
   )
 }

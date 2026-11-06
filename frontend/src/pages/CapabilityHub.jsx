@@ -182,9 +182,15 @@ export default function CapabilityHub() {
   const [selectedPortfolio, setSelectedPortfolio] = useState(null)
   const [selectedProgram, setSelectedProgram] = useState(null)
   const [selectedProject, setSelectedProject] = useState(null)
+  const [portfolioContentMap, setPortfolioContentMap] = useState({})
+  const [programContentMap, setProgramContentMap] = useState({})
   const [projectContentMap, setProjectContentMap] = useState({})
-  const [, setProcessContentMap] = useState({})
-  const [, setChangeContentMap] = useState({})
+  const [processContentMap, setProcessContentMap] = useState({})
+  const [procedureContentMap, setProcedureContentMap] = useState({})
+  const [qualityContentMap, setQualityContentMap] = useState({})
+  const [changeContentMap, setChangeContentMap] = useState({})
+  const [knowledgeContentMap, setKnowledgeContentMap] = useState({})
+  const [standardContentMap, setStandardContentMap] = useState({})
   const [pendingPortfolioContent, setPendingPortfolioContent] = useState([])
   const [pendingProgramContent, setPendingProgramContent] = useState([])
   const [pendingProjectContent, setPendingProjectContent] = useState([])
@@ -406,6 +412,7 @@ export default function CapabilityHub() {
           offset: port.offset ?? pg.offset,
           total: port.total ?? items.length,
         }))
+        setPortfolioContentMap(await fetchContentMap('capability', 'Portfolio', items))
       } else if (tab === 'programs') {
         const [prog, portPick] = await Promise.all([
           capabilityApi.programs.list({
@@ -425,6 +432,7 @@ export default function CapabilityHub() {
           offset: prog.offset ?? pg.offset,
           total: prog.total ?? items.length,
         }))
+        setProgramContentMap(await fetchContentMap('capability', 'Program', items))
       } else if (tab === 'projects') {
         const [portPick, progPick, proj] = await Promise.all([
           capabilityApi.portfolios.list({ max: 100, offset: 0 }),
@@ -483,6 +491,9 @@ export default function CapabilityHub() {
           total: proceduresRes.total ?? proceduresItems.length,
         }))
         setProcessContentMap(await fetchContentMap('capability', 'Process', pr))
+        setProcedureContentMap(
+          await fetchContentMap('capability', 'Procedure', proceduresItems),
+        )
       } else if (tab === 'quality') {
         const q = await capabilityApi.qualities.list({
           max: qualPage.max,
@@ -490,13 +501,15 @@ export default function CapabilityHub() {
           sort: qualSort,
           order: qualOrder,
         })
-        setQualities(q.items || [])
+        const qItems = q.items || []
+        setQualities(qItems)
         setQualPage((pg) => ({
           ...pg,
           max: q.max ?? pg.max,
           offset: q.offset ?? pg.offset,
-          total: q.total ?? (q.items || []).length,
+          total: q.total ?? qItems.length,
         }))
+        setQualityContentMap(await fetchContentMap('capability', 'Quality', qItems))
       } else if (tab === 'changes') {
         const c = await capabilityApi.changes.list({
           max: chgPage.max,
@@ -528,19 +541,27 @@ export default function CapabilityHub() {
             order: stdOrder,
           }),
         ])
-        setKnowledge(k.items || [])
-        setStandards(s.items || [])
+        const kItems = k.items || []
+        const sItems = s.items || []
+        setKnowledge(kItems)
+        setStandards(sItems)
+        const [kMap, sMap] = await Promise.all([
+          fetchContentMap('capability', 'KnowledgeArea', kItems),
+          fetchContentMap('capability', 'Standard', sItems),
+        ])
+        setKnowledgeContentMap(kMap)
+        setStandardContentMap(sMap)
         setKnowPage((pg) => ({
           ...pg,
           max: k.max ?? pg.max,
           offset: k.offset ?? pg.offset,
-          total: k.total ?? (k.items || []).length,
+          total: k.total ?? kItems.length,
         }))
         setStdPage((pg) => ({
           ...pg,
           max: s.max ?? pg.max,
           offset: s.offset ?? pg.offset,
-          total: s.total ?? (s.items || []).length,
+          total: s.total ?? sItems.length,
         }))
       }
     } catch (e) {
@@ -807,7 +828,30 @@ export default function CapabilityHub() {
   getBelowFieldsRef.current = ({ pkg, resource, record }) => {
     if (pkg !== 'capability' || !record?.id) return null
     if (!CAPABILITY_CONTENT_RESOURCES.has(resource)) return null
-    return collapsedContentRail(resource, record.id)
+    const onChanged = async () => {
+      if (resource === 'Portfolio') {
+        setPortfolioContentMap(await fetchContentMap('capability', 'Portfolio', portfolios))
+      } else if (resource === 'Program') {
+        setProgramContentMap(await fetchContentMap('capability', 'Program', programs))
+      } else if (resource === 'Project') {
+        setProjectContentMap(await fetchContentMap('capability', 'Project', projects))
+      } else if (resource === 'Process') {
+        setProcessContentMap(await fetchContentMap('capability', 'Process', processes))
+      } else if (resource === 'Procedure') {
+        setProcedureContentMap(await fetchContentMap('capability', 'Procedure', procedures))
+      } else if (resource === 'Quality') {
+        setQualityContentMap(await fetchContentMap('capability', 'Quality', qualities))
+      } else if (resource === 'Change') {
+        setChangeContentMap(await fetchContentMap('capability', 'Change', changes))
+      } else if (resource === 'KnowledgeArea') {
+        setKnowledgeContentMap(
+          await fetchContentMap('capability', 'KnowledgeArea', knowledge),
+        )
+      } else if (resource === 'Standard') {
+        setStandardContentMap(await fetchContentMap('capability', 'Standard', standards))
+      }
+    }
+    return collapsedContentRail(resource, record.id, onChanged)
   }
 
   const createDirty = useMemo(() => {
@@ -1911,6 +1955,11 @@ export default function CapabilityHub() {
               <span className={statusClass(p.portfolioStatus)}>{p.portfolioStatus}</span>
             ),
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (p) => <ContentChannelIcons summary={portfolioContentMap[p.id]} />,
+          },
         ]}
         actions={(p) => (
           <>
@@ -1959,6 +2008,7 @@ export default function CapabilityHub() {
                   order={portOrder}
                   onSortChange={onPortSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -1979,6 +2029,9 @@ export default function CapabilityHub() {
                   <td className="col-priority-low">{p.ownerRef || '—'}</td>
                   <td>
                     <span className={statusClass(p.portfolioStatus)}>{p.portfolioStatus}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={portfolioContentMap[p.id]} />
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     {p.portfolioStatus === 'ACTIVE' && (
@@ -2009,7 +2062,7 @@ export default function CapabilityHub() {
               ))}
               {!portfolios.length && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     {t('capability.emptyPortfolios', { defaultValue: 'No portfolios yet' })}
                   </td>
                 </tr>
@@ -2060,6 +2113,11 @@ export default function CapabilityHub() {
               <span className={statusClass(p.programStatus)}>{p.programStatus}</span>
             ),
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (p) => <ContentChannelIcons summary={programContentMap[p.id]} />,
+          },
         ]}
         actions={(p) => renderRowActions('capability', 'Program', p)}
       >
@@ -2084,6 +2142,7 @@ export default function CapabilityHub() {
                   order={progOrder}
                   onSortChange={onProgSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2107,6 +2166,9 @@ export default function CapabilityHub() {
                     <td>
                       <span className={statusClass(p.programStatus)}>{p.programStatus}</span>
                     </td>
+                    <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                      <ContentChannelIcons summary={programContentMap[p.id]} />
+                    </td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                       {renderRowActions('capability', 'Program', p)}
                     </td>
@@ -2114,7 +2176,7 @@ export default function CapabilityHub() {
               ))}
               {!programs.length && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     {t('capability.emptyPrograms', { defaultValue: 'No programs yet' })}
                   </td>
                 </tr>
@@ -2156,6 +2218,11 @@ export default function CapabilityHub() {
             render: (p) => (
               <span className={statusClass(p.projectStatus)}>{p.projectStatus}</span>
             ),
+          },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (p) => <ContentChannelIcons summary={projectContentMap[p.id]} />,
           },
         ]}
         actions={(p) => (
@@ -2405,6 +2472,11 @@ export default function CapabilityHub() {
             priority: 'low',
             render: (p) => p.processCode || '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (p) => <ContentChannelIcons summary={processContentMap[p.id]} />,
+          },
         ]}
         actions={(p) => (
           <>
@@ -2485,6 +2557,7 @@ export default function CapabilityHub() {
                   order={procOrder}
                   onSortChange={onProcSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2507,6 +2580,9 @@ export default function CapabilityHub() {
                   </td>
                   <td>
                     <span className={statusClass(p.processStatus)}>{p.processStatus}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={processContentMap[p.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     {!p.systemLocked && p.processStatus === 'DRAFT' && (
@@ -2555,7 +2631,7 @@ export default function CapabilityHub() {
               ))}
               {!visibleProcesses.length && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     {t('capability.emptyProcesses')}
                   </td>
                 </tr>
@@ -2577,14 +2653,37 @@ export default function CapabilityHub() {
           count: procedurePage.total || procedures.length,
         })}
       </h2>
-      <ul className="muted">
-        {procedures.map((p) => (
-          <li key={p.id}>
-            {p.name}
-            {p.versionLabel ? ` · ${p.versionLabel}` : ''}
-          </li>
-        ))}
-      </ul>
+      <div className="table-wrap">
+        <table className="data">
+          <thead>
+            <tr>
+              <th>{t('wb.name', { ns: 'common' })}</th>
+              <th className="col-priority-low">
+                {t('wb.version', { ns: 'common', defaultValue: 'Version' })}
+              </th>
+              <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {procedures.map((p) => (
+              <tr key={p.id}>
+                <td>{p.name}</td>
+                <td className="col-priority-low">{p.versionLabel || '—'}</td>
+                <td className="col-priority-low">
+                  <ContentChannelIcons summary={procedureContentMap[p.id]} />
+                </td>
+              </tr>
+            ))}
+            {!procedures.length && (
+              <tr>
+                <td colSpan={3} className="muted">
+                  —
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
       <ListPager
         total={procedurePage.total}
         max={procedurePage.max}
@@ -2623,6 +2722,11 @@ export default function CapabilityHub() {
             render: (q) => (
               <span className={statusClass(q.qualityStatus)}>{q.qualityStatus}</span>
             ),
+          },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (q) => <ContentChannelIcons summary={qualityContentMap[q.id]} />,
           },
         ]}
         actions={(q) => (
@@ -2672,6 +2776,7 @@ export default function CapabilityHub() {
                   order={qualOrder}
                   onSortChange={onQualSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2691,6 +2796,9 @@ export default function CapabilityHub() {
                   <td className="mono col-priority-low">{q.qualityCode || '—'}</td>
                   <td>
                     <span className={statusClass(q.qualityStatus)}>{q.qualityStatus}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={qualityContentMap[q.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     {q.qualityStatus === 'ACTIVE' && (
@@ -2749,6 +2857,11 @@ export default function CapabilityHub() {
             render: (c) => (
               <span className={statusClass(c.changeStatus)}>{c.changeStatus}</span>
             ),
+          },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (c) => <ContentChannelIcons summary={changeContentMap[c.id]} />,
           },
         ]}
         actions={(c) => (
@@ -2820,7 +2933,7 @@ export default function CapabilityHub() {
                   order={chgOrder}
                   onSortChange={onChgSortChange}
                 />
-                <th>{ACTION_TH(t)}</th>
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2840,7 +2953,10 @@ export default function CapabilityHub() {
                   <td>
                     <span className={statusClass(c.changeStatus)}>{c.changeStatus}</span>
                   </td>
-                  <td onClick={(e) => e.stopPropagation()}>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={changeContentMap[c.id]} />
+                  </td>
+                  <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     {c.changeStatus === 'PLANNED' && (
                       <button
                         type="button"
@@ -2886,8 +3002,6 @@ export default function CapabilityHub() {
                         <X size={14} />
                       </button>
                     )}
-                  </td>
-                  <td style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     {renderRowActions('capability', 'Change', c)}
                   </td>
                 </tr>
@@ -2938,6 +3052,11 @@ export default function CapabilityHub() {
             priority: 'low',
             render: (k) => k.parentId || '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (k) => <ContentChannelIcons summary={knowledgeContentMap[k.id]} />,
+          },
         ]}
         actions={(k) => renderRowActions('capability', 'KnowledgeArea', k)}
       >
@@ -2974,6 +3093,7 @@ export default function CapabilityHub() {
                   defaultOrder="asc"
                   onSortChange={onKnowSortChange}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -2985,6 +3105,9 @@ export default function CapabilityHub() {
                   <td className="col-priority-low">{k.parentId || '—'}</td>
                   <td>
                     <span className={statusClass(k.areaStatus)}>{k.areaStatus}</span>
+                  </td>
+                  <td className="col-priority-low">
+                    <ContentChannelIcons summary={knowledgeContentMap[k.id]} />
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {renderRowActions('capability', 'KnowledgeArea', k)}
@@ -3029,6 +3152,11 @@ export default function CapabilityHub() {
             priority: 'low',
             render: (s) => s.unit || '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (s) => <ContentChannelIcons summary={standardContentMap[s.id]} />,
+          },
         ]}
         actions={(s) => renderRowActions('capability', 'Standard', s)}
       >
@@ -3052,6 +3180,7 @@ export default function CapabilityHub() {
                 />
                 <th>{t('capability.target')}</th>
                 <th className="col-priority-low">{t('wb.unit', { ns: 'common' })}</th>
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{ACTION_TH(t)}</th>
               </tr>
             </thead>
@@ -3062,6 +3191,9 @@ export default function CapabilityHub() {
                   <td className="mono">{s.metricCode || '—'}</td>
                   <td>{s.targetValue || '—'}</td>
                   <td className="col-priority-low">{s.unit || '—'}</td>
+                  <td className="col-priority-low">
+                    <ContentChannelIcons summary={standardContentMap[s.id]} />
+                  </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {renderRowActions('capability', 'Standard', s)}
                   </td>
@@ -3175,7 +3307,16 @@ export default function CapabilityHub() {
           {' · '}
           <Link to="/capability/projects">{t('capability.tabs.projects')}</Link>
         </p>
-        <ContentRail package="capability" resource="Portfolio" id={selectedPortfolio.id} />
+        <ContentRail
+          package="capability"
+          resource="Portfolio"
+          id={selectedPortfolio.id}
+          onChanged={async () =>
+            setPortfolioContentMap(
+              await fetchContentMap('capability', 'Portfolio', portfolios),
+            )
+          }
+        />
       </div>
     )
   } else if (tab === 'programs' && selectedProgram) {
@@ -3207,7 +3348,14 @@ export default function CapabilityHub() {
         <p className="muted" style={{ marginTop: 12 }}>
           <Link to="/capability/projects">{t('capability.tabs.projects')}</Link>
         </p>
-        <ContentRail package="capability" resource="Program" id={selectedProgram.id} />
+        <ContentRail
+          package="capability"
+          resource="Program"
+          id={selectedProgram.id}
+          onChanged={async () =>
+            setProgramContentMap(await fetchContentMap('capability', 'Program', programs))
+          }
+        />
       </div>
     )
   } else if (tab === 'projects' && selectedProject) {
@@ -3481,7 +3629,14 @@ export default function CapabilityHub() {
             </li>
           ))}
         </ul>
-        <ContentRail package="capability" resource="Quality" id={selectedQuality.id} />
+        <ContentRail
+          package="capability"
+          resource="Quality"
+          id={selectedQuality.id}
+          onChanged={async () =>
+            setQualityContentMap(await fetchContentMap('capability', 'Quality', qualities))
+          }
+        />
       </div>
     )
   } else if (tab === 'changes' && selectedChange) {

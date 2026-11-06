@@ -1638,6 +1638,11 @@ export default function SalesDesk() {
             render: (o) =>
               o.amountEur != null ? `${Number(o.amountEur).toFixed(2)} EUR` : '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (o) => <ContentChannelIcons summary={orderContentMap[o.id]} />,
+          },
         ]}
         actions={(o) =>
           renderRowActions('sales', 'SalesOrder', o, { onView: openOrderView })
@@ -1691,13 +1696,14 @@ export default function SalesDesk() {
                     setOrderPage((pg) => ({ ...pg, offset: 0 }))
                   }}
                 />
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
             <tbody>
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     {t('order.empty')}
                   </td>
                 </tr>
@@ -1715,6 +1721,9 @@ export default function SalesDesk() {
                   </td>
                   <td>
                     <span className={statusClass(o.orderStatus)}>{o.orderStatus}</span>
+                  </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={orderContentMap[o.id]} />
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     {renderRowActions('sales', 'SalesOrder', o, {
@@ -1821,6 +1830,11 @@ export default function SalesDesk() {
             render: (p) => <span className="mono">{p.code || p.sku || '—'}</span>,
           },
           { id: 'type', meta: true, render: (p) => p.nature || 'GOODS' },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (p) => <ContentChannelIcons summary={productContentMap[p.id]} />,
+          },
         ]}
         actions={(p) => renderRowActions('catalogue', 'CatalogueItem', p)}
       >
@@ -1833,6 +1847,7 @@ export default function SalesDesk() {
                 <th className="col-priority-low">
                   {t('wb.type', { ns: 'common', defaultValue: 'Type' })}
                 </th>
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -1846,6 +1861,9 @@ export default function SalesDesk() {
                   <td>{p.name}</td>
                   <td className="mono">{p.code || p.sku || '—'}</td>
                   <td className="muted col-priority-low">{p.nature || 'GOODS'}</td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={productContentMap[p.id]} />
+                  </td>
                   <td
                     style={{ whiteSpace: 'nowrap' }}
                     onClick={(e) => e.stopPropagation()}
@@ -1856,7 +1874,7 @@ export default function SalesDesk() {
               ))}
               {!products.length && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     {t('product.empty')}
                   </td>
                 </tr>
@@ -1898,6 +1916,11 @@ export default function SalesDesk() {
             label: t('wb.unit', { ns: 'common' }),
             render: (s) => s.unit || '—',
           },
+          {
+            id: 'content',
+            priority: 'low',
+            render: (s) => <ContentChannelIcons summary={serviceContentMap[s.id]} />,
+          },
         ]}
         actions={(s) => renderRowActions('catalogue', 'CatalogueItem', s)}
       >
@@ -1908,6 +1931,7 @@ export default function SalesDesk() {
                 <th>{t('wb.name', { ns: 'common' })}</th>
                 <th className="col-priority-low">{t('wb.unit', { ns: 'common' })}</th>
                 <th>EUR</th>
+                <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
             </thead>
@@ -1925,6 +1949,9 @@ export default function SalesDesk() {
                       ? Number(s.listPrice ?? s.listPriceEur).toFixed(2)
                       : '—'}
                   </td>
+                  <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
+                    <ContentChannelIcons summary={serviceContentMap[s.id]} />
+                  </td>
                   <td
                     style={{ whiteSpace: 'nowrap' }}
                     onClick={(e) => e.stopPropagation()}
@@ -1935,7 +1962,7 @@ export default function SalesDesk() {
               ))}
               {!services.length && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     {t('service.empty')}
                   </td>
                 </tr>
