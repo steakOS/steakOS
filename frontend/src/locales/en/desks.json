@@ -797,7 +797,7 @@
     "fieldActDescription": "Note / description"
   },
   "collections": {
-    "title": "Collections",
+    "title": "Collections (Experimental)",
     "subtitle": "Overdue and open receivables — notes, payment promises, and aging. Silver pack / Iron eval.",
     "empty": "No overdue invoices. Queue is empty.",
     "emptyOpen": "No open receivables right now.",
@@ -839,7 +839,7 @@
     "silverRequired": "Collections need the Silver pack (or Iron eval). Upgrade the company template in Settings to use Finance Advanced."
   },
   "match": {
-    "title": "Three-way match",
+    "title": "Three-way match (Experimental)",
     "subtitle": "Match purchase orders, receipts, and payables before AP pay. Silver pack / Iron eval.",
     "empty": "No three-way matches yet. Use Propose from candidates when PO, receipt, and payable are ready.",
     "emptyCandidates": "No matchable candidates. Need a PO with receipt and linked payable that is not already confirmed.",

@@ -213,7 +213,7 @@ export default function FinanceCollectionsPage() {
       <header className="page-header">
         <h1>
           <Scale size={22} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          {t('collections.title', { defaultValue: 'Collections' })}
+          {t('collections.title', { defaultValue: 'Collections (Experimental)' })}
         </h1>
         <p className="page-sub">
           {t('collections.subtitle', {

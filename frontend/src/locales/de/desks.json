@@ -779,7 +779,7 @@
     "fieldActDescription": "Notiz / Beschreibung"
   },
   "collections": {
-    "title": "Inkasso",
+    "title": "Inkasso (Experimental)",
     "subtitle": "Überfällige und offene Forderungen — Notizen, Zahlungsversprechen und Alterung. Silver-Paket / Iron-Eval.",
     "empty": "Keine überfälligen Rechnungen. Warteschlange leer.",
     "emptyOpen": "Derzeit keine offenen Forderungen.",
@@ -821,7 +821,7 @@
     "silverRequired": "Inkasso braucht das Silver-Paket (oder Iron-Eval). Firmen-Vorlage in den Einstellungen hochstufen, um Finance Advanced zu nutzen."
   },
   "match": {
-    "title": "Drei-Wege-Abgleich",
+    "title": "Drei-Wege-Abgleich (Experimental)",
     "subtitle": "Bestellungen, Wareneingänge und Verbindlichkeiten abgleichen vor AP-Zahlung. Silver-Paket / Iron-Eval.",
     "empty": "Noch keine Drei-Wege-Abgleiche. Unter Vorschläge aus Kandidaten vorschlagen, wenn Bestellung, Wareneingang und Verbindlichkeit bereit sind.",
     "emptyCandidates": "Keine abgleichbaren Kandidaten. Braucht Bestellung mit Wareneingang und verknüpfter Verbindlichkeit, die noch nicht bestätigt ist.",

@@ -193,7 +193,7 @@ export default function FinanceMatchPage() {
       <header className="page-header">
         <h1>
           <GitCompareArrows size={22} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          {t('match.title', { defaultValue: 'Three-way match' })}
+          {t('match.title', { defaultValue: 'Three-way match (Experimental)' })}
         </h1>
         <p className="page-sub">
           {t('match.subtitle', {

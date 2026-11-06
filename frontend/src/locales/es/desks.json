@@ -779,7 +779,7 @@
     "fieldActDescription": "Nota / descripción"
   },
   "collections": {
-    "title": "Cobros",
+    "title": "Cobros (Experimental)",
     "subtitle": "Cuentas por cobrar vencidas y abiertas — notas, promesas de pago y antigüedad. Paquete Silver / eval. Iron.",
     "empty": "No hay facturas vencidas. La cola está vacía.",
     "emptyOpen": "No hay cuentas por cobrar abiertas ahora.",
@@ -821,7 +821,7 @@
     "silverRequired": "Cobros requieren el paquete Silver (o eval. Iron). Actualice la plantilla de la empresa en Ajustes para usar Finance Advanced."
   },
   "match": {
-    "title": "Conciliación triangular",
+    "title": "Conciliación triangular (Experimental)",
     "subtitle": "Conciliar pedidos, recepciones y cuentas por pagar antes del pago AP. Paquete Silver / eval. Iron.",
     "empty": "Aún no hay conciliaciones triangulares. Use Proponer desde candidatos cuando el pedido, la recepción y la cuenta por pagar estén listos.",
     "emptyCandidates": "No hay candidatos conciliables. Se necesita un pedido con recepción y cuenta por pagar vinculada que no esté ya confirmada.",
