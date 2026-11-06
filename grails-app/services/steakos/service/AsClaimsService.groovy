@@ -19,6 +19,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.finance.FinanceRevenueService
 import steakos.finance.Invoice
+import steakos.helper.AssignableSupport
 
 /**
  * Warranty claims (APQC 6.3.2). AS2 warranty required; AS3 B Finance credit; AS7 dual amounts.
@@ -61,7 +62,8 @@ class AsClaimsService {
                 needsFieldVisit        : fields.needsFieldVisit as Boolean ?: Boolean.FALSE,
                 receivedAt             : new Date(),
                 claimStatus            : 'RECEIVED',
-                status                 : 'RECEIVED'
+                status                 : 'RECEIVED',
+                *: AssignableSupport.initialPair(fields)
         )
         c.save(failOnError: true, flush: true)
         log.info('Received claim {} for warranty {}', number, w.warrantyNumber)
@@ -197,6 +199,7 @@ class AsClaimsService {
             c.needsFieldVisit = fields.needsFieldVisit as Boolean
         }
         if (fields.containsKey('description')) c.description = fields.description as String
+        AssignableSupport.apply(c, fields)
         c.save(failOnError: true, flush: true)
         return c
     }
@@ -208,7 +211,8 @@ class AsClaimsService {
 
     static final List CLAIM_SORT_FIELDS = [
             'id', 'name', 'claimNumber', 'claimStatus', 'status',
-            'claimAmountEur', 'dateCreated', 'lastUpdated'
+            'claimAmountEur', 'dateCreated', 'lastUpdated',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     /**
@@ -264,7 +268,8 @@ class AsClaimsService {
                 resolution            : c.resolution,
                 financeCreditInvoiceId: c.financeCreditInvoiceId,
                 claimStatus           : c.claimStatus,
-                npubOwner             : c.npubOwner
+                npubOwner             : c.npubOwner,
+                *: AssignableSupport.toMapFragment(c)
         ]
     }
 

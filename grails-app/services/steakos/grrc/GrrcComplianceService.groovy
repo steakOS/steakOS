@@ -17,6 +17,7 @@ package steakos.grrc
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /**
  * GRRCBasics compliance policies light CRUD (G7). Company-scoped via npubOwner.
@@ -36,7 +37,8 @@ class GrrcComplianceService {
                 itemKind      : (fields.itemKind ?: 'POLICY') as String,
                 status        : (fields.status ?: 'DRAFT') as String,
                 ownerName     : fields.ownerName as String,
-                effectiveFrom : parseDate(fields.effectiveFrom)
+                effectiveFrom : parseDate(fields.effectiveFrom),
+                *: AssignableSupport.initialPair(fields)
         )
         c.save(failOnError: true, flush: true)
         return c
@@ -51,6 +53,7 @@ class GrrcComplianceService {
         if (fields.status) c.status = fields.status as String
         if (fields.containsKey('ownerName')) c.ownerName = fields.ownerName as String
         if (fields.containsKey('effectiveFrom')) c.effectiveFrom = parseDate(fields.effectiveFrom)
+        AssignableSupport.apply(c, fields)
         c.save(failOnError: true, flush: true)
         return c
     }
@@ -65,7 +68,8 @@ class GrrcComplianceService {
     ComplianceItem get(Long id, String npubOwner) { load(id, npubOwner) }
 
     static final List COMPLIANCE_SORT_FIELDS = [
-            'id', 'name', 'status', 'itemKind', 'ownerName', 'effectiveFrom'
+            'id', 'name', 'status', 'itemKind', 'ownerName', 'effectiveFrom',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -97,7 +101,8 @@ class GrrcComplianceService {
                 status       : c.status,
                 ownerName    : c.ownerName,
                 effectiveFrom: c.effectiveFrom?.time,
-                npubOwner    : c.npubOwner
+                npubOwner    : c.npubOwner,
+                *: AssignableSupport.toMapFragment(c)
         ]
     }
 

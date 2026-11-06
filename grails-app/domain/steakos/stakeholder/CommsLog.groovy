@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * StakeholderBasics thin: communications log entry (G7).
@@ -32,7 +33,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,subject,channel,status', includeNames = true, includePackage = false)
-class CommsLog implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class CommsLog implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -52,6 +53,7 @@ class CommsLog implements NpubOwned, AccessControl, Classifiable, Attachable, Au
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		stakeholderPartyId nullable: false
 		subject nullable: false, blank: false, maxSize: 255

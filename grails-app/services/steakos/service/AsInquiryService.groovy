@@ -17,6 +17,7 @@ package steakos.service
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /**
  * Customer service cases (APQC 6.2.2–6.2.3, AS1 kind, AS0 selected L4 due dates).
@@ -70,7 +71,8 @@ class AsInquiryService {
                 resolveDueAt  : resolveDue,
                 assignedTo    : fields.assignedTo as String,
                 caseStatus    : 'OPEN',
-                status        : 'OPEN'
+                status        : 'OPEN',
+                *: AssignableSupport.initialPair(fields)
         )
         inq.save(failOnError: true, flush: true)
         log.info('Opened inquiry {} kind={}', number, kind)
@@ -97,6 +99,7 @@ class AsInquiryService {
             inq.serviceLevel = asServiceLevelService.get(fields.serviceLevelId as Long, npubOwner)
         }
         if (fields.containsKey('salesOrderId')) inq.salesOrderId = longOrNull(fields.salesOrderId)
+        AssignableSupport.apply(inq, fields)
         inq.save(failOnError: true, flush: true)
         return inq
     }
@@ -170,7 +173,8 @@ class AsInquiryService {
 
     static final List INQUIRY_SORT_FIELDS = [
             'id', 'name', 'inquiryNumber', 'caseStatus', 'status', 'kind',
-            'customerName', 'priority', 'dateCreated', 'lastUpdated'
+            'customerName', 'priority', 'dateCreated', 'lastUpdated',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     /**
@@ -237,7 +241,8 @@ class AsInquiryService {
                 assignedTo    : inq.assignedTo,
                 caseStatus    : inq.caseStatus,
                 overdue       : overdue,
-                npubOwner     : inq.npubOwner
+                npubOwner     : inq.npubOwner,
+                *: AssignableSupport.toMapFragment(inq)
         ]
     }
 

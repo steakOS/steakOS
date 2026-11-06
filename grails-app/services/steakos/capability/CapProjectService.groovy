@@ -17,6 +17,7 @@ package steakos.capability
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /**
  * Programs & projects (APQC 13.2.2–13.2.3). Flexible PPP (CAP1 A). No money (CAP7 A).
@@ -39,7 +40,8 @@ class CapProjectService {
                 description  : fields.description as String,
                 portfolioId  : portfolioId,
                 programStatus: (fields.programStatus ?: 'ACTIVE') as String,
-                status       : (fields.programStatus ?: 'ACTIVE') as String
+                status       : (fields.programStatus ?: 'ACTIVE') as String,
+                *: AssignableSupport.initialPair(fields)
         )
         prog.save(failOnError: true, flush: true)
         return prog
@@ -63,7 +65,8 @@ class CapProjectService {
                 startDate    : parseDate(fields.startDate),
                 endDate      : parseDate(fields.endDate),
                 projectStatus: (fields.projectStatus ?: 'DRAFT') as String,
-                status       : (fields.projectStatus ?: 'DRAFT') as String
+                status       : (fields.projectStatus ?: 'DRAFT') as String,
+                *: AssignableSupport.initialPair(fields)
         )
         proj.save(failOnError: true, flush: true)
         return proj
@@ -138,11 +141,13 @@ class CapProjectService {
     }
 
     static final List PROJECT_SORT_FIELDS = [
-            'id', 'name', 'projectStatus', 'status', 'startDate', 'endDate'
+            'id', 'name', 'projectStatus', 'status', 'startDate', 'endDate',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     static final List PROGRAM_SORT_FIELDS = [
-            'id', 'name', 'programStatus', 'status'
+            'id', 'name', 'programStatus', 'status',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -208,7 +213,8 @@ class CapProjectService {
                 startDate    : p.startDate,
                 endDate      : p.endDate,
                 projectStatus: p.projectStatus,
-                npubOwner    : p.npubOwner
+                npubOwner    : p.npubOwner,
+                *: AssignableSupport.toMapFragment(p)
         ]
     }
 
@@ -220,7 +226,8 @@ class CapProjectService {
                 description  : p.description,
                 portfolioId  : p.portfolioId,
                 programStatus: p.programStatus,
-                npubOwner    : p.npubOwner
+                npubOwner    : p.npubOwner,
+                *: AssignableSupport.toMapFragment(p)
         ]
     }
 

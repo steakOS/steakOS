@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Thin customer-facing return / RMA case (APQC 6.2.4, AS4 B).
@@ -32,7 +33,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'rmaNumber')
 @ToString(includes = 'rmaNumber,rmaStatus', includeNames = true, includePackage = false)
-class Rma implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class Rma implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -71,6 +72,7 @@ class Rma implements NpubOwned, AccessControl, Classifiable, Attachable, Auditab
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 
 		name nullable: false, blank: false, maxSize: 255

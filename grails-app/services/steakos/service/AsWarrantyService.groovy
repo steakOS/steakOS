@@ -17,6 +17,7 @@ package steakos.service
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /**
  * Warranty cover registration (APQC 6.3.1).
@@ -52,7 +53,8 @@ class AsWarrantyService {
                 validFrom      : from,
                 validTo        : to,
                 coverStatus    : cover,
-                status         : cover
+                status         : cover,
+                *: AssignableSupport.initialPair(fields)
         )
         w.save(failOnError: true, flush: true)
         log.info('Registered warranty {}', number)
@@ -76,6 +78,7 @@ class AsWarrantyService {
         if (fields.containsKey('salesOrderId')) w.salesOrderId = longOrNull(fields.salesOrderId)
         if (fields.containsKey('validFrom')) w.validFrom = parseDate(fields.validFrom)
         if (fields.containsKey('validTo')) w.validTo = parseDate(fields.validTo)
+        AssignableSupport.apply(w, fields)
         w.save(failOnError: true, flush: true)
         return w
     }
@@ -107,7 +110,8 @@ class AsWarrantyService {
 
     static final List WARRANTY_SORT_FIELDS = [
             'id', 'name', 'warrantyNumber', 'coverStatus', 'status',
-            'customerName', 'productName', 'dateCreated', 'lastUpdated'
+            'customerName', 'productName', 'dateCreated', 'lastUpdated',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     /**
@@ -171,7 +175,8 @@ class AsWarrantyService {
                 validTo       : w.validTo,
                 coverStatus   : w.coverStatus,
                 inForce       : isInForce(w),
-                npubOwner     : w.npubOwner
+                npubOwner     : w.npubOwner,
+                *: AssignableSupport.toMapFragment(w)
         ]
     }
 

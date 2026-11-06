@@ -25,6 +25,7 @@ import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.NostrPublishable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Customer service case spine (APQC 6.2.2 / 6.2.3, AS1: kind discriminates complaint).
@@ -32,7 +33,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'inquiryNumber')
 @ToString(includes = 'inquiryNumber,kind,caseStatus', includeNames = true, includePackage = false)
-class Inquiry implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, NostrPublishable, Serializable {
+class Inquiry implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, NostrPublishable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -70,6 +71,7 @@ class Inquiry implements NpubOwned, AccessControl, Classifiable, Attachable, Aud
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		DomainTraitConstraints.applyNostrPublishable(delegate)
 

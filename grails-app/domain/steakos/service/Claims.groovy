@@ -25,6 +25,7 @@ import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.Versioned
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Warranty claim (APQC 6.3.2). AS2: warranty required. AS7: dual EUR + sats.
@@ -32,7 +33,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'claimNumber')
 @ToString(includes = 'claimNumber,claimStatus', includeNames = true, includePackage = false)
-class Claims implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Versioned, Serializable {
+class Claims implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Versioned, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -69,6 +70,7 @@ class Claims implements NpubOwned, AccessControl, Classifiable, Attachable, Audi
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		DomainTraitConstraints.applyVersioned(delegate)
 

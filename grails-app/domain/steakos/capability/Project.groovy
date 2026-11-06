@@ -23,6 +23,7 @@ import steakos.traits.AccessControl
 import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Project / initiative (APQC 13.2.3). May stand alone (CAP1 A). No money fields (CAP7 A).
@@ -30,7 +31,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,projectStatus', includeNames = true, includePackage = false)
-class Project implements NpubOwned, AccessControl, Classifiable, Attachable, Serializable {
+class Project implements NpubOwned, AccessControl, Classifiable, Attachable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -49,6 +50,7 @@ class Project implements NpubOwned, AccessControl, Classifiable, Attachable, Ser
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 4000
 		programId nullable: true

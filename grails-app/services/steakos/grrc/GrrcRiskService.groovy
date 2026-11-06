@@ -19,6 +19,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.events.DomainEventBusService
 import steakos.events.DomainEventNames
+import steakos.helper.AssignableSupport
 
 /**
  * GRRCBasics risk register CRUD (G7). Company-scoped via npubOwner.
@@ -41,7 +42,8 @@ class GrrcRiskService {
                 severity     : (fields.severity ?: 'MEDIUM') as String,
                 likelihood   : (fields.likelihood ?: 'MEDIUM') as String,
                 ownerName    : fields.ownerName as String,
-                treatmentNote: fields.treatmentNote as String
+                treatmentNote: fields.treatmentNote as String,
+                *: AssignableSupport.initialPair(fields)
         )
         r.save(failOnError: true, flush: true)
         publishOpened(r)
@@ -58,6 +60,7 @@ class GrrcRiskService {
         if (fields.likelihood) r.likelihood = fields.likelihood as String
         if (fields.containsKey('ownerName')) r.ownerName = fields.ownerName as String
         if (fields.containsKey('treatmentNote')) r.treatmentNote = fields.treatmentNote as String
+        AssignableSupport.apply(r, fields)
         r.save(failOnError: true, flush: true)
         return r
     }
@@ -83,7 +86,8 @@ class GrrcRiskService {
     RiskItem get(Long id, String npubOwner) { load(id, npubOwner) }
 
     static final List RISK_SORT_FIELDS = [
-            'id', 'name', 'status', 'severity', 'likelihood', 'ownerName'
+            'id', 'name', 'status', 'severity', 'likelihood', 'ownerName',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -116,7 +120,8 @@ class GrrcRiskService {
                 likelihood   : r.likelihood,
                 ownerName    : r.ownerName,
                 treatmentNote: r.treatmentNote,
-                npubOwner    : r.npubOwner
+                npubOwner    : r.npubOwner,
+                *: AssignableSupport.toMapFragment(r)
         ]
     }
 

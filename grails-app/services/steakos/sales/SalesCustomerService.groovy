@@ -17,6 +17,7 @@ package steakos.sales
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /**
  * Customer master (S-S1 / APQC 3.5.2).
@@ -51,7 +52,8 @@ class SalesCustomerService {
                 currencyCode         : ccy,
                 communicationLocale  : locale,
                 active               : fields.containsKey('active') ? fields.active as Boolean : Boolean.TRUE,
-                status               : (fields.status ?: 'ACTIVE') as String
+                status               : (fields.status ?: 'ACTIVE') as String,
+                *: AssignableSupport.initialPair(fields)
         )
         c.save(failOnError: true, flush: true)
         return c
@@ -76,6 +78,7 @@ class SalesCustomerService {
             c.communicationLocale = partnerLocaleService?.normalizeWritable(fields.communicationLocale as String)
         }
         if (fields.containsKey('active')) c.active = fields.active as Boolean
+        AssignableSupport.apply(c, fields)
         c.save(failOnError: true, flush: true)
         return c
     }
@@ -139,7 +142,8 @@ class SalesCustomerService {
                 communicationLocale : c.communicationLocale,
                 active              : c.active,
                 status              : c.status,
-                npubOwner           : c.npubOwner
+                npubOwner           : c.npubOwner,
+                *: AssignableSupport.toMapFragment(c)
         ]
     }
 

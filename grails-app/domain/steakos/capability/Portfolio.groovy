@@ -23,6 +23,7 @@ import steakos.traits.AccessControl
 import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Portfolio container (APQC 13.2.1).
@@ -30,7 +31,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,portfolioStatus', includeNames = true, includePackage = false)
-class Portfolio implements NpubOwned, AccessControl, Classifiable, Attachable, Serializable {
+class Portfolio implements NpubOwned, AccessControl, Classifiable, Attachable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -46,6 +47,7 @@ class Portfolio implements NpubOwned, AccessControl, Classifiable, Attachable, S
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 4000
 		ownerRef nullable: true, maxSize: 255

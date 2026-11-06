@@ -20,6 +20,7 @@ import groovy.util.logging.Slf4j
 import steakos.catalogue.CatalogueService
 import steakos.finance.FinanceRevenueService
 import steakos.finance.Invoice
+import steakos.helper.AssignableSupport
 
 /**
  * Sales order capture (S-S3). SS3: confirm → Finance DRAFT invoice. Never posts journals.
@@ -54,7 +55,8 @@ class SalesOrderService {
                 currencyCode : ccy,
                 orderStatus  : 'DRAFT',
                 status       : 'DRAFT',
-                amountEur    : BigDecimal.ZERO
+                amountEur    : BigDecimal.ZERO,
+                *: AssignableSupport.initialPair(fields)
         )
         order.save(failOnError: true, flush: true)
 
@@ -197,7 +199,8 @@ class SalesOrderService {
 
     static final List ORDER_SORT_FIELDS = [
             'id', 'name', 'code', 'status', 'orderStatus', 'orderNumber',
-            'amountEur', 'customerName', 'dateCreated', 'lastUpdated'
+            'amountEur', 'customerName', 'dateCreated', 'lastUpdated',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -267,7 +270,8 @@ class SalesOrderService {
                 documentLocale  : o.documentLocale,
                 orderStatus     : o.orderStatus,
                 financeInvoiceId: o.financeInvoiceId,
-                npubOwner       : o.npubOwner
+                npubOwner       : o.npubOwner,
+                *: AssignableSupport.toMapFragment(o)
         ]
         if (includeLines) {
             m.lines = OrderLine.findAllBySalesOrder(o, [sort: 'lineNo']).collect { lineToMap(it) }

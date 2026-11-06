@@ -136,6 +136,29 @@ export function filterAssigneeOptionsForDevMode(options, developmentMode) {
   return (options || []).filter((o) => !o.developmentOnly && o.agentKey !== 'coder')
 }
 
+/** Normalize form assignee pair for API body (human XOR agent; empty → null). */
+export function assigneePairForBody(form = {}) {
+  const agentRaw = form.assigneeAgentId
+  let assigneeAgentId = null
+  if (agentRaw !== '' && agentRaw != null) {
+    const n = Number(agentRaw)
+    assigneeAgentId = Number.isFinite(n) ? n : null
+  }
+  const human = String(form.assigneeHumanNpub || '').trim() || null
+  if (assigneeAgentId != null) {
+    return { assigneeHumanNpub: null, assigneeAgentId }
+  }
+  return { assigneeHumanNpub: human, assigneeAgentId: null }
+}
+
+/** Load assignee fields into form state (agent id as string). */
+export function assigneePairFromRow(row = {}) {
+  return {
+    assigneeHumanNpub: row.assigneeHumanNpub || '',
+    assigneeAgentId: row.assigneeAgentId != null ? String(row.assigneeAgentId) : '',
+  }
+}
+
 /** Friendly one-line label for list/board cells. */
 export function formatAssigneeDisplay(assigneeHumanNpub, assigneeAgentId, { options = [], meUsername } = {}) {
   const value = encodeAssigneeValue(assigneeHumanNpub, assigneeAgentId)

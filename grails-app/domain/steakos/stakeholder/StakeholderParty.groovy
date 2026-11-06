@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * StakeholderBasics thin: external-relations / ethics party register (G7).
@@ -32,7 +33,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,partyKind,status', includeNames = true, includePackage = false)
-class StakeholderParty implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class StakeholderParty implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -54,6 +55,7 @@ class StakeholderParty implements NpubOwned, AccessControl, Classifiable, Attach
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 4000

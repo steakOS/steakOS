@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * DevelopmentBasics thin: NPD / revision project (separate from capability.Project) (G4).
@@ -31,7 +32,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,projectKind,projectStatus', includeNames = true, includePackage = false)
-class DevelopmentProject implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class DevelopmentProject implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -51,6 +52,7 @@ class DevelopmentProject implements NpubOwned, AccessControl, Classifiable, Atta
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 4000

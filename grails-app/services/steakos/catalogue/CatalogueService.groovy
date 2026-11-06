@@ -17,6 +17,7 @@ package steakos.catalogue
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /**
  * Unified catalogue master (CATALOGUE-ITEM-CONCEPT).
@@ -53,7 +54,8 @@ class CatalogueService {
                 listPrice   : toBd(fields.listPrice ?: fields.listPriceEur),
                 currency    : ccy,
                 defaultTaxCode: fields.defaultTaxCode as String ?: fields.taxCode as String,
-                status      : (fields.status ?: 'ACTIVE') as String
+                status      : (fields.status ?: 'ACTIVE') as String,
+                *: AssignableSupport.initialPair(fields)
         )
         applyClassifiableAndAccess(ci, fields, true)
         ci.save(failOnError: true, flush: true)
@@ -87,6 +89,7 @@ class CatalogueService {
             ci.defaultTaxCode = (fields.defaultTaxCode ?: fields.taxCode) as String
         }
         applyClassifiableAndAccess(ci, fields, false)
+        AssignableSupport.apply(ci, fields)
         if (ci.canBeSold == Boolean.FALSE && ci.canBeBought == Boolean.FALSE && ci.active) {
             throw new IllegalArgumentException('active item must be buyable and/or sellable')
         }
@@ -200,7 +203,8 @@ class CatalogueService {
                 subtype       : ci.type,
                 tags          : ci.tags,
                 protection    : ci.protection,
-                access        : ci.access
+                access        : ci.access,
+                *: AssignableSupport.toMapFragment(ci)
         ]
     }
 

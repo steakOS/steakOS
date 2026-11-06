@@ -13,13 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { assigneePairForBody, assigneePairFromRow } from '../utils/taskAssignee'
+
 /**
  * Shared master-entity form specs (P1 master-data ↔ desk parity).
  * Used by DomainForm and desk create panels.
  *
  * Each field: { name, labelKey, label, type, required?, options?, placeholder?, inputMode? }
- * type: text | textarea | email | select | checkbox | number | date
+ * type: text | textarea | email | select | checkbox | number | date | assignee | currentUser | …
  */
+
+const ASSIGNEE_FIELD = {
+  name: 'assignee',
+  label: 'Assignee',
+  type: 'assignee',
+  fullWidth: true,
+}
 
 export const MASTER_FORM_KEYS = [
   'Customer',
@@ -66,6 +75,8 @@ const customerSpec = {
     currencyCode: 'EUR',
     communicationLocale: '',
     active: true,
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -90,6 +101,7 @@ const customerSpec = {
       label: 'Communication language',
       type: 'locale',
     },
+    ASSIGNEE_FIELD,
     { name: 'active', label: 'Active', type: 'checkbox' },
   ],
   toBody: (f) => ({
@@ -103,6 +115,7 @@ const customerSpec = {
     currencyCode: f.currencyCode || 'EUR',
     communicationLocale: f.communicationLocale || null,
     active: f.active !== false,
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
@@ -116,6 +129,7 @@ const customerSpec = {
     currencyCode: row.currencyCode || 'EUR',
     communicationLocale: row.communicationLocale || '',
     active: row.active !== false,
+    ...assigneePairFromRow(row),
   }),
   listColumns: [
     { key: 'customerKind', label: 'Kind' },
@@ -514,6 +528,8 @@ const catalogueItemSpec = {
     nature: 'GOODS',
     isService: false,
     active: true,
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -537,6 +553,7 @@ const catalogueItemSpec = {
         { value: 'SERVICE', label: 'Service' },
       ],
     },
+    ASSIGNEE_FIELD,
     { name: 'active', label: 'Active', type: 'checkbox' },
   ],
   toBody: (f) => {
@@ -553,6 +570,7 @@ const catalogueItemSpec = {
       active: f.active !== false,
       canBeBought: true,
       canBeSold: true,
+      ...assigneePairForBody(f),
     }
   },
   fromRow: (row, empty) => ({
@@ -566,6 +584,7 @@ const catalogueItemSpec = {
     nature: row.nature || (row.isService ? 'SERVICE' : 'GOODS'),
     isService: row.nature === 'SERVICE' || !!row.isService,
     active: row.active !== false,
+    ...assigneePairFromRow(row),
   }),
   /** Domain stores GOODS|SERVICE; operators see Product|Service. */
   listColumns: [
@@ -666,16 +685,20 @@ const salesOrderSpec = {
     description: '',
     currencyCode: 'EUR',
     orderStatus: 'DRAFT',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
     { name: 'description', label: 'Description', type: 'textarea' },
     { name: 'currencyCode', label: 'Currency', type: 'currency', required: true },
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => ({
     name: f.name,
     description: f.description || null,
     currencyCode: f.currencyCode || 'EUR',
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
@@ -683,6 +706,7 @@ const salesOrderSpec = {
     description: row.description || '',
     currencyCode: row.currencyCode || 'EUR',
     orderStatus: row.orderStatus || 'DRAFT',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [
     { key: 'orderNumber', label: 'Number', mono: true },
@@ -814,6 +838,8 @@ const strategyItemSpec = {
     description: '',
     itemKind: 'STRATEGY',
     status: 'DRAFT',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -843,6 +869,7 @@ const strategyItemSpec = {
         { value: 'ARCHIVED', label: 'Archived' },
       ],
     },
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => ({
     name: f.name,
@@ -850,6 +877,7 @@ const strategyItemSpec = {
     description: f.description || null,
     itemKind: f.itemKind || 'STRATEGY',
     status: f.status || 'DRAFT',
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
@@ -858,6 +886,7 @@ const strategyItemSpec = {
     description: row.description || '',
     itemKind: row.itemKind || 'STRATEGY',
     status: row.status || 'DRAFT',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [
     { key: 'type', label: 'Type' },
@@ -891,6 +920,8 @@ const developmentProjectSpec = {
     catalogueItemId: '',
     startDate: '',
     endDate: '',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -927,6 +958,7 @@ const developmentProjectSpec = {
     },
     { name: 'startDate', label: 'Start date', type: 'date', placeholder: 'YYYY-MM-DD' },
     { name: 'endDate', label: 'End date', type: 'date', placeholder: 'YYYY-MM-DD' },
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => {
     const rawId = f.catalogueItemId
@@ -943,6 +975,7 @@ const developmentProjectSpec = {
       catalogueItemId,
       startDate: f.startDate || null,
       endDate: f.endDate || null,
+      ...assigneePairForBody(f),
     }
   },
   fromRow: (row, empty) => ({
@@ -954,6 +987,7 @@ const developmentProjectSpec = {
     catalogueItemId: row.catalogueItemId != null ? String(row.catalogueItemId) : '',
     startDate: toDateInputValue(row.startDate),
     endDate: toDateInputValue(row.endDate),
+    ...assigneePairFromRow(row),
   }),
   listColumns: [
     { key: 'projectKind', label: 'Kind' },
@@ -976,6 +1010,8 @@ const physicalAssetSpec = {
     configItemId: '',
     financialDepreciation: false,
     requiresMaintenance: false,
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -983,6 +1019,7 @@ const physicalAssetSpec = {
     { name: 'assetTag', label: 'Asset tag', type: 'text', placeholder: 'Inventory / plate / serial' },
     { name: 'location', label: 'Location', type: 'text' },
     { name: 'ownerName', label: 'Owner', type: 'currentUser' },
+    ASSIGNEE_FIELD,
     {
       name: 'status',
       label: 'Status',
@@ -1024,6 +1061,7 @@ const physicalAssetSpec = {
       configItemId,
       financialDepreciation: !!f.financialDepreciation,
       requiresMaintenance: !!f.requiresMaintenance,
+      ...assigneePairForBody(f),
     }
   },
   fromRow: (row, empty) => ({
@@ -1039,6 +1077,7 @@ const physicalAssetSpec = {
     financialDepreciation:
       row.financialDepreciation === true || row.financialDepreciation === 'true',
     requiresMaintenance: row.requiresMaintenance === true || row.requiresMaintenance === 'true',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [
     { key: 'assetTag', label: 'Tag' },
@@ -1085,6 +1124,8 @@ const inquirySpec = {
     name: '',
     description: '',
     caseStatus: 'OPEN',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -1102,17 +1143,21 @@ const inquirySpec = {
         { value: 'CANCELLED', label: 'Cancelled' },
       ],
     },
+    // Optional Assignable pair — do not bind legacy free-text assignedTo
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => ({
     name: f.name,
     description: f.description || null,
     caseStatus: f.caseStatus || 'OPEN',
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
     description: row.description || '',
     caseStatus: row.caseStatus || 'OPEN',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [{ key: 'caseStatus', label: 'Status' }],
 }
@@ -1124,6 +1169,8 @@ const warrantySpec = {
     name: '',
     description: '',
     coverStatus: 'DRAFT',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -1140,17 +1187,20 @@ const warrantySpec = {
         { value: 'VOID', label: 'Void' },
       ],
     },
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => ({
     name: f.name,
     description: f.description || null,
     coverStatus: f.coverStatus || 'DRAFT',
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
     description: row.description || '',
     coverStatus: row.coverStatus || 'DRAFT',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [{ key: 'coverStatus', label: 'Status' }],
 }
@@ -1162,6 +1212,8 @@ const claimsSpec = {
     name: '',
     description: '',
     claimStatus: 'RECEIVED',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -1179,17 +1231,20 @@ const claimsSpec = {
         { value: 'CLOSED', label: 'Closed' },
       ],
     },
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => ({
     name: f.name,
     description: f.description || null,
     claimStatus: f.claimStatus || 'RECEIVED',
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
     description: row.description || '',
     claimStatus: row.claimStatus || 'RECEIVED',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [{ key: 'claimStatus', label: 'Status' }],
 }
@@ -1201,6 +1256,8 @@ const rmaSpec = {
     name: '',
     description: '',
     rmaStatus: 'REQUESTED',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
   }),
   fields: [
     { name: 'name', label: 'Name', type: 'text', required: true },
@@ -1217,17 +1274,20 @@ const rmaSpec = {
         { value: 'CANCELLED', label: 'Cancelled' },
       ],
     },
+    ASSIGNEE_FIELD,
   ],
   toBody: (f) => ({
     name: f.name,
     description: f.description || null,
     rmaStatus: f.rmaStatus || 'REQUESTED',
+    ...assigneePairForBody(f),
   }),
   fromRow: (row, empty) => ({
     ...empty,
     name: row.name || '',
     description: row.description || '',
     rmaStatus: row.rmaStatus || 'REQUESTED',
+    ...assigneePairFromRow(row),
   }),
   listColumns: [{ key: 'rmaStatus', label: 'Status' }],
 }

@@ -19,6 +19,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import steakos.events.DomainEventBusService
 import steakos.events.DomainEventNames
+import steakos.helper.AssignableSupport
 
 /**
  * StakeholderBasics thin kernel (G7 / WP6): party register + communications log.
@@ -53,7 +54,8 @@ class StakeholderBasicsService {
                 contactEmail: fields.contactEmail as String,
                 ethicsNote  : fields.ethicsNote as String,
                 externalRef : fields.externalRef as String,
-                status      : st
+                status      : st,
+                *: AssignableSupport.initialPair(fields)
         )
         party.markCreatedBy(npub)
         party.save(failOnError: true, flush: true)
@@ -87,6 +89,7 @@ class StakeholderBasicsService {
             }
             party.status = st
         }
+        AssignableSupport.apply(party, fields)
         party.markUpdatedBy(requireNpub(npubOwner))
         party.save(failOnError: true, flush: true)
         return party
@@ -98,7 +101,8 @@ class StakeholderBasicsService {
     }
 
     static final List PARTY_SORT_FIELDS = [
-            'id', 'name', 'status', 'partyKind', 'contactName', 'contactEmail'
+            'id', 'name', 'status', 'partyKind', 'contactName', 'contactEmail',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -145,7 +149,8 @@ class StakeholderBasicsService {
                 status      : p.status,
                 npubOwner   : p.npubOwner,
                 dateCreated : p.dateCreated,
-                lastUpdated : p.lastUpdated
+                lastUpdated : p.lastUpdated,
+                *: AssignableSupport.toMapFragment(p)
         ]
     }
 
@@ -180,7 +185,8 @@ class StakeholderBasicsService {
                 channel            : channel,
                 direction          : direction,
                 occurredAt         : occurred,
-                status             : st
+                status             : st,
+                *: AssignableSupport.initialPair(fields)
         )
         entry.markCreatedBy(npub)
         entry.save(failOnError: true, flush: true)
@@ -238,6 +244,7 @@ class StakeholderBasicsService {
             }
             entry.status = st
         }
+        AssignableSupport.apply(entry, fields)
         entry.markUpdatedBy(requireNpub(npubOwner))
         entry.save(failOnError: true, flush: true)
         return entry
@@ -289,7 +296,8 @@ class StakeholderBasicsService {
                 status             : c.status,
                 npubOwner          : c.npubOwner,
                 dateCreated        : c.dateCreated,
-                lastUpdated        : c.lastUpdated
+                lastUpdated        : c.lastUpdated,
+                *: AssignableSupport.toMapFragment(c)
         ]
     }
 

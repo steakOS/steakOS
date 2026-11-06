@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Handshake, RefreshCw, Plus, Eye, Trash2 } from 'lucide-react'
-import { stakeholderApi } from '../api/client'
+import { agentsApi, deliveryApi, meApi, stakeholderApi } from '../api/client'
 import useRecordView from '../hooks/useRecordView'
 import RowActionSlots from '../components/RowActionSlots'
 import DeskShell from '../components/desk/DeskShell'
@@ -29,6 +29,16 @@ import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel, labelFromList } from '../utils/entityDisplayLabel'
 import ListSortHeader from '../components/ListSortHeader'
+import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
+import {
+  assigneePairForBody,
+  assigneePairFromRow,
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const PARTY_KINDS = [
   'REGULATOR',
@@ -51,6 +61,8 @@ const emptyParty = () => ({
   contactEmail: '',
   ethicsNote: '',
   description: '',
+  assigneeHumanNpub: '',
+  assigneeAgentId: '',
 })
 const emptyComms = () => ({
   stakeholderPartyId: '',
@@ -60,6 +72,8 @@ const emptyComms = () => ({
   direction: 'OUT',
   occurredAt: '',
   status: 'LOGGED',
+  assigneeHumanNpub: '',
+  assigneeAgentId: '',
 })
 
 function isSilverGate(e) {
@@ -151,6 +165,46 @@ export default function StakeholderDesk() {
   const [silverGate, setSilverGate] = useState(false)
   const [partySort, setPartySort] = useState('id')
   const [partyOrder, setPartyOrder] = useState('desc')
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
 
   const onPartySortChange = useCallback(({ sort: s, order: o }) => {
     setPartySort(s || 'id')
@@ -462,6 +516,19 @@ export default function StakeholderDesk() {
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
         />
       </label>
+      <TaskAssigneeSelect
+        id="stk-party-assignee"
+        assigneeHumanNpub={form.assigneeHumanNpub || ''}
+        assigneeAgentId={form.assigneeAgentId || ''}
+        defaultToMe={false}
+        onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+          setForm((f) => ({
+            ...f,
+            assigneeHumanNpub: assigneeHumanNpub || '',
+            assigneeAgentId: assigneeAgentId || '',
+          }))
+        }
+      />
       <label>
         {t('stakeholder.fieldEthics', { defaultValue: 'Ethics note' })}
         <textarea
@@ -544,6 +611,19 @@ export default function StakeholderDesk() {
           onChange={(e) => setForm((f) => ({ ...f, summary: e.target.value }))}
         />
       </label>
+      <TaskAssigneeSelect
+        id="stk-comms-assignee"
+        assigneeHumanNpub={form.assigneeHumanNpub || ''}
+        assigneeAgentId={form.assigneeAgentId || ''}
+        defaultToMe={false}
+        onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+          setForm((f) => ({
+            ...f,
+            assigneeHumanNpub: assigneeHumanNpub || '',
+            assigneeAgentId: assigneeAgentId || '',
+          }))
+        }
+      />
     </>
   )
 
@@ -615,7 +695,10 @@ export default function StakeholderDesk() {
         onSubmit={(e) => {
           e.preventDefault()
           run(async () => {
-            const created = await stakeholderApi.parties.create(partyForm)
+            const created = await stakeholderApi.parties.create({
+              ...partyForm,
+              ...assigneePairForBody(partyForm),
+            })
             setInfo(
               t('toast.namedCreated', {
                 ns: 'common',
@@ -648,6 +731,7 @@ export default function StakeholderDesk() {
               direction: commsForm.direction,
               occurredAt: commsForm.occurredAt || null,
               status: 'LOGGED',
+              ...assigneePairForBody(commsForm),
             })
             setInfo(
               t('toast.namedCreated', {
@@ -742,6 +826,11 @@ export default function StakeholderDesk() {
                 label: t('stakeholder.colKind', { defaultValue: 'Kind' }),
                 render: (r) => r.partyKind || '—',
               },
+              {
+                key: 'assignee',
+                label: t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' }),
+                render: (r) => assigneeLabel(r),
+              },
             ],
             'stakeholder.emptyParties',
             'No parties yet. Register a stakeholder with New.',
@@ -771,6 +860,11 @@ export default function StakeholderDesk() {
                 key: 'channel',
                 label: t('stakeholder.colChannel', { defaultValue: 'Channel' }),
                 render: (r) => r.channel || '—',
+              },
+              {
+                key: 'assignee',
+                label: t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' }),
+                render: (r) => assigneeLabel(r),
               },
             ],
             'stakeholder.emptyComms',
@@ -819,6 +913,7 @@ export default function StakeholderDesk() {
                   contactEmail: selected.contactEmail || '',
                   ethicsNote: selected.ethicsNote || '',
                   description: selected.description || '',
+                  ...assigneePairFromRow(selected),
                 })
                 setEditing(true)
               },
@@ -842,7 +937,10 @@ export default function StakeholderDesk() {
             onSubmit={(e) => {
               e.preventDefault()
               run(async () => {
-                const updated = await stakeholderApi.parties.update(selected.id, editForm)
+                const updated = await stakeholderApi.parties.update(selected.id, {
+                  ...editForm,
+                  ...assigneePairForBody(editForm),
+                })
                 setSelected(updated)
                 setEditing(false)
                 setInfo(
@@ -896,6 +994,7 @@ export default function StakeholderDesk() {
                   direction: selected.direction || 'OUT',
                   occurredAt: toDateInput(selected.occurredAt),
                   status: selected.status || 'LOGGED',
+                  ...assigneePairFromRow(selected),
                 })
                 setEditing(true)
               },
@@ -927,6 +1026,7 @@ export default function StakeholderDesk() {
                   direction: editForm.direction,
                   occurredAt: editForm.occurredAt || null,
                   status: editForm.status || 'LOGGED',
+                  ...assigneePairForBody(editForm),
                 })
                 setSelected(updated)
                 setEditing(false)

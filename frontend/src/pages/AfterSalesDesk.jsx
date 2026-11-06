@@ -33,7 +33,7 @@ import {
   Users,
   FileText,
 } from 'lucide-react'
-import { aftersalesApi, salesApi, catalogueApi, domainsApi, meApi } from '../api/client'
+import { aftersalesApi, agentsApi, salesApi, catalogueApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import CatalogueItemSelect from '../components/CatalogueItemSelect'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
@@ -54,6 +54,13 @@ import RowActionSlots from '../components/RowActionSlots'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
+import {
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const TAB_DEFS = [
   { id: 'inquiries', labelKey: 'aftersales.tabs.inquiries', icon: MessageSquare },
@@ -236,6 +243,46 @@ export default function AfterSalesDesk() {
   const [customerOptions, setCustomerOptions] = useState([])
   const [levelOptions, setLevelOptions] = useState([])
   const [warrantyOptions, setWarrantyOptions] = useState([])
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
 
   const INQ_SORT_MENU = useMemo(
     () => [
@@ -1718,6 +1765,11 @@ export default function AfterSalesDesk() {
                         render: (w) => w.productName || '—',
                       },
                       {
+                        id: 'assignee',
+                        meta: true,
+                        render: (w) => assigneeLabel(w),
+                      },
+                      {
                         id: 'content',
                         priority: 'low',
                         render: (w) => <ContentChannelIcons summary={warContentMap[w.id]} />,
@@ -1759,6 +1811,9 @@ export default function AfterSalesDesk() {
                               onSortChange={onWarSortChange}
                             />
                             <th className="col-priority-low">
+                              {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                            </th>
+                            <th className="col-priority-low">
                               {t('wb.content', { ns: 'common', defaultValue: 'Content' })}
                             </th>
                             <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
@@ -1782,6 +1837,7 @@ export default function AfterSalesDesk() {
                                   {w.inForce ? ' · in force' : ''}
                                 </span>
                               </td>
+                              <td className="col-priority-low">{assigneeLabel(w)}</td>
                               <td className="col-priority-low">
                                 <ContentChannelIcons summary={warContentMap[w.id]} />
                               </td>
@@ -1846,6 +1902,11 @@ export default function AfterSalesDesk() {
                         priority: 'low',
                         render: (i) => i.kind,
                       },
+                      {
+                        id: 'assignee',
+                        meta: true,
+                        render: (i) => assigneeLabel(i),
+                      },
                     ]}
                     actions={(i) =>
                       renderRowActions('service', 'Inquiry', i, { onView: () => openInqView(i) })
@@ -1884,6 +1945,9 @@ export default function AfterSalesDesk() {
                               onSortChange={onInqSortChange}
                               className="col-priority-low"
                             />
+                            <th className="col-priority-low">
+                              {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                            </th>
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                             <ListSortHeader
                               field="caseStatus"
@@ -1909,6 +1973,7 @@ export default function AfterSalesDesk() {
                               </td>
                               <td>{i.customerName || customerNameById(i.customerId) || '—'}</td>
                               <td className="col-priority-low">{i.kind}</td>
+                              <td className="col-priority-low">{assigneeLabel(i)}</td>
                               <td
                                 className="col-priority-low"
                                 onClick={(e) => e.stopPropagation()}
@@ -1975,6 +2040,11 @@ export default function AfterSalesDesk() {
                             ? `${Number(c.claimAmountEur).toFixed(2)} EUR`
                             : '—',
                       },
+                      {
+                        id: 'assignee',
+                        meta: true,
+                        render: (c) => assigneeLabel(c),
+                      },
                     ]}
                     actions={(c) =>
                       renderRowActions('service', 'Claims', c, { onView: () => openClaimView(c) })
@@ -1999,6 +2069,9 @@ export default function AfterSalesDesk() {
                               order={claimOrder}
                               onSortChange={onClaimSortChange}
                             />
+                            <th className="col-priority-low">
+                              {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                            </th>
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                             <ListSortHeader
                               field="claimStatus"
@@ -2024,6 +2097,7 @@ export default function AfterSalesDesk() {
                                   ? Number(c.claimAmountEur).toFixed(2)
                                   : '—'}
                               </td>
+                              <td className="col-priority-low">{assigneeLabel(c)}</td>
                               <td
                                 className="col-priority-low"
                                 onClick={(e) => e.stopPropagation()}
@@ -2088,6 +2162,11 @@ export default function AfterSalesDesk() {
                         meta: true,
                         render: (r) => r.productName || '—',
                       },
+                      {
+                        id: 'assignee',
+                        meta: true,
+                        render: (r) => assigneeLabel(r),
+                      },
                     ]}
                     actions={(r) =>
                       renderRowActions('service', 'Rma', r, { onView: () => openRmaView(r) })
@@ -2119,6 +2198,9 @@ export default function AfterSalesDesk() {
                               onSortChange={onRmaSortChange}
                               className="col-priority-low"
                             />
+                            <th className="col-priority-low">
+                              {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                            </th>
                             <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                             <ListSortHeader
                               field="rmaStatus"
@@ -2142,6 +2224,7 @@ export default function AfterSalesDesk() {
                               <td className="col-priority-low">
                                 {r.productName || '—'}
                               </td>
+                              <td className="col-priority-low">{assigneeLabel(r)}</td>
                               <td
                                 className="col-priority-low"
                                 onClick={(e) => e.stopPropagation()}

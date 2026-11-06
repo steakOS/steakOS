@@ -25,6 +25,7 @@ import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.Versioned
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Product / order warranty cover registration (APQC 6.3.1, AS-S0).
@@ -32,7 +33,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'warrantyNumber')
 @ToString(includes = 'warrantyNumber,coverStatus', includeNames = true, includePackage = false)
-class Warranty implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Versioned, Serializable {
+class Warranty implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Versioned, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -58,6 +59,7 @@ class Warranty implements NpubOwned, AccessControl, Classifiable, Attachable, Au
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		DomainTraitConstraints.applyVersioned(delegate)
 

@@ -25,6 +25,7 @@ import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.Versioned
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Unified commercial catalogue master (goods + services).
@@ -33,7 +34,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'code,name,nature', includeNames = true, includePackage = false)
-class CatalogueItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Versioned, Serializable {
+class CatalogueItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Versioned, Assignable, Serializable {
 
     private static final long serialVersionUID = 1L
 
@@ -61,6 +62,7 @@ class CatalogueItem implements NpubOwned, AccessControl, Classifiable, Attachabl
         DomainTraitConstraints.applyAccessControl(delegate)
         DomainTraitConstraints.applyClassifiable(delegate)
         DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
         DomainTraitConstraints.applyAuditable(delegate)
         DomainTraitConstraints.applyVersioned(delegate)
 

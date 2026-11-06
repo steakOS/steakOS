@@ -17,6 +17,7 @@ package steakos.service
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 import steakos.supplychain.ScmInventoryService
 import steakos.supplychain.StockMove
 
@@ -62,7 +63,8 @@ class AsRmaService {
                 currencyCode      : (fields.currencyCode ?: 'EUR') as String,
                 requestedAt       : new Date(),
                 rmaStatus         : 'REQUESTED',
-                status            : 'REQUESTED'
+                status            : 'REQUESTED',
+                *: AssignableSupport.initialPair(fields)
         )
         r.save(failOnError: true, flush: true)
         log.info('Opened RMA {}', number)
@@ -155,7 +157,8 @@ class AsRmaService {
 
     static final List RMA_SORT_FIELDS = [
             'id', 'name', 'rmaNumber', 'rmaStatus', 'status',
-            'customerName', 'productName', 'dateCreated', 'lastUpdated'
+            'customerName', 'productName', 'dateCreated', 'lastUpdated',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     /**
@@ -213,7 +216,8 @@ class AsRmaService {
                 closedAt          : r.closedAt,
                 stockMoveId       : r.stockMoveId,
                 rmaStatus         : r.rmaStatus,
-                npubOwner         : r.npubOwner
+                npubOwner         : r.npubOwner,
+                *: AssignableSupport.toMapFragment(r)
         ]
     }
 

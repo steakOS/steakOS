@@ -27,6 +27,7 @@ import steakos.traits.Versioned
 import steakos.traits.NostrPublishable
 import steakos.traits.DynamicExtensible
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Sales order capture (S-S0/S-S3). Lines via {@link OrderLine}.
@@ -35,7 +36,7 @@ import steakos.traits.DomainTraitConstraints
 @EqualsAndHashCode(includes = 'orderNumber')
 @ToString(includes = 'orderNumber,name,orderStatus', includeNames = true, includePackage = false)
 class SalesOrder implements NpubOwned, AccessControl, Classifiable, Attachable,
-		Auditable, Versioned, NostrPublishable, DynamicExtensible, Serializable {
+		Auditable, Versioned, NostrPublishable, DynamicExtensible, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -75,6 +76,7 @@ class SalesOrder implements NpubOwned, AccessControl, Classifiable, Attachable,
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		DomainTraitConstraints.applyVersioned(delegate)
 		DomainTraitConstraints.applyNostrPublishable(delegate)

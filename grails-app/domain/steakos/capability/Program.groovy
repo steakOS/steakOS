@@ -23,6 +23,7 @@ import steakos.traits.AccessControl
 import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Program under portfolio (APQC 13.2.2). Optional for SBM (CAP1).
@@ -30,7 +31,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,programStatus', includeNames = true, includePackage = false)
-class Program implements NpubOwned, AccessControl, Classifiable, Attachable, Serializable {
+class Program implements NpubOwned, AccessControl, Classifiable, Attachable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -46,6 +47,7 @@ class Program implements NpubOwned, AccessControl, Classifiable, Attachable, Ser
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 4000
 		portfolioId nullable: true

@@ -17,6 +17,7 @@ package steakos.capability
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import steakos.helper.AssignableSupport
 
 /** Portfolio master (APQC 13.2.1). */
 @Slf4j
@@ -33,7 +34,8 @@ class CapPortfolioService {
                 description    : fields.description as String,
                 ownerRef       : fields.ownerRef as String,
                 portfolioStatus: (fields.portfolioStatus ?: 'ACTIVE') as String,
-                status         : (fields.portfolioStatus ?: 'ACTIVE') as String
+                status         : (fields.portfolioStatus ?: 'ACTIVE') as String,
+                *: AssignableSupport.initialPair(fields)
         )
         p.save(failOnError: true, flush: true)
         return p
@@ -51,6 +53,7 @@ class CapPortfolioService {
             p.portfolioStatus = st
             p.status = st
         }
+        AssignableSupport.apply(p, fields)
         p.save(failOnError: true, flush: true)
         return p
     }
@@ -69,7 +72,8 @@ class CapPortfolioService {
     }
 
     static final List PORTFOLIO_SORT_FIELDS = [
-            'id', 'name', 'portfolioStatus', 'status', 'ownerRef'
+            'id', 'name', 'portfolioStatus', 'status', 'ownerRef',
+            'assigneeHumanNpub', 'assigneeAgentId'
     ].asImmutable()
 
     @Transactional(readOnly = true)
@@ -98,7 +102,8 @@ class CapPortfolioService {
                 description    : p.description,
                 ownerRef       : p.ownerRef,
                 portfolioStatus: p.portfolioStatus,
-                npubOwner      : p.npubOwner
+                npubOwner      : p.npubOwner,
+                *: AssignableSupport.toMapFragment(p)
         ]
     }
 

@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Target, Users, Plus, Eye, Pencil, Trash2, RefreshCw } from 'lucide-react'
-import { domainsApi, meApi } from '../api/client'
+import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import MasterEntityFields from '../forms/MasterEntityFields'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import ResponsiveDataList from '../components/ResponsiveDataList'
@@ -36,6 +36,13 @@ import { fetchContentMap } from '../utils/contentSummary'
 import useRecordView from '../hooks/useRecordView'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
+import {
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const competitorMasterSpec = getMasterFormSpec('strategy', 'Competitor')
 const strategyItemMasterSpec = getMasterFormSpec('strategy', 'StrategyItem')
@@ -153,7 +160,48 @@ export default function StrategyDesk() {
   const [competitorOrder, setCompetitorOrder] = useState('desc')
   const [topicSort, setTopicSort] = useState('id')
   const [topicOrder, setTopicOrder] = useState('desc')
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
   const getBelowFieldsRef = useRef(null)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
+
   const onCompetitorSortChange = useCallback(({ sort: s, order: o }) => {
     setCompetitorSort(s || 'id')
     setCompetitorOrder(o === 'asc' ? 'asc' : 'desc')
@@ -726,6 +774,11 @@ export default function StrategyDesk() {
           { id: 'itemKind', meta: true, render: (v) => v.itemKind || '—' },
           { id: 'status', meta: true, render: (v) => v.status || '—' },
           {
+            id: 'assignee',
+            meta: true,
+            render: (v) => assigneeLabel(v),
+          },
+          {
             id: 'content',
             priority: 'low',
             render: (v) => <ContentChannelIcons summary={topicContentMap[v.id]} />,
@@ -760,6 +813,9 @@ export default function StrategyDesk() {
                   order={topicOrder}
                   onSortChange={onTopicSortChange}
                 />
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
@@ -784,6 +840,7 @@ export default function StrategyDesk() {
                   <td>
                     <span className={statusBadgeClass(v.status)}>{v.status || '—'}</span>
                   </td>
+                  <td className="col-priority-low">{assigneeLabel(v)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={topicContentMap[v.id]} />
                   </td>

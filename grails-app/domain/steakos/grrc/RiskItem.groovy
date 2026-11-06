@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * GRRCBasics thin risk register row (G7 / APQC 11.1).
@@ -31,7 +32,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,status,severity', includeNames = true, includePackage = false)
-class RiskItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class RiskItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -53,6 +54,7 @@ class RiskItem implements NpubOwned, AccessControl, Classifiable, Attachable, Au
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 8000

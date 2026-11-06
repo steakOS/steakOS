@@ -33,7 +33,7 @@ import {
   Pencil,
   Trash2,
 } from 'lucide-react'
-import { contentApi, salesApi, catalogueApi, domainsApi, meApi } from '../api/client'
+import { agentsApi, contentApi, salesApi, catalogueApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import { allowsSilverSurfaces } from '../utils/silverSurfaces'
 import CurrencySelect from '../components/CurrencySelect'
 import DocumentLinesEditor, {
@@ -66,6 +66,13 @@ import RowActionSlots from '../components/RowActionSlots'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
+import {
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
 
@@ -312,6 +319,8 @@ export default function SalesDesk() {
   const [svcPage, setSvcPage] = useState({ max: 25, offset: 0, total: 0 })
   /** Dropdown options (not paged) — max 100 until typeahead (concept P4). */
   const [customerOptions, setCustomerOptions] = useState([])
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
 
   selectedQuoteRef.current = selectedQuote
   selectedOrderRef.current = selectedOrder
@@ -320,6 +329,44 @@ export default function SalesDesk() {
   busyRef.current = busy
   quotesRef.current = quotes
   ordersRef.current = orders
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
 
   const {
     viewModal,
@@ -1666,6 +1713,11 @@ export default function SalesDesk() {
               o.amountEur != null ? `${Number(o.amountEur).toFixed(2)} EUR` : '—',
           },
           {
+            id: 'assignee',
+            meta: true,
+            render: (o) => assigneeLabel(o),
+          },
+          {
             id: 'content',
             priority: 'low',
             render: (o) => <ContentChannelIcons summary={orderContentMap[o.id]} />,
@@ -1723,6 +1775,9 @@ export default function SalesDesk() {
                     setOrderPage((pg) => ({ ...pg, offset: 0 }))
                   }}
                 />
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
@@ -1730,7 +1785,7 @@ export default function SalesDesk() {
             <tbody>
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={7} className="muted">
                     {t('order.empty')}
                   </td>
                 </tr>
@@ -1749,6 +1804,7 @@ export default function SalesDesk() {
                   <td>
                     <span className={statusClass(o.orderStatus)}>{o.orderStatus}</span>
                   </td>
+                  <td className="col-priority-low">{assigneeLabel(o)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={orderContentMap[o.id]} />
                   </td>
@@ -1786,6 +1842,7 @@ export default function SalesDesk() {
           { id: 'name', primary: true, render: (c) => c.name },
           { id: 'email', secondary: true, render: (c) => c.email || '—' },
           { id: 'kind', priority: 'low', render: (c) => c.customerKind },
+          { id: 'assignee', meta: true, render: (c) => assigneeLabel(c) },
           { id: 'ccy', priority: 'low', render: (c) => c.currencyCode },
         ]}
         actions={(c) => renderRowActions('sales', 'Customer', c)}
@@ -1797,6 +1854,9 @@ export default function SalesDesk() {
                 <th>{t('customer.table.name')}</th>
                 <th className="col-priority-low">{t('customer.table.kind')}</th>
                 <th>{t('customer.table.email')}</th>
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('customer.table.content')}</th>
                 <th className="col-priority-low">{t('wb.ccy', { ns: 'common' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
@@ -1805,7 +1865,7 @@ export default function SalesDesk() {
             <tbody>
               {customers.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={7} className="muted">
                     {t('customer.empty')}
                   </td>
                 </tr>
@@ -1819,6 +1879,7 @@ export default function SalesDesk() {
                   <td>{c.name}</td>
                   <td className="col-priority-low">{c.customerKind}</td>
                   <td className="muted">{c.email || '—'}</td>
+                  <td className="col-priority-low">{assigneeLabel(c)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={customerContentMap[c.id]} />
                   </td>
@@ -1858,6 +1919,11 @@ export default function SalesDesk() {
           },
           { id: 'type', meta: true, render: (p) => p.nature || 'GOODS' },
           {
+            id: 'assignee',
+            meta: true,
+            render: (p) => assigneeLabel(p),
+          },
+          {
             id: 'content',
             priority: 'low',
             render: (p) => <ContentChannelIcons summary={productContentMap[p.id]} />,
@@ -1874,6 +1940,9 @@ export default function SalesDesk() {
                 <th className="col-priority-low">
                   {t('wb.type', { ns: 'common', defaultValue: 'Type' })}
                 </th>
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
@@ -1888,6 +1957,7 @@ export default function SalesDesk() {
                   <td>{p.name}</td>
                   <td className="mono">{p.code || p.sku || '—'}</td>
                   <td className="muted col-priority-low">{p.nature || 'GOODS'}</td>
+                  <td className="col-priority-low">{assigneeLabel(p)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={productContentMap[p.id]} />
                   </td>
@@ -1901,7 +1971,7 @@ export default function SalesDesk() {
               ))}
               {!products.length && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     {t('product.empty')}
                   </td>
                 </tr>

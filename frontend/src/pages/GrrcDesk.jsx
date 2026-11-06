@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ShieldAlert, RefreshCw, Plus, Eye, Trash2 } from 'lucide-react'
-import { grrcApi } from '../api/client'
+import { agentsApi, deliveryApi, grrcApi, meApi } from '../api/client'
 import useRecordView from '../hooks/useRecordView'
 import RowActionSlots from '../components/RowActionSlots'
 import DeskShell from '../components/desk/DeskShell'
@@ -36,7 +36,17 @@ import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 import ListSortHeader from '../components/ListSortHeader'
 import CurrentUserOwnerField from '../components/CurrentUserOwnerField'
+import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
 import { resolveCurrentUserOwnerLabel } from '../utils/currentUserOwner'
+import {
+  assigneePairForBody,
+  assigneePairFromRow,
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const PKG = 'grrc'
 const RISK_RESOURCE = 'RiskItem'
@@ -55,6 +65,8 @@ const emptyRisk = () => ({
   ownerName: '',
   treatmentNote: '',
   status: 'OPEN',
+  assigneeHumanNpub: '',
+  assigneeAgentId: '',
 })
 const emptyCompliance = () => ({
   name: '',
@@ -63,6 +75,8 @@ const emptyCompliance = () => ({
   status: 'DRAFT',
   ownerName: '',
   effectiveFrom: '',
+  assigneeHumanNpub: '',
+  assigneeAgentId: '',
 })
 
 function isSilverGate(e) {
@@ -165,6 +179,46 @@ export default function GrrcDesk() {
   const [compOrder, setCompOrder] = useState('desc')
   const risksRef = useRef([])
   const complianceRef = useRef([])
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
 
   const onRiskSortChange = useCallback(({ sort: s, order: o }) => {
     setRiskSort(s || 'id')
@@ -497,6 +551,19 @@ export default function GrrcDesk() {
         value={form.ownerName || ''}
         onChange={(ownerName) => setForm((f) => ({ ...f, ownerName }))}
       />
+      <TaskAssigneeSelect
+        id="grrc-risk-assignee"
+        assigneeHumanNpub={form.assigneeHumanNpub || ''}
+        assigneeAgentId={form.assigneeAgentId || ''}
+        defaultToMe={false}
+        onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+          setForm((f) => ({
+            ...f,
+            assigneeHumanNpub: assigneeHumanNpub || '',
+            assigneeAgentId: assigneeAgentId || '',
+          }))
+        }
+      />
       <label>
         {t('grrc.fieldDescription', { defaultValue: 'Description' })}
         <textarea
@@ -570,6 +637,19 @@ export default function GrrcDesk() {
           />
         </label>
       </div>
+      <TaskAssigneeSelect
+        id="grrc-comp-assignee"
+        assigneeHumanNpub={form.assigneeHumanNpub || ''}
+        assigneeAgentId={form.assigneeAgentId || ''}
+        defaultToMe={false}
+        onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+          setForm((f) => ({
+            ...f,
+            assigneeHumanNpub: assigneeHumanNpub || '',
+            assigneeAgentId: assigneeAgentId || '',
+          }))
+        }
+      />
       <label>
         {t('grrc.fieldDescription', { defaultValue: 'Description' })}
         <textarea
@@ -615,7 +695,11 @@ export default function GrrcDesk() {
           e.preventDefault()
           run(async () => {
             const ownerName = await resolveCurrentUserOwnerLabel(riskForm.ownerName)
-            const created = await grrcApi.risks.create({ ...riskForm, ownerName: ownerName || null })
+            const created = await grrcApi.risks.create({
+              ...riskForm,
+              ownerName: ownerName || null,
+              ...assigneePairForBody(riskForm),
+            })
             if (pendingRiskContent.length && created?.id != null) {
               await attachPendingContent(PKG, RISK_RESOURCE, created.id, pendingRiskContent)
               setPendingRiskContent([])
@@ -655,6 +739,7 @@ export default function GrrcDesk() {
               ...compForm,
               ownerName: ownerName || null,
               effectiveFrom: compForm.effectiveFrom || null,
+              ...assigneePairForBody(compForm),
             })
             if (pendingCompContent.length && created?.id != null) {
               await attachPendingContent(PKG, COMP_RESOURCE, created.id, pendingCompContent)
@@ -763,6 +848,11 @@ export default function GrrcDesk() {
                 label: t('grrc.colSeverity', { defaultValue: 'Severity' }),
                 render: (r) => r.severity || '—',
               },
+              {
+                key: 'assignee',
+                label: t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' }),
+                render: (r) => assigneeLabel(r),
+              },
             ],
             'grrc.emptyRisks',
             'No risks yet. Add one with New to start the register.',
@@ -796,6 +886,11 @@ export default function GrrcDesk() {
                 sortField: 'itemKind',
                 label: t('grrc.colKind', { defaultValue: 'Kind' }),
                 render: (r) => r.itemKind || '—',
+              },
+              {
+                key: 'assignee',
+                label: t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' }),
+                render: (r) => assigneeLabel(r),
               },
             ],
             'grrc.emptyCompliance',
@@ -861,6 +956,7 @@ export default function GrrcDesk() {
                     ownerName: selected.ownerName || '',
                     treatmentNote: selected.treatmentNote || '',
                     status: selected.status || 'OPEN',
+                    ...assigneePairFromRow(selected),
                   })
                   setEditing(true)
                 }}
@@ -924,6 +1020,7 @@ export default function GrrcDesk() {
                 const updated = await grrcApi.risks.update(selected.id, {
                   ...editForm,
                   ownerName: ownerName || null,
+                  ...assigneePairForBody(editForm),
                 })
                 setSelected(updated)
                 setEditing(false)
@@ -992,6 +1089,7 @@ export default function GrrcDesk() {
                     status: selected.status || 'DRAFT',
                     ownerName: selected.ownerName || '',
                     effectiveFrom: toDateInput(selected.effectiveFrom),
+                    ...assigneePairFromRow(selected),
                   })
                   setEditing(true)
                 }}
@@ -1032,6 +1130,7 @@ export default function GrrcDesk() {
                   ...editForm,
                   ownerName: ownerName || null,
                   effectiveFrom: editForm.effectiveFrom || null,
+                  ...assigneePairForBody(editForm),
                 })
                 setSelected(updated)
                 setEditing(false)

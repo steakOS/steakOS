@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * Individual or organization customer (S-S0).
@@ -31,7 +32,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'name')
 @ToString(includes = 'name', includeNames = true, includePackage = false)
-class Customer implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class Customer implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -61,6 +62,7 @@ class Customer implements NpubOwned, AccessControl, Classifiable, Attachable, Au
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 
 		name nullable: false, blank: false, maxSize: 255

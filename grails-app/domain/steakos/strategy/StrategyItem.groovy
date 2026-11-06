@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * StrategyBasics thin: vision, mission, strategy, need, or factor notes (G4).
@@ -31,7 +32,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,itemKind,status', includeNames = true, includePackage = false)
-class StrategyItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class StrategyItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -49,6 +50,7 @@ class StrategyItem implements NpubOwned, AccessControl, Classifiable, Attachable
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 8000

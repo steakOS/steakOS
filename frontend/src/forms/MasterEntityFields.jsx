@@ -17,6 +17,7 @@ import CurrencySelect from '../components/CurrencySelect'
 import LocaleSelect from '../components/LocaleSelect'
 import CustomerSelect from '../components/CustomerSelect'
 import CurrentUserOwnerField from '../components/CurrentUserOwnerField'
+import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
 
 /**
  * Renders fields from a master form spec.
@@ -48,24 +49,32 @@ export default function MasterEntityFields({
     onChange({ target: { name, value, type: 'text' } })
   }
 
+  const setFields = (patch) => {
+    if (typeof onChange !== 'function' || !patch) return
+    Object.entries(patch).forEach(([name, value]) => {
+      onChange({ target: { name, value, type: 'text' } })
+    })
+  }
+
   const fields = showDescription
     ? spec.fields
     : spec.fields.filter((f) => f.name !== 'description')
 
-  // Pair layout: consecutive non-textarea/checkbox fields in a row when small
+  const isFullWidth = (f) =>
+    f.type === 'textarea' ||
+    f.type === 'checkbox' ||
+    f.type === 'assignee' ||
+    !!f.fullWidth
+
+  // Pair layout: consecutive non-textarea/checkbox/assignee fields in a row when small
   const blocks = []
   let i = 0
   while (i < fields.length) {
     const f = fields[i]
-    if (f.type === 'textarea' || f.type === 'checkbox' || f.fullWidth) {
+    if (isFullWidth(f)) {
       blocks.push([f])
       i += 1
-    } else if (
-      i + 1 < fields.length &&
-      fields[i + 1].type !== 'textarea' &&
-      fields[i + 1].type !== 'checkbox' &&
-      !fields[i + 1].fullWidth
-    ) {
+    } else if (i + 1 < fields.length && !isFullWidth(fields[i + 1])) {
       blocks.push([f, fields[i + 1]])
       i += 2
     } else {
@@ -80,17 +89,19 @@ export default function MasterEntityFields({
         if (pair.length === 2) {
           return (
             <div key={idx} className="form-row-2">
-              {pair.map((field) => renderField(field, form, handle, setField, disabled))}
+              {pair.map((field) =>
+                renderField(field, form, handle, setField, setFields, disabled),
+              )}
             </div>
           )
         }
-        return renderField(pair[0], form, handle, setField, disabled)
+        return renderField(pair[0], form, handle, setField, setFields, disabled)
       })}
     </>
   )
 }
 
-function renderField(field, form, handle, setField, disabled) {
+function renderField(field, form, handle, setField, setFields, disabled) {
   const val = form[field.name]
   const id = `mf-${field.name}`
 
@@ -218,6 +229,26 @@ function renderField(field, form, handle, setField, disabled) {
         value={val ?? ''}
         disabled={disabled}
         onChange={(next) => setField(field.name, next)}
+      />
+    )
+  }
+
+  if (field.type === 'assignee') {
+    return (
+      <TaskAssigneeSelect
+        key={field.name}
+        id={id}
+        label={field.label || undefined}
+        assigneeHumanNpub={form.assigneeHumanNpub || ''}
+        assigneeAgentId={form.assigneeAgentId || ''}
+        defaultToMe={false}
+        disabled={disabled}
+        onChange={({ assigneeHumanNpub, assigneeAgentId }) => {
+          setFields({
+            assigneeHumanNpub: assigneeHumanNpub || '',
+            assigneeAgentId: assigneeAgentId || '',
+          })
+        }}
       />
     )
   }

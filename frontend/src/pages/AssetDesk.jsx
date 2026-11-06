@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Eye, Pencil, Plus, RefreshCw, Trash2, Warehouse } from 'lucide-react'
-import { domainsApi, meApi } from '../api/client'
+import { agentsApi, deliveryApi, domainsApi, meApi } from '../api/client'
 import MasterEntityFields from '../forms/MasterEntityFields'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import useRecordView from '../hooks/useRecordView'
@@ -37,6 +37,13 @@ import { fetchContentMap } from '../utils/contentSummary'
 import { resolveCurrentUserOwnerLabel } from '../utils/currentUserOwner'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
+import {
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const assetMasterSpec = getMasterFormSpec('asset', 'PhysicalAsset')
 
@@ -142,8 +149,49 @@ export default function AssetDesk() {
   const [assetPage, setAssetPage] = useState({ max: 25, offset: 0, total: 0 })
   const [assetSort, setAssetSort] = useState('id')
   const [assetOrder, setAssetOrder] = useState('desc')
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
   const getBelowFieldsRef = useRef(null)
   const assetsRef = useRef([])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
+
   const onAssetSortChange = useCallback(({ sort: s, order: o }) => {
     setAssetSort(s || 'id')
     setAssetOrder(o === 'asc' ? 'asc' : 'desc')
@@ -486,6 +534,11 @@ export default function AssetDesk() {
           { id: 'assetTag', secondary: true, render: (a) => a.assetTag || '—' },
           { id: 'status', meta: true, render: (a) => a.status || '—' },
           {
+            id: 'assignee',
+            meta: true,
+            render: (a) => assigneeLabel(a),
+          },
+          {
             id: 'content',
             priority: 'low',
             render: (a) => <ContentChannelIcons summary={assetContentMap[a.id]} />,
@@ -513,6 +566,9 @@ export default function AssetDesk() {
                   order={assetOrder}
                   onSortChange={onAssetSortChange}
                 />
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common', defaultValue: 'Content' })}</th>
                 <th>{t('wb.action', { ns: 'common', defaultValue: 'Action' })}</th>
               </tr>
@@ -530,6 +586,7 @@ export default function AssetDesk() {
                   <td>
                     <span className={statusBadgeClass(a.status)}>{a.status || '—'}</span>
                   </td>
+                  <td className="col-priority-low">{assigneeLabel(a)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={assetContentMap[a.id]} />
                   </td>

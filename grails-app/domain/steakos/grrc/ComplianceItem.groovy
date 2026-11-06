@@ -24,6 +24,7 @@ import steakos.traits.Classifiable
 import steakos.traits.Attachable
 import steakos.traits.Auditable
 import steakos.traits.DomainTraitConstraints
+import steakos.traits.Assignable
 
 /**
  * GRRCBasics thin compliance policy / obligation row (G7 / APQC 11.2 light).
@@ -31,7 +32,7 @@ import steakos.traits.DomainTraitConstraints
 @GrailsCompileStatic
 @EqualsAndHashCode(includes = 'id')
 @ToString(includes = 'id,name,itemKind,status', includeNames = true, includePackage = false)
-class ComplianceItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Serializable {
+class ComplianceItem implements NpubOwned, AccessControl, Classifiable, Attachable, Auditable, Assignable, Serializable {
 
 	private static final long serialVersionUID = 1L
 
@@ -50,6 +51,7 @@ class ComplianceItem implements NpubOwned, AccessControl, Classifiable, Attachab
 		DomainTraitConstraints.applyAccessControl(delegate)
 		DomainTraitConstraints.applyClassifiable(delegate)
 		DomainTraitConstraints.applyAttachable(delegate)
+		DomainTraitConstraints.applyAssignable(delegate)
 		DomainTraitConstraints.applyAuditable(delegate)
 		name nullable: false, blank: false, maxSize: 255
 		description nullable: true, maxSize: 8000

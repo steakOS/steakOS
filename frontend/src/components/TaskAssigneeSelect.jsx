@@ -37,6 +37,8 @@ export default function TaskAssigneeSelect({
   id = 'task-assignee',
   /** When true (new task), default selection to current user once options load. */
   defaultToMe = false,
+  /** Override label; default i18n pages.work.assignee / 'Assignee'. */
+  label,
 }) {
   const { t } = useTranslation('common')
   const [meUsername, setMeUsername] = useState(null)
@@ -47,6 +49,10 @@ export default function TaskAssigneeSelect({
   const [didDefault, setDidDefault] = useState(false)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  const displayLabel =
+    label != null && label !== ''
+      ? label
+      : t('pages.work.assignee', { defaultValue: 'Assignee' })
 
   useEffect(() => {
     let cancelled = false
@@ -117,7 +123,7 @@ export default function TaskAssigneeSelect({
 
   return (
     <label htmlFor={id}>
-      {t('pages.work.assignee', { defaultValue: 'Assignee' })}
+      {displayLabel}
       <select
         id={id}
         disabled={disabled}

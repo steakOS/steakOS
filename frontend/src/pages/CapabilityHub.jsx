@@ -32,12 +32,13 @@ import {
   Eye,
   Pencil,
 } from 'lucide-react'
-import { capabilityApi } from '../api/client'
+import { agentsApi, capabilityApi, deliveryApi, meApi } from '../api/client'
 import ContentRail from '../components/ContentRail'
 import ContentChannelIcons from '../components/ContentChannelIcons'
 import ListPager from '../components/ListPager'
 import ListSortHeader from '../components/ListSortHeader'
 import ProcessDiagram from '../components/ProcessDiagram'
+import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
 import { hasMasterFormSpec } from '../forms/masterFormSpecs'
 import useRecordView from '../hooks/useRecordView'
 import PendingContentComposer, {
@@ -55,6 +56,14 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import useDeskMemory from '../hooks/useDeskMemory'
 import { labelFromList } from '../utils/entityDisplayLabel'
+import {
+  assigneePairForBody,
+  buildAssigneeOptions,
+  filterAssigneeOptionsForDevMode,
+  formatAssigneeDisplay,
+  humanNpubForUsername,
+  splitPersonName,
+} from '../utils/taskAssignee'
 
 const SECTION_DEFS = [
   { id: 'portfolios', labelKey: 'capability.tabs.portfolios', icon: Layers },
@@ -348,9 +357,30 @@ export default function CapabilityHub() {
     [],
   )
 
-  const [portForm, setPortForm] = useState({ name: '', description: '', ownerRef: '' })
-  const [progForm, setProgForm] = useState({ name: '', description: '', portfolioId: '' })
-  const [projForm, setProjForm] = useState({ name: '', description: '', portfolioId: '', programId: '' })
+  const [portForm, setPortForm] = useState({
+    name: '',
+    description: '',
+    ownerRef: '',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
+  })
+  const [progForm, setProgForm] = useState({
+    name: '',
+    description: '',
+    portfolioId: '',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
+  })
+  const [projForm, setProjForm] = useState({
+    name: '',
+    description: '',
+    portfolioId: '',
+    programId: '',
+    assigneeHumanNpub: '',
+    assigneeAgentId: '',
+  })
+  const [assigneeOptions, setAssigneeOptions] = useState([])
+  const [meUsername, setMeUsername] = useState(null)
   const [itemForm, setItemForm] = useState({ name: '', description: '', taskId: '' })
   const [procForm, setProcForm] = useState({ name: '', description: '', processCode: '', processKind: 'HUMAN' })
   const [stepForm, setStepForm] = useState({ name: '', description: '', predecessorId: '' })
@@ -388,6 +418,44 @@ export default function CapabilityHub() {
       )
     }
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      meApi.get().catch(() => null),
+      deliveryApi.resources.list({ assignees: true, max: 500, offset: 0 }).catch(() => ({ items: [] })),
+      agentsApi.agents.list({ max: 200 }).catch(() => ({ items: [] })),
+    ]).then(([me, res, ag]) => {
+      if (cancelled) return
+      const username = me?.username || null
+      setMeUsername(username)
+      const humans = Array.isArray(res?.items) ? res.items : []
+      const agents = Array.isArray(ag?.items) ? ag.items : []
+      const meNpub = humanNpubForUsername(username)
+      const match = humans.find(
+        (h) => humanNpubForUsername(h.personRef || h.username) === meNpub,
+      )
+      const meLabel = match?.name ? splitPersonName(match.name).label : username
+      setAssigneeOptions(
+        filterAssigneeOptionsForDevMode(
+          buildAssigneeOptions({ humans, agents, meUsername: username, meLabel }),
+          !!me?.developmentMode,
+        ),
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const assigneeLabel = useCallback(
+    (row) =>
+      formatAssigneeDisplay(row.assigneeHumanNpub, row.assigneeAgentId, {
+        options: assigneeOptions,
+        meUsername,
+      }),
+    [assigneeOptions, meUsername],
+  )
 
   const statusClass = (s) => {
     if (['ACTIVE', 'DONE', 'CLOSED', 'OPEN'].includes(s)) return 'badge badge-ok'
@@ -816,9 +884,28 @@ export default function CapabilityHub() {
   }, [])
 
   const resetCreateForms = useCallback(() => {
-    setPortForm({ name: '', description: '', ownerRef: '' })
-    setProgForm({ name: '', description: '', portfolioId: '' })
-    setProjForm({ name: '', description: '', portfolioId: '', programId: '' })
+    setPortForm({
+      name: '',
+      description: '',
+      ownerRef: '',
+      assigneeHumanNpub: '',
+      assigneeAgentId: '',
+    })
+    setProgForm({
+      name: '',
+      description: '',
+      portfolioId: '',
+      assigneeHumanNpub: '',
+      assigneeAgentId: '',
+    })
+    setProjForm({
+      name: '',
+      description: '',
+      portfolioId: '',
+      programId: '',
+      assigneeHumanNpub: '',
+      assigneeAgentId: '',
+    })
     setPendingPortfolioContent([])
     setPendingProgramContent([])
     setPendingProjectContent([])
@@ -1312,7 +1399,10 @@ export default function CapabilityHub() {
         onSubmit={(e) => {
           e.preventDefault()
           run('port', async () => {
-            const p = await capabilityApi.portfolios.create(portForm)
+            const p = await capabilityApi.portfolios.create({
+              ...portForm,
+              ...assigneePairForBody(portForm),
+            })
             if (pendingPortfolioContent.length) {
               await attachPendingContent(
                 'capability',
@@ -1329,7 +1419,13 @@ export default function CapabilityHub() {
                 name: p.name,
               }),
             )
-            setPortForm({ name: '', description: '', ownerRef: '' })
+            setPortForm({
+              name: '',
+              description: '',
+              ownerRef: '',
+              assigneeHumanNpub: '',
+              assigneeAgentId: '',
+            })
             setNewExpanded(false)
           })
         }}
@@ -1357,6 +1453,19 @@ export default function CapabilityHub() {
             onChange={(e) => setPortForm((f) => ({ ...f, ownerRef: e.target.value }))}
           />
         </label>
+        <TaskAssigneeSelect
+          id="cap-port-assignee"
+          assigneeHumanNpub={portForm.assigneeHumanNpub || ''}
+          assigneeAgentId={portForm.assigneeAgentId || ''}
+          defaultToMe={false}
+          onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+            setPortForm((f) => ({
+              ...f,
+              assigneeHumanNpub: assigneeHumanNpub || '',
+              assigneeAgentId: assigneeAgentId || '',
+            }))
+          }
+        />
         <PendingContentComposer
           package="capability"
           resource="Portfolio"
@@ -1384,6 +1493,7 @@ export default function CapabilityHub() {
               name: progForm.name,
               description: (progForm.description || '').trim() || null,
               portfolioId: progForm.portfolioId || null,
+              ...assigneePairForBody(progForm),
             }
             const p = await capabilityApi.programs.create(body)
             if (pendingProgramContent.length) {
@@ -1402,7 +1512,13 @@ export default function CapabilityHub() {
                 name: p.name,
               }),
             )
-            setProgForm({ name: '', description: '', portfolioId: '' })
+            setProgForm({
+              name: '',
+              description: '',
+              portfolioId: '',
+              assigneeHumanNpub: '',
+              assigneeAgentId: '',
+            })
             setNewExpanded(false)
           })
         }}
@@ -1437,6 +1553,19 @@ export default function CapabilityHub() {
             ))}
           </select>
         </label>
+        <TaskAssigneeSelect
+          id="cap-prog-assignee"
+          assigneeHumanNpub={progForm.assigneeHumanNpub || ''}
+          assigneeAgentId={progForm.assigneeAgentId || ''}
+          defaultToMe={false}
+          onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+            setProgForm((f) => ({
+              ...f,
+              assigneeHumanNpub: assigneeHumanNpub || '',
+              assigneeAgentId: assigneeAgentId || '',
+            }))
+          }
+        />
         <PendingContentComposer
           package="capability"
           resource="Program"
@@ -1465,6 +1594,7 @@ export default function CapabilityHub() {
               description: (projForm.description || '').trim() || null,
               portfolioId: projForm.portfolioId || null,
               programId: projForm.programId || null,
+              ...assigneePairForBody(projForm),
             }
             const p = await capabilityApi.projects.create(body)
             if (pendingProjectContent.length) {
@@ -1477,7 +1607,14 @@ export default function CapabilityHub() {
               setPendingProjectContent([])
             }
             setInfo(t('toast.projectStandalone', { ns: 'common', name: p.name }))
-            setProjForm({ name: '', description: '', portfolioId: '', programId: '' })
+            setProjForm({
+              name: '',
+              description: '',
+              portfolioId: '',
+              programId: '',
+              assigneeHumanNpub: '',
+              assigneeAgentId: '',
+            })
             setNewExpanded(false)
           })
         }}
@@ -1528,6 +1665,19 @@ export default function CapabilityHub() {
             </select>
           </label>
         </div>
+        <TaskAssigneeSelect
+          id="cap-proj-assignee"
+          assigneeHumanNpub={projForm.assigneeHumanNpub || ''}
+          assigneeAgentId={projForm.assigneeAgentId || ''}
+          defaultToMe={false}
+          onChange={({ assigneeHumanNpub, assigneeAgentId }) =>
+            setProjForm((f) => ({
+              ...f,
+              assigneeHumanNpub: assigneeHumanNpub || '',
+              assigneeAgentId: assigneeAgentId || '',
+            }))
+          }
+        />
         <PendingContentComposer
           package="capability"
           resource="Project"
@@ -2041,6 +2191,11 @@ export default function CapabilityHub() {
             render: (p) => p.ownerRef || '—',
           },
           {
+            id: 'assignee',
+            secondary: true,
+            render: (p) => assigneeLabel(p),
+          },
+          {
             id: 'status',
             meta: true,
             render: (p) => (
@@ -2093,6 +2248,9 @@ export default function CapabilityHub() {
                   onSortChange={onPortSortChange}
                 />
                 <th className="col-priority-low">Owner</th>
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <ListSortHeader
                   field="portfolioStatus"
                   label={t('wb.status', { ns: 'common' })}
@@ -2119,6 +2277,7 @@ export default function CapabilityHub() {
                 >
                   <td>{p.name}</td>
                   <td className="col-priority-low">{p.ownerRef || '—'}</td>
+                  <td className="col-priority-low">{assigneeLabel(p)}</td>
                   <td>
                     <span className={statusClass(p.portfolioStatus)}>{p.portfolioStatus}</span>
                   </td>
@@ -2154,7 +2313,7 @@ export default function CapabilityHub() {
               ))}
               {!portfolios.length && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     {t('capability.emptyPortfolios', { defaultValue: 'No portfolios yet' })}
                   </td>
                 </tr>
@@ -2199,6 +2358,11 @@ export default function CapabilityHub() {
             render: (p) => labelFromList(portfolioOptions, p.portfolioId),
           },
           {
+            id: 'assignee',
+            secondary: true,
+            render: (p) => assigneeLabel(p),
+          },
+          {
             id: 'status',
             meta: true,
             render: (p) => (
@@ -2226,6 +2390,9 @@ export default function CapabilityHub() {
                 />
                 <th className="col-priority-low">
                   {t('labels.portfolio', { ns: 'common' })}
+                </th>
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
                 </th>
                 <ListSortHeader
                   field="programStatus"
@@ -2255,6 +2422,7 @@ export default function CapabilityHub() {
                     <td className="col-priority-low">
                       {labelFromList(portfolioOptions, p.portfolioId)}
                     </td>
+                    <td className="col-priority-low">{assigneeLabel(p)}</td>
                     <td>
                       <span className={statusClass(p.programStatus)}>{p.programStatus}</span>
                     </td>
@@ -2268,7 +2436,7 @@ export default function CapabilityHub() {
               ))}
               {!programs.length && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     {t('capability.emptyPrograms', { defaultValue: 'No programs yet' })}
                   </td>
                 </tr>
@@ -2304,6 +2472,11 @@ export default function CapabilityHub() {
         onSortChange={onProjSortChange}
         fields={[
           { id: 'name', primary: true, render: (p) => p.name },
+          {
+            id: 'assignee',
+            secondary: true,
+            render: (p) => assigneeLabel(p),
+          },
           {
             id: 'status',
             secondary: true,
@@ -2379,6 +2552,9 @@ export default function CapabilityHub() {
                   order={projOrder}
                   onSortChange={onProjSortChange}
                 />
+                <th className="col-priority-low">
+                  {t('pages.work.assignee', { ns: 'common', defaultValue: 'Assignee' })}
+                </th>
                 <th className="col-priority-low">{t('wb.content', { ns: 'common' })}</th>
                 <ListSortHeader
                   field="projectStatus"
@@ -2403,6 +2579,7 @@ export default function CapabilityHub() {
                   onClick={() => selectProject(p)}
                 >
                   <td>{p.name}</td>
+                  <td className="col-priority-low">{assigneeLabel(p)}</td>
                   <td className="col-priority-low" onClick={(e) => e.stopPropagation()}>
                     <ContentChannelIcons summary={projectContentMap[p.id]} />
                   </td>
@@ -2461,7 +2638,7 @@ export default function CapabilityHub() {
               ))}
               {!projects.length && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     No projects yet
                   </td>
                 </tr>

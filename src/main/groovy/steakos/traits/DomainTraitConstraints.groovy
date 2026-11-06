@@ -83,6 +83,12 @@ class DomainTraitConstraints {
         attachmentCount nullable: true
     }
 
+    /** Optional Task-style assignee (human XOR agent). */
+    static final Closure assignableFragment = {
+        assigneeHumanNpub nullable: true, maxSize: 128
+        assigneeAgentId nullable: true
+    }
+
     static final Closure reputationFragment = {
         rating nullable: true, scale: 4
         points nullable: true
@@ -136,4 +142,5 @@ class DomainTraitConstraints {
     static void applyNetworked(Object d) { apply(d, networkedFragment) }
     static void applyAttachable(Object d) { apply(d, attachableFragment) }
     static void applyReputation(Object d) { apply(d, reputationFragment) }
+    static void applyAssignable(Object d) { apply(d, assignableFragment) }
 }
