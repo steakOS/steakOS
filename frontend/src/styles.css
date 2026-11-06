@@ -2863,6 +2863,9 @@ table.data tbody tr.row-selected td:last-child {
   top: calc(var(--app-topbar-offset, 3.5rem) + 0.5rem);
   max-height: calc(100dvh - 5rem);
   overflow: auto;
+  /* Inset detail when a row is selected — matches .card top/left rhythm.
+     Narrow bottom-sheet overrides padding entirely below. */
+  padding: 1rem 0 0 1.1rem;
 }
 
 .desk-shell-tabs {
