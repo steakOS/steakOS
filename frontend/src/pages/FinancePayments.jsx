@@ -127,7 +127,7 @@ export default function FinancePayments() {
         <p className="page-sub">
           {t('finance.paymentsSubtitle', {
             defaultValue:
-              'Connect BTCPay Server for live Bitcoin receive on your LIVE company. Demo companies stay on mock settle.',
+              'Connect BTCPay Server (experimental) for live Bitcoin receive on your LIVE company. Demo companies stay on mock settle.',
           })}
         </p>
       </header>
@@ -210,7 +210,7 @@ export default function FinancePayments() {
 
       <form className="card form-grid" style={{ padding: '1rem', marginTop: '1rem' }} onSubmit={save}>
         <h2 className="section-label" style={{ marginTop: 0 }}>
-          {t('finance.btcpaySettings', { defaultValue: 'BTCPay Server (operator-run)' })}
+          {t('finance.btcpaySettings', { defaultValue: 'BTCPay Server (experimental, operator-run)' })}
         </h2>
         <p className="muted">
           {t('finance.noCustody', {

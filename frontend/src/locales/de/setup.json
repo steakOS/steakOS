@@ -118,7 +118,7 @@
     "level1Body": "Noch kein Live-Bitcoin-Empfang. Nur Mock-Settlement. Bücher können trotzdem BTC als Primärschiene nutzen.",
     "level2Title": "Stufe 2 — Einzeladresse",
     "level2Body": "Gelegentliche On-Chain-Zahlungen an eine Software-Wallet-Adresse. Manuell als bezahlt markieren. Kein Lightning / Händler-Setup.",
-    "level3Title": "Stufe 3 — BTCPay Server",
+    "level3Title": "Stufe 3 — BTCPay Server (experimental)",
     "level3Body": "Betreiber-BTCPay (Lightning + On-Chain). Felder hier eingeben; Probe und Live unter Finanzen → Zahlungen.",
     "level2Warn": "Sicherheitshinweis: Einzeladresse nur für gelegentliche Zahlungen. Niemals Seed oder xprv einfügen. Für regelmäßigen Empfang auf BTCPay upgraden.",
     "receiveAddress": "Bitcoin-Empfangsadresse *",

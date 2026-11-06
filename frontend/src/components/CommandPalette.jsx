@@ -144,7 +144,7 @@ export default function CommandPalette({ open, onClose, showAdvanced = false, el
         group: helpGroup,
       },
       {
-        label: 'BTCPay Server',
+        label: 'BTCPay Server (experimental)',
         path: '/finance/payments',
         helpKey: 'finance.payments.live',
         keywords: 'btcpay btc pay server lightning live payments webhook',

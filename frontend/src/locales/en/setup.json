@@ -118,7 +118,7 @@
     "level1Body": "No live Bitcoin receive yet. Mock settle only. You can still book on a BTC primary rail. Basic literacy nudge.",
     "level2Title": "Level 2 — Single address",
     "level2Body": "Occasional on-chain payments to one software-wallet address. Manual mark paid. Not Lightning / merchant-grade.",
-    "level3Title": "Level 3 — BTCPay Server",
+    "level3Title": "Level 3 — BTCPay Server (experimental)",
     "level3Body": "Operator-run BTCPay (Lightning + on-chain). Enter connection fields here; probe and enable live under Finance → Payments.",
     "level2Warn": "Security notice: single-address receive is for occasional payments only. Never paste a seed or xprv. Plan to upgrade to BTCPay for regular Lightning / on-chain.",
     "receiveAddress": "Bitcoin receive address *",

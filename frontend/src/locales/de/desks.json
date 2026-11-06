@@ -365,7 +365,7 @@
     "bookBalance": "Buchsaldo",
     "btcLevel": "Bitcoin-Stufe",
     "btcpayBaseUrl": "BTCPay-Basis-URL",
-    "btcpaySettings": "BTCPay Server (betreiberseitig)",
+    "btcpaySettings": "BTCPay Server (experimental, betreiberseitig)",
     "btcpayStoreId": "Store-ID",
     "defaultCurrency": "Standardwährung",
     "demoMockOnly": "Demo-Firma: nur Mock-Settle. Wechseln Sie zur LIVE-Firma und öffnen Sie Finanzen → Zahlungen, um BTCPay zu verbinden.",

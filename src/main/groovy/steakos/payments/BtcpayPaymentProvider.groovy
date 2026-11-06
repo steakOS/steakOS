@@ -23,7 +23,7 @@ import javax.crypto.spec.SecretKeySpec
 import java.nio.charset.StandardCharsets
 
 /**
- * BTCPay Server Greenfield implementation of {@link BitcoinPaymentProvider} (Phase 1).
+ * BTCPay Server (experimental) Greenfield implementation of {@link BitcoinPaymentProvider} (Phase 1).
  */
 @Slf4j
 class BtcpayPaymentProvider implements BitcoinPaymentProvider {

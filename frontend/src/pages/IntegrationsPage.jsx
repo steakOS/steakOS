@@ -354,7 +354,7 @@ export default function IntegrationsPage() {
             <p style={{ fontSize: 14 }}>
               {t('pages.settings.btcLevel2WarnBody', {
                 defaultValue:
-                  'You are receiving Bitcoin to a single software-wallet address. This is meant for occasional payments only. Address reuse, device malware, and weak backups can cause permanent loss. steakOS does not hold your keys. Complete advanced Bitcoin security training, and plan to upgrade to BTCPay Server (Level 3) for regular Lightning / on-chain receive.',
+                  'You are receiving Bitcoin to a single software-wallet address. This is meant for occasional payments only. Address reuse, device malware, and weak backups can cause permanent loss. steakOS does not hold your keys. Complete advanced Bitcoin security training, and plan to upgrade to BTCPay Server (experimental) for regular Lightning / on-chain receive.',
               })}
             </p>
             {btcLevel.receiveAddressMasked && (
@@ -416,7 +416,7 @@ export default function IntegrationsPage() {
               >
                 <option value="DEFERRED">1 — Not now (DEFERRED)</option>
                 <option value="SINGLE_ADDRESS">2 — Single address</option>
-                <option value="BTCPAY">3 — BTCPay</option>
+                <option value="BTCPAY">3 — BTCPay Server (experimental)</option>
               </select>
             </label>
             {btcForm.level === 'SINGLE_ADDRESS' && (

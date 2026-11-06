@@ -614,7 +614,7 @@ Administrative first-run setup — not a desk SYSTEM processCode. Walks Tour →
 
 ## Actions
 - Complete each wizard step and continue
-- Choose **Bitcoin integration level** (Not now / Single address / BTCPay)
+- Choose **Bitcoin integration level** (Not now / Single address / BTCPay Server (experimental))
 - Finish to unlock desks for the new company
 
 ## Fields
@@ -642,10 +642,10 @@ Administrative training checklist before enabling Bitcoin receive — no desk SY
 No form fields on this help topic. Level choice lives on Integrations.
 
 ## Special situations
-steakOS does **not** hold keys. Level 1 defers live receive; books may still use a BTC primary rail with **mock** settle. Prefer **BTCPay (Level 3)** for regular customer payments.
+steakOS does **not** hold keys. Level 1 defers live receive; books may still use a BTC primary rail with **mock** settle. Prefer **BTCPay Server (experimental)** for regular customer payments.
 
 ## Related
-- Bitcoin integration level · Live payments (BTCPay)
+- Bitcoin integration level · Live payments (BTCPay Server · experimental)
 - Advanced Bitcoin security
 '''],
             [key: 'training.btc.security-advanced', title: 'Advanced Bitcoin security', route: '/system/integrations', family: 'finance',
@@ -657,7 +657,7 @@ Security checklist for Bitcoin Level **2 — Single address** (occasional paymen
 ## Actions
 - Follow the backup / phishing checklist
 - Manage Level 2 under **System → Integrations**
-- Plan upgrade to **BTCPay (Level 3)** for Lightning / regular receive
+- Plan upgrade to **BTCPay Server (experimental)** for Lightning / regular receive
 
 ## Fields
 Single software-wallet address configured on Integrations — never paste seeds into steakOS.
@@ -666,7 +666,7 @@ Single software-wallet address configured on Integrations — never paste seeds 
 Address reuse and weak backups can cause permanent loss. steakOS does not watch the chain in beta — settle is **manual mark paid**. CEO training ack required on upgrade to Level 2/3.
 
 ## Related
-- Bitcoin integration level · Live payments (BTCPay)
+- Bitcoin integration level · Live payments (BTCPay Server · experimental)
 - Basic Bitcoin literacy
 '''],
             [key: 'system.integrations', title: 'Integrations hub', route: '/system/integrations', family: 'core',
@@ -677,7 +677,7 @@ Administrative surface for operator integrations (Nostr, Bitcoin receive level, 
 
 ## Actions
 - Configure **Nostr** relay level, install/start, probe
-- Set **Bitcoin** receive level (Not now · Single address · BTCPay)
+- Set **Bitcoin** receive level (Not now · Single address · BTCPay Server (experimental))
 - **Mint / revoke** Hermes agent API tokens
 - Probe connections before enabling live
 
@@ -688,7 +688,7 @@ Relay URL / level; Bitcoin level; BTCPay keys live under Finance → Payments; H
 CEO must acknowledge training when Admin upgrades Bitcoin to Level 2 or 3. DEMO companies do not publish Nostr and stay on mock settle. Never paste `nsec`. Agent Basics only in closed beta.
 
 ## Related
-- Live payments (BTCPay) · Bitcoin integration level · Nostr integration
+- Live payments (BTCPay Server · experimental) · Bitcoin integration level · Nostr integration
 - Hermes agent (API tokens) · AI / Agentic hub
 '''],
             [key: 'integrations.bitcoin', title: 'Bitcoin integration level', route: '/system/integrations', family: 'finance',
@@ -706,13 +706,13 @@ Administrative control of how the company **receives** Bitcoin — separate from
 |-------|-----|-----------|
 | DEFERRED | 1 — Not now | No live receive; mock settle OK |
 | SINGLE_ADDRESS | 2 — Single address | One address + QR; manual mark paid |
-| BTCPAY | 3 — BTCPay | Operator BTCPay (Lightning + on-chain) |
+| BTCPAY | 3 — BTCPay Server (experimental) | Operator-run BTCPay Server (experimental) (Lightning + on-chain) |
 
 ## Special situations
 Admin sets level; CEO training ack on upgrade to 2/3; Admin-only downgrade from Level 3. Lightning marketing claims only at Level 3.
 
 ## Related
-- Live payments (BTCPay) · Invoices (FIN_INVOICE_SETTLE)
+- Live payments (BTCPay Server · experimental) · Invoices (FIN_INVOICE_SETTLE)
 - Basic / Advanced Bitcoin training
 '''],
             [key: 'integrations.nostr', title: 'Nostr integration', route: '/system/integrations', family: 'digital',
@@ -801,7 +801,7 @@ Hints are not the books. No automatic wallet MTM. Changing rail after setup is A
 
 ## Related
 - Invoices (FIN_INVOICE_SETTLE) · Treasury (FIN_PAYABLE)
-- Live payments (BTCPay)
+- Live payments (BTCPay Server · experimental)
 '''],
             [key: 'finance.invoices', title: 'Invoices', route: '/finance/invoices', family: 'finance',
              body: '''# Invoices
@@ -823,17 +823,17 @@ DEMO companies: **mock settle only**. LIVE Bitcoin receive follows Integrations 
 
 ## Related
 - Sales desk (SALES_QUOTE_TO_ORDER)
-- Treasury · Posting rules · Live payments (BTCPay)
+- Treasury · Posting rules · Live payments (BTCPay Server · experimental)
 - [Onboarding tour](/tour/)
 '''],
-            [key: 'finance.payments.live', title: 'Live payments (BTCPay)', route: '/finance/payments', family: 'finance',
-             body: '''# Live payments (BTCPay)
+            [key: 'finance.payments.live', title: 'Live payments (BTCPay Server · experimental)', route: '/finance/payments', family: 'finance',
+             body: '''# Live payments (BTCPay Server · experimental)
 
 ## Process overview
 Administrative LIVE receive configuration for Bitcoin Level 3. Money movement on invoices still follows **FIN_INVOICE_SETTLE**; this screen wires BTCPay so settle can be live instead of mock.
 
 ## Actions
-- Set level to **BTCPay** on Integrations
+- Set level to **BTCPay Server (experimental)** on Integrations
 - Enter base URL, store id, API key, webhook secret
 - **Probe** then enable **live**
 - Issue invoice → inbound payment → pay in BTCPay → webhook or reconcile
@@ -883,7 +883,7 @@ Treasury positions and payables lean on **FIN_PAYABLE** (and related treasury po
 Position carrying values follow **primary value rail**; payable amounts and status; budget/tax/payroll stub fields per tab.
 
 ## Special situations
-Live Bitcoin receive is configured under Live payments (BTCPay), not only here. Posting-rule failures block vendor pay.
+Live Bitcoin receive is configured under Live payments (BTCPay Server · experimental), not only here. Posting-rule failures block vendor pay.
 
 ## Related
 - Invoices (FIN_INVOICE_SETTLE) · General ledger · Buyers desk
@@ -3100,7 +3100,7 @@ DEMO nur Mock-Settle. Fehlende Buchungsregeln blockieren (`POSTING_RULES_*`).
 Positionswerte nach Primärschiene; Verbindlichkeitsstatus; Tab-Felder.
 
 ## Besondere Situationen
-Live-Bitcoin unter Live-Zahlungen (BTCPay). Buchungsregeln können Vendor-Pay blockieren.
+Live-Bitcoin unter Live-Zahlungen (BTCPay Server · experimental). Buchungsregeln können Vendor-Pay blockieren.
 
 ## Verwandt
 - Rechnungen · Hauptbuch · Einkauf · Primärschiene
@@ -3121,7 +3121,7 @@ Schiene EUR/USD/BTC; Anzeige-Fiat; FX-Hinweis und Badge veraltet.
 Hinweise sind nicht die Bücher. Kein automatisches MTM. Schiene wechseln nach Setup = Advanced.
 
 ## Verwandt
-- Rechnungen · Treasury · Live-Zahlungen (BTCPay)
+- Rechnungen · Treasury · Live-Zahlungen (BTCPay Server · experimental)
 ''',
             'finance.postingRules': '''# Buchungsregeln
 
@@ -3409,7 +3409,7 @@ Administratives Erst-Setup — kein Desk-SYSTEM-processCode. Ablauf: Tour → Fi
 
 ## Aktionen
 - Jeden Assistentenschritt abschließen und weiter
-- **Bitcoin-Integrationsstufe** wählen (Nicht jetzt / Einzeladresse / BTCPay)
+- **Bitcoin-Integrationsstufe** wählen (Nicht jetzt / Einzeladresse / BTCPay Server (experimental))
 - Fertigstellen, um Desks für die neue Firma freizuschalten
 
 ## Felder
@@ -3436,10 +3436,10 @@ Administrative Checkliste vor dem Bitcoin-Empfang — kein Desk-SYSTEM-processCo
 Keine Formularfelder auf diesem Hilfethema. Stufenwahl liegt unter Integrationen.
 
 ## Besondere Situationen
-steakOS hält **keine** Schlüssel. Stufe 1 verschiebt Live-Empfang; Bücher können trotzdem BTC-Primärschiene mit **Mock**-Settle nutzen. Für regelmäßige Kundenzahlungen **BTCPay (Stufe 3)** bevorzugen.
+steakOS hält **keine** Schlüssel. Stufe 1 verschiebt Live-Empfang; Bücher können trotzdem BTC-Primärschiene mit **Mock**-Settle nutzen. Für regelmäßige Kundenzahlungen **BTCPay Server (experimental)** bevorzugen.
 
 ## Verwandt
-- Bitcoin-Integrationsstufe · Live-Zahlungen (BTCPay)
+- Bitcoin-Integrationsstufe · Live-Zahlungen (BTCPay Server · experimental)
 - Erweiterte Bitcoin-Sicherheit
 ''',
             'training.btc.security-advanced': '''# Erweiterte Bitcoin-Sicherheit (Stufe-2-Hinweis)
@@ -3450,7 +3450,7 @@ Sicherheits-Checkliste für Bitcoin-Stufe **2 — Einzeladresse** (gelegentliche
 ## Aktionen
 - Backup-/Phishing-Checkliste befolgen
 - Stufe 2 unter **System → Integrationen** verwalten
-- Upgrade auf **BTCPay (Stufe 3)** für Lightning / regelmäßigen Empfang planen
+- Upgrade auf **BTCPay Server (experimental)** für Lightning / regelmäßigen Empfang planen
 
 ## Felder
 Eine Software-Wallet-Adresse unter Integrationen — niemals Seeds in steakOS einfügen.
@@ -3459,7 +3459,7 @@ Eine Software-Wallet-Adresse unter Integrationen — niemals Seeds in steakOS ei
 Adress-Wiederverwendung und schwache Backups können zu dauerhaftem Verlust führen. steakOS beobachtet die Chain in der Beta nicht — Settle ist **manuell als bezahlt markieren**. CEO-Schulungsbestätigung nötig bei Upgrade auf Stufe 2/3.
 
 ## Verwandt
-- Bitcoin-Integrationsstufe · Live-Zahlungen (BTCPay)
+- Bitcoin-Integrationsstufe · Live-Zahlungen (BTCPay Server · experimental)
 - Bitcoin-Grundkenntnisse
 ''',
             'system.integrations': '''# Integrationen-Hub
@@ -3469,7 +3469,7 @@ Administrative Fläche für Betreiber-Integrationen (Nostr, Bitcoin-Empfangsstuf
 
 ## Aktionen
 - **Nostr**-Relay-Stufe konfigurieren, installieren/starten, prüfen
-- **Bitcoin**-Empfangsstufe setzen (Nicht jetzt · Einzeladresse · BTCPay)
+- **Bitcoin**-Empfangsstufe setzen (Nicht jetzt · Einzeladresse · BTCPay Server (experimental))
 - Hermes-Agent-API-Tokens **erzeugen / widerrufen**
 - Verbindungen prüfen, bevor Live aktiviert wird
 
@@ -3480,7 +3480,7 @@ Relay-URL / Stufe; Bitcoin-Stufe; BTCPay-Schlüssel unter Finance → Payments; 
 CEO muss Schulung bestätigen, wenn Admin Bitcoin auf Stufe 2 oder 3 anhebt. DEMO publiziert kein Nostr und bleibt auf Mock-Settle. Niemals `nsec` einfügen. Agent Basics nur in Closed Beta.
 
 ## Verwandt
-- Live-Zahlungen (BTCPay) · Bitcoin-Integrationsstufe · Nostr-Integration
+- Live-Zahlungen (BTCPay Server · experimental) · Bitcoin-Integrationsstufe · Nostr-Integration
 - Hermes-Agent (API-Tokens) · KI- / Agenten-Hub
 ''',
             'integrations.bitcoin': '''# Bitcoin-Integrationsstufe
@@ -3497,13 +3497,13 @@ Administrative Steuerung, wie die Firma Bitcoin **empfängt** — getrennt von d
 |-------|-----|-----------|
 | DEFERRED | 1 — Nicht jetzt | Kein Live-Empfang; Mock-Settle OK |
 | SINGLE_ADDRESS | 2 — Einzeladresse | Eine Adresse + QR; manuell als bezahlt |
-| BTCPAY | 3 — BTCPay | Betreiber-BTCPay (Lightning + On-Chain) |
+| BTCPAY | 3 — BTCPay Server (experimental) | Betreiber-BTCPay Server (experimental) (Lightning + On-Chain) |
 
 ## Besondere Situationen
 Admin setzt Stufe; CEO-Schulungsbestätigung bei Upgrade auf 2/3; Downgrade von Stufe 3 nur Admin. Lightning-Marketing nur bei Stufe 3.
 
 ## Verwandt
-- Live-Zahlungen (BTCPay) · Rechnungen (FIN_INVOICE_SETTLE)
+- Live-Zahlungen (BTCPay Server · experimental) · Rechnungen (FIN_INVOICE_SETTLE)
 - Bitcoin-Grundkenntnisse / Erweiterte Sicherheit
 ''',
             'integrations.nostr': '''# Nostr-Integration (OI-NOSTR01)
@@ -3546,13 +3546,13 @@ Neue Schreibvorgänge brauchen einen freigeschalteten Code; Legacy-Waisen bleibe
 - Vertrieb · Einkauf · Rechnungen
 - Primärschiene & BTC-FX
 ''',
-            'finance.payments.live': '''# Live-Zahlungen (BTCPay)
+            'finance.payments.live': '''# Live-Zahlungen (BTCPay Server · experimental)
 
 ## Prozessüberblick
 Administrative LIVE-Empfangskonfiguration für Bitcoin-Stufe 3. Geldbewegung auf Rechnungen folgt weiterhin **FIN_INVOICE_SETTLE**; dieser Screen verdrahtet BTCPay, damit Settle live statt Mock sein kann.
 
 ## Aktionen
-- Stufe auf **BTCPay** unter Integrationen setzen
+- Stufe auf **BTCPay Server (experimental)** unter Integrationen setzen
 - Basis-URL, Store-ID, API-Key, Webhook-Secret eintragen
 - **Prüfen**, dann **Live** aktivieren
 - Rechnung ausstellen → Zahlung eingehend → in BTCPay bezahlen → Webhook oder Abgleich
@@ -4106,7 +4106,7 @@ DEMO solo mock settle. Reglas de asiento rotas bloquean (`POSTING_RULES_*`).
 Valores según carril primario; estado de payables; campos por pestaña.
 
 ## Situaciones especiales
-Bitcoin en vivo en Pagos (BTCPay). Reglas de asiento pueden bloquear pago a proveedor.
+Bitcoin en vivo en Pagos (BTCPay Server · experimental). Reglas de asiento pueden bloquear pago a proveedor.
 
 ## Relacionado
 - Facturas · Libro mayor · Compradores · Carril primario
@@ -4127,7 +4127,7 @@ Carril EUR/USD/BTC; fiat de visualización; pista FX y badge obsoleto.
 Las pistas no son los libros. Sin MTM automático. Cambiar carril tras setup es Advanced.
 
 ## Relacionado
-- Facturas · Tesorería · Pagos en vivo (BTCPay)
+- Facturas · Tesorería · Pagos en vivo (BTCPay Server · experimental)
 ''',
             'system.settings': '''# Configuración
 
@@ -4363,7 +4363,7 @@ Configuración administrativa inicial — sin processCode SYSTEM de escritorio. 
 
 ## Acciones
 - Completar cada paso del asistente y continuar
-- Elegir **nivel de integración Bitcoin** (Ahora no / Dirección única / BTCPay)
+- Elegir **nivel de integración Bitcoin** (Ahora no / Dirección única / BTCPay Server (experimental))
 - Finalizar para desbloquear escritorios de la nueva empresa
 
 ## Campos
@@ -4390,10 +4390,10 @@ Lista de comprobación administrativa antes de habilitar recepción Bitcoin — 
 Sin campos de formulario en este tema de ayuda. La elección de nivel vive en Integraciones.
 
 ## Situaciones especiales
-steakOS **no** custodia claves. El nivel 1 aplaza la recepción en vivo; los libros pueden usar rail primario BTC con settle **mock**. Preferir **BTCPay (nivel 3)** para pagos regulares de clientes.
+steakOS **no** custodia claves. El nivel 1 aplaza la recepción en vivo; los libros pueden usar rail primario BTC con settle **mock**. Preferir **BTCPay Server (experimental)** para pagos regulares de clientes.
 
 ## Relacionado
-- Nivel de integración Bitcoin · Pagos en vivo (BTCPay)
+- Nivel de integración Bitcoin · Pagos en vivo (BTCPay Server · experimental)
 - Seguridad avanzada de Bitcoin
 ''',
             'training.btc.security-advanced': '''# Seguridad avanzada de Bitcoin (aviso nivel 2)
@@ -4404,7 +4404,7 @@ Lista de seguridad para Bitcoin nivel **2 — Dirección única** (pagos ocasion
 ## Acciones
 - Seguir la lista de copia de seguridad / phishing
 - Gestionar el nivel 2 en **Sistema → Integraciones**
-- Planear el salto a **BTCPay (nivel 3)** para Lightning / recepción regular
+- Planear el salto a **BTCPay Server (experimental)** para Lightning / recepción regular
 
 ## Campos
 Una dirección de monedero de software en Integraciones — nunca pegar semillas en steakOS.
@@ -4413,7 +4413,7 @@ Una dirección de monedero de software en Integraciones — nunca pegar semillas
 Reutilizar direcciones y copias débiles pueden causar pérdida permanente. steakOS no observa la cadena en beta — el settle es **marcar pagado manualmente**. Se requiere acuse de formación del CEO al subir a nivel 2/3.
 
 ## Relacionado
-- Nivel de integración Bitcoin · Pagos en vivo (BTCPay)
+- Nivel de integración Bitcoin · Pagos en vivo (BTCPay Server · experimental)
 - Alfabetización básica en Bitcoin
 ''',
             'system.integrations': '''# Hub de integraciones
@@ -4423,7 +4423,7 @@ Superficie administrativa para integraciones del operador (Nostr, nivel de recep
 
 ## Acciones
 - Configurar nivel de relay **Nostr**, instalar/iniciar, probar
-- Fijar nivel de recepción **Bitcoin** (Ahora no · Dirección única · BTCPay)
+- Fijar nivel de recepción **Bitcoin** (Ahora no · Dirección única · BTCPay Server (experimental))
 - **Crear / revocar** tokens API de agentes Hermes
 - Probar conexiones antes de activar en vivo
 
@@ -4434,7 +4434,7 @@ URL / nivel del relay; nivel Bitcoin; claves BTCPay en Finance → Payments; tok
 El CEO debe acusar la formación cuando Admin sube Bitcoin a nivel 2 o 3. DEMO no publica Nostr y permanece en settle mock. Nunca pegar `nsec`. Solo Agent Basics en beta cerrada.
 
 ## Relacionado
-- Pagos en vivo (BTCPay) · Nivel de integración Bitcoin · Integración Nostr
+- Pagos en vivo (BTCPay Server · experimental) · Nivel de integración Bitcoin · Integración Nostr
 - Agente Hermes (tokens API) · Hub de IA / agentes
 ''',
             'integrations.bitcoin': '''# Nivel de integración Bitcoin
@@ -4451,13 +4451,13 @@ Control administrativo de cómo la empresa **recibe** Bitcoin — separado del *
 |-------|-----|----------------|
 | DEFERRED | 1 — Ahora no | Sin recepción en vivo; settle mock OK |
 | SINGLE_ADDRESS | 2 — Dirección única | Una dirección + QR; marcar pagado manual |
-| BTCPAY | 3 — BTCPay | BTCPay del operador (Lightning + on-chain) |
+| BTCPAY | 3 — BTCPay Server (experimental) | BTCPay del operador (Lightning + on-chain) |
 
 ## Situaciones especiales
 Admin fija el nivel; acuse de formación del CEO al subir a 2/3; downgrade desde nivel 3 solo Admin. Afirmaciones de marketing Lightning solo en nivel 3.
 
 ## Relacionado
-- Pagos en vivo (BTCPay) · Facturas (FIN_INVOICE_SETTLE)
+- Pagos en vivo (BTCPay Server · experimental) · Facturas (FIN_INVOICE_SETTLE)
 - Formación básica / avanzada de Bitcoin
 ''',
             'integrations.nostr': '''# Integración Nostr (OI-NOSTR01)
@@ -4500,7 +4500,7 @@ Las escrituras nuevas necesitan un código habilitado; huérfanos legacy siguen 
 - Escritorio de ventas · Escritorio de compradores · Facturas
 - Rail primario y FX BTC
 ''',
-            'finance.payments.live': '''# Pagos en vivo (BTCPay)
+            'finance.payments.live': '''# Pagos en vivo (BTCPay Server · experimental)
 
 ## Resumen del proceso
 Configuración administrativa de recepción LIVE para Bitcoin nivel 3. El movimiento de dinero en facturas sigue **FIN_INVOICE_SETTLE**; esta pantalla cablea BTCPay para que el settle pueda ser en vivo en lugar de mock.

@@ -311,7 +311,7 @@ class BtcIntegrationLevelService {
     static String uiLabel(String level) {
         switch (normalizeLevel(level)) {
             case LEVEL_SINGLE_ADDRESS: return '2 — Single address'
-            case LEVEL_BTCPAY: return '3 — BTCPay'
+            case LEVEL_BTCPAY: return '3 — BTCPay Server (experimental)'
             default: return '1 — Not now'
         }
     }

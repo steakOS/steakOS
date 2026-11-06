@@ -1416,7 +1416,7 @@ export default function SetupWizard() {
                 },
                 {
                   code: 'BTCPAY',
-                  title: t('bitcoin.level3Title', { defaultValue: 'Level 3 — BTCPay Server' }),
+                  title: t('bitcoin.level3Title', { defaultValue: 'Level 3 — BTCPay Server (experimental)' }),
                   body: t('bitcoin.level3Body', {
                     defaultValue:
                       'Operator-run BTCPay (Lightning + on-chain). Enter connection fields here; probe and enable live under Finance → Payments.',
@@ -2286,7 +2286,7 @@ export default function SetupWizard() {
               <dt>{t('bitcoin.title', { defaultValue: 'Bitcoin receive' })}</dt>
               <dd>
                 {draft.btcIntegrationLevel === 'BTCPAY'
-                  ? 'Level 3 — BTCPay'
+                  ? 'Level 3 — BTCPay Server (experimental)'
                   : draft.btcIntegrationLevel === 'SINGLE_ADDRESS'
                     ? 'Level 2 — Single address'
                     : 'Level 1 — Not now'}

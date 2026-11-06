@@ -763,7 +763,7 @@
       "hermesEmpty": "Aún no hay tokens de agente.",
       "btcLevel1": "1 - Ahora no (diferido)",
       "btcLevel2": "2 — Dirección única",
-      "btcLevel3": "3 - Servidor BTCPay",
+      "btcLevel3": "3 - Servidor BTCPay (experimental)",
       "btcHint": "Cómo recibe Bitcoin esta empresa. Separado del carril de valor primario.",
       "btcLevel2Dismiss": "Cerrar hasta el próximo inicio de sesión",
       "btcLevel2WarnBody": "Está recibiendo Bitcoin en una única dirección de billetera de software. Esto está destinado únicamente a pagos ocasionales. La reutilización de direcciones, el malware de dispositivos y las copias de seguridad débiles pueden provocar una pérdida permanente. steakOS no guarda tus llaves. Complete una capacitación avanzada en seguridad de Bitcoin y planee actualizar al servidor BTCPay (Nivel 3) para recibir regularmente Lightning/en cadena.",

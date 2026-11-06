@@ -118,7 +118,7 @@
     "level1Body": "Aún no hay recepción de Bitcoin en vivo. Solo liquidación simulada. Puede contabilizar con BTC como unidad primaria. Recordatorio de alfabetización básica.",
     "level2Title": "Nivel 2 — Dirección única",
     "level2Body": "Pagos ocasionales on-chain a una dirección de monedero software. Marcado manual como pagado. No es Lightning / nivel comercio.",
-    "level3Title": "Nivel 3 — BTCPay Server",
+    "level3Title": "Nivel 3 — BTCPay Server (experimental)",
     "level3Body": "BTCPay gestionado por el operador (Lightning + on-chain). Introduzca aquí los campos de conexión; pruebe y active en vivo en Finanzas → Pagos.",
     "level2Warn": "Aviso de seguridad: la recepción con dirección única es solo para pagos ocasionales. Nunca pegue una seed o xprv. Planifique actualizar a BTCPay para Lightning / on-chain habitual.",
     "receiveAddress": "Dirección de recepción de Bitcoin *",
