@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ShieldAlert, RefreshCw, Plus, Eye, Trash2 } from 'lucide-react'
 import { grrcApi } from '../api/client'
@@ -22,12 +22,20 @@ import RowActionSlots from '../components/RowActionSlots'
 import DeskShell from '../components/desk/DeskShell'
 import DeskNewFab from '../components/DeskNewFab'
 import ConfirmDialog from '../components/ConfirmDialog'
+import ContentRail from '../components/ContentRail'
+import PendingContentComposer, {
+  attachPendingContent,
+} from '../components/PendingContentComposer'
 import useDeskSelection, { scrollSelectedIntoView } from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 import ListSortHeader from '../components/ListSortHeader'
+
+const PKG = 'grrc'
+const RISK_RESOURCE = 'RiskItem'
+const COMP_RESOURCE = 'ComplianceItem'
 
 const SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 const LIKELIHOODS = ['LOW', 'MEDIUM', 'HIGH']
@@ -81,9 +89,11 @@ const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' }
 export default function GrrcDesk() {
   const { t } = useTranslation(['desks', 'common'])
   const narrow = useNarrowViewport()
+  const getBelowFieldsRef = useRef(null)
   const { viewModal, openView } = useRecordView({
     modalEdit: true,
     canModalEdit: () => false,
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
   })
 
   const [tab, setTab] = useState(() => {
@@ -134,6 +144,8 @@ export default function GrrcDesk() {
   const [editForm, setEditForm] = useState({})
   const [riskForm, setRiskForm] = useState(emptyRisk)
   const [compForm, setCompForm] = useState(emptyCompliance)
+  const [pendingRiskContent, setPendingRiskContent] = useState([])
+  const [pendingCompContent, setPendingCompContent] = useState([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
@@ -310,7 +322,26 @@ export default function GrrcDesk() {
   const resetCreateForms = useCallback(() => {
     setRiskForm(emptyRisk())
     setCompForm(emptyCompliance())
+    setPendingRiskContent([])
+    setPendingCompContent([])
   }, [])
+
+  const collapsedContentRail = (resource, id) => (
+    <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+      <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+        {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+      </summary>
+      <ContentRail package={PKG} resource={resource} id={id} />
+    </details>
+  )
+
+  getBelowFieldsRef.current = ({ resource, record }) => {
+    if (!record?.id) return null
+    if (resource === RISK_RESOURCE || resource === COMP_RESOURCE) {
+      return collapsedContentRail(resource, record.id)
+    }
+    return null
+  }
 
   const createDirty = useMemo(() => {
     if (tab === 'risks') {
@@ -321,7 +352,8 @@ export default function GrrcDesk() {
           riskForm.severity !== d.severity ||
           riskForm.likelihood !== d.likelihood ||
           (riskForm.ownerName || '').trim() ||
-          (riskForm.treatmentNote || '').trim(),
+          (riskForm.treatmentNote || '').trim() ||
+          pendingRiskContent.length,
       )
     }
     const d = emptyCompliance()
@@ -331,9 +363,10 @@ export default function GrrcDesk() {
         compForm.itemKind !== d.itemKind ||
         compForm.status !== d.status ||
         (compForm.ownerName || '').trim() ||
-        compForm.effectiveFrom,
+        compForm.effectiveFrom ||
+        pendingCompContent.length,
     )
-  }, [tab, riskForm, compForm])
+  }, [tab, riskForm, compForm, pendingRiskContent, pendingCompContent])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -529,7 +562,7 @@ export default function GrrcDesk() {
     if (selected) {
       return {
         ...base,
-        resource: tab === 'risks' ? 'Risk' : 'ComplianceItem',
+        resource: tab === 'risks' ? RISK_RESOURCE : COMP_RESOURCE,
         objectId: selected.id,
         status: selected.status,
       }
@@ -550,6 +583,10 @@ export default function GrrcDesk() {
           e.preventDefault()
           run(async () => {
             const created = await grrcApi.risks.create(riskForm)
+            if (pendingRiskContent.length && created?.id != null) {
+              await attachPendingContent(PKG, RISK_RESOURCE, created.id, pendingRiskContent)
+              setPendingRiskContent([])
+            }
             setInfo(
               t('toast.namedCreated', {
                 ns: 'common',
@@ -564,6 +601,12 @@ export default function GrrcDesk() {
         }}
       >
         {riskFields(riskForm, setRiskForm)}
+        <PendingContentComposer
+          package={PKG}
+          resource={RISK_RESOURCE}
+          pending={pendingRiskContent}
+          onChange={setPendingRiskContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('grrc.createRisk', { defaultValue: 'Create risk' })}
         </button>
@@ -578,6 +621,10 @@ export default function GrrcDesk() {
               ...compForm,
               effectiveFrom: compForm.effectiveFrom || null,
             })
+            if (pendingCompContent.length && created?.id != null) {
+              await attachPendingContent(PKG, COMP_RESOURCE, created.id, pendingCompContent)
+              setPendingCompContent([])
+            }
             setInfo(
               t('toast.namedCreated', {
                 ns: 'common',
@@ -592,6 +639,12 @@ export default function GrrcDesk() {
         }}
       >
         {complianceFields(compForm, setCompForm)}
+        <PendingContentComposer
+          package={PKG}
+          resource={COMP_RESOURCE}
+          pending={pendingCompContent}
+          onChange={setPendingCompContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} />{' '}
           {t('grrc.createCompliance', { defaultValue: 'Create compliance item' })}
@@ -750,6 +803,7 @@ export default function GrrcDesk() {
                 {selected.treatmentNote}
               </p>
             )}
+            {collapsedContentRail(RISK_RESOURCE, selected.id)}
             <div className="toolbar">
               <button
                 type="button"
@@ -875,6 +929,7 @@ export default function GrrcDesk() {
               </div>
             </div>
             {selected.description && <p>{selected.description}</p>}
+            {collapsedContentRail(COMP_RESOURCE, selected.id)}
             <div className="toolbar">
               <button
                 type="button"

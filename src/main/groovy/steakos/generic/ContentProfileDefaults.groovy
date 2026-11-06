@@ -56,6 +56,8 @@ class ContentProfileDefaults {
             'strategy|StrategyItem' : ['Note', 'Plan', 'Document'],
             'development|DevelopmentProject': ['Note', 'Plan', 'Document', 'Risk'],
             'asset|PhysicalAsset'   : ['Note', 'Document', 'Plan'],
+            'grrc|RiskItem'         : ['Note', 'Assessment', 'Risk', 'Plan', 'Issue'],
+            'grrc|ComplianceItem'   : ['Note', 'Policy', 'Control', 'Document', 'Audit'],
     ].asImmutable()
 
     static String key(String hostPackage, String hostResource) {

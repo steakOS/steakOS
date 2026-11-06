@@ -22,6 +22,7 @@ import grails.util.Environment
 import steakos.generic.ContentProfileService
 import steakos.generic.ContentType
 import steakos.generic.ContentTypeCodes
+import steakos.generic.ContentTypeDescriptions
 import steakos.helper.Countries
 import steakos.helper.Currencies
 import steakos.helper.CurrencyCatalogCodes
@@ -222,12 +223,17 @@ class BootStrap {
                 }
             }
             ContentTypeCodes.ALL.each { String code ->
-                if (!ContentType.findByCode(code)) {
+                ContentType row = ContentType.findByCode(code)
+                String desc = ContentTypeDescriptions.forCode(code)
+                if (!row) {
                     new ContentType(
                             code: code,
                             name: code,
-                            description: "System content type: ${code}"
+                            description: desc
                     ).save(failOnError: true)
+                } else if (ContentTypeDescriptions.needsDescription(row.description, code)) {
+                    row.description = desc
+                    row.save(failOnError: true)
                 }
             }
         }
