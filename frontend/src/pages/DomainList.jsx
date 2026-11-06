@@ -33,6 +33,8 @@ import { getMasterFormSpec, hasMasterFormSpec } from '../forms/masterFormSpecs'
 import ErrorDialog from '../components/ErrorDialog'
 import RecordViewModal from '../components/RecordViewModal'
 import RecordEditModal from '../components/RecordEditModal'
+import ContentRail from '../components/ContentRail'
+import { isContentCompanionHost } from '../utils/contentCompanion'
 import ResponsiveDataList from '../components/ResponsiveDataList'
 import RowActionSlots from '../components/RowActionSlots'
 import DomainParentLines from '../components/DomainParentLines'
@@ -817,6 +819,16 @@ export default function DomainList() {
             : undefined
         }
         editPath={undefined}
+        belowFields={
+          viewing?.id != null && isContentCompanionHost(pkg, resource) ? (
+            <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+              <summary className="muted" style={{ cursor: 'pointer' }}>
+                Content
+              </summary>
+              <ContentRail package={pkg} resource={resource} id={viewing.id} />
+            </details>
+          ) : null
+        }
       />
 
       {supportsModalEdit && (

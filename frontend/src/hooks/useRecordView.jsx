@@ -150,6 +150,9 @@ export default function useRecordView(options = {}) {
           resource={editing?.resource}
           recordId={editing?.record?.id}
           seed={editing?.record}
+          // Built-in ContentRail for companion hosts. Do not pass view getBelowFields
+          // (CRM activities, read-only line tables, etc.) — those stay on the view modal.
+          showContentRail
           onSaved={(updated) => {
             if (updated) {
               setViewing((prev) =>

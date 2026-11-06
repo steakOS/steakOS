@@ -22,9 +22,11 @@ import DocumentLinesEditor, {
   emptyDocLine,
   linesToApiPayload,
 } from './DocumentLinesEditor'
+import ContentRail from './ContentRail'
 import MasterEntityFields from '../forms/MasterEntityFields'
 import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
+import { isContentCompanionHost } from '../utils/contentCompanion'
 import { statusBadgeClass } from '../utils/humanize'
 
 /** Human-selectable Task statuses only. AI:* is set by Coder / Hermes via API. */
@@ -132,6 +134,13 @@ export default function RecordEditModal({
   recordId,
   seed,
   onSaved,
+  /** Optional nodes after the field grid (e.g. quote line preview from desks). */
+  belowFields = null,
+  /**
+   * When true (default), show ContentRail for companion hosts so content can be
+   * added/edited after create. Set false when belowFields already includes a rail.
+   */
+  showContentRail = true,
 }) {
   const { t } = useTranslation(['common', 'domain'])
   const isTask = pkg === 'core' && resource === 'Task'
@@ -155,6 +164,15 @@ export default function RecordEditModal({
 
   const poStatus = isPurchaseOrder ? poStatusOf(recordMeta) : null
   const poEditable = !isPurchaseOrder || poStatus === 'DRAFT'
+  const contentRail =
+    showContentRail &&
+    open &&
+    recordId != null &&
+    isContentCompanionHost(pkg, resource) ? (
+      <div className="record-edit-content-rail" style={{ marginTop: '1rem' }}>
+        <ContentRail package={pkg} resource={resource} id={recordId} />
+      </div>
+    ) : null
 
   useEffect(() => {
     if (!open) return undefined
@@ -388,6 +406,7 @@ export default function RecordEditModal({
                 defaultValue: 'Modal edit is not available for this resource yet.',
               })}
             </p>
+            {contentRail}
             <footer className="content-view-footer" style={{ marginTop: '1rem' }}>
               <button type="button" className="btn btn-primary" onClick={onClose}>
                 {t('actions.close')}
@@ -403,6 +422,7 @@ export default function RecordEditModal({
                 status: poStatus || '—',
               })}
             </p>
+            {contentRail}
             <footer className="content-view-footer" style={{ marginTop: '1rem' }}>
               <button type="button" className="btn btn-primary" onClick={onClose}>
                 {t('actions.close')}
@@ -410,6 +430,7 @@ export default function RecordEditModal({
             </footer>
           </div>
         ) : isTask ? (
+          <>
           <form className="record-edit-form" onSubmit={onSubmitTask}>
             <div className="record-view-identity record-edit-identity">
               <label className="record-edit-name-label" htmlFor="record-edit-name">
@@ -586,6 +607,7 @@ export default function RecordEditModal({
                   }
                 />
               </div>
+              {belowFields}
             </div>
 
             <footer className="content-view-footer">
@@ -604,7 +626,11 @@ export default function RecordEditModal({
               </button>
             </footer>
           </form>
+          {/* Outside the record form — ContentRail has its own forms (no nested <form>). */}
+          {contentRail}
+        </>
         ) : (
+          <>
           <form className="record-edit-form" onSubmit={onSubmitMaster}>
             <div className="record-view-identity record-edit-identity">
               <label className="record-edit-name-label" htmlFor="record-edit-name">
@@ -675,6 +701,7 @@ export default function RecordEditModal({
                   />
                 </div>
               ) : null}
+              {belowFields}
             </div>
 
             <footer className="content-view-footer">
@@ -693,6 +720,9 @@ export default function RecordEditModal({
               </button>
             </footer>
           </form>
+          {/* Outside the record form — ContentRail has its own forms (no nested <form>). */}
+          {contentRail}
+          </>
         )}
       </div>
     </div>

@@ -42,6 +42,7 @@ import MoneyHint from '../components/MoneyHint'
 import TaskAssigneeSelect from '../components/TaskAssigneeSelect'
 import { humanizeLabel } from '../utils/humanize'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
+import { isContentCompanionHost } from '../utils/contentCompanion'
 
 const emptyBasic = { name: '', description: '', status: '', code: '' }
 
@@ -319,10 +320,7 @@ export default function DomainForm() {
     () => location.state?.companionWarn || null,
   )
 
-  const companionEligible =
-    !['ContentType', 'ContentTypeConfig', 'ObjectContent', 'ContentBlob', 'ObjectContentProfile'].includes(
-      resource,
-    )
+  const companionEligible = isContentCompanionHost(pkg, resource)
 
   useEffect(() => {
     if (isAddress) {
