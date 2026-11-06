@@ -71,12 +71,26 @@ const SECTION_DEFS = [
 const ROW_ACTION_CLASS = 'btn btn-ghost btn-danger'
 const ACTION_TH = (t) => t('wb.action', { ns: 'common', defaultValue: 'Action' })
 
+const CAPABILITY_CONTENT_RESOURCES = new Set([
+  'Portfolio',
+  'Program',
+  'Project',
+  'Process',
+  'Procedure',
+  'Quality',
+  'Change',
+  'KnowledgeArea',
+  'Standard',
+])
+
 export default function CapabilityHub() {
   const { t, i18n } = useTranslation(['desks', 'common', 'content', 'processes'])
   const loadAllRef = useRef(null)
+  const getBelowFieldsRef = useRef(null)
   const { viewModal, openView, openEdit } = useRecordView({
     modalEdit: true,
     canModalEdit: ({ pkg, resource }) => hasMasterFormSpec(pkg, resource),
+    getBelowFields: (ctx) => getBelowFieldsRef.current?.(ctx) ?? null,
     onSaved: () => {
       loadAllRef.current?.().catch(() => {})
     },
@@ -171,7 +185,15 @@ export default function CapabilityHub() {
   const [projectContentMap, setProjectContentMap] = useState({})
   const [, setProcessContentMap] = useState({})
   const [, setChangeContentMap] = useState({})
+  const [pendingPortfolioContent, setPendingPortfolioContent] = useState([])
+  const [pendingProgramContent, setPendingProgramContent] = useState([])
   const [pendingProjectContent, setPendingProjectContent] = useState([])
+  const [pendingProcessContent, setPendingProcessContent] = useState([])
+  const [pendingProcedureContent, setPendingProcedureContent] = useState([])
+  const [pendingQualityContent, setPendingQualityContent] = useState([])
+  const [pendingChangeContent, setPendingChangeContent] = useState([])
+  const [pendingKnowledgeContent, setPendingKnowledgeContent] = useState([])
+  const [pendingStandardContent, setPendingStandardContent] = useState([])
   const [projectItems, setProjectItems] = useState([])
   const [selectedProcess, setSelectedProcess] = useState(null)
   const [processSteps, setProcessSteps] = useState([])
@@ -737,7 +759,15 @@ export default function CapabilityHub() {
     setPortForm({ name: '', ownerRef: '' })
     setProgForm({ name: '', portfolioId: '' })
     setProjForm({ name: '', portfolioId: '', programId: '' })
+    setPendingPortfolioContent([])
+    setPendingProgramContent([])
     setPendingProjectContent([])
+    setPendingProcessContent([])
+    setPendingProcedureContent([])
+    setPendingQualityContent([])
+    setPendingChangeContent([])
+    setPendingKnowledgeContent([])
+    setPendingStandardContent([])
     setProcForm({ name: '', processCode: '', processKind: 'HUMAN' })
     setProcedureForm({ name: '', processId: '', versionLabel: '' })
     setQualForm({ name: '', qualityCode: '' })
@@ -746,12 +776,36 @@ export default function CapabilityHub() {
     setStdForm({ name: '', metricCode: '', targetValue: '', unit: '' })
   }, [])
 
+  const collapsedContentRail = useCallback(
+    (resource, id, onChanged) => (
+      <details className="content-rail-collapse" style={{ marginTop: '1.25rem' }}>
+        <summary className="btn btn-ghost" style={{ cursor: 'pointer', listStyle: 'inside' }}>
+          {t('desk.attachmentsNotes', { ns: 'common', defaultValue: 'Attachments & notes' })}
+        </summary>
+        <ContentRail package="capability" resource={resource} id={id} onChanged={onChanged} />
+      </details>
+    ),
+    [t],
+  )
+
+  getBelowFieldsRef.current = ({ pkg, resource, record }) => {
+    if (pkg !== 'capability' || !record?.id) return null
+    if (!CAPABILITY_CONTENT_RESOURCES.has(resource)) return null
+    return collapsedContentRail(resource, record.id)
+  }
+
   const createDirty = useMemo(() => {
     if (tab === 'portfolios') {
-      return Boolean((portForm.name || '').trim() || (portForm.ownerRef || '').trim())
+      return Boolean(
+        (portForm.name || '').trim() ||
+          (portForm.ownerRef || '').trim() ||
+          pendingPortfolioContent.length,
+      )
     }
     if (tab === 'programs') {
-      return Boolean((progForm.name || '').trim() || progForm.portfolioId)
+      return Boolean(
+        (progForm.name || '').trim() || progForm.portfolioId || pendingProgramContent.length,
+      )
     }
     if (tab === 'projects') {
       return Boolean(
@@ -767,14 +821,24 @@ export default function CapabilityHub() {
           (procForm.processCode || '').trim() ||
           (procedureForm.name || '').trim() ||
           procedureForm.processId ||
-          (procedureForm.versionLabel || '').trim(),
+          (procedureForm.versionLabel || '').trim() ||
+          pendingProcessContent.length ||
+          pendingProcedureContent.length,
       )
     }
     if (tab === 'quality') {
-      return Boolean((qualForm.name || '').trim() || (qualForm.qualityCode || '').trim())
+      return Boolean(
+        (qualForm.name || '').trim() ||
+          (qualForm.qualityCode || '').trim() ||
+          pendingQualityContent.length,
+      )
     }
     if (tab === 'changes') {
-      return Boolean((chgForm.name || '').trim() || (chgForm.impactNote || '').trim())
+      return Boolean(
+        (chgForm.name || '').trim() ||
+          (chgForm.impactNote || '').trim() ||
+          pendingChangeContent.length,
+      )
     }
     if (tab === 'knowledge') {
       return Boolean(
@@ -784,11 +848,33 @@ export default function CapabilityHub() {
           (stdForm.name || '').trim() ||
           (stdForm.metricCode || '').trim() ||
           (stdForm.targetValue || '').trim() ||
-          (stdForm.unit || '').trim(),
+          (stdForm.unit || '').trim() ||
+          pendingKnowledgeContent.length ||
+          pendingStandardContent.length,
       )
     }
     return false
-  }, [tab, portForm, progForm, projForm, pendingProjectContent, procForm, procedureForm, qualForm, chgForm, knowForm, stdForm])
+  }, [
+    tab,
+    portForm,
+    progForm,
+    projForm,
+    pendingPortfolioContent,
+    pendingProgramContent,
+    pendingProjectContent,
+    pendingProcessContent,
+    pendingProcedureContent,
+    pendingQualityContent,
+    pendingChangeContent,
+    pendingKnowledgeContent,
+    pendingStandardContent,
+    procForm,
+    procedureForm,
+    qualForm,
+    chgForm,
+    knowForm,
+    stdForm,
+  ])
 
   const applyCollapseCreate = useCallback(() => {
     setNewExpanded(false)
@@ -1054,6 +1140,15 @@ export default function CapabilityHub() {
           e.preventDefault()
           run('port', async () => {
             const p = await capabilityApi.portfolios.create(portForm)
+            if (pendingPortfolioContent.length) {
+              await attachPendingContent(
+                'capability',
+                'Portfolio',
+                p.id,
+                pendingPortfolioContent,
+              )
+              setPendingPortfolioContent([])
+            }
             setInfo(
               t('toast.namedCreated', {
                 ns: 'common',
@@ -1081,6 +1176,12 @@ export default function CapabilityHub() {
             onChange={(e) => setPortForm((f) => ({ ...f, ownerRef: e.target.value }))}
           />
         </label>
+        <PendingContentComposer
+          package="capability"
+          resource="Portfolio"
+          pending={pendingPortfolioContent}
+          onChange={setPendingPortfolioContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('capability.createPortfolio')}
         </button>
@@ -1103,6 +1204,15 @@ export default function CapabilityHub() {
               portfolioId: progForm.portfolioId || null,
             }
             const p = await capabilityApi.programs.create(body)
+            if (pendingProgramContent.length) {
+              await attachPendingContent(
+                'capability',
+                'Program',
+                p.id,
+                pendingProgramContent,
+              )
+              setPendingProgramContent([])
+            }
             setInfo(
               t('toast.namedCreated', {
                 ns: 'common',
@@ -1137,6 +1247,12 @@ export default function CapabilityHub() {
             ))}
           </select>
         </label>
+        <PendingContentComposer
+          package="capability"
+          resource="Program"
+          pending={pendingProgramContent}
+          onChange={setPendingProgramContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('capability.createProgram')}
         </button>
@@ -1240,6 +1356,15 @@ export default function CapabilityHub() {
               ...procForm,
               processKind: procForm.processKind === 'SYSTEM' ? 'HUMAN' : procForm.processKind,
             })
+            if (pendingProcessContent.length) {
+              await attachPendingContent(
+                'capability',
+                'Process',
+                p.id,
+                pendingProcessContent,
+              )
+              setPendingProcessContent([])
+            }
             setInfo(
               t('toast.namedCreated', {
                 ns: 'common',
@@ -1280,6 +1405,12 @@ export default function CapabilityHub() {
             ))}
           </select>
         </label>
+        <PendingContentComposer
+          package="capability"
+          resource="Process"
+          pending={pendingProcessContent}
+          onChange={setPendingProcessContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('capability.createProcess')}
         </button>
@@ -1311,11 +1442,20 @@ export default function CapabilityHub() {
         onSubmit={(e) => {
           e.preventDefault()
           run('procedure', async () => {
-            await capabilityApi.procedures.create({
+            const created = await capabilityApi.procedures.create({
               name: procedureForm.name,
               processId: procedureForm.processId || null,
               versionLabel: procedureForm.versionLabel || null,
             })
+            if (pendingProcedureContent.length && created?.id != null) {
+              await attachPendingContent(
+                'capability',
+                'Procedure',
+                created.id,
+                pendingProcedureContent,
+              )
+              setPendingProcedureContent([])
+            }
             setInfo(t('capability.procedureCreated'))
             setProcedureForm({ name: '', processId: '', versionLabel: '' })
             setNewExpanded(false)
@@ -1344,6 +1484,12 @@ export default function CapabilityHub() {
             ))}
           </select>
         </label>
+        <PendingContentComposer
+          package="capability"
+          resource="Procedure"
+          pending={pendingProcedureContent}
+          onChange={setPendingProcedureContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('capability.createProcedure')}
         </button>
@@ -1358,6 +1504,15 @@ export default function CapabilityHub() {
         e.preventDefault()
         run('qual', async () => {
           const q = await capabilityApi.qualities.create(qualForm)
+          if (pendingQualityContent.length) {
+            await attachPendingContent(
+              'capability',
+              'Quality',
+              q.id,
+              pendingQualityContent,
+            )
+            setPendingQualityContent([])
+          }
           setInfo(
             t('toast.namedCreated', {
               ns: 'common',
@@ -1385,6 +1540,12 @@ export default function CapabilityHub() {
           onChange={(e) => setQualForm((f) => ({ ...f, qualityCode: e.target.value }))}
         />
       </label>
+      <PendingContentComposer
+        package="capability"
+        resource="Quality"
+        pending={pendingQualityContent}
+        onChange={setPendingQualityContent}
+      />
       <button type="submit" className="btn btn-primary" disabled={!!busy}>
         <Plus size={16} /> {t('actions.create', { ns: 'common' })}
       </button>
@@ -1402,6 +1563,15 @@ export default function CapabilityHub() {
           e.preventDefault()
           run('chg', async () => {
             const c = await capabilityApi.changes.create(chgForm)
+            if (pendingChangeContent.length) {
+              await attachPendingContent(
+                'capability',
+                'Change',
+                c.id,
+                pendingChangeContent,
+              )
+              setPendingChangeContent([])
+            }
             setInfo(
               t('toast.namedCreated', {
                 ns: 'common',
@@ -1430,6 +1600,12 @@ export default function CapabilityHub() {
             onChange={(e) => setChgForm((f) => ({ ...f, impactNote: e.target.value }))}
           />
         </label>
+        <PendingContentComposer
+          package="capability"
+          resource="Change"
+          pending={pendingChangeContent}
+          onChange={setPendingChangeContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('capability.createChange')}
         </button>
@@ -1447,11 +1623,20 @@ export default function CapabilityHub() {
         onSubmit={(e) => {
           e.preventDefault()
           run('know', async () => {
-            await capabilityApi.knowledge.create({
+            const created = await capabilityApi.knowledge.create({
               name: knowForm.name,
               areaCode: knowForm.areaCode || null,
               parentId: knowForm.parentId || null,
             })
+            if (pendingKnowledgeContent.length && created?.id != null) {
+              await attachPendingContent(
+                'capability',
+                'KnowledgeArea',
+                created.id,
+                pendingKnowledgeContent,
+              )
+              setPendingKnowledgeContent([])
+            }
             setInfo(t('capability.knowledgeAreaCreated'))
             setKnowForm({ name: '', areaCode: '', parentId: '' })
             setNewExpanded(false)
@@ -1489,6 +1674,12 @@ export default function CapabilityHub() {
             </select>
           </label>
         </div>
+        <PendingContentComposer
+          package="capability"
+          resource="KnowledgeArea"
+          pending={pendingKnowledgeContent}
+          onChange={setPendingKnowledgeContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('capability.createArea')}
         </button>
@@ -1500,7 +1691,16 @@ export default function CapabilityHub() {
         onSubmit={(e) => {
           e.preventDefault()
           run('std', async () => {
-            await capabilityApi.standards.create(stdForm)
+            const created = await capabilityApi.standards.create(stdForm)
+            if (pendingStandardContent.length && created?.id != null) {
+              await attachPendingContent(
+                'capability',
+                'Standard',
+                created.id,
+                pendingStandardContent,
+              )
+              setPendingStandardContent([])
+            }
             setInfo(t('capability.standardCreated'))
             setStdForm({ name: '', metricCode: '', targetValue: '', unit: '' })
             setNewExpanded(false)
@@ -1538,6 +1738,12 @@ export default function CapabilityHub() {
             onChange={(e) => setStdForm((f) => ({ ...f, unit: e.target.value }))}
           />
         </label>
+        <PendingContentComposer
+          package="capability"
+          resource="Standard"
+          pending={pendingStandardContent}
+          onChange={setPendingStandardContent}
+        />
         <button type="submit" className="btn btn-primary" disabled={!!busy}>
           <Plus size={16} /> {t('capability.createStandard')}
         </button>
@@ -2808,6 +3014,7 @@ export default function CapabilityHub() {
           {' · '}
           <Link to="/capability/projects">{t('capability.tabs.projects')}</Link>
         </p>
+        <ContentRail package="capability" resource="Portfolio" id={selectedPortfolio.id} />
       </div>
     )
   } else if (tab === 'programs' && selectedProgram) {
@@ -2839,6 +3046,7 @@ export default function CapabilityHub() {
         <p className="muted" style={{ marginTop: 12 }}>
           <Link to="/capability/projects">{t('capability.tabs.projects')}</Link>
         </p>
+        <ContentRail package="capability" resource="Program" id={selectedProgram.id} />
       </div>
     )
   } else if (tab === 'projects' && selectedProject) {
@@ -3058,6 +3266,7 @@ export default function CapabilityHub() {
             </li>
           ))}
         </ul>
+        <ContentRail package="capability" resource="Quality" id={selectedQuality.id} />
       </div>
     )
   } else if (tab === 'changes' && selectedChange) {
