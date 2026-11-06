@@ -35,6 +35,8 @@ import useDeskKeyboard from '../hooks/useDeskKeyboard'
 import useNarrowViewport from '../hooks/useNarrowViewport'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 import ListSortHeader from '../components/ListSortHeader'
+import CurrentUserOwnerField from '../components/CurrentUserOwnerField'
+import { resolveCurrentUserOwnerLabel } from '../utils/currentUserOwner'
 
 const PKG = 'grrc'
 const RISK_RESOURCE = 'RiskItem'
@@ -379,7 +381,6 @@ export default function GrrcDesk() {
           (riskForm.description || '').trim() ||
           riskForm.severity !== d.severity ||
           riskForm.likelihood !== d.likelihood ||
-          (riskForm.ownerName || '').trim() ||
           (riskForm.treatmentNote || '').trim() ||
           pendingRiskContent.length,
       )
@@ -390,7 +391,6 @@ export default function GrrcDesk() {
         (compForm.description || '').trim() ||
         compForm.itemKind !== d.itemKind ||
         compForm.status !== d.status ||
-        (compForm.ownerName || '').trim() ||
         compForm.effectiveFrom ||
         pendingCompContent.length,
     )
@@ -491,13 +491,12 @@ export default function GrrcDesk() {
           </select>
         </label>
       </div>
-      <label>
-        {t('grrc.fieldOwner', { defaultValue: 'Owner' })}
-        <input
-          value={form.ownerName || ''}
-          onChange={(e) => setForm((f) => ({ ...f, ownerName: e.target.value }))}
-        />
-      </label>
+      <CurrentUserOwnerField
+        id="grrc-risk-owner"
+        label={t('grrc.fieldOwner', { defaultValue: 'Owner' })}
+        value={form.ownerName || ''}
+        onChange={(ownerName) => setForm((f) => ({ ...f, ownerName }))}
+      />
       <label>
         {t('grrc.fieldDescription', { defaultValue: 'Description' })}
         <textarea
@@ -556,13 +555,12 @@ export default function GrrcDesk() {
         </label>
       </div>
       <div className="form-row-2">
-        <label>
-          {t('grrc.fieldOwner', { defaultValue: 'Owner' })}
-          <input
-            value={form.ownerName || ''}
-            onChange={(e) => setForm((f) => ({ ...f, ownerName: e.target.value }))}
-          />
-        </label>
+        <CurrentUserOwnerField
+          id="grrc-comp-owner"
+          label={t('grrc.fieldOwner', { defaultValue: 'Owner' })}
+          value={form.ownerName || ''}
+          onChange={(ownerName) => setForm((f) => ({ ...f, ownerName }))}
+        />
         <label>
           {t('grrc.fieldEffectiveFrom', { defaultValue: 'Effective from' })}
           <input
@@ -616,7 +614,8 @@ export default function GrrcDesk() {
         onSubmit={(e) => {
           e.preventDefault()
           run(async () => {
-            const created = await grrcApi.risks.create(riskForm)
+            const ownerName = await resolveCurrentUserOwnerLabel(riskForm.ownerName)
+            const created = await grrcApi.risks.create({ ...riskForm, ownerName: ownerName || null })
             if (pendingRiskContent.length && created?.id != null) {
               await attachPendingContent(PKG, RISK_RESOURCE, created.id, pendingRiskContent)
               setPendingRiskContent([])
@@ -651,8 +650,10 @@ export default function GrrcDesk() {
         onSubmit={(e) => {
           e.preventDefault()
           run(async () => {
+            const ownerName = await resolveCurrentUserOwnerLabel(compForm.ownerName)
             const created = await grrcApi.compliance.create({
               ...compForm,
+              ownerName: ownerName || null,
               effectiveFrom: compForm.effectiveFrom || null,
             })
             if (pendingCompContent.length && created?.id != null) {
@@ -919,7 +920,11 @@ export default function GrrcDesk() {
             onSubmit={(e) => {
               e.preventDefault()
               run(async () => {
-                const updated = await grrcApi.risks.update(selected.id, editForm)
+                const ownerName = await resolveCurrentUserOwnerLabel(editForm.ownerName)
+                const updated = await grrcApi.risks.update(selected.id, {
+                  ...editForm,
+                  ownerName: ownerName || null,
+                })
                 setSelected(updated)
                 setEditing(false)
                 setInfo(
@@ -1022,8 +1027,10 @@ export default function GrrcDesk() {
             onSubmit={(e) => {
               e.preventDefault()
               run(async () => {
+                const ownerName = await resolveCurrentUserOwnerLabel(editForm.ownerName)
                 const updated = await grrcApi.compliance.update(selected.id, {
                   ...editForm,
+                  ownerName: ownerName || null,
                   effectiveFrom: editForm.effectiveFrom || null,
                 })
                 setSelected(updated)

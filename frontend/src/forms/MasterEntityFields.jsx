@@ -16,6 +16,7 @@
 import CurrencySelect from '../components/CurrencySelect'
 import LocaleSelect from '../components/LocaleSelect'
 import CustomerSelect from '../components/CustomerSelect'
+import CurrentUserOwnerField from '../components/CurrentUserOwnerField'
 
 /**
  * Renders fields from a master form spec.
@@ -205,6 +206,19 @@ function renderField(field, form, handle, setField, disabled) {
           onChange={handle}
         />
       </label>
+    )
+  }
+
+  if (field.type === 'currentUser') {
+    return (
+      <CurrentUserOwnerField
+        key={field.name}
+        id={id}
+        label={`${field.label || 'Owner'}${field.required ? ' *' : ''}`}
+        value={val ?? ''}
+        disabled={disabled}
+        onChange={(next) => setField(field.name, next)}
+      />
     )
   }
 

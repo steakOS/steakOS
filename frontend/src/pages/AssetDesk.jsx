@@ -34,6 +34,7 @@ import PendingContentComposer, {
   attachPendingContent,
 } from '../components/PendingContentComposer'
 import { fetchContentMap } from '../utils/contentSummary'
+import { resolveCurrentUserOwnerLabel } from '../utils/currentUserOwner'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 
@@ -335,7 +336,6 @@ export default function AssetDesk() {
         (assetForm.description || '').trim() ||
         (assetForm.assetTag || '').trim() ||
         (assetForm.location || '').trim() ||
-        (assetForm.ownerName || '').trim() ||
         assetForm.status !== empty.status ||
         assetForm.itManaged !== empty.itManaged ||
         (assetForm.configItemId || '').toString().trim() ||
@@ -398,7 +398,12 @@ export default function AssetDesk() {
     setError(null)
     setInfo(null)
     try {
-      const created = await domainsApi.create(PKG, RESOURCE, assetMasterSpec.toBody(assetForm))
+      const ownerName = await resolveCurrentUserOwnerLabel(assetForm.ownerName)
+      const body = {
+        ...assetMasterSpec.toBody(assetForm),
+        ownerName: ownerName || null,
+      }
+      const created = await domainsApi.create(PKG, RESOURCE, body)
       if (pendingAssetContent.length && created?.id != null) {
         await attachPendingContent(PKG, RESOURCE, created.id, pendingAssetContent)
         setPendingAssetContent([])

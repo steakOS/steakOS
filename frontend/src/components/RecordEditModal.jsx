@@ -28,6 +28,7 @@ import { getMasterFormSpec } from '../forms/masterFormSpecs'
 import { domainGroupLabel, domainResourceLabel } from '../utils/domainLabels'
 import { isContentCompanionHost } from '../utils/contentCompanion'
 import { statusBadgeClass } from '../utils/humanize'
+import { resolveCurrentUserOwnerLabel } from '../utils/currentUserOwner'
 
 /** Human-selectable Task statuses only. AI:* is set by Coder / Hermes via API. */
 const TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']
@@ -341,6 +342,10 @@ export default function RecordEditModal({
       // Status transitions for SO/PO go through confirm/cancel APIs — keep header DRAFT here.
       if (isSalesOrder && body.orderStatus) delete body.orderStatus
       if (isPurchaseOrder && body.poStatus) delete body.poStatus
+      // PhysicalAsset Owner is current-user autofill (no free text).
+      if (resource === 'PhysicalAsset') {
+        body.ownerName = (await resolveCurrentUserOwnerLabel(body.ownerName)) || null
+      }
       let updated
       try {
         if (isOpportunity) {

@@ -982,7 +982,7 @@ const physicalAssetSpec = {
     { name: 'description', label: 'Description', type: 'textarea' },
     { name: 'assetTag', label: 'Asset tag', type: 'text', placeholder: 'Inventory / plate / serial' },
     { name: 'location', label: 'Location', type: 'text' },
-    { name: 'ownerName', label: 'Owner', type: 'text', placeholder: 'Person or org responsible' },
+    { name: 'ownerName', label: 'Owner', type: 'currentUser' },
     {
       name: 'status',
       label: 'Status',
