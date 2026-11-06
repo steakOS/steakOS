@@ -43,6 +43,7 @@ import steakos.configuration.OrangeSteakHouseSeedService
 import steakos.configuration.HeardCookArchitectsSeedService
 import steakos.security.RoleLevel
 import steakos.security.RoleProfileService
+import steakos.capability.CapProcessService
 
 class BootStrap {
 
@@ -61,6 +62,7 @@ class BootStrap {
     steakos.agents.AgAgentService agAgentService
     steakos.configuration.DevelopmentModeService developmentModeService
     steakos.human.HrFileService hrFileService
+    CapProcessService capProcessService
 
     def init = {
         // ADR-037: Bearer token filter after security context is established
@@ -109,9 +111,27 @@ class BootStrap {
         seedRoleProfiles()
         seedCompanyContext()
         seedCoderAgentIfDevMode()
+        seedSystemProcesses()
         backfillCompanyCurrencies()
         backfillCompanyTax()
         backfillBtcIntegrationLevels()
+    }
+
+    /**
+     * Idempotent SYSTEM process catalogue (step predecessors + dependsOnCodes).
+     * Complements setup-complete / admin reseed so fresh boots always have the map.
+     */
+    private void seedSystemProcesses() {
+        try {
+            if (capProcessService == null) {
+                println 'BootStrap: CapProcessService not wired — skip SYSTEM process seed'
+                return
+            }
+            Map summary = capProcessService.seedSystemProcesses('user:admin')
+            println "BootStrap: SYSTEM processes seeded created=${summary.created} updated=${summary.updated} steps=${summary.stepsUpserted} catalog=${summary.catalogSize}"
+        } catch (Exception e) {
+            println "BootStrap: SYSTEM process seed skipped: ${e.message}"
+        }
     }
 
     /**

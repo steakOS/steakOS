@@ -3132,6 +3132,34 @@ export default function CapabilityHub() {
             {localizedSelectedProcess.description}
           </p>
         ) : null}
+        {Array.isArray(selectedProcess.dependsOnCodes) &&
+          selectedProcess.dependsOnCodes.length > 0 && (
+            <p style={{ fontSize: '0.9rem', marginTop: 8 }}>
+              <span className="muted">
+                {t('ui.dependsOn', {
+                  ns: 'processes',
+                  defaultValue: 'Depends on',
+                })}
+                :{' '}
+              </span>
+              {selectedProcess.dependsOnCodes.map((code, i) => (
+                <span key={code}>
+                  {i > 0 ? ', ' : ''}
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ padding: '0 0.25rem', verticalAlign: 'baseline' }}
+                    onClick={() => {
+                      const dep = processes.find((p) => p.processCode === code)
+                      if (dep) selectProcess(dep)
+                    }}
+                  >
+                    <span className="mono">{code}</span>
+                  </button>
+                </span>
+              ))}
+            </p>
+          )}
         <ProcessDiagram
           processCode={selectedProcess.processCode}
           steps={localizedSelectedProcess?.steps || processSteps}

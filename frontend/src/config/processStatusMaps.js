@@ -133,6 +133,45 @@ export const PROCESS_STATUS_MAPS = {
       { id: 'active', statusValues: ['ACTIVE'] },
     ],
   },
+  FIN_LEDGER: {
+    titleKey: 'labels.FIN_LEDGER',
+    processCode: 'FIN_LEDGER',
+    steps: [
+      { id: 'ready', statusValues: ['READY'] },
+      { id: 'posted', statusValues: ['POSTED'] },
+      { id: 'balanced', statusValues: ['BALANCED'] },
+      { id: 'closed', statusValues: ['CLOSED'] },
+    ],
+  },
+  AS_RMA: {
+    titleKey: 'labels.AS_RMA',
+    processCode: 'AS_RMA',
+    steps: [
+      { id: 'requested', statusValues: ['REQUESTED'] },
+      { id: 'confirmed', statusValues: ['CONFIRMED'] },
+      { id: 'closed', statusValues: ['CLOSED'] },
+    ],
+  },
+  DIG_IT_TICKET: {
+    titleKey: 'labels.DIG_IT_TICKET',
+    processCode: 'DIG_IT_TICKET',
+    steps: [
+      { id: 'open', statusValues: ['OPEN'] },
+      { id: 'in_progress', statusValues: ['IN_PROGRESS'] },
+      { id: 'resolved', statusValues: ['RESOLVED'] },
+      { id: 'closed', statusValues: ['CLOSED'] },
+    ],
+  },
+  DIG_IT_CHANGE: {
+    titleKey: 'labels.DIG_IT_CHANGE',
+    processCode: 'DIG_IT_CHANGE',
+    steps: [
+      { id: 'planned', statusValues: ['PLANNED'] },
+      { id: 'in_progress', statusValues: ['IN_PROGRESS'] },
+      { id: 'done', statusValues: ['DONE'] },
+      { id: 'cancelled', statusValues: ['CANCELLED'] },
+    ],
+  },
 }
 
 /**

@@ -20,7 +20,8 @@
     "stepTipAria": "Hinweis zu Schritt {{stepNo}}",
     "renderError": "Diagramm konnte nicht gerendert werden",
     "noSteps": "Keine Schritte",
-    "closeTip": "Hinweis schließen"
+    "closeTip": "Hinweis schließen",
+    "dependsOn": "Abhängig von"
   },
   "labels": {
     "AS_INQUIRY": "Anfrageprozess",
@@ -31,7 +32,11 @@
     "DEL_SERVICE_ORDER": "Serviceauftragsprozess",
     "HR_CANDIDATE_HIRE": "Einstellungsprozess",
     "CAP_PROJECT": "Projektprozess",
-    "AR_HITL_APPROVAL": "HITL-Prozess"
+    "AR_HITL_APPROVAL": "HITL-Prozess",
+    "AS_RMA": "RMA-Prozess",
+    "FIN_LEDGER": "Hauptbuch-Prozess",
+    "DIG_IT_TICKET": "IT-Ticket-Prozess",
+    "DIG_IT_CHANGE": "IT-Change-Prozess"
   },
   "catalogue": {
     "SCM_PO_FULFILL": {
@@ -251,6 +256,75 @@
         },
         "ar.hitl.reject": {
           "name": "Oder Vorschlag ablehnen"
+        }
+      }
+    },
+    "FIN_LEDGER": {
+      "name": "Kontenplan & Hauptbuch",
+      "description": "Kontenplan pflegen → Journal buchen → Saldenliste → stornieren / Soft-Close. Finance-Transaktionen.",
+      "steps": {
+        "fin.coa.seed": {
+          "name": "Seed / maintain chart of accounts"
+        },
+        "fin.journal.post": {
+          "name": "Post journal entry"
+        },
+        "fin.tb.review": {
+          "name": "Review trial balance"
+        },
+        "fin.period.close": {
+          "name": "Reverse or soft-close period"
+        }
+      }
+    },
+    "AS_RMA": {
+      "name": "Warenrückgabe (RMA)",
+      "description": "RMA anlegen → bestätigen (Wareneingang) → schließen. After-Sales.",
+      "steps": {
+        "as.rma.create": {
+          "name": "Create RMA request"
+        },
+        "as.rma.confirm": {
+          "name": "Confirm RMA (receipt)"
+        },
+        "as.rma.close": {
+          "name": "Close RMA"
+        }
+      }
+    },
+    "DIG_IT_TICKET": {
+      "name": "IT-Support-Ticket",
+      "description": "Ticket öffnen → Arbeit starten → lösen → schließen. Digital Desk.",
+      "steps": {
+        "dig.ticket.open": {
+          "name": "Open ticket"
+        },
+        "dig.ticket.start": {
+          "name": "Start work"
+        },
+        "dig.ticket.resolve": {
+          "name": "Resolve ticket"
+        },
+        "dig.ticket.close": {
+          "name": "Close ticket"
+        }
+      }
+    },
+    "DIG_IT_CHANGE": {
+      "name": "IT-Change",
+      "description": "Change planen → starten → abschließen (oder abbrechen). Digital Desk — Technik, nicht Org-Change.",
+      "steps": {
+        "dig.change.plan": {
+          "name": "Plan IT change"
+        },
+        "dig.change.start": {
+          "name": "Start change"
+        },
+        "dig.change.complete": {
+          "name": "Complete change"
+        },
+        "dig.change.cancel": {
+          "name": "Or cancel change"
         }
       }
     }

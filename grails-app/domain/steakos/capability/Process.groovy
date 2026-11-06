@@ -47,6 +47,8 @@ class Process implements NpubOwned, AccessControl, Classifiable, Attachable, Ser
 	String processKind = 'HUMAN'
 	String versionLabel
 	String ownerRef
+	/** Comma-separated upstream processCodes (catalogue dependencies, not runtime). */
+	String dependsOnCodes
 
 	static constraints = {
 		DomainTraitConstraints.applyNpubOwned(delegate)
@@ -62,6 +64,7 @@ class Process implements NpubOwned, AccessControl, Classifiable, Attachable, Ser
 				inList: ['SYSTEM', 'HUMAN', 'AGENTIC', 'OTHER']
 		versionLabel nullable: true, maxSize: 64
 		ownerRef nullable: true, maxSize: 255
+		dependsOnCodes nullable: true, maxSize: 512
 	}
 
 	static mapping = {
@@ -74,5 +77,12 @@ class Process implements NpubOwned, AccessControl, Classifiable, Attachable, Ser
 
 	boolean isSystemKind() {
 		'SYSTEM' == processKind
+	}
+
+	List<String> dependsOnCodeList() {
+		if (!dependsOnCodes?.trim()) {
+			return []
+		}
+		dependsOnCodes.split(',').collect { String s -> s.trim() }.findAll { String s -> s }
 	}
 }

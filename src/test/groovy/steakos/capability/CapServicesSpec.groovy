@@ -63,6 +63,23 @@ class CapServicesSpec extends Specification implements DataTest {
         processService.listSteps('npub-p', p.id).size() == 2
     }
 
+    def "system process seed includes step predecessors and dependsOnCodes"() {
+        when:
+        Map summary = processService.seedSystemProcesses('npub-seed')
+        def invoice = processService.findByCode('npub-seed', 'FIN_INVOICE_SETTLE')
+        def po = processService.findByCode('npub-seed', 'SCM_PO_FULFILL')
+        List poSteps = processService.listSteps('npub-seed', po.id)
+
+        then:
+        summary.catalogSize >= 13
+        summary.created >= 13
+        invoice != null
+        invoice.dependsOnCodeList().containsAll(['FIN_LEDGER', 'SALES_QUOTE_TO_ORDER'])
+        processService.toProcessMap(invoice).dependsOnCodes.contains('FIN_LEDGER')
+        poSteps.size() >= 2
+        poSteps[1].predecessorId == poSteps[0].id
+    }
+
     def "flexible PPP project may stand alone and lifecycle"() {
         when:
         def proj = projectService.createProject('npub-j', [name: 'Solo launch'])

@@ -1,6 +1,25 @@
 {
-  "version": 1,
+  "version": 2,
   "processes": [
+    {
+      "processCode": "FIN_LEDGER",
+      "name": "Chart of accounts & ledger",
+      "description": "Seed chart of accounts → post journal entries → trial balance → reverse / soft-close. Finance transactions desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "dependsOnProcessCodes": [],
+      "steps": [
+        { "stepNo": 1, "name": "Seed / maintain chart of accounts", "stepCode": "fin.coa.seed", "deskHint": "/finance/transactions", "outcomeStatus": "READY", "actorHint": "HUMAN",
+          "tipWhat": "Ensure accounts exist for posting (seed COA or add accounts).", "tipWho": "Finance", "tipWhere": "Finance → Transactions / Chart of accounts", "tipPitfall": "Posting to a missing account code fails the journal.", "stub": false, "helpKey": "finance.transactions" },
+        { "stepNo": 2, "name": "Post journal entry", "stepCode": "fin.journal.post", "deskHint": "/finance/transactions", "outcomeStatus": "POSTED", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Post a balanced debit/credit journal to the ledger.", "tipWho": "Finance", "tipWhere": "Finance → Transactions", "tipPitfall": "Unbalanced lines are rejected.", "stub": false, "helpKey": "finance.transactions" },
+        { "stepNo": 3, "name": "Review trial balance", "stepCode": "fin.tb.review", "deskHint": "/finance/transactions", "outcomeStatus": "BALANCED", "actorHint": "HUMAN", "predecessorStepNo": 2,
+          "tipWhat": "Check trial balance after posting.", "tipWho": "Finance", "tipWhere": "Finance → Transactions", "tipPitfall": "Ignoring TB drift after bulk posts.", "stub": false, "helpKey": "finance.transactions" },
+        { "stepNo": 4, "name": "Reverse or soft-close period", "stepCode": "fin.period.close", "deskHint": "/finance/transactions", "outcomeStatus": "CLOSED", "actorHint": "HUMAN", "predecessorStepNo": 3,
+          "tipWhat": "Reverse a bad journal or soft-close the period when ready.", "tipWho": "Finance", "tipWhere": "Finance → Transactions", "tipPitfall": "Soft-close does not replace a full year-end close.", "stub": false, "helpKey": "finance.transactions" }
+      ]
+    },
     {
       "processCode": "SCM_PO_FULFILL",
       "name": "Purchase order",
@@ -8,6 +27,7 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.0",
+      "dependsOnProcessCodes": ["FIN_LEDGER"],
       "steps": [
         { "stepNo": 1, "name": "Create purchase order (draft)", "stepCode": "scm.po.create", "deskHint": "/scm", "outcomeStatus": "DRAFT", "actorHint": "HUMAN" },
         { "stepNo": 2, "name": "Send purchase order", "stepCode": "scm.po.send", "deskHint": "/scm", "outcomeStatus": "SENT", "actorHint": "HUMAN", "predecessorStepNo": 1 },
@@ -24,6 +44,7 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.0",
+      "dependsOnProcessCodes": [],
       "steps": [
         {
           "stepNo": 1, "name": "Release production order", "stepCode": "scm.prod.release",
@@ -74,6 +95,7 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.1",
+      "dependsOnProcessCodes": [],
       "steps": [
         { "stepNo": 1, "name": "Create customer quote", "stepCode": "sales.quote.create", "deskHint": "/sales", "outcomeStatus": "DRAFT", "actorHint": "HUMAN",
           "tipWhat": "Start a quote for a customer with lines and amounts.", "tipWho": "Sales / office", "tipWhere": "Sales desk", "tipPitfall": "Missing customer or empty lines block sending.", "stub": false, "helpKey": "sales.desk" },
@@ -94,6 +116,7 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.1",
+      "dependsOnProcessCodes": ["FIN_LEDGER", "SALES_QUOTE_TO_ORDER"],
       "steps": [
         { "stepNo": 1, "name": "Create invoice (draft)", "stepCode": "fin.inv.create", "deskHint": "/finance/invoices", "outcomeStatus": "DRAFT", "actorHint": "HUMAN",
           "tipWhat": "Create a draft invoice for the customer amount.", "tipWho": "Finance / revenue owner", "tipWhere": "Finance → Invoices", "tipPitfall": "Settling a draft before issue leaves rails inconsistent.", "stub": false, "helpKey": "finance.invoices" },
@@ -110,6 +133,7 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.0",
+      "dependsOnProcessCodes": ["SALES_QUOTE_TO_ORDER"],
       "steps": [
         { "stepNo": 1, "name": "Create service order", "stepCode": "del.so.create", "deskHint": "/delivery", "outcomeStatus": "DRAFT", "actorHint": "HUMAN" },
         { "stepNo": 2, "name": "Schedule / assign resource", "stepCode": "del.so.assign", "deskHint": "/delivery", "outcomeStatus": "SCHEDULED", "actorHint": "HUMAN", "predecessorStepNo": 1 },
@@ -124,11 +148,29 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.0",
+      "dependsOnProcessCodes": ["SALES_QUOTE_TO_ORDER", "DEL_SERVICE_ORDER"],
       "steps": [
         { "stepNo": 1, "name": "Create inquiry", "stepCode": "as.inq.create", "deskHint": "/aftersales", "outcomeStatus": "OPEN", "actorHint": "HUMAN" },
         { "stepNo": 2, "name": "Start work", "stepCode": "as.inq.start", "deskHint": "/aftersales", "outcomeStatus": "IN_PROGRESS", "actorHint": "HUMAN", "predecessorStepNo": 1 },
         { "stepNo": 3, "name": "Resolve inquiry", "stepCode": "as.inq.resolve", "deskHint": "/aftersales", "outcomeStatus": "RESOLVED", "actorHint": "HUMAN", "predecessorStepNo": 2 },
         { "stepNo": 4, "name": "Close inquiry", "stepCode": "as.inq.close", "deskHint": "/aftersales", "outcomeStatus": "CLOSED", "actorHint": "HUMAN", "predecessorStepNo": 3 }
+      ]
+    },
+    {
+      "processCode": "AS_RMA",
+      "name": "Return merchandise (RMA)",
+      "description": "Request RMA → confirm (stock receipt) → close. After-sales desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "dependsOnProcessCodes": ["SALES_QUOTE_TO_ORDER", "SCM_MAKE_TO_STOCK"],
+      "steps": [
+        { "stepNo": 1, "name": "Create RMA request", "stepCode": "as.rma.create", "deskHint": "/aftersales", "outcomeStatus": "REQUESTED", "actorHint": "HUMAN",
+          "tipWhat": "Open a return case for a sold product.", "tipWho": "After-sales / ops", "tipWhere": "After-sales → RMAs", "tipPitfall": "Confirming posts stock — cancel is blocked after confirm.", "stub": false, "helpKey": "aftersales.desk" },
+        { "stepNo": 2, "name": "Confirm RMA (receipt)", "stepCode": "as.rma.confirm", "deskHint": "/aftersales", "outcomeStatus": "CONFIRMED", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Confirm the return; system posts an SCM stock receipt.", "tipWho": "After-sales / warehouse", "tipWhere": "After-sales → RMAs", "tipPitfall": "Cannot cancel once confirmed if stock already posted.", "stub": false, "helpKey": "aftersales.desk" },
+        { "stepNo": 3, "name": "Close RMA", "stepCode": "as.rma.close", "deskHint": "/aftersales", "outcomeStatus": "CLOSED", "actorHint": "HUMAN", "predecessorStepNo": 2,
+          "tipWhat": "Close the return case when handling is done.", "tipWho": "After-sales", "tipWhere": "After-sales → RMAs", "tipPitfall": "Leaving confirmed RMAs open clutters the open list.", "stub": false, "helpKey": "aftersales.desk" }
       ]
     },
     {
@@ -138,6 +180,7 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.0",
+      "dependsOnProcessCodes": [],
       "steps": [
         { "stepNo": 1, "name": "Create candidate", "stepCode": "hr.cand.create", "deskHint": "/hr", "outcomeStatus": "APPLIED", "actorHint": "HUMAN" },
         { "stepNo": 2, "name": "Advance hiring stage", "stepCode": "hr.cand.advance", "deskHint": "/hr", "outcomeStatus": "INTERVIEW", "actorHint": "HUMAN", "predecessorStepNo": 1 },
@@ -152,11 +195,50 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.0",
+      "dependsOnProcessCodes": [],
       "steps": [
         { "stepNo": 1, "name": "Create project (draft)", "stepCode": "cap.proj.create", "deskHint": "/capability/projects", "outcomeStatus": "DRAFT", "actorHint": "HUMAN" },
         { "stepNo": 2, "name": "Start project", "stepCode": "cap.proj.start", "deskHint": "/capability/projects", "outcomeStatus": "ACTIVE", "actorHint": "HUMAN", "predecessorStepNo": 1 },
         { "stepNo": 3, "name": "Complete project", "stepCode": "cap.proj.complete", "deskHint": "/capability/projects", "outcomeStatus": "COMPLETED", "actorHint": "HUMAN", "predecessorStepNo": 2 },
         { "stepNo": 4, "name": "Or cancel project", "stepCode": "cap.proj.cancel", "deskHint": "/capability/projects", "outcomeStatus": "CANCELLED", "actorHint": "HUMAN", "predecessorStepNo": 1 }
+      ]
+    },
+    {
+      "processCode": "DIG_IT_TICKET",
+      "name": "IT support ticket",
+      "description": "Open ticket → start work → resolve → close. Digital desk.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "dependsOnProcessCodes": [],
+      "steps": [
+        { "stepNo": 1, "name": "Open ticket", "stepCode": "dig.ticket.open", "deskHint": "/digital", "outcomeStatus": "OPEN", "actorHint": "HUMAN",
+          "tipWhat": "Log an IT support request.", "tipWho": "Requester / IT", "tipWhere": "Digital → Tickets", "tipPitfall": "Missing priority or kind slows triage.", "stub": false, "helpKey": "digital.desk" },
+        { "stepNo": 2, "name": "Start work", "stepCode": "dig.ticket.start", "deskHint": "/digital", "outcomeStatus": "IN_PROGRESS", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Pick up the ticket and start work.", "tipWho": "IT", "tipWhere": "Digital → Tickets", "tipPitfall": "Starting a closed or cancelled ticket is blocked.", "stub": false, "helpKey": "digital.desk" },
+        { "stepNo": 3, "name": "Resolve ticket", "stepCode": "dig.ticket.resolve", "deskHint": "/digital", "outcomeStatus": "RESOLVED", "actorHint": "HUMAN", "predecessorStepNo": 2,
+          "tipWhat": "Mark the issue resolved for requester confirmation.", "tipWho": "IT", "tipWhere": "Digital → Tickets", "tipPitfall": "Resolving without a note leaves no audit trail.", "stub": false, "helpKey": "digital.desk" },
+        { "stepNo": 4, "name": "Close ticket", "stepCode": "dig.ticket.close", "deskHint": "/digital", "outcomeStatus": "CLOSED", "actorHint": "HUMAN", "predecessorStepNo": 3,
+          "tipWhat": "Close after confirmation or timeout.", "tipWho": "IT / requester", "tipWhere": "Digital → Tickets", "tipPitfall": "Cannot close a cancelled ticket.", "stub": false, "helpKey": "digital.desk" }
+      ]
+    },
+    {
+      "processCode": "DIG_IT_CHANGE",
+      "name": "IT change",
+      "description": "Plan change → start → complete (or cancel). Digital desk — tech change, not org change.",
+      "processKind": "SYSTEM",
+      "processStatus": "ACTIVE",
+      "versionLabel": "1.0",
+      "dependsOnProcessCodes": ["DIG_IT_TICKET"],
+      "steps": [
+        { "stepNo": 1, "name": "Plan IT change", "stepCode": "dig.change.plan", "deskHint": "/digital", "outcomeStatus": "PLANNED", "actorHint": "HUMAN",
+          "tipWhat": "Create or schedule a planned IT change.", "tipWho": "IT / change owner", "tipWhere": "Digital → Changes", "tipPitfall": "Org/HR changes belong under Capability → Changes, not here.", "stub": false, "helpKey": "digital.desk" },
+        { "stepNo": 2, "name": "Start change", "stepCode": "dig.change.start", "deskHint": "/digital", "outcomeStatus": "IN_PROGRESS", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Begin executing the planned change window.", "tipWho": "IT", "tipWhere": "Digital → Changes", "tipPitfall": "Starting DONE or CANCELLED is blocked.", "stub": false, "helpKey": "digital.desk" },
+        { "stepNo": 3, "name": "Complete change", "stepCode": "dig.change.complete", "deskHint": "/digital", "outcomeStatus": "DONE", "actorHint": "HUMAN", "predecessorStepNo": 2,
+          "tipWhat": "Mark the change done after verification.", "tipWho": "IT", "tipWhere": "Digital → Changes", "tipPitfall": "Completing a cancelled change is blocked.", "stub": false, "helpKey": "digital.desk" },
+        { "stepNo": 4, "name": "Or cancel change", "stepCode": "dig.change.cancel", "deskHint": "/digital", "outcomeStatus": "CANCELLED", "actorHint": "HUMAN", "predecessorStepNo": 1,
+          "tipWhat": "Cancel before completion if the window is aborted.", "tipWho": "IT / change owner", "tipWhere": "Digital → Changes", "tipPitfall": "Cannot cancel a DONE change.", "stub": false, "helpKey": "digital.desk" }
       ]
     },
     {
@@ -166,6 +248,7 @@
       "processKind": "SYSTEM",
       "processStatus": "ACTIVE",
       "versionLabel": "1.0",
+      "dependsOnProcessCodes": [],
       "steps": [
         { "stepNo": 1, "name": "Submit proposal", "stepCode": "ar.hitl.submit", "deskHint": "/agents/hitl", "outcomeStatus": "PENDING", "actorHint": "AGENT" },
         { "stepNo": 2, "name": "Approve proposal", "stepCode": "ar.hitl.approve", "deskHint": "/agents/hitl", "outcomeStatus": "APPROVED", "actorHint": "HUMAN", "predecessorStepNo": 1 },

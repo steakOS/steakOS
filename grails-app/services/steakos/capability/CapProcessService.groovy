@@ -160,17 +160,19 @@ class CapProcessService {
             Map defn = raw as Map
             String code = defn.processCode?.toString()?.trim()
             if (!code) return
+            String dependsCsv = joinDependsOn(defn.dependsOnProcessCodes)
             steakos.capability.Process p = steakos.capability.Process.findByNpubOwnerAndProcessCode(npub, code)
             if (!p) {
                 p = new steakos.capability.Process(
-                        npubOwner    : npub,
-                        name         : defn.name as String,
-                        description  : defn.description as String,
-                        processCode  : code,
-                        processKind  : 'SYSTEM',
-                        processStatus: (defn.processStatus ?: 'ACTIVE') as String,
-                        versionLabel : defn.versionLabel as String,
-                        status       : (defn.processStatus ?: 'ACTIVE') as String
+                        npubOwner      : npub,
+                        name           : defn.name as String,
+                        description    : defn.description as String,
+                        processCode    : code,
+                        processKind    : 'SYSTEM',
+                        processStatus  : (defn.processStatus ?: 'ACTIVE') as String,
+                        versionLabel   : defn.versionLabel as String,
+                        dependsOnCodes : dependsCsv,
+                        status         : (defn.processStatus ?: 'ACTIVE') as String
                 )
                 p.save(failOnError: true, flush: true)
                 created++
@@ -180,6 +182,7 @@ class CapProcessService {
                 p.processStatus = (defn.processStatus ?: 'ACTIVE') as String
                 p.status = p.processStatus
                 p.versionLabel = defn.versionLabel as String
+                p.dependsOnCodes = dependsCsv
                 p.save(failOnError: true, flush: true)
                 updated++
                 // Replace SYSTEM steps for this process (keep catalogue honest)
@@ -383,17 +386,28 @@ class CapProcessService {
     Map toProcessMap(steakos.capability.Process p) {
         if (!p) return null
         [
-                id           : p.id,
-                name         : p.name,
-                description  : p.description,
-                processCode  : p.processCode,
-                processStatus: p.processStatus,
-                processKind  : p.processKind ?: 'HUMAN',
-                versionLabel : p.versionLabel,
-                ownerRef     : p.ownerRef,
-                systemLocked : p.processKind == 'SYSTEM',
-                npubOwner    : p.npubOwner
+                id                 : p.id,
+                name               : p.name,
+                description        : p.description,
+                processCode        : p.processCode,
+                processStatus      : p.processStatus,
+                processKind        : p.processKind ?: 'HUMAN',
+                versionLabel       : p.versionLabel,
+                ownerRef           : p.ownerRef,
+                dependsOnCodes     : p.dependsOnCodeList(),
+                systemLocked       : p.processKind == 'SYSTEM',
+                npubOwner          : p.npubOwner
         ]
+    }
+
+    private static String joinDependsOn(Object raw) {
+        if (raw == null) return null
+        if (raw instanceof Collection) {
+            List<String> codes = (raw as Collection).collect { it?.toString()?.trim() }.findAll { it }
+            return codes ? codes.join(',') : null
+        }
+        String s = raw.toString()?.trim()
+        return s ?: null
     }
 
     Map toStepMap(ProcessStep s) {

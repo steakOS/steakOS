@@ -20,7 +20,8 @@
     "stepTipAria": "Consejo del paso {{stepNo}}",
     "renderError": "No se pudo renderizar el diagrama",
     "noSteps": "Sin pasos",
-    "closeTip": "Cerrar consejo"
+    "closeTip": "Cerrar consejo",
+    "dependsOn": "Depende de"
   },
   "labels": {
     "AS_INQUIRY": "Proceso de consulta",
@@ -31,7 +32,11 @@
     "DEL_SERVICE_ORDER": "Proceso de orden de servicio",
     "HR_CANDIDATE_HIRE": "Proceso de contratación",
     "CAP_PROJECT": "Proceso de proyecto",
-    "AR_HITL_APPROVAL": "Proceso HITL"
+    "AR_HITL_APPROVAL": "Proceso HITL",
+    "AS_RMA": "Proceso RMA",
+    "FIN_LEDGER": "Proceso de libro mayor",
+    "DIG_IT_TICKET": "Proceso de ticket TI",
+    "DIG_IT_CHANGE": "Proceso de cambio TI"
   },
   "catalogue": {
     "SCM_PO_FULFILL": {
@@ -251,6 +256,75 @@
         },
         "ar.hitl.reject": {
           "name": "O rechazar propuesta"
+        }
+      }
+    },
+    "FIN_LEDGER": {
+      "name": "Plan de cuentas y libro mayor",
+      "description": "Mantener plan de cuentas → asentar diario → balance de comprobación → revertir / cierre suave. Finanzas.",
+      "steps": {
+        "fin.coa.seed": {
+          "name": "Seed / maintain chart of accounts"
+        },
+        "fin.journal.post": {
+          "name": "Post journal entry"
+        },
+        "fin.tb.review": {
+          "name": "Review trial balance"
+        },
+        "fin.period.close": {
+          "name": "Reverse or soft-close period"
+        }
+      }
+    },
+    "AS_RMA": {
+      "name": "Devolución (RMA)",
+      "description": "Solicitar RMA → confirmar (entrada de stock) → cerrar. Posventa.",
+      "steps": {
+        "as.rma.create": {
+          "name": "Create RMA request"
+        },
+        "as.rma.confirm": {
+          "name": "Confirm RMA (receipt)"
+        },
+        "as.rma.close": {
+          "name": "Close RMA"
+        }
+      }
+    },
+    "DIG_IT_TICKET": {
+      "name": "Ticket de soporte TI",
+      "description": "Abrir ticket → iniciar → resolver → cerrar. Escritorio Digital.",
+      "steps": {
+        "dig.ticket.open": {
+          "name": "Open ticket"
+        },
+        "dig.ticket.start": {
+          "name": "Start work"
+        },
+        "dig.ticket.resolve": {
+          "name": "Resolve ticket"
+        },
+        "dig.ticket.close": {
+          "name": "Close ticket"
+        }
+      }
+    },
+    "DIG_IT_CHANGE": {
+      "name": "Cambio TI",
+      "description": "Planificar cambio → iniciar → completar (o cancelar). Escritorio Digital — técnico, no cambio org.",
+      "steps": {
+        "dig.change.plan": {
+          "name": "Plan IT change"
+        },
+        "dig.change.start": {
+          "name": "Start change"
+        },
+        "dig.change.complete": {
+          "name": "Complete change"
+        },
+        "dig.change.cancel": {
+          "name": "Or cancel change"
         }
       }
     }

@@ -20,17 +20,22 @@
     "stepTipAria": "Step {{stepNo}} tip",
     "renderError": "Could not render diagram",
     "noSteps": "No steps",
-    "closeTip": "Close tip"
+    "closeTip": "Close tip",
+    "dependsOn": "Depends on"
   },
   "labels": {
     "AS_INQUIRY": "Inquiry process",
+    "AS_RMA": "RMA process",
     "SCM_PO_FULFILL": "PO process",
     "SCM_MAKE_TO_STOCK": "Make→stock process",
     "SALES_QUOTE_TO_ORDER": "Quote→Order process",
     "FIN_INVOICE_SETTLE": "Invoice process",
+    "FIN_LEDGER": "Ledger process",
     "DEL_SERVICE_ORDER": "Service order process",
     "HR_CANDIDATE_HIRE": "Hire process",
     "CAP_PROJECT": "Project process",
+    "DIG_IT_TICKET": "IT ticket process",
+    "DIG_IT_CHANGE": "IT change process",
     "AR_HITL_APPROVAL": "HITL process"
   },
   "catalogue": {
@@ -251,6 +256,75 @@
         },
         "ar.hitl.reject": {
           "name": "Or reject proposal"
+        }
+      }
+    },
+    "FIN_LEDGER": {
+      "name": "Chart of accounts & ledger",
+      "description": "Seed chart of accounts → post journal entries → trial balance → reverse / soft-close. Finance transactions desk.",
+      "steps": {
+        "fin.coa.seed": {
+          "name": "Seed / maintain chart of accounts"
+        },
+        "fin.journal.post": {
+          "name": "Post journal entry"
+        },
+        "fin.tb.review": {
+          "name": "Review trial balance"
+        },
+        "fin.period.close": {
+          "name": "Reverse or soft-close period"
+        }
+      }
+    },
+    "AS_RMA": {
+      "name": "Return merchandise (RMA)",
+      "description": "Request RMA → confirm (stock receipt) → close. After-sales desk.",
+      "steps": {
+        "as.rma.create": {
+          "name": "Create RMA request"
+        },
+        "as.rma.confirm": {
+          "name": "Confirm RMA (receipt)"
+        },
+        "as.rma.close": {
+          "name": "Close RMA"
+        }
+      }
+    },
+    "DIG_IT_TICKET": {
+      "name": "IT support ticket",
+      "description": "Open ticket → start work → resolve → close. Digital desk.",
+      "steps": {
+        "dig.ticket.open": {
+          "name": "Open ticket"
+        },
+        "dig.ticket.start": {
+          "name": "Start work"
+        },
+        "dig.ticket.resolve": {
+          "name": "Resolve ticket"
+        },
+        "dig.ticket.close": {
+          "name": "Close ticket"
+        }
+      }
+    },
+    "DIG_IT_CHANGE": {
+      "name": "IT change",
+      "description": "Plan change → start → complete (or cancel). Digital desk — tech change, not org change.",
+      "steps": {
+        "dig.change.plan": {
+          "name": "Plan IT change"
+        },
+        "dig.change.start": {
+          "name": "Start change"
+        },
+        "dig.change.complete": {
+          "name": "Complete change"
+        },
+        "dig.change.cancel": {
+          "name": "Or cancel change"
         }
       }
     }
