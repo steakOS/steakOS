@@ -44,6 +44,7 @@ import PendingContentComposer, {
 } from '../components/PendingContentComposer'
 import { fetchContentMap } from '../utils/contentSummary'
 import useRecordView from '../hooks/useRecordView'
+import { hasMasterFormSpec } from '../forms/masterFormSpecs'
 import useDeskSelection from '../hooks/useDeskSelection'
 import useDeskMemory from '../hooks/useDeskMemory'
 import useDeskKeyboard from '../hooks/useDeskKeyboard'
@@ -205,7 +206,7 @@ export default function SalesCrmPage() {
     updateViewingRecord,
   } = useRecordView({
     modalEdit: true,
-    canModalEdit: () => true,
+    canModalEdit: ({ pkg, resource }) => hasMasterFormSpec(pkg, resource),
     onSaved: (updated) => {
       loadRef.current().catch(() => {})
       if (!updated?.id) return

@@ -72,6 +72,8 @@ class DomainRegistryService {
             // sales S-S0
             'customerKind', 'email', 'phone', 'contactName', 'customerNpub', 'taxId',
             'quoteNumber', 'quoteStatus', 'orderNumber', 'orderStatus', 'productRefType',
+            // sales Advanced CRM opportunity (OI-S08)
+            'stage', 'contactEmail', 'source',
             // sales Advanced price lists (OI-S04)
             'listKind',
             // catalogue CatalogueItem (GOODS | SERVICE)
@@ -101,7 +103,9 @@ class DomainRegistryService {
             'debitEur', 'creditEur', 'amountEur', 'exchangeRate', 'balanceEur',
             'quantity', 'unitPriceEur', 'lineTotalEur', 'quantityReceived', 'qtyDelta',
             'defaultDuration', 'listPriceEur', 'listPrice', 'capacityHours',
-            'defaultDiscountPercent'
+            'defaultDiscountPercent',
+            // sales Advanced CRM opportunity
+            'expectedAmountEur'
     ].asImmutable()
 
     private static final List LONG_FIELDS = [
@@ -114,6 +118,8 @@ class DomainRegistryService {
             'componentProductId', 'bomId', 'catalogueItemId', 'warrantyId', 'hrFileId',
             // core Task / capability links
             'assigneeAgentId', 'taskId', 'projectId',
+            // sales Advanced CRM
+            'resultingQuoteId',
             // asset / digital G4
             'configItemId', 'physicalAssetId', 'systemId', 'solutionId'
     ].asImmutable()
@@ -167,7 +173,9 @@ class DomainRegistryService {
             'manufacturedOn', 'checkedOn', 'movedAt',
             'scheduledAt', 'startedAt',
             // core Task schedule
-            'startAt', 'endAt', 'deadlineAt'
+            'startAt', 'endAt', 'deadlineAt',
+            // sales Advanced CRM opportunity
+            'expectedCloseDate'
     ].asImmutable()
 
     private static final List BOOLEAN_FIELDS = [

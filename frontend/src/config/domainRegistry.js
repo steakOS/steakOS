@@ -80,6 +80,13 @@ export const CREATE_META = {
   'sales/GoToMarket': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
   'sales/Market': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
   'sales/SalesPlan': { entityClass: 'E', createMode: 'domain', interaction: 'domainFullPage' },
+  'sales/Opportunity': {
+    entityClass: 'B',
+    createMode: 'deskRedirect',
+    interaction: 'deskShell',
+    deskPath: '/sales/opportunities',
+    deskLabel: 'Opportunities',
+  },
 
   // —— procurement / SCM ——
   'procurement/Vendor': {

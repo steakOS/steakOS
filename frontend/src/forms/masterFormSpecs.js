@@ -35,6 +35,7 @@ export const MASTER_FORM_KEYS = [
   'CustomerQuote',
   'SalesOrder',
   'PriceList',
+  'Opportunity',
   'Competitor',
   'StrategyItem',
   'DevelopmentProject',
@@ -1329,6 +1330,124 @@ const priceListSpec = {
   ],
 }
 
+/** SalesAdvanced CRM opportunity (OI-S08) — modal edit on /sales/opportunities + domain list. */
+const opportunitySpec = {
+  resource: 'Opportunity',
+  packages: ['sales'],
+  empty: () => ({
+    name: '',
+    description: '',
+    stage: 'LEAD',
+    customerId: '',
+    contactName: '',
+    contactEmail: '',
+    expectedAmountEur: '',
+    currencyCode: 'EUR',
+    expectedCloseDate: '',
+    ownerName: '',
+    source: '',
+    active: true,
+  }),
+  fields: [
+    { name: 'name', label: 'Name', type: 'text', required: true },
+    {
+      name: 'stage',
+      label: 'Stage',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'LEAD', label: 'LEAD' },
+        { value: 'QUALIFIED', label: 'QUALIFIED' },
+        { value: 'PROPOSAL', label: 'PROPOSAL' },
+        { value: 'NEGOTIATION', label: 'NEGOTIATION' },
+        { value: 'WON', label: 'WON' },
+        { value: 'LOST', label: 'LOST' },
+      ],
+    },
+    { name: 'customerId', label: 'Customer', type: 'customer' },
+    { name: 'contactName', label: 'Contact name', type: 'text' },
+    { name: 'contactEmail', label: 'Contact email', type: 'email' },
+    {
+      name: 'expectedAmountEur',
+      label: 'Expected amount',
+      type: 'number',
+      inputMode: 'decimal',
+    },
+    { name: 'currencyCode', label: 'Currency', type: 'currency', required: true },
+    { name: 'expectedCloseDate', label: 'Expected close', type: 'date' },
+    { name: 'ownerName', label: 'Owner', type: 'text' },
+    {
+      name: 'source',
+      label: 'Source',
+      type: 'select',
+      options: [
+        { value: '', label: '—' },
+        { value: 'WEB', label: 'WEB' },
+        { value: 'REFERRAL', label: 'REFERRAL' },
+        { value: 'COLD', label: 'COLD' },
+        { value: 'PARTNER', label: 'PARTNER' },
+        { value: 'OTHER', label: 'OTHER' },
+      ],
+    },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'active', label: 'Active', type: 'checkbox' },
+  ],
+  toBody: (f) => {
+    const body = {
+      name: (f.name || '').trim(),
+      stage: f.stage || 'LEAD',
+      currencyCode: f.currencyCode || 'EUR',
+      contactName: (f.contactName || '').trim() || null,
+      contactEmail: (f.contactEmail || '').trim() || null,
+      ownerName: (f.ownerName || '').trim() || null,
+      source: f.source || null,
+      description: (f.description || '').trim() || null,
+      expectedCloseDate: f.expectedCloseDate || null,
+      active: f.active !== false,
+    }
+    if (f.customerId !== '' && f.customerId != null) {
+      body.customerId = Number(f.customerId)
+    } else {
+      body.customerId = null
+    }
+    if (f.expectedAmountEur !== '' && f.expectedAmountEur != null) {
+      body.expectedAmountEur = Number(f.expectedAmountEur)
+    } else {
+      body.expectedAmountEur = null
+    }
+    return body
+  },
+  fromRow: (row, empty) => {
+    const toDate = (v) => {
+      if (v == null || v === '') return ''
+      if (typeof v === 'number') return new Date(v).toISOString().slice(0, 10)
+      const s = String(v)
+      return s.length >= 10 ? s.slice(0, 10) : s
+    }
+    return {
+      ...empty,
+      name: row.name || '',
+      description: row.description || '',
+      stage: row.stage || row.status || 'LEAD',
+      customerId: row.customerId != null ? String(row.customerId) : '',
+      contactName: row.contactName || '',
+      contactEmail: row.contactEmail || '',
+      expectedAmountEur: row.expectedAmountEur != null ? String(row.expectedAmountEur) : '',
+      currencyCode: row.currencyCode || 'EUR',
+      expectedCloseDate: toDate(row.expectedCloseDate),
+      ownerName: row.ownerName || '',
+      source: row.source || '',
+      active: row.active !== false,
+    }
+  },
+  listColumns: [
+    { key: 'stage', label: 'Stage' },
+    { key: 'contactName', label: 'Contact' },
+    { key: 'expectedAmountEur', label: 'Amount' },
+    { key: 'currencyCode', label: 'Ccy', mono: true },
+  ],
+}
+
 const SPECS = {
   Customer: customerSpec,
   Vendor: vendorSpec,
@@ -1343,6 +1462,7 @@ const SPECS = {
   CustomerQuote: customerQuoteSpec,
   SalesOrder: salesOrderSpec,
   PriceList: priceListSpec,
+  Opportunity: opportunitySpec,
   Competitor: competitorSpec,
   StrategyItem: strategyItemSpec,
   DevelopmentProject: developmentProjectSpec,

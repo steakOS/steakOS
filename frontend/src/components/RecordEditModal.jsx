@@ -16,7 +16,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
-import { catalogueApi, domainsApi, scmApi } from '../api/client'
+import { catalogueApi, domainsApi, salesApi, scmApi } from '../api/client'
 import TaskAssigneeSelect from './TaskAssigneeSelect'
 import DocumentLinesEditor, {
   emptyDocLine,
@@ -151,6 +151,7 @@ export default function RecordEditModal({
   const isMaster = !!masterSpec
   const isPurchaseOrder = resource === 'PurchaseOrder'
   const isCatalogueItem = resource === 'CatalogueItem'
+  const isOpportunity = pkg === 'sales' && resource === 'Opportunity'
 
   const [form, setForm] = useState(() =>
     isTask ? formFromTaskRow(seed || {}) : masterSpec ? masterSpec.fromRow(seed || {}, masterSpec.empty()) : {},
@@ -232,7 +233,13 @@ export default function RecordEditModal({
 
     const loadRow = async () => {
       try {
-        let row = await domainsApi.get(pkg, resource, recordId)
+        let row
+        if (isOpportunity) {
+          // CRM map includes stage, amounts, contact — domains toMap omits several fields.
+          row = await salesApi.crm.getOpportunity(recordId)
+        } else {
+          row = await domainsApi.get(pkg, resource, recordId)
+        }
         if (isPurchaseOrder) {
           // domains get may omit lines — prefer SCM full map when needed
           const seedLines = seed?.id === recordId ? seed.lines : null
@@ -266,7 +273,7 @@ export default function RecordEditModal({
     return () => {
       cancelled = true
     }
-  }, [open, pkg, resource, recordId, seed, isTask, isMaster, isPurchaseOrder, masterSpec])
+  }, [open, pkg, resource, recordId, seed, isTask, isMaster, isPurchaseOrder, isOpportunity, masterSpec])
 
   useEffect(() => {
     if (!open) return undefined
@@ -307,7 +314,12 @@ export default function RecordEditModal({
       const body = masterSpec.toBody(form)
       let updated
       try {
-        updated = await domainsApi.update(pkg, resource, recordId, body)
+        if (isOpportunity) {
+          // Prefer CRM update for stage/status sync and WON/LOST guards.
+          updated = await salesApi.crm.updateOpportunity(recordId, body)
+        } else {
+          updated = await domainsApi.update(pkg, resource, recordId, body)
+        }
       } catch (err) {
         if (isCatalogueItem) {
           updated = await catalogueApi.update(recordId, body)

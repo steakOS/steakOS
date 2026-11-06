@@ -15,6 +15,7 @@
 
 import CurrencySelect from '../components/CurrencySelect'
 import LocaleSelect from '../components/LocaleSelect'
+import CustomerSelect from '../components/CustomerSelect'
 
 /**
  * Renders fields from a master form spec.
@@ -169,6 +170,21 @@ function renderField(field, form, handle, setField, disabled) {
           disabled={disabled}
           required={!!field.required}
           onChange={handle}
+        />
+      </label>
+    )
+  }
+
+  if (field.type === 'customer') {
+    return (
+      <label key={field.name}>
+        {field.label}
+        {field.required ? ' *' : ''}
+        <CustomerSelect
+          id={id}
+          value={val ?? ''}
+          disabled={disabled}
+          onChange={(customerId) => setField(field.name, customerId || '')}
         />
       </label>
     )
