@@ -632,7 +632,14 @@ export default function SalesDesk() {
                 aria-label={t('actions.edit', { ns: 'common' })}
                 onClick={(e) => {
                   e.stopPropagation()
-                  openEdit(pkg, resource, record)
+                  // Hydrate selection so process footers (send/confirm) resolve the record id.
+                  if (resource === 'CustomerQuote') {
+                    selectQuote(record.id).finally(() => openEdit(pkg, resource, record))
+                  } else if (resource === 'SalesOrder') {
+                    selectOrder(record.id).finally(() => openEdit(pkg, resource, record))
+                  } else {
+                    openEdit(pkg, resource, record)
+                  }
                 }}
               >
                 <Pencil size={14} />
@@ -658,7 +665,7 @@ export default function SalesDesk() {
         />
       )
     },
-    [canDeleteRecord, canEditRecord, onDeleteRecord, openEdit, openView, t],
+    [canDeleteRecord, canEditRecord, onDeleteRecord, openEdit, openView, selectOrder, selectQuote, t],
   )
 
   useEffect(() => {
@@ -1100,8 +1107,8 @@ export default function SalesDesk() {
     }
   }
 
-  const onSendQuote = async () => {
-    const qid = selectedQuoteRef.current?.id
+  const onSendQuote = async (quoteId) => {
+    const qid = quoteId ?? selectedQuoteRef.current?.id
     if (!qid) return
     setBusy('send')
     setError(null)
@@ -1119,8 +1126,8 @@ export default function SalesDesk() {
     }
   }
 
-  const onAcceptQuote = async () => {
-    const qid = selectedQuoteRef.current?.id
+  const onAcceptQuote = async (quoteId) => {
+    const qid = quoteId ?? selectedQuoteRef.current?.id
     if (!qid) return
     setBusy('accept')
     setError(null)
@@ -1150,8 +1157,8 @@ export default function SalesDesk() {
     }
   }
 
-  const onRejectQuote = async () => {
-    const qid = selectedQuoteRef.current?.id
+  const onRejectQuote = async (quoteId) => {
+    const qid = quoteId ?? selectedQuoteRef.current?.id
     if (!qid) return
     setBusy('reject')
     setError(null)
@@ -1221,8 +1228,8 @@ export default function SalesDesk() {
     }
   }
 
-  const onConfirmOrder = async () => {
-    const oid = selectedOrderRef.current?.id
+  const onConfirmOrder = async (orderId) => {
+    const oid = orderId ?? selectedOrderRef.current?.id
     if (!oid) return
     setBusy('confirm')
     setError(null)
@@ -1248,15 +1255,19 @@ export default function SalesDesk() {
     }
   }
 
-  const onCancelOrder = async () => {
-    const cur = selectedOrderRef.current
-    if (!cur?.id) return
-    if (!window.confirm(`${t('order.cancel')} ${cur.orderNumber}?`)) return
+  const onCancelOrder = async (orderId) => {
+    const oid = orderId ?? selectedOrderRef.current?.id
+    if (!oid) return
+    const label =
+      selectedOrderRef.current?.id === oid
+        ? selectedOrderRef.current.orderNumber
+        : oid
+    if (!window.confirm(`${t('order.cancel')} ${label}?`)) return
     setBusy('cancel')
     setError(null)
     setInfo(null)
     try {
-      const o = await salesApi.orders.cancel(cur.id)
+      const o = await salesApi.orders.cancel(oid)
       setInfo(t('toast.cancelled', { ns: 'common', number: o.orderNumber }))
       await loadAll()
       const full = await selectOrder(o.id)
@@ -2296,7 +2307,7 @@ export default function SalesDesk() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => onSendQuoteRef.current()}
+              onClick={() => onSendQuoteRef.current(q.id)}
               disabled={isBusy}
             >
               <Send size={16} /> {busyRef.current === 'send' ? '…' : t('quote.send')}
@@ -2306,7 +2317,7 @@ export default function SalesDesk() {
             <button
               type="button"
               className={q.quoteStatus === 'SENT' ? 'btn btn-primary' : 'btn btn-ghost'}
-              onClick={() => onAcceptQuoteRef.current()}
+              onClick={() => onAcceptQuoteRef.current(q.id)}
               disabled={isBusy}
               title={t('quote.acceptToOrderTitle', { defaultValue: 'Accept → order' })}
             >
@@ -2318,12 +2329,13 @@ export default function SalesDesk() {
             <button
               type="button"
               className="btn"
-              onClick={() => onRejectQuoteRef.current()}
+              onClick={() => onRejectQuoteRef.current(q.id)}
               disabled={isBusy}
             >
               <X size={16} /> {t('quote.reject')}
             </button>
           )}
+
           {q.resultingOrderId && (
             <button
               type="button"
@@ -2363,7 +2375,7 @@ export default function SalesDesk() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => onConfirmOrderRef.current()}
+              onClick={() => onConfirmOrderRef.current(o.id)}
               disabled={isBusy}
               title={t('order.confirmFinanceTitle', {
                 defaultValue: 'Confirm → Finance DRAFT invoice',
@@ -2377,12 +2389,13 @@ export default function SalesDesk() {
             <button
               type="button"
               className="btn"
-              onClick={() => onCancelOrderRef.current()}
+              onClick={() => onCancelOrderRef.current(o.id)}
               disabled={isBusy}
             >
               <Ban size={16} /> Cancel
             </button>
           )}
+
           {o.financeInvoiceId && (
             <Link
               className="btn btn-secondary"

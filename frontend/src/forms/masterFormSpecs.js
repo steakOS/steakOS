@@ -679,8 +679,8 @@ const customerQuoteSpec = {
 }
 
 /**
- * DRAFT sales order header + lines in RecordEditModal (confirm/cancel stay on desk).
- * orderStatus is read for the badge; not written from the modal.
+ * DRAFT sales order header + lines in RecordEditModal.
+ * orderStatus is read for the badge; transitions use footerExtra (confirm/cancel APIs).
  */
 const salesOrderSpec = {
   resource: 'SalesOrder',

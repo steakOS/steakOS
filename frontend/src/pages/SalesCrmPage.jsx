@@ -533,9 +533,10 @@ export default function SalesCrmPage() {
     [onDelete, openEdit, openOppView, t],
   )
 
-  const runAction = async (label, fn, okMsg) => {
-    const cur = selectedRef.current
-    if (!cur?.id) return
+  const runAction = async (label, fn, okMsg, recordId) => {
+    const id = recordId ?? selectedRef.current?.id
+    if (!id) return
+    const cur = selectedRef.current?.id === id ? selectedRef.current : { id }
     setBusy(label)
     setError(null)
     setInfo(null)
@@ -543,7 +544,7 @@ export default function SalesCrmPage() {
       await fn(cur)
       if (okMsg) setInfo(okMsg)
       await load()
-      const full = await hydrateOpp(cur.id)
+      const full = await hydrateOpp(id)
       if (full) updateViewingRecord(full)
     } catch (err) {
       setError(friendlyErr(err, t))
@@ -552,39 +553,47 @@ export default function SalesCrmPage() {
     }
   }
 
-  const onUpdateStage = async () => {
+  const onUpdateStage = async (oppId) => {
     const draft = stageDraftRef.current
     await runAction(
       'stage',
       (cur) => salesApi.crm.updateOpportunity(cur.id, { stage: draft }),
       t('crm.stageUpdated', { defaultValue: 'Stage updated.' }),
+      oppId,
     )
   }
 
-  const onMarkLost = async () => {
+  const onMarkLost = async (oppId) => {
     await runAction(
       'lost',
       (cur) => salesApi.crm.markLost(cur.id, {}),
       t('crm.markedLost', { defaultValue: 'Opportunity marked lost.' }),
+      oppId,
     )
   }
 
-  const onConvert = async () => {
-    const cur = selectedRef.current
-    if (!cur?.id) return
-    if (!cur.customerId) {
-      setError(
-        t('crm.convertNeedsCustomer', {
-          defaultValue: 'Link a customer before converting to a quote.',
-        }),
-      )
-      return
+  const onConvert = async (oppId) => {
+    const id = oppId ?? selectedRef.current?.id
+    if (!id) return
+    const cur = selectedRef.current?.id === id ? selectedRef.current : null
+    const customerId = cur?.customerId
+    if (!customerId) {
+      // Prefer live selection; fall back to hydrate if edit opened without select.
+      const full = cur || (await hydrateOpp(id))
+      if (!full?.customerId) {
+        setError(
+          t('crm.convertNeedsCustomer', {
+            defaultValue: 'Link a customer before converting to a quote.',
+          }),
+        )
+        return
+      }
     }
     setBusy('convert')
     setError(null)
     setInfo(null)
     try {
-      const result = await salesApi.crm.convert(cur.id, {})
+      const result = await salesApi.crm.convert(id, {})
       const qLabel = result?.quote?.quoteNumber || '—'
       setInfo(
         result?.alreadyConverted
@@ -598,7 +607,7 @@ export default function SalesCrmPage() {
             }),
       )
       await load()
-      const full = await hydrateOpp(cur.id)
+      const full = await hydrateOpp(id)
       if (full) updateViewingRecord(full)
     } catch (err) {
       setError(friendlyErr(err, t))
@@ -1073,7 +1082,7 @@ export default function SalesCrmPage() {
           type="button"
           className="btn"
           disabled={isBusy}
-          onClick={() => onUpdateStageRef.current()}
+          onClick={() => onUpdateStageRef.current(opp.id)}
           title={t('crm.updateStageTitle', { defaultValue: 'Update stage' })}
         >
           {t('crm.updateStage', { defaultValue: 'Update' })}
@@ -1082,7 +1091,7 @@ export default function SalesCrmPage() {
           type="button"
           className="btn"
           disabled={isBusy}
-          onClick={() => onMarkLostRef.current()}
+          onClick={() => onMarkLostRef.current?.(opp.id)}
           title={t('crm.markLostTitle', { defaultValue: 'Mark lost' })}
         >
           <Ban size={16} /> {t('crm.markLost', { defaultValue: 'Lost' })}
@@ -1090,7 +1099,7 @@ export default function SalesCrmPage() {
         <button
           type="button"
           className="btn btn-primary"
-          onClick={() => onConvertRef.current()}
+          onClick={() => onConvertRef.current?.(opp.id)}
           disabled={isBusy}
           title={t('crm.convertTitle', {
             defaultValue: 'Convert to customer / quote',

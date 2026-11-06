@@ -584,30 +584,31 @@ export default function DeliveryDesk() {
     }
   }
 
-  const runOrder = async (action) => {
-    const live = selectedRef.current
-    if (!live?.id) return
+  const runOrder = async (action, orderId) => {
+    const id = orderId ?? selectedRef.current?.id
+    if (!id) return
+    const live = selectedRef.current?.id === id ? selectedRef.current : { id }
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
       let updated = null
       if (action === 'schedule') {
-        updated = await deliveryApi.orders.schedule(live.id, {
+        updated = await deliveryApi.orders.schedule(id, {
           resourceId: live.resourceId || undefined,
         })
         setInfo(t('toast.scheduled', { ns: 'common', number: updated.orderNumber }))
       } else if (action === 'start') {
-        updated = await deliveryApi.orders.start(live.id)
+        updated = await deliveryApi.orders.start(id)
         setInfo(t('toast.started', { ns: 'common', name: updated.orderNumber }))
       } else if (action === 'complete') {
-        const result = await deliveryApi.orders.complete(live.id)
+        const result = await deliveryApi.orders.complete(id)
         updated = result.order
         setInfo(
           `Completed ${result.order?.orderNumber} · no Finance invoice (Sales owns billing)`,
         )
       } else if (action === 'cancel') {
-        updated = await deliveryApi.orders.cancel(live.id)
+        updated = await deliveryApi.orders.cancel(id)
         setInfo(t('toast.cancelled', { ns: 'common', number: updated.orderNumber }))
       }
       if (updated) {
@@ -713,7 +714,11 @@ export default function DeliveryDesk() {
                 aria-label={t('actions.edit', { ns: 'common' })}
                 onClick={(e) => {
                   e.stopPropagation()
-                  openEdit(pkg, resource, record)
+                  if (resource === 'ServiceOrder') {
+                    selectOrder(record.id).finally(() => openEdit(pkg, resource, record))
+                  } else {
+                    openEdit(pkg, resource, record)
+                  }
                 }}
               >
                 <Pencil size={14} />
@@ -739,7 +744,7 @@ export default function DeliveryDesk() {
         />
       )
     },
-    [canDeleteRecord, canEditRecord, onDelete, openEdit, openView, t],
+    [canDeleteRecord, canEditRecord, onDelete, openEdit, openView, selectOrder, t],
   )
 
 
@@ -1515,7 +1520,7 @@ export default function DeliveryDesk() {
           <button
             type="button"
             className="btn"
-            onClick={() => runOrderRef.current('schedule')}
+            onClick={() => runOrderRef.current('schedule', order.id)}
             disabled={isBusy}
           >
             <Calendar size={16} /> Schedule
@@ -1525,7 +1530,7 @@ export default function DeliveryDesk() {
           <button
             type="button"
             className="btn"
-            onClick={() => runOrderRef.current('start')}
+            onClick={() => runOrderRef.current('start', order.id)}
             disabled={isBusy}
           >
             <Play size={16} /> Start
@@ -1535,7 +1540,7 @@ export default function DeliveryDesk() {
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => runOrderRef.current('complete')}
+            onClick={() => runOrderRef.current('complete', order.id)}
             disabled={isBusy}
           >
             <Check size={16} /> Complete

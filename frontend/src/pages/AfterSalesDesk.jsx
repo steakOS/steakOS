@@ -745,18 +745,18 @@ export default function AfterSalesDesk() {
     }
   }
 
-  const runInquiry = async (action) => {
-    const live = selectedInqRef.current
-    if (!live?.id) return
+  const runInquiry = async (action, inquiryId) => {
+    const id = inquiryId ?? selectedInqRef.current?.id
+    if (!id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
       let result
-      if (action === 'start') result = await aftersalesApi.inquiries.start(live.id)
-      if (action === 'resolve') result = await aftersalesApi.inquiries.resolve(live.id)
-      if (action === 'close') result = await aftersalesApi.inquiries.close(live.id)
-      if (action === 'cancel') result = await aftersalesApi.inquiries.cancel(live.id)
+      if (action === 'start') result = await aftersalesApi.inquiries.start(id)
+      if (action === 'resolve') result = await aftersalesApi.inquiries.resolve(id)
+      if (action === 'close') result = await aftersalesApi.inquiries.close(id)
+      if (action === 'cancel') result = await aftersalesApi.inquiries.cancel(id)
       setSelectedInq(result)
       updateViewingRecord(result)
       setInfo(t('toast.numberStatus', { ns: 'common', what: t('labels.inquiry', { ns: 'common' }), number: result.inquiryNumber, status: result.caseStatus }))
@@ -831,19 +831,19 @@ export default function AfterSalesDesk() {
     }
   }
 
-  const runClaim = async (action) => {
-    const live = selectedClaimRef.current
-    if (!live?.id) return
+  const runClaim = async (action, claimId) => {
+    const id = claimId ?? selectedClaimRef.current?.id
+    if (!id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
       let updated = null
       if (action === 'validate') {
-        updated = await aftersalesApi.claims.validate(live.id)
+        updated = await aftersalesApi.claims.validate(id)
         setInfo(t('toast.validated', { ns: 'common', number: updated.claimNumber }))
       } else if (action === 'approve') {
-        const result = await aftersalesApi.claims.approve(live.id)
+        const result = await aftersalesApi.claims.approve(id)
         updated = result.claim || result
         if (result.financeCreditInvoiceId) {
           setInfo('Claim approved → Finance credit')
@@ -853,12 +853,12 @@ export default function AfterSalesDesk() {
           )
         }
       } else if (action === 'reject') {
-        updated = await aftersalesApi.claims.reject(live.id, {
+        updated = await aftersalesApi.claims.reject(id, {
           resolution: 'Rejected from desk',
         })
         setInfo(t('toast.claimRejected', { ns: 'common', number: updated.claimNumber }))
       } else if (action === 'close') {
-        updated = await aftersalesApi.claims.close(live.id)
+        updated = await aftersalesApi.claims.close(id)
         setInfo(t('toast.claimClosed', { ns: 'common', number: updated.claimNumber }))
       }
       if (updated) {
@@ -918,16 +918,16 @@ export default function AfterSalesDesk() {
     }
   }
 
-  const runRma = async (action) => {
-    const live = selectedRmaRef.current
-    if (!live?.id) return
+  const runRma = async (action, rmaId) => {
+    const id = rmaId ?? selectedRmaRef.current?.id
+    if (!id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
       let updated = null
       if (action === 'confirm') {
-        const result = await aftersalesApi.rmas.confirm(live.id)
+        const result = await aftersalesApi.rmas.confirm(id)
         updated = result.rma || result
         setInfo(
           result.stockMoveId
@@ -935,10 +935,10 @@ export default function AfterSalesDesk() {
             : 'RMA confirmed (no stock — set product id)',
         )
       } else if (action === 'close') {
-        updated = await aftersalesApi.rmas.close(live.id)
+        updated = await aftersalesApi.rmas.close(id)
         setInfo(t('toast.rmaClosed', { ns: 'common', number: updated.rmaNumber }))
       } else if (action === 'cancel') {
-        updated = await aftersalesApi.rmas.cancel(live.id)
+        updated = await aftersalesApi.rmas.cancel(id)
         setInfo(t('toast.rmaCancelled', { ns: 'common', number: updated.rmaNumber }))
       }
       if (updated) {
@@ -2333,7 +2333,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn"
-              onClick={() => runInquiryRef.current('start')}
+              onClick={() => runInquiryRef.current('start', inq.id)}
               disabled={isBusy}
             >
               <Play size={16} /> {t('aftersales.start')}
@@ -2343,7 +2343,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn"
-              onClick={() => runInquiryRef.current('resolve')}
+              onClick={() => runInquiryRef.current('resolve', inq.id)}
               disabled={isBusy}
             >
               <Check size={16} /> {t('aftersales.resolve')}
@@ -2353,7 +2353,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => runInquiryRef.current('close')}
+              onClick={() => runInquiryRef.current('close', inq.id)}
               disabled={isBusy}
             >
               {t('actions.close', { ns: 'common' })}
@@ -2363,7 +2363,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={() => runInquiryRef.current('cancel')}
+              onClick={() => runInquiryRef.current('cancel', inq.id)}
               disabled={isBusy}
             >
               <X size={16} /> {t('actions.cancel', { ns: 'common' })}
@@ -2381,7 +2381,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn"
-              onClick={() => runClaimRef.current('validate')}
+              onClick={() => runClaimRef.current('validate', claim.id)}
               disabled={isBusy}
             >
               {t('aftersales.validate')}
@@ -2391,7 +2391,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => runClaimRef.current('approve')}
+              onClick={() => runClaimRef.current('approve', claim.id)}
               disabled={isBusy}
               title={t('aftersales.approveFinanceTitle', {
                 defaultValue: 'Approve → Finance',
@@ -2404,7 +2404,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={() => runClaimRef.current('reject')}
+              onClick={() => runClaimRef.current('reject', claim.id)}
               disabled={isBusy}
             >
               <X size={16} /> {t('aftersales.reject')}
@@ -2414,7 +2414,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn"
-              onClick={() => runClaimRef.current('close')}
+              onClick={() => runClaimRef.current('close', claim.id)}
               disabled={isBusy}
             >
               {t('actions.close', { ns: 'common' })}
@@ -2432,7 +2432,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => runRmaRef.current('confirm')}
+              onClick={() => runRmaRef.current('confirm', rma.id)}
               disabled={isBusy}
               title={t('aftersales.confirmScmStockTitle', {
                 defaultValue: 'Confirm → SCM stock',
@@ -2445,7 +2445,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn"
-              onClick={() => runRmaRef.current('close')}
+              onClick={() => runRmaRef.current('close', rma.id)}
               disabled={isBusy}
             >
               {t('actions.close', { ns: 'common' })}
@@ -2455,7 +2455,7 @@ export default function AfterSalesDesk() {
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={() => runRmaRef.current('cancel')}
+              onClick={() => runRmaRef.current('cancel', rma.id)}
               disabled={isBusy}
             >
               <X size={16} /> {t('actions.cancel', { ns: 'common' })}

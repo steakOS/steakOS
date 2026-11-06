@@ -130,6 +130,7 @@ function soStatusOf(row) {
  * (backdrop, Escape, click-outside, breadcrumb top bar, identity row).
  * Supports Task (core), master-form resources (Vendor, CatalogueItem, …),
  * DRAFT PurchaseOrder and DRAFT SalesOrder (header + lines).
+ * Process steps (confirm / send / …) come via footerExtra — same as view modal.
  */
 export default function RecordEditModal({
   open,
@@ -146,6 +147,11 @@ export default function RecordEditModal({
    * added/edited after create. Set false when belowFields already includes a rail.
    */
   showContentRail = true,
+  /**
+   * Process / lifecycle actions (Send, Confirm, Bill, …) — same as RecordViewModal.
+   * Shown in the footer for DRAFT and non-DRAFT states so edit can drive the process.
+   */
+  footerExtra = null,
 }) {
   const { t } = useTranslation(['common', 'domain'])
   const isTask = pkg === 'core' && resource === 'Task'
@@ -464,6 +470,7 @@ export default function RecordEditModal({
             </p>
             {contentRail}
             <footer className="content-view-footer" style={{ marginTop: '1rem' }}>
+              {footerExtra}
               <button type="button" className="btn btn-primary" onClick={onClose}>
                 {t('actions.close')}
               </button>
@@ -486,6 +493,7 @@ export default function RecordEditModal({
             </p>
             {contentRail}
             <footer className="content-view-footer" style={{ marginTop: '1rem' }}>
+              {footerExtra}
               <button type="button" className="btn btn-primary" onClick={onClose}>
                 {t('actions.close')}
               </button>
@@ -673,6 +681,7 @@ export default function RecordEditModal({
             </div>
 
             <footer className="content-view-footer">
+              {footerExtra}
               <button
                 type="button"
                 className="btn btn-ghost"
@@ -767,6 +776,7 @@ export default function RecordEditModal({
             </div>
 
             <footer className="content-view-footer">
+              {footerExtra}
               <button
                 type="button"
                 className="btn btn-ghost"

@@ -68,8 +68,20 @@ export default function useRecordView(options = {}) {
 
   const closeView = useCallback(() => setViewing(null), [])
 
+  /** Keep view + edit seeds in sync after process steps (send / confirm / …). */
   const updateViewingRecord = useCallback((record) => {
-    setViewing((prev) => (prev ? { ...prev, record } : prev))
+    if (!record) return
+    const id = record.id
+    setViewing((prev) =>
+      prev && String(prev.record?.id) === String(id)
+        ? { ...prev, record: { ...prev.record, ...record } }
+        : prev,
+    )
+    setEditing((prev) =>
+      prev && String(prev.record?.id) === String(id)
+        ? { ...prev, record: { ...prev.record, ...record } }
+        : prev,
+    )
   }, [])
 
   const ViewButton = useCallback(
@@ -99,14 +111,16 @@ export default function useRecordView(options = {}) {
     [openView, t],
   )
 
-  const ctx = viewing
+  const viewCtx = viewing
     ? { pkg: viewing.pkg, resource: viewing.resource, record: viewing.record }
+    : null
+  const editCtx = editing
+    ? { pkg: editing.pkg, resource: editing.resource, record: editing.record }
     : null
   const useModalEdit =
     modalEdit &&
-    ctx &&
-    (typeof canModalEdit === 'function' ? canModalEdit(ctx) : true)
-
+    viewCtx &&
+    (typeof canModalEdit === 'function' ? canModalEdit(viewCtx) : true)
   const viewModal = (
     <>
       <RecordViewModal
@@ -139,11 +153,13 @@ export default function useRecordView(options = {}) {
                 )
               : undefined
         }
-        belowFields={ctx && getBelowFields ? getBelowFields(ctx) : null}
-        footerExtra={ctx && getFooterExtra ? getFooterExtra(ctx) : null}
+        belowFields={viewCtx && getBelowFields ? getBelowFields(viewCtx) : null}
+        footerExtra={viewCtx && getFooterExtra ? getFooterExtra(viewCtx) : null}
       />
       {modalEdit && (
         <RecordEditModal
+          // Stay open after process steps change status (confirm/send); canModalEdit
+          // only gates openEdit, not an already-open session.
           open={!!editing}
           onClose={() => setEditing(null)}
           package={editing?.pkg}
@@ -153,13 +169,11 @@ export default function useRecordView(options = {}) {
           // Built-in ContentRail for companion hosts. Do not pass view getBelowFields
           // (CRM activities, read-only line tables, etc.) — those stay on the view modal.
           showContentRail
+          // Same process steps as the view modal (send / confirm / bill / …).
+          footerExtra={editCtx && getFooterExtra ? getFooterExtra(editCtx) : null}
           onSaved={(updated) => {
             if (updated) {
-              setViewing((prev) =>
-                prev && String(prev.record?.id) === String(updated.id)
-                  ? { ...prev, record: { ...prev.record, ...updated } }
-                  : prev,
-              )
+              updateViewingRecord(updated)
             }
             if (typeof onSaved === 'function') onSaved(updated)
           }}
@@ -167,7 +181,6 @@ export default function useRecordView(options = {}) {
       )}
     </>
   )
-
   return {
     openView,
     openEdit,

@@ -573,7 +573,11 @@ export default function ScmDesk({ desk = 'buyers' }) {
                 aria-label={t('actions.edit', { ns: 'common' })}
                 onClick={(e) => {
                   e.stopPropagation()
-                  openEdit(pkg, resource, record)
+                  if (resource === 'PurchaseOrder' && typeof selectPo === 'function') {
+                    selectPo(record.id).finally(() => openEdit(pkg, resource, record))
+                  } else {
+                    openEdit(pkg, resource, record)
+                  }
                 }}
               >
                 <Pencil size={14} />
@@ -605,6 +609,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
       onBuyersDelete,
       openEdit,
       openView,
+      selectPo,
       t,
     ],
   )
@@ -779,17 +784,18 @@ export default function ScmDesk({ desk = 'buyers' }) {
     }
   }
 
-  const runPo = async (action) => {
-    if (!selectedPo?.id) return
+  const runPo = async (action, poId) => {
+    const id = poId ?? selectedPo?.id ?? selectedPoRef.current?.id
+    if (!id) return
     setBusy(action)
     setError(null)
     setInfo(null)
     try {
       let result
-      if (action === 'send') result = await scmApi.purchaseOrders.send(selectedPo.id)
-      if (action === 'confirm') result = await scmApi.purchaseOrders.confirm(selectedPo.id)
-      if (action === 'receive') result = await scmApi.purchaseOrders.receive(selectedPo.id)
-      if (action === 'cancel') result = await scmApi.purchaseOrders.cancel(selectedPo.id)
+      if (action === 'send') result = await scmApi.purchaseOrders.send(id)
+      if (action === 'confirm') result = await scmApi.purchaseOrders.confirm(id)
+      if (action === 'receive') result = await scmApi.purchaseOrders.receive(id)
+      if (action === 'cancel') result = await scmApi.purchaseOrders.cancel(id)
 
       let updatedPo = null
       if (action === 'confirm') {
@@ -1288,7 +1294,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
           <button
             type="button"
             className="btn"
-            onClick={() => runPoRef.current('send')}
+            onClick={() => runPoRef.current('send', po.id)}
             disabled={isBusy}
           >
             <Send size={16} /> Send
@@ -1298,7 +1304,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
           <button
             type="button"
             className="btn"
-            onClick={() => runPoRef.current('receive')}
+            onClick={() => runPoRef.current('receive', po.id)}
             disabled={isBusy}
             title={t('scm.receiveStockTitle', {
               defaultValue: 'Receive → stock',
@@ -1312,7 +1318,7 @@ export default function ScmDesk({ desk = 'buyers' }) {
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => runPoRef.current('confirm')}
+            onClick={() => runPoRef.current('confirm', po.id)}
             disabled={isBusy}
             title={t('scm.confirmPayableTitle', {
               defaultValue: 'Confirm → payable',
