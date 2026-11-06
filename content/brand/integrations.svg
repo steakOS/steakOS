@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1500" viewBox="0 0 2400 1500" font-family="Inter, 'DejaVu Sans', sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 1L9 5L0 9z" fill="#6b7680"/></marker>
+<linearGradient id="lg" x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#ff8533"/><stop offset="1" stop-color="#ff6600"/></linearGradient>
+</defs>
+<rect width="2400" height="1500" fill="#fbfaf7"/>
+<svg x="100" y="62" width="76" height="76" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="url(#lg)"/><path d="M18 22h28v6H18zm0 10h28v6H18zm0 10h18v6H18z" fill="#fff" fill-opacity=".95"/><circle cx="44" cy="43" r="5.5" fill="#171717"/><path d="M42.2 43.1l1.5 1.5 3.2-3.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<text x="200" y="104" font-size="46" font-weight="750" fill="#171717" text-anchor="start" letter-spacing="-0.6" >steakOS integration architecture</text>
+<text x="201" y="144" font-size="23" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >One required core. Everything else optional — on one machine or many.</text>
+<text x="2300" y="92" font-size="13" font-weight="700" fill="#5b6670" text-anchor="end" letter-spacing="1.6" >SOLUTION ARCHITECTURE</text>
+<text x="2300" y="116" font-size="15" font-weight="500" fill="#8a939c" text-anchor="end" letter-spacing="0" >Deployment view</text>
+<line x1="100" y1="182" x2="2300" y2="182" stroke="#e3e1dc" stroke-width="1.5"/>
+<rect x="100" y="222" width="880" height="880" rx="8" fill="#ffffff" stroke="#8f98a1" stroke-width="1.5"/>
+<text x="130" y="264" font-size="15" font-weight="750" fill="#171717" text-anchor="start" letter-spacing="1.4" >HOST 1</text>
+<rect x="200" y="248" width="77" height="22" rx="11" fill="#ff6600"/>
+<text x="238.42000000000002" y="263" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="1.2" >REQUIRED</text>
+<text x="130" y="292" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Your server, office PC or VM · optional modules may co-locate here</text>
+<rect x="1260" y="222" width="1040" height="880" rx="8" fill="#ffffff" stroke="#8f98a1" stroke-width="1.5" stroke-dasharray="9 6"/>
+<text x="1290" y="264" font-size="15" font-weight="750" fill="#171717" text-anchor="start" letter-spacing="1.4" >HOST 2 … n</text>
+<rect x="1400" y="248" width="77" height="22" rx="11" fill="#fff" stroke="#5b6670" stroke-width="1.2"/>
+<text x="1438.42" y="263" font-size="11" font-weight="700" fill="#5b6670" text-anchor="middle" letter-spacing="1.2" >OPTIONAL</text>
+<text x="1290" y="292" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Zero, one or several additional machines — or the same host as steakOS</text>
+<rect x="130" y="322" width="820" height="752" rx="6" fill="#fff" stroke="#ff6600" stroke-width="2.5"/>
+<path d="M130 328a6 6 0 0 1 6-6h808a6 6 0 0 1 6 6v124H130z" fill="#ff6600"/>
+<text x="166" y="388" font-size="46" font-weight="800" fill="#fff" text-anchor="start" letter-spacing="-0.5" >steakOS</text>
+<text x="168" y="424" font-size="18.5" font-weight="500" fill="#fff" text-anchor="start" letter-spacing="0" >Open-source business core · runs on your machine</text>
+<text x="914" y="366" font-size="12" font-weight="700" fill="#ffffff" text-anchor="end" letter-spacing="1.4" fill-opacity="0.9">APACHE LICENSE 2.0</text>
+<text x="166" y="500" font-size="13" font-weight="700" fill="#7a4a24" text-anchor="start" letter-spacing="1.4" >DESKS</text>
+<rect x="166.0" y="518" width="96.6" height="132" rx="5" fill="#fff4eb" stroke="#ffcfad" stroke-width="1.2"/>
+<rect x="192.3" y="540" width="44" height="44" rx="8" fill="#ffffff" stroke="#ffcfad"/>
+<g transform="translate(201.68571428571428,549.4) scale(1.05)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l5-5 4 3 7-7"/><path d="M15 8h5v5"/></g>
+<text x="214.28571428571428" y="622" font-size="15" font-weight="600" fill="#171717" text-anchor="middle" letter-spacing="0" >Sales</text>
+<rect x="274.6" y="518" width="96.6" height="132" rx="5" fill="#fff4eb" stroke="#ffcfad" stroke-width="1.2"/>
+<rect x="300.9" y="540" width="44" height="44" rx="8" fill="#ffffff" stroke="#ffcfad"/>
+<g transform="translate(310.2571428571428,549.4) scale(1.05)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 10.5h10.3L20 7.5H7"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></g>
+<text x="322.85714285714283" y="622" font-size="15" font-weight="600" fill="#171717" text-anchor="middle" letter-spacing="0" >Purchasing</text>
+<rect x="383.1" y="518" width="96.6" height="132" rx="5" fill="#fff4eb" stroke="#ffcfad" stroke-width="1.2"/>
+<rect x="409.4" y="540" width="44" height="44" rx="8" fill="#ffffff" stroke="#ffcfad"/>
+<g transform="translate(418.82857142857137,549.4) scale(1.05)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></g>
+<text x="431.4285714285714" y="622" font-size="15" font-weight="600" fill="#171717" text-anchor="middle" letter-spacing="0" >Shop floor</text>
+<rect x="491.7" y="518" width="96.6" height="132" rx="5" fill="#fff4eb" stroke="#ffcfad" stroke-width="1.2"/>
+<rect x="518.0" y="540" width="44" height="44" rx="8" fill="#ffffff" stroke="#ffcfad"/>
+<g transform="translate(527.4,549.4) scale(1.05)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></g>
+<text x="540.0" y="622" font-size="15" font-weight="600" fill="#171717" text-anchor="middle" letter-spacing="0" >Delivery</text>
+<rect x="600.3" y="518" width="96.6" height="132" rx="5" fill="#fff4eb" stroke="#ffcfad" stroke-width="1.2"/>
+<rect x="626.6" y="540" width="44" height="44" rx="8" fill="#ffffff" stroke="#ffcfad"/>
+<g transform="translate(635.9714285714285,549.4) scale(1.05)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4.5h-4.5"/></g>
+<text x="648.5714285714286" y="622" font-size="15" font-weight="600" fill="#171717" text-anchor="middle" letter-spacing="0" >After-sales</text>
+<rect x="708.9" y="518" width="96.6" height="132" rx="5" fill="#fff4eb" stroke="#ffcfad" stroke-width="1.2"/>
+<rect x="735.1" y="540" width="44" height="44" rx="8" fill="#ffffff" stroke="#ffcfad"/>
+<g transform="translate(744.5428571428572,549.4) scale(1.05)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 8h6M9 12h6M9 16h3"/></g>
+<text x="757.1428571428572" y="622" font-size="15" font-weight="600" fill="#171717" text-anchor="middle" letter-spacing="0" >Finance</text>
+<rect x="817.4" y="518" width="96.6" height="132" rx="5" fill="#fff4eb" stroke="#ffcfad" stroke-width="1.2"/>
+<rect x="843.7" y="540" width="44" height="44" rx="8" fill="#ffffff" stroke="#ffcfad"/>
+<g transform="translate(853.1142857142858,549.4) scale(1.05)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.5 7-5.5s6.2 1.7 7 5.5"/></g>
+<text x="865.7142857142858" y="622" font-size="15" font-weight="600" fill="#171717" text-anchor="middle" letter-spacing="0" >People</text>
+<text x="166" y="706" font-size="13" font-weight="700" fill="#5b6670" text-anchor="start" letter-spacing="1.4" >BUSINESS RECORDS</text>
+<rect x="166.0" y="722" width="140.0" height="46" rx="5" fill="#f6f7f8" stroke="#d9dee3" stroke-width="1.2"/>
+<text x="236.0" y="751" font-size="14.5" font-weight="500" fill="#171717" text-anchor="middle" letter-spacing="0" >Quotes</text>
+<rect x="318.0" y="722" width="140.0" height="46" rx="5" fill="#f6f7f8" stroke="#d9dee3" stroke-width="1.2"/>
+<text x="388.0" y="751" font-size="14.5" font-weight="500" fill="#171717" text-anchor="middle" letter-spacing="0" >Orders</text>
+<rect x="470.0" y="722" width="140.0" height="46" rx="5" fill="#f6f7f8" stroke="#d9dee3" stroke-width="1.2"/>
+<text x="540.0" y="751" font-size="14.5" font-weight="500" fill="#171717" text-anchor="middle" letter-spacing="0" >Stock</text>
+<rect x="622.0" y="722" width="140.0" height="46" rx="5" fill="#f6f7f8" stroke="#d9dee3" stroke-width="1.2"/>
+<text x="692.0" y="751" font-size="14.5" font-weight="500" fill="#171717" text-anchor="middle" letter-spacing="0" >Invoices</text>
+<rect x="774.0" y="722" width="140.0" height="46" rx="5" fill="#f6f7f8" stroke="#d9dee3" stroke-width="1.2"/>
+<text x="844.0" y="751" font-size="14.5" font-weight="500" fill="#171717" text-anchor="middle" letter-spacing="0" >Payroll hand-off</text>
+<text x="166" y="826" font-size="13" font-weight="700" fill="#5b6670" text-anchor="start" letter-spacing="1.4" >BUILT-IN PRINCIPLES</text>
+<rect x="166" y="846" width="748" height="46" rx="5" fill="#fff" stroke="#e3e6ea" stroke-width="1.2"/>
+<rect x="178" y="857" width="24" height="24" rx="12" fill="#fff1e6"/>
+<g transform="translate(181.36,860.36) scale(0.72)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></g>
+<text x="216" y="875" font-size="15.5" font-weight="450" fill="#2b3138" text-anchor="start" letter-spacing="0" >Helpers suggest — people approve anything that moves money</text>
+<rect x="166" y="910" width="748" height="46" rx="5" fill="#fff" stroke="#e3e6ea" stroke-width="1.2"/>
+<rect x="178" y="921" width="24" height="24" rx="12" fill="#fff1e6"/>
+<g transform="translate(181.36,924.36) scale(0.72)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></g>
+<text x="216" y="939" font-size="15.5" font-weight="450" fill="#2b3138" text-anchor="start" letter-spacing="0" >Business data stays in your database, on hardware you control</text>
+<rect x="166" y="974" width="748" height="46" rx="5" fill="#fff" stroke="#e3e6ea" stroke-width="1.2"/>
+<rect x="178" y="985" width="24" height="24" rx="12" fill="#fff1e6"/>
+<g transform="translate(181.36,988.36) scale(0.72)" fill="none" stroke="#ff6600" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></g>
+<text x="216" y="1003" font-size="15.5" font-weight="450" fill="#2b3138" text-anchor="start" letter-spacing="0" >Zero-token option: cloud AI is never required</text>
+<rect x="1290" y="322" width="980" height="168" rx="6" fill="#f4f5f7"/>
+<circle cx="1320" cy="348" r="5" fill="#b77b16"/>
+<text x="1334" y="353" font-size="13" font-weight="700" fill="#3f4851" text-anchor="start" letter-spacing="1.4" >PAYMENTS</text>
+<rect x="1290" y="504" width="980" height="168" rx="6" fill="#f4f5f7"/>
+<circle cx="1320" cy="530" r="5" fill="#6a4fa3"/>
+<text x="1334" y="535" font-size="13" font-weight="700" fill="#3f4851" text-anchor="start" letter-spacing="1.4" >COMMUNICATION</text>
+<rect x="1290" y="686" width="980" height="168" rx="6" fill="#f4f5f7"/>
+<circle cx="1320" cy="712" r="5" fill="#275d9f"/>
+<text x="1334" y="717" font-size="13" font-weight="700" fill="#3f4851" text-anchor="start" letter-spacing="1.4" >AI</text>
+<rect x="1290" y="868" width="980" height="204" rx="6" fill="#f4f5f7"/>
+<circle cx="1320" cy="894" r="5" fill="#19715d"/>
+<text x="1334" y="899" font-size="13" font-weight="700" fill="#3f4851" text-anchor="start" letter-spacing="1.4" >MONITORING</text>
+<rect x="1314" y="370" width="400" height="100" rx="6" fill="#fff" stroke="#aab3bd" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="1332" y="388" width="46" height="46" rx="8" fill="#f1f3f5"/>
+<g transform="translate(1341.8,397.8) scale(1.1)" fill="none" stroke="#b77b16" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 15h4"/></g>
+<text x="1394" y="408" font-size="19" font-weight="650" fill="#171717" text-anchor="start" letter-spacing="0" >BTCPay Server (experimental)</text>
+<rect x="1634" y="388" width="64" height="20" rx="4" fill="#fff" stroke="#b9c1ca" stroke-dasharray="3 2"/>
+<text x="1665.8" y="402" font-size="10" font-weight="700" fill="#5b6670" text-anchor="middle" letter-spacing="1.1" >OPTIONAL</text>
+<text x="1394" y="433" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Accept Bitcoin payments</text>
+<text x="1394" y="453" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Self-hosted checkout</text>
+<rect x="1846" y="370" width="400" height="100" rx="6" fill="#fff" stroke="#aab3bd" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="1864" y="388" width="46" height="46" rx="8" fill="#f1f3f5"/>
+<g transform="translate(1873.8,397.8) scale(1.1)" fill="none" stroke="#b77b16" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="7" rx="1.5"/><rect x="4" y="13.5" width="16" height="7" rx="1.5"/><path d="M8 7h.01M8 17h.01M12 7h5M12 17h5"/></g>
+<text x="1926" y="408" font-size="19" font-weight="650" fill="#171717" text-anchor="start" letter-spacing="0" >Bitcoin Node</text>
+<rect x="2166" y="388" width="64" height="20" rx="4" fill="#fff" stroke="#b9c1ca" stroke-dasharray="3 2"/>
+<text x="2197.8" y="402" font-size="10" font-weight="700" fill="#5b6670" text-anchor="middle" letter-spacing="1.1" >OPTIONAL</text>
+<text x="1926" y="433" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Your own copy of the network</text>
+<text x="1926" y="453" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >BTCPay can use it</text>
+<rect x="1314" y="552" width="400" height="100" rx="6" fill="#fff" stroke="#aab3bd" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="1332" y="570" width="46" height="46" rx="8" fill="#f1f3f5"/>
+<g transform="translate(1341.8,579.8) scale(1.1)" fill="none" stroke="#6a4fa3" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H10l-4 3.5V16H4z"/><path d="M8 9.5h8M8 12.5h5"/></g>
+<text x="1394" y="590" font-size="19" font-weight="650" fill="#171717" text-anchor="start" letter-spacing="0" >Nostr</text>
+<rect x="1634" y="570" width="64" height="20" rx="4" fill="#fff" stroke="#b9c1ca" stroke-dasharray="3 2"/>
+<text x="1665.8" y="584" font-size="10" font-weight="700" fill="#5b6670" text-anchor="middle" letter-spacing="1.1" >OPTIONAL</text>
+<text x="1394" y="615" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Relay &amp; client: private, signed</text>
+<text x="1394" y="635" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >messaging and records</text>
+<rect x="1314" y="734" width="400" height="100" rx="6" fill="#fff" stroke="#aab3bd" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="1332" y="752" width="46" height="46" rx="8" fill="#f1f3f5"/>
+<g transform="translate(1341.8,761.8) scale(1.1)" fill="none" stroke="#275d9f" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9.5 3v3M14.5 3v3M9.5 18v3M14.5 18v3M3 9.5h3M3 14.5h3M18 9.5h3M18 14.5h3"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></g>
+<text x="1394" y="772" font-size="19" font-weight="650" fill="#171717" text-anchor="start" letter-spacing="0" >Hermes Agent</text>
+<rect x="1634" y="752" width="64" height="20" rx="4" fill="#fff" stroke="#b9c1ca" stroke-dasharray="3 2"/>
+<text x="1665.8" y="766" font-size="10" font-weight="700" fill="#5b6670" text-anchor="middle" letter-spacing="1.1" >OPTIONAL</text>
+<text x="1394" y="797" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Drafts and routine tasks</text>
+<text x="1394" y="817" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Humans approve money moves</text>
+<rect x="1314" y="916" width="400" height="100" rx="6" fill="#fff" stroke="#aab3bd" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="1332" y="934" width="46" height="46" rx="8" fill="#f1f3f5"/>
+<g transform="translate(1341.8,943.8) scale(1.1)" fill="none" stroke="#19715d" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></g>
+<text x="1394" y="954" font-size="19" font-weight="650" fill="#171717" text-anchor="start" letter-spacing="0" >Uptime Kuma</text>
+<rect x="1634" y="934" width="64" height="20" rx="4" fill="#fff" stroke="#b9c1ca" stroke-dasharray="3 2"/>
+<text x="1665.8" y="948" font-size="10" font-weight="700" fill="#5b6670" text-anchor="middle" letter-spacing="1.1" >OPTIONAL</text>
+<text x="1394" y="979" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Availability checks</text>
+<text x="1394" y="999" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Alerts when a service drops</text>
+<rect x="1846" y="916" width="400" height="100" rx="6" fill="#fff" stroke="#aab3bd" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="1864" y="934" width="46" height="46" rx="8" fill="#f1f3f5"/>
+<g transform="translate(1873.8,943.8) scale(1.1)" fill="none" stroke="#19715d" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></g>
+<text x="1926" y="954" font-size="19" font-weight="650" fill="#171717" text-anchor="start" letter-spacing="0" >Grafana</text>
+<rect x="2166" y="934" width="64" height="20" rx="4" fill="#fff" stroke="#b9c1ca" stroke-dasharray="3 2"/>
+<text x="2197.8" y="948" font-size="10" font-weight="700" fill="#5b6670" text-anchor="middle" letter-spacing="1.1" >OPTIONAL</text>
+<text x="1926" y="979" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Dashboards</text>
+<text x="1926" y="999" font-size="14.5" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >Metrics over time</text>
+<line x1="957" y1="420" x2="1313" y2="420" stroke="#6b7680" stroke-width="1.8" marker-start="url(#arr)" marker-end="url(#arr)"/>
+<rect x="944" y="414" width="12" height="12" rx="2" fill="#fff" stroke="#ff6600" stroke-width="2"/>
+<rect x="1014" y="407" width="212" height="26" rx="4" fill="#fbfaf7" stroke="#d9dde2"/>
+<text x="1120" y="425" font-size="13.5" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Invoices &amp; payment status</text>
+<line x1="957" y1="602" x2="1313" y2="602" stroke="#6b7680" stroke-width="1.8" marker-start="url(#arr)" marker-end="url(#arr)"/>
+<rect x="944" y="596" width="12" height="12" rx="2" fill="#fff" stroke="#ff6600" stroke-width="2"/>
+<rect x="1045" y="589" width="150" height="26" rx="4" fill="#fbfaf7" stroke="#d9dde2"/>
+<text x="1120" y="607" font-size="13.5" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Messages &amp; proofs</text>
+<line x1="957" y1="784" x2="1313" y2="784" stroke="#6b7680" stroke-width="1.8" marker-start="url(#arr)" marker-end="url(#arr)"/>
+<rect x="944" y="778" width="12" height="12" rx="2" fill="#fff" stroke="#ff6600" stroke-width="2"/>
+<rect x="1014" y="771" width="212" height="26" rx="4" fill="#fbfaf7" stroke="#d9dde2"/>
+<text x="1120" y="789" font-size="13.5" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Tasks · approval required</text>
+<line x1="957" y1="966" x2="1313" y2="966" stroke="#6b7680" stroke-width="1.8" marker-start="url(#arr)"/>
+<rect x="944" y="960" width="12" height="12" rx="2" fill="#fff" stroke="#ff6600" stroke-width="2"/>
+<rect x="1060" y="953" width="119" height="26" rx="4" fill="#fbfaf7" stroke="#d9dde2"/>
+<text x="1120" y="971" font-size="13.5" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Health checks</text>
+<path d="M957 1044H2046.0V1017" fill="none" stroke="#6b7680" stroke-width="1.8" marker-end="url(#arr)"/>
+<rect x="944" y="1038" width="12" height="12" rx="2" fill="#fff" stroke="#ff6600" stroke-width="2"/>
+<rect x="1084" y="1031" width="72" height="26" rx="4" fill="#fbfaf7" stroke="#d9dde2"/>
+<text x="1120" y="1049" font-size="13.5" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Metrics</text>
+<line x1="1715" y1="420" x2="1845" y2="420" stroke="#6b7680" stroke-width="1.8" stroke-dasharray="7 5" marker-start="url(#arr)" marker-end="url(#arr)"/>
+<text x="1780.0" y="410" font-size="12.5" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Node connection</text>
+<text x="100" y="1146" font-size="14" font-weight="700" fill="#171717" text-anchor="start" letter-spacing="1.4" >DEPLOYMENT OPTIONS</text>
+<text x="100" y="1184" font-size="15" font-weight="800" fill="#ff6600" text-anchor="start" letter-spacing="0" >A</text>
+<text x="122" y="1184" font-size="15" font-weight="600" fill="#171717" text-anchor="start" letter-spacing="0" >Single host — everything on one machine</text>
+<rect x="100" y="1202" width="620" height="122" rx="6" fill="#fff" stroke="#8f98a1" stroke-width="1.4"/>
+<text x="116" y="1226" font-size="11" font-weight="700" fill="#5b6670" text-anchor="start" letter-spacing="1.2" >HOST 1</text>
+<rect x="116" y="1238" width="170" height="70" rx="5" fill="#ff6600"/>
+<text x="201" y="1279" font-size="17" font-weight="750" fill="#fff" text-anchor="middle" letter-spacing="0" >steakOS</text>
+<rect x="302" y="1238" width="94" height="70" rx="5" fill="#fff" stroke="#aab3bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+<circle cx="349" cy="1260" r="4.5" fill="#b77b16"/>
+<text x="349" y="1290" font-size="13" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Payments</text>
+<rect x="404" y="1238" width="94" height="70" rx="5" fill="#fff" stroke="#aab3bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+<circle cx="451" cy="1260" r="4.5" fill="#6a4fa3"/>
+<text x="451" y="1290" font-size="13" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Nostr</text>
+<rect x="506" y="1238" width="94" height="70" rx="5" fill="#fff" stroke="#aab3bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+<circle cx="553" cy="1260" r="4.5" fill="#275d9f"/>
+<text x="553" y="1290" font-size="13" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >AI</text>
+<rect x="608" y="1238" width="94" height="70" rx="5" fill="#fff" stroke="#aab3bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+<circle cx="655" cy="1260" r="4.5" fill="#19715d"/>
+<text x="655" y="1290" font-size="13" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Monitoring</text>
+<text x="790" y="1184" font-size="15" font-weight="800" fill="#ff6600" text-anchor="start" letter-spacing="0" >B</text>
+<text x="812" y="1184" font-size="15" font-weight="600" fill="#171717" text-anchor="start" letter-spacing="0" >Distributed — optional modules on additional machines</text>
+<rect x="790" y="1202" width="190" height="98" rx="6" fill="#fff" stroke="#8f98a1" stroke-width="1.4"/>
+<rect x="804" y="1234" width="162" height="52" rx="5" fill="#ff6600"/>
+<text x="885.0" y="1266" font-size="16" font-weight="750" fill="#fff" text-anchor="middle" letter-spacing="0" >steakOS</text>
+<text x="804" y="1223" font-size="11" font-weight="700" fill="#5b6670" text-anchor="start" letter-spacing="1.2" >HOST 1</text>
+<line x1="885.0" y1="1300" x2="885.0" y2="1324" stroke="#6b7680" stroke-width="1.6"/>
+<rect x="1000" y="1202" width="150" height="98" rx="6" fill="#fff" stroke="#8f98a1" stroke-width="1.4" stroke-dasharray="8 5"/>
+<rect x="1014" y="1234" width="122" height="52" rx="5" fill="#fff" stroke="#aab3bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="1075.0" y="1265" font-size="13" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Payments</text>
+<text x="1014" y="1223" font-size="11" font-weight="700" fill="#5b6670" text-anchor="start" letter-spacing="1.2" >HOST 2</text>
+<line x1="1075.0" y1="1300" x2="1075.0" y2="1324" stroke="#6b7680" stroke-width="1.6"/>
+<rect x="1170" y="1202" width="150" height="98" rx="6" fill="#fff" stroke="#8f98a1" stroke-width="1.4" stroke-dasharray="8 5"/>
+<rect x="1184" y="1234" width="122" height="52" rx="5" fill="#fff" stroke="#aab3bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="1245.0" y="1265" font-size="13" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Nostr · AI</text>
+<text x="1184" y="1223" font-size="11" font-weight="700" fill="#5b6670" text-anchor="start" letter-spacing="1.2" >HOST 3</text>
+<line x1="1245.0" y1="1300" x2="1245.0" y2="1324" stroke="#6b7680" stroke-width="1.6"/>
+<rect x="1340" y="1202" width="150" height="98" rx="6" fill="#fff" stroke="#8f98a1" stroke-width="1.4" stroke-dasharray="8 5"/>
+<rect x="1354" y="1234" width="122" height="52" rx="5" fill="#fff" stroke="#aab3bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="1415.0" y="1265" font-size="13" font-weight="600" fill="#3a434c" text-anchor="middle" letter-spacing="0" >Monitoring</text>
+<text x="1354" y="1223" font-size="11" font-weight="700" fill="#5b6670" text-anchor="start" letter-spacing="1.2" >HOST n</text>
+<line x1="1415.0" y1="1300" x2="1415.0" y2="1324" stroke="#6b7680" stroke-width="1.6"/>
+<line x1="885" y1="1324" x2="1415" y2="1324" stroke="#6b7680" stroke-width="1.6"/>
+<text x="1424" y="1329" font-size="12.5" font-weight="600" fill="#5b6670" text-anchor="start" letter-spacing="0" >Network</text>
+<text x="100" y="1360" font-size="15.5" font-weight="500" fill="#3a434c" text-anchor="start" letter-spacing="0" >Optional components run on the same host or on additional machines (server, mini-PC, VM, Docker, home server such as Umbrel).</text>
+<line x1="1560" y1="1132" x2="1560" y2="1368" stroke="#e3e1dc" stroke-width="1.5"/>
+<text x="1600" y="1146" font-size="14" font-weight="700" fill="#171717" text-anchor="start" letter-spacing="1.4" >LEGEND</text>
+<rect x="1600" y="1186" width="56" height="30" rx="4" fill="#ff6600"/>
+<text x="1672" y="1207" font-size="15" font-weight="500" fill="#2b3138" text-anchor="start" letter-spacing="0" >Required component (steakOS)</text>
+<rect x="1960" y="1186" width="56" height="30" rx="4" fill="#fff" stroke="#aab3bd" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="2032" y="1207" font-size="15" font-weight="500" fill="#2b3138" text-anchor="start" letter-spacing="0" >Optional component</text>
+<rect x="1600" y="1244" width="56" height="30" rx="4" fill="#fff" stroke="#8f98a1" stroke-width="1.4"/>
+<text x="1672" y="1265" font-size="15" font-weight="500" fill="#2b3138" text-anchor="start" letter-spacing="0" >Host / machine</text>
+<rect x="1960" y="1244" width="56" height="30" rx="4" fill="#fff" stroke="#8f98a1" stroke-width="1.4" stroke-dasharray="8 5"/>
+<text x="2032" y="1265" font-size="15" font-weight="500" fill="#2b3138" text-anchor="start" letter-spacing="0" >Optional additional host</text>
+<line x1="1600" y1="1317" x2="1654" y2="1317" stroke="#6b7680" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="1672" y="1323" font-size="15" font-weight="500" fill="#2b3138" text-anchor="start" letter-spacing="0" >Interface / data flow</text>
+<line x1="1960" y1="1317" x2="2014" y2="1317" stroke="#6b7680" stroke-width="1.8" stroke-dasharray="7 5"/>
+<text x="2032" y="1323" font-size="15" font-weight="500" fill="#2b3138" text-anchor="start" letter-spacing="0" >Optional link</text>
+<circle cx="1605" cy="1355" r="5" fill="#b77b16"/>
+<text x="1616" y="1360" font-size="14" font-weight="500" fill="#5b6670" text-anchor="start" letter-spacing="0" >Payments</text>
+<circle cx="1755" cy="1355" r="5" fill="#6a4fa3"/>
+<text x="1766" y="1360" font-size="14" font-weight="500" fill="#5b6670" text-anchor="start" letter-spacing="0" >Communication</text>
+<circle cx="1935" cy="1355" r="5" fill="#275d9f"/>
+<text x="1946" y="1360" font-size="14" font-weight="500" fill="#5b6670" text-anchor="start" letter-spacing="0" >AI</text>
+<circle cx="2025" cy="1355" r="5" fill="#19715d"/>
+<text x="2036" y="1360" font-size="14" font-weight="500" fill="#5b6670" text-anchor="start" letter-spacing="0" >Monitoring</text>
+<line x1="100" y1="1404" x2="2300" y2="1404" stroke="#e3e1dc" stroke-width="1.5"/>
+<text x="100" y="1446" font-size="16" font-weight="650" fill="#171717" text-anchor="start" letter-spacing="0" >steakOS.org</text>
+<text x="212" y="1446" font-size="16" font-weight="450" fill="#5b6670" text-anchor="start" letter-spacing="0" >· Run the business. Keep the keys.</text>
+<rect x="1936" y="1424" width="364" height="36" rx="18" fill="#fff4eb" stroke="#ffcfad"/>
+<circle cx="1958" cy="1442" r="5" fill="#ff6600"/>
+<text x="1971.975" y="1447" font-size="15" font-weight="600" fill="#7a3a10" text-anchor="start" letter-spacing="0" >Open source · self-hosted · your keys</text>
+</svg>

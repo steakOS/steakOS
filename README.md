@@ -1,233 +1,220 @@
-# steakOS 🥩
+# steakOS
 
 <p align="center">
-  <img src="content/brand/wordmark-banner.jpg" alt="steakOS" width="720" />
+  <img src="content/brand/wordmark-banner.jpg" alt="steakOS — Run the business. Keep the keys." width="720" />
 </p>
 
 <p align="center">
-  <strong>Your own business system — on your computer, with your keys</strong><br/>
-  <em>Sell · Buy · Make · Deliver · Get paid · Look after people · Let helpers (agents) assist</em><br/>
-  Runs on your machine · Speaks English, German &amp; Spanish · Happy with Bitcoin · Free &amp; open source (Apache&nbsp;2.0)
+  <strong>Run the business. Keep the keys. Bypass inflation.</strong><br/>
+  Free open-source software for quotes, orders, stock, invoices, people, and getting paid — on a computer <strong>you</strong> control.<br/>
+  <em>No mandatory cloud landlord · Zero-token AI option · Optional Bitcoin · EN / DE / ES</em>
+</p>
+
+<p align="center">
+  <a href="https://steakos.org">steakos.org</a> ·
+  <a href="https://steakos.ai">steakOS.ai</a> (optional help) ·
+  <a href="https://github.com/steakOS/steakOS">GitHub</a> ·
+  Apache&nbsp;2.0
 </p>
 
 <p align="center">
   <img src="content/screenshots/03-dashboard.png" alt="steakOS Action-NOW dashboard" width="900" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #0 (hero):</strong> The home screen after you log in — a calm overview of what needs your attention today across the whole company.</sub></p>
+<p align="center"><sub><strong>Hero:</strong> Action-NOW — what needs you today across the company, after you sign in.</sub></p>
 
 ---
 
-## Who this is for
+## What steakOS is
 
-You just started a business (or you are about to). You are good at your craft — food, consulting, building, repairing, teaching — and you are **not** looking for a textbook on accounting or factory planning.
-
-You need one place to:
-
-- remember **who your customers are**
-- send a **quote**, turn it into an **order**, then an **invoice**
-- buy materials or hire help without losing the paper trail
-- see **what you owe** and **what you are owed**
-- optionally get paid in **Bitcoin** without giving a big company custody of your money
-- optionally let a **digital assistant** draft work for you — while **you** stay in charge of anything that moves money
-
-That place is **steakOS**.
-
-The long name is a playful expansion (*Sovereign Transaction Enterprise AI Kernel and Operations Suite*). In plain words: **a sovereign business system** — *sovereign* meaning **you** host it and **you** keep the keys.
-
-### True open source — and real help when you want it
-
-steakOS is **true open source** (Apache 2.0). You can find the project and community entry points at **[steakos.org](https://steakos.org)**. Study it, run it, share it, improve it — the kitchen doors stay open.
-
-That said, standing up a full business system — **setup**, **configuration**, backups, security hardening, training your team, or wiring it into how you already work — can feel **overwhelming**. You do not have to do it alone.
-
-**Professional help is available from the [steakOS.ai](https://steakOS.ai) team**, including:
-
-- guided installation and first-run configuration  
-- hands-on consultation for your industry and company size  
-- specific **integrations** (payments, messaging, accounting hand-offs, and more)  
-- custom **extensions** and desk depth when the open core is not enough yet  
-- ongoing operator coaching so Monday morning stays calm  
-
-Open source means you **own** the software path. steakOS.ai is there when you want a seasoned crew in the kitchen with you.
-
----
-
-## Why not “just use the big cloud suites”?
-
-Many popular business systems ask you to rent a kitchen you never own. Your customer list, invoices, and process history live on someone else’s servers, under someone else’s rules.
-
-**steakOS** is the opposite bet:
+**steakOS** is free open-source business software for farms, workshops, kitchens, and shops. You install it on a laptop, shop PC, or small server you own. Your customer list, prices, and books stay in **your** database.
 
 | You get | You keep |
 |---------|----------|
-| Desks for selling, buying, making, delivering, money, and people | Your data on **your** database |
-| A guided **training tour** and **setup wizard** | Control of passwords and signing keys |
-| Optional live Bitcoin payments | No “we hold your coins for you” middleman |
-| English + German + Spanish screens | Software you can study, change, and share (Apache 2.0 license) |
+| Desks for selling, buying, making, delivering, money, and people | Data on hardware you control |
+| Guided Help + setup wizard | Passwords and signing keys |
+| Optional Bitcoin checkout (self-hosted processor) | No “we hold your coins” middleman |
+| Optional AI helpers that **draft**; people **approve** money moves | The right to run with **zero** cloud AI tokens |
+| English, German & Spanish screens | Software you can study, change, and share (Apache 2.0) |
 
-> Fire up the grill, stock the walk-in, invite the crew.  
-> **Your company. Your computer. Your rules.**
+> **$0** to use the software — forever free.  
+> **0 tokens** required to open the shop. Cloud AI is optional, not a gate.  
+> **Your box** — data stays on your computer or your server.
 
----
-
-## The big picture (no jargon)
-
-Think of steakOS as a **set of desks in one building**. You walk to the desk you need. The desks share the same customers, products, and company settings so you do not re-type everything.
-
-```text
-  Customers & quotes ──► Orders ──► Delivery / shop floor
-         │                              │
-         └──────────► Invoices ◄────────┘
-                         │
-                    Get paid (bank or Bitcoin)
-```
-
-Optional extras plug in at the edges:
-
-- **Bitcoin payments** — for customers who prefer coins over cards  
-- **Nostr** — a simple public messaging network for notices and audit breadcrumbs (details below)  
-- **Hermes** — an AI helper that can draft and suggest; money moves still need a human yes  
+Project home: **[steakos.org](https://steakos.org)**. Standing up a full kitchen can feel overwhelming — **professional help** (install, configuration, integrations, coaching) is available from **[steakOS.ai](https://steakOS.ai)**.
 
 ---
 
-## What’s inside — the modules (desks)
+## What’s in the name
 
-You do not need every desk on day one. Start with **Sales + Finance**. Add the others when the business grows.
+Everyday speech stays **steakOS**. Behind the letters:
 
-| Desk / area | Plain-language job |
-|-------------|--------------------|
-| **Action-NOW (home)** | Your daily briefing: what is waiting, overdue, or worth a look. |
-| **Sales** | Customers, quotes, sales orders — “someone wants to buy.” |
-| **Buyers** | Vendors, products/services you purchase, purchase orders — “we need to buy.” |
-| **Shop floor** | Production orders, quality checks, stock on hand — “we make or hold things.” |
-| **Delivery** | Service jobs, people/resources who do the work, scheduling — “we deliver the work.” |
-| **After-sales** | Questions, warranties, claims, returns — “after the sale.” |
-| **Finance** | Invoices, money in/out, settlement — “get paid / pay others.” Includes **sales tax** fields (in Germany and Austria this is often called **Umsatzsteuer / VAT**) when you turn that on. |
-| **People** | Employees and who can be assigned to jobs (sometimes called human resources). |
-| **Strategy / Capability / Stakeholders** | Lighter “thinking” desks for goals, improvement, and partners — grow into these later. |
-| **Governance & risk** | Guardrails: who may do what, sensitive settings — important, but not your first Monday morning task. |
-| **Agents** | Where digital helpers (like Hermes) show up as first-class coworkers with clear limits. |
-| **System / Settings** | Language, company profile, currencies, security mailbox, Help, and the **training tour**. |
-| **Setup wizard** | First-time kitchen setup: company, sites, banking placeholders, which “size of kitchen” template you want. |
+**Sovereign Transactional Enterprise Automation Kernel & Orchestration System**
 
-**Metal templates (Iron → Gold)** are simply **pack sizes**: how many desks and depth you unlock. Bronze is the closed-beta kitchen most early users start with. You are not buying gold bars — it is a metaphor for “how fully stocked the kitchen is.”
+| | | |
+|---|---|---|
+| **S** | Sovereign | You own the stack — no mandatory cloud landlord |
+| **T** | Transactional | Real records: quotes, orders, money, stock |
+| **E** | Enterprise | Whole-business ops (desks), not a single-purpose app |
+| **A** | Automation | Workflows; helpers draft, people approve |
+| **K** | Kernel | The durable core you run and keep |
+| **O** | Orchestration | Coordinates processes, people, helpers, and systems |
+| **S** | System | The whole working system — not a slide deck |
 
 ---
 
-## Integration points (the interesting extras)
+## Desks (modules)
+
+Think of desks in one building. They share customers, products, and company settings so you do not re-type everything. Start with **Sales + Finance**; add others as the business grows.
+
+| Desk | Plain-language job |
+|------|--------------------|
+| **Action-NOW** | Daily briefing: what is waiting, overdue, or worth a look |
+| **Sales** | Customers, quotes, opportunities, sales orders |
+| **Buyers (SCM)** | Vendors, catalogue, purchase orders → receive into stock |
+| **Shop floor** | Production orders, quality lot, on-hand stock |
+| **Delivery** | Service catalogue, resources, schedule → complete |
+| **After-sales** | Inquiries, warranties, claims, returns (RMA) |
+| **Finance** | Invoices, payments (bank + optional Bitcoin), treasury, payables, tax |
+| **People (HR)** | People files, time, payroll hand-off to finance |
+| **Capability** | Projects, quality, change, knowledge |
+| **Agents** | Computer co-workers with human-in-the-loop approval |
+| **Strategy / Development / Assets / …** | Direction, product projects, physical asset register |
+| **Company / Settings / Help** | Profile, users, language, import, in-app Help |
+
+**Size tiers (Bronze → Silver → Gold)** mean starter → growing → large. Starter packs already cover the commercial desks most shops need first. Depth claims match what ships — helpers suggest; people approve money moves.
+
+Most desks open with **tab pills** and a **full-width list**. An **Action** column holds View / Edit / Delete. Many details open in a **pop-up form** so the list stays in view.
+
+---
+
+## Integrations & extras
+
+<p align="center">
+  <img src="content/brand/integrations.svg" alt="steakOS integrations — payments, messaging, AI, monitoring around your core" width="820" />
+</p>
+
+<p align="center"><sub>One required core on your machine. Payments, messaging, helpers, and monitoring are optional — same host or another box you control.</sub></p>
 
 ### Bitcoin (and Lightning)
 
-**Bitcoin** is internet money with a fixed supply story; **Lightning** is a faster lane on top for smaller payments. steakOS does **not** hold customer coins for you. On a **LIVE** company you can connect a **self-hosted Bitcoin payment processor** so invoices can be paid in Bitcoin. On a **DEMO** company, payments stay **fake on purpose** so you can practice without real money.
+Connect a **self-hosted Bitcoin payment processor** so invoices can be paid in Bitcoin. steakOS does **not** custody customer coins. On a **DEMO** company, settlement stays fake on purpose so you can practice safely.
+
+### AI helpers (including zero-token)
+
+AI was designed into the desks from the start — not glued on later. Use cloud models when you want them, or run **without any token bill**. Helpers may draft wording or suggest next steps; **anything that moves money still needs a human yes**.
 
 ### Nostr
 
-**Nostr** is an open messaging network (think: postcards that many relays can carry, without one company owning the social graph). steakOS can use it for selective notices, audit breadcrumbs, and (later) private reports to support — not as a replacement for your books. Your database remains the source of truth for balances and documents.
+Optional open messaging for notices and audit breadcrumbs. Your database remains the source of truth for balances and documents.
 
-### Hermes (AI agent)
+### Help, tour, and setup
 
-**Hermes** is a helper agent that can talk to steakOS through a secured programming door (an “API” — a way for programs to talk to each other). It may draft text or suggest next steps. **Anything that spends money or changes the official books needs a human approval.** You stay the chef; Hermes is sous-chef.
-
-### Help, training tour, and setup wizard
-
-- **Training tour** (`/tour/`) — a friendly walkthrough of ideas and screens.  
-- **Setup wizard** (`/setup`) — fills company basics so desks have somewhere to hang their hats.  
-- **Help** — short topics next to the work, in English, German, and Spanish.
-
-### Languages
-
-Operator screens ship with **English**, **German**, and **Spanish**. Pick your language on the login screen or in Settings.
+- **Help center** — short topics next to the work (EN / DE / ES)  
+- **Product tour** (`/tour/`) — guided orientation  
+- **Setup wizard** (`/setup`) — company, sites, banking placeholders, size tier  
 
 ---
 
-## Screenshots — your first walk through the building
+## Screenshots
 
-### Screenshot #1 — Sign in
+### Sign in
 
 <p align="center">
   <img src="content/screenshots/01-login.png" alt="Sign in to steakOS" width="720" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #1:</strong> The front door. Enter your user name and password (and language). Only invited people should have a key to this door.</sub></p>
+<p align="center"><sub>The front door — user name, password, and language.</sub></p>
 
-### Screenshot #2 — Choose your company
+### Company & settings
 
 <p align="center">
-  <img src="content/screenshots/02-select-company.png" alt="Select company" width="720" />
+  <img src="content/screenshots/02-select-company.png" alt="Company settings" width="900" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #2:</strong> If you run more than one company (or a DEMO practice company next to a LIVE one), you pick which kitchen you are walking into. DEMO is for rehearsal; LIVE is for real customers and real money settings.</sub></p>
+<p align="center"><sub>Company profile, DEMO vs LIVE posture, and operator preferences.</sub></p>
 
-### Screenshot #3 — Action-NOW home
+### Action-NOW
 
 <p align="center">
   <img src="content/screenshots/03-dashboard.png" alt="Action-NOW dashboard" width="900" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #3:</strong> Shows the CEO (or owner) dashboard — a quick overview of your entire company: what needs a decision, what is in motion, and shortcuts into the desks. You do not need to understand every chart on day one; start with the items marked as needing action.</sub></p>
+<p align="center"><sub>Owner overview: decisions waiting, work in motion, shortcuts into desks.</sub></p>
 
-### Screenshot #4 — Training system (welcome)
-
-<p align="center">
-  <img src="content/screenshots/04-training-tour.png" alt="Training tour welcome" width="720" />
-</p>
-
-<p align="center"><sub><strong>Screenshot #4:</strong> The training system welcome page. This is your guided orientation — like a short safety-and-layout tour before you cook on a new line. Open it anytime from System → Onboarding tour or visit <code>/tour/</code>.</sub></p>
-
-### Screenshot #5 — Training system (a lesson step)
+### Help & training
 
 <p align="center">
-  <img src="content/screenshots/04b-training-tour-step.png" alt="Training tour step" width="720" />
+  <img src="content/screenshots/04-training-tour.png" alt="Help center" width="900" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #5:</strong> One step inside the training tour. Read the short lesson, click next, and keep going until Finish. Your choices here help the setup wizard know which “kitchen size” you prefer.</sub></p>
-
-### Screenshot #6 — Setup wizard complete
+<p align="center"><sub>In-app Help — learn as you go, without a separate course to start.</sub></p>
 
 <p align="center">
-  <img src="content/screenshots/05-setup-wizard.png" alt="Setup wizard complete" width="720" />
+  <img src="content/screenshots/04b-training-tour-step.png" alt="Product tour step" width="720" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #6:</strong> The configuration / setup wizard when your kitchen is stocked — company profile, places of business, banking placeholders, and template are in place. When you see “Grill is lit,” you are cleared to use the desks for real practice or real work.</sub></p>
+<p align="center"><sub>Product tour — short lessons before you cook on a new line.</sub></p>
 
-### Screenshot #7 — Sales desk
+### Setup wizard
 
 <p align="center">
-  <img src="content/screenshots/06-ops-desk.png" alt="Sales desk" width="900" />
+  <img src="content/screenshots/05-setup-wizard.png" alt="Setup wizard" width="720" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #7:</strong> The Sales desk in action — customers, quotes, and orders. This is usually the first desk a new business uses every day: write a quote, accept it, turn it into an order, then hand off to Finance to invoice.</sub></p>
+<p align="center"><sub>Configuration wizard — company, sites, banking placeholders, size tier.</sub></p>
 
-### Screenshot #8 — About this build
+### Sales desk
+
+<p align="center">
+  <img src="content/screenshots/06-ops-desk.png" alt="Sales desk quotes" width="900" />
+</p>
+
+<p align="center"><sub>Sales — customers, quotes, opportunities, and orders with Action icons.</sub></p>
+
+### Finance desk
+
+<p align="center">
+  <img src="content/screenshots/06b-finance-desk.png" alt="Finance invoices" width="900" />
+</p>
+
+<p align="center"><sub>Finance — invoices and settlement, including optional Bitcoin rails.</sub></p>
+
+### About
 
 <p align="center">
   <img src="content/screenshots/07-about.png" alt="About steakOS" width="720" />
 </p>
 
-<p align="center"><sub><strong>Screenshot #8:</strong> The About page — product name, version stamp, and trust links (including how to report security issues). Handy when you ask for help so others know exactly which build you are running.</sub></p>
+<p align="center"><sub>About — version stamp and trust links (handy when you ask for help).</sub></p>
+
+### Phone-sized
+
+<p align="center">
+  <img src="content/screenshots/08-mobile-login.png" alt="Mobile login" width="280" />
+  &nbsp;&nbsp;
+  <img src="content/screenshots/09-mobile-dashboard.png" alt="Mobile Action-NOW" width="280" />
+</p>
+
+<p align="center"><sub>Responsive web app — drawer nav and card lists on a phone-sized viewport. Best for status checks and light edits.</sub></p>
 
 ---
 
-## A simple first week (recommended path)
+## A simple first week
 
-1. **Install** steakOS (below) or ask a technical friend to install it once.  
-2. **Sign in** → pick your company (**Screenshot #1–#2**).  
-3. Take the **training tour** (**Screenshot #4–#5**).  
-4. Finish or confirm the **setup wizard** (**Screenshot #6**).  
-5. On the **Sales desk**, create one customer and one quote (**Screenshot #7**).  
-6. Accept the quote → confirm the order → open **Finance** and issue an invoice.  
-7. On a DEMO company, practice “settling” with the fake Bitcoin path. Only connect real Bitcoin payments on a LIVE company when you are ready.
-
-You can ignore shop floor, after-sales, and deep governance until those problems appear in real life.
+1. **Install** (below) or ask a technical friend once.  
+2. **Sign in** → open **Settings** / company profile.  
+3. Skim **Help** and the **product tour**.  
+4. Confirm the **setup wizard**.  
+5. On **Sales**, create one customer and one quote.  
+6. Accept → confirm order → **Finance** → issue an invoice.  
+7. On DEMO, practice fake Bitcoin settlement. Connect real payments on LIVE only when ready.
 
 ---
 
-## Get the software (download / clone)
+## Get the software
 
-**Public install channel:** [github.com/steakOS/steakOS](https://github.com/steakOS/steakOS)  
-(raw bootstrap + GitHub Releases). Builders still push to the office Forgejo hub; use `STEAKOS_CHANNEL=forgejo` on the LAN when you need the hub Release instead of GitHub.
-
+**Public channel:** [github.com/steakOS/steakOS](https://github.com/steakOS/steakOS)  
 Project home: **[steakos.org](https://steakos.org)** · optional paid help: **[steakOS.ai](https://steakOS.ai)**
 
 ```bash
@@ -235,100 +222,52 @@ git clone https://github.com/steakOS/steakOS.git
 cd steakOS
 ```
 
-Office LAN clone (builders): `git clone http://umbrel.local:8101/hermesbro/steakOS.git`
-
 ### One-line install
 
-Paste one command. It installs the free **Java** engine and **PostgreSQL** database if they are missing, creates the empty filing cabinets steakOS needs, downloads the packaged app from the latest GitHub Release, and starts it. Your computer may ask for an admin password once if system software must be installed.
+Installs Java and PostgreSQL if needed, downloads the packaged app from the latest GitHub Release, and starts it.
 
-**Linux / macOS** (Ubuntu, Linux Mint, or macOS):
+**Linux / macOS:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.sh | bash
 ```
 
-**Windows 11** (PowerShell — elevate only if Java/PostgreSQL still need installing):
+**Windows 11** (PowerShell):
 
 ```powershell
 irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
 ```
 
-**Office LAN override** (hub Release instead of GitHub):
+After install, open **http://localhost:9090**, sign in (packaged default first user is documented on [Getting started](https://steakos.org/getting-started.html)), **change the password**, complete the wizard, and use Help.
 
-```bash
-STEAKOS_CHANNEL=forgejo curl -fsSL http://umbrel.local:8101/hermesbro/steakOS/raw/branch/main/scripts/install/bootstrap.sh | bash
-```
-
-Prefer to read the script first? Open the same URL in a browser, save the file, then run it locally. Package files (zip + checksum) come from GitHub **Releases** (`https://github.com/steakOS/steakOS/releases/latest/download/`). With `STEAKOS_CHANNEL=forgejo`, the script resolves the latest hub tag via the Forgejo API, then downloads from `http://umbrel.local:8101/hermesbro/steakOS/releases/download/<tag>/`.
-
-Install troubleshooting: companion doc `docs/installation/TROUBLESHOOTING-INSTALL.md` (and [Getting started](https://steakos.org/getting-started.html) when the public site mirrors this story).
-
-Or install from a downloaded zip (no network fetch of the package):
-
-```bash
-./scripts/install/install.sh --offline /path/to/steakOS-….zip
-```
-
-**LAN pack-dist** (build host serves `dist/out/`): still supported — see companion `docs/installation/QUICKSTART.md`.
+Offline zip: `./scripts/install/install.sh --offline /path/to/steakOS-….zip`
 
 ---
 
 ## Hardware that is good enough
 
-You do **not** need a data-centre rack. steakOS is built to run on a normal founder laptop.
-
-**Comfortable recommendation:** a **16 GB memory** laptop (any recent mainstream processor), **SSD** storage, and a **stable network** for the first install (the one-liner downloads Java / PostgreSQL packages and the steakOS zip — a few GB).
-
-**Disk free space:** plan **20+ GB** free for evaluation (OS updates + JDK + PostgreSQL data + one steakOS install). For a small team server that keeps backups on the same disk, start at **50+ GB** SSD.
-
-**Proven on modest hardware:** day-to-day development of this project runs on an older office laptop with about **8 GB** of memory, a dual-core processor with four threads, an SSD, and a mainstream Linux desktop. That is enough for the server plus the browser screens, though it can feel tight. If memory is scarce, lower `JAVA_OPTS` / close extra browsers (see install troubleshooting).
-
-If **8 GB works**, **16 GB** gives you headroom for a browser full of tabs, video calls, and the database without swapping to disk. For a small team server, start with **4 CPU cores**, **16 GB memory**, and **50+ GB** SSD for data + backups.
-
-Phone and tablet are for **checking in and light work** (see responsive section below). Heavy setup, bulk imports, and first installs are happier on a laptop or desktop.
+| | Recommendation |
+|--|----------------|
+| **Comfortable** | 16 GB RAM laptop, SSD, stable network for first install |
+| **Minimum** | ~8 GB RAM works for evaluation (can feel tight) |
+| **Disk** | 20+ GB free to evaluate; 50+ GB SSD for a small team server with backups |
+| **Phone / tablet** | Fine for check-ins; heavy setup prefers a laptop |
 
 ---
 
 ## Operating systems & databases
 
-| Layer | What we use and test | What else can work |
-|-------|----------------------|--------------------|
-| **One-line install targets** | **Windows 11**, **macOS**, **Ubuntu / Linux Mint** | Other systems can run the same Java server; use manual Java 21 + PostgreSQL 16, then the package installer. |
-| **Database** | **PostgreSQL** 14+ (16 preferred) — the filing cabinet we document and smoke-test | Other databases are **not** polished equally today. |
-| **Browser** | Any current major web browser | Use an up-to-date browser; the screens are a normal web app. |
+| Layer | What we test | Notes |
+|-------|--------------|-------|
+| **Install targets** | Windows 11, macOS, Ubuntu / Linux Mint | Other systems: manual Java 21 + PostgreSQL 16 |
+| **Database** | PostgreSQL 14+ (16 preferred) | Filing cabinet we document and smoke-test |
+| **Browser** | Current major browsers | Normal responsive web app |
 
-The one-liner creates the empty PostgreSQL filing cabinets for you when local admin access works. Manual recovery:
-
-```bash
-sudo -u postgres psql -f db/setup-postgresql.sql
-```
-
-Software pieces on the machine:
-
-| Piece | Why, in plain words |
-|-------|---------------------|
-| **Java** 21 (Temurin / OpenJDK) | Runs the steakOS server (the “kitchen engine”). The one-liner installs this if you do not already have Java **21+** on `PATH`. |
-| **PostgreSQL** 14+ (16 preferred) | Filing cabinet for customers, orders, and invoices. The one-liner installs and starts this when needed. |
-| **Node.js** (20 or newer) | **Only for builders** who compile the screens from source. Packaged installs do **not** need Node. |
-| About **2 GB** free memory for the app itself | On top of what the operating system and browser already use — hence the 16 GB laptop recommendation. |
-
----
-
-## Works on your phone too (responsive)
-
-steakOS screens are a **responsive web app**: the layout reflows for narrow viewports. On phones and small tablets you get a drawer-style navigation, larger tap targets, and card-style lists instead of wide desktop tables.
-
-**Tested on phone-sized viewports** (around 390×844, including real handset checks). You can sign in, open Action-NOW, and move through desks from a phone browser when your steakOS server is reachable on your network (same Wi‑Fi or private network as the laptop that hosts it).
-
-<p align="center">
-  <img src="content/screenshots/08-mobile-login.png" alt="steakOS login on phone-sized screen" width="280" />
-  &nbsp;&nbsp;
-  <img src="content/screenshots/09-mobile-dashboard.png" alt="steakOS dashboard on phone-sized screen" width="280" />
-</p>
-
-<p align="center"><sub><strong>Screenshot #9:</strong> Login on a phone-sized screen — same front door, fitted to one hand.</sub></p>
-
-<p align="center"><sub><strong>Screenshot #10:</strong> Action-NOW on a phone-sized screen — quick company overview when you are away from the desk. Best for status checks and light edits; long quote lines and bulk finance work are still nicer on a laptop.</sub></p>
+| Piece | Why |
+|-------|-----|
+| **Java 21** | Kitchen engine |
+| **PostgreSQL** | Customers, orders, invoices |
+| **Node.js 20+** | **Builders only** (compile screens from source) |
 
 ---
 
@@ -338,60 +277,63 @@ steakOS screens are a **responsive web app**: the layout reflows for narrow view
 # Terminal 1 — kitchen engine
 ./gradlew bootJar
 java -Dgrails.env=development -Xmx768m -jar build/libs/steakOS-*.jar
-# listens on http://localhost:6060
+# http://localhost:6060
 
 # Terminal 2 — screens
 cd frontend && npm install && npm run dev
-# open http://localhost:9001
+# http://localhost:9001
 ```
 
-Day to day, use **http://localhost:9001** in your browser. That address shows the desks; it quietly talks to the engine on port 6060 for you.
+Day to day, use **http://localhost:9001**. It talks to the engine on port 6060 for you.
 
-**Important:** the default admin password on a fresh practice install is only for learning. Change it before you put real customer data on the machine. Never publish passwords into chat, email, or Git.
+**Change the default learning password** before real customer data. Never publish passwords into chat, email, or Git.
 
-Packaging helpers: see [`deploy/`](deploy/).
+Packaging: [`deploy/`](deploy/).
 
 ---
 
-## Folder map (if you open the project)
+## Folder map
 
 ```text
 steakOS/
-├── README.md          ← you are here (start here)
+├── README.md          ← you are here
 ├── AGENTS.md          ← notes for programmers / AI helpers
 ├── SECURITY.md        ← how to report a security problem
-├── content/           ← pictures used in this README
+├── content/           ← brand + screenshots for this README
 ├── deploy/            ← container packaging
 ├── grails-app/ · src/ ← server (kitchen engine)
-├── frontend/          ← screens in the browser (+ training tour files)
+├── frontend/          ← browser screens (+ capture helpers)
 ├── db/                ← database starter script
 ├── scripts/           ← install & maintenance helpers
 ├── demos/             ← filmed example walkthroughs
-└── var/               ← local scratch (logs, relay data) — not for publishing
+└── var/               ← local scratch — not for publishing
 ```
 
-Deep design notes and private research live in a **separate companion project** on purpose, so this folder stays clean for public mirrors.
+Deep design notes live in a **separate companion project** so this tree stays clean for public mirrors.
 
 ---
 
 ## Security & trust
 
-If you find a security problem, email **[security@steakos.org](mailto:security@steakos.org)** privately — do not post exploit steps in a public issue.  
-More detail: [`SECURITY.md`](SECURITY.md).
+Report security issues privately to **[security@steakos.org](mailto:security@steakos.org)** — do not post exploit steps in a public issue. Details: [`SECURITY.md`](SECURITY.md).
 
-Keep secrets (passwords, program access tokens, wallet files) **out of Git**. Use environment variables or your computer’s secret store.
+Keep secrets **out of Git**. Use environment variables or your machine’s secret store.
+
+steakos.org sets **no tracking cookies** and does not run analytics beacons.
 
 ---
 
 ## License
 
 Copyright © The steakOS Authors.  
-Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](LICENSE).  
-You may use, study, share, and improve the software under that license. Project home: **[steakos.org](https://steakos.org)**. Professional services: **[steakOS.ai](https://steakOS.ai)**.
+Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](LICENSE).
+
+**[steakos.org](https://steakos.org)** — free to use forever.  
+**[steakOS.ai](https://steakOS.ai)** — optional human help when you want a seasoned crew in the kitchen.
 
 ---
 
 <p align="center">
   <img src="content/brand/logo-mark.jpg" alt="steakOS mark" width="96" /><br/>
-  <sub>Built for founders who keep the keys — and still want a calm Monday morning dashboard.</sub>
+  <sub>Built for founders who keep the keys — and still want a calm Monday morning.</sub>
 </p>
