@@ -41,6 +41,7 @@ import steakos.configuration.CompanyCurrencyService
 import steakos.configuration.CompanyTaxService
 import steakos.configuration.OrangeSteakHouseSeedService
 import steakos.configuration.HeardCookArchitectsSeedService
+import steakos.configuration.TwentyOneToysSeedService
 import steakos.security.RoleLevel
 import steakos.security.RoleProfileService
 import steakos.capability.CapProcessService
@@ -57,6 +58,7 @@ class BootStrap {
     CompanyTaxService companyTaxService
     OrangeSteakHouseSeedService orangeSteakHouseSeedService
     HeardCookArchitectsSeedService heardCookArchitectsSeedService
+    TwentyOneToysSeedService twentyOneToysSeedService
     steakos.payments.BtcIntegrationLevelService btcIntegrationLevelService
     steakos.configuration.CompanyConfigService companyConfigService
     steakos.agents.AgAgentService agAgentService
@@ -186,7 +188,7 @@ class BootStrap {
         }
     }
 
-    /** PDR-026 — LIVE + DEMO shell + memberships; seed Orange Steak House if empty. */
+    /** PDR-026 — LIVE + DEMO shells + memberships; seed demo packs if empty. */
     private void seedCompanyContext() {
         if (companyContextService == null) return
         try {
@@ -194,6 +196,7 @@ class BootStrap {
                 companyContextService.ensureBootstrapped()
                 orangeSteakHouseSeedService?.ensureAndSeed()
                 heardCookArchitectsSeedService?.ensureAndSeed()
+                twentyOneToysSeedService?.ensureAndSeed()
             }
         } catch (Exception e) {
             log.warn("Company / demo seed skipped: ${e.message}")

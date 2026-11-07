@@ -225,7 +225,9 @@ class PaymentSettingsService {
     boolean isDemoCompany(String npubOwner) {
         String npub = requireNpub(npubOwner)
         // Known showcase tenants — defend against stale kind=LIVE rows (OI-F01 / L5)
-        if (npub == CompanyContextService.DEMO_NPUB || npub == CompanyContextService.HEARD_COOK_NPUB) {
+        if (npub == CompanyContextService.DEMO_NPUB ||
+                npub == CompanyContextService.HEARD_COOK_NPUB ||
+                npub == CompanyContextService.TWENTY_ONE_TOYS_NPUB) {
             return true
         }
         LegalEntity le = LegalEntity.findByNpubOwner(npub)
@@ -236,7 +238,9 @@ class PaymentSettingsService {
             return true
         }
         String code = le.code?.toString()
-        return code == LegalEntity.CODE_ORANGE_STEAK || code == LegalEntity.CODE_HEARD_COOK
+        return code == LegalEntity.CODE_ORANGE_STEAK ||
+                code == LegalEntity.CODE_HEARD_COOK ||
+                code == LegalEntity.CODE_TWENTY_ONE_TOYS
     }
 
     Map decryptedBtcpayConfig(String npubOwner) {

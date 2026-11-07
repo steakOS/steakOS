@@ -1983,7 +1983,7 @@ export default function SetupWizard() {
               />
               {t('families.seedDemo', {
                 defaultValue:
-                  'Create Orange Steak House demo company (showcase restaurant — separate from your live company)',
+                  'Create demo companies (Orange Steak House, Heard & Cook Architects, 21 Toys Co. — separate from your live company)',
               })}
             </label>
             {needsHrPrivacyAck && (

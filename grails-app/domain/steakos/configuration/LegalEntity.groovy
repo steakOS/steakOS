@@ -40,11 +40,13 @@ class LegalEntity implements NpubOwned, AccessControl, Auditable, Versioned, Ser
 	static final String CODE_PRIMARY = 'primary'
 	static final String CODE_ORANGE_STEAK = 'orange-steak-house'
 	static final String CODE_HEARD_COOK = 'heard-cook-architects'
+	/** PDR-026 third DEMO — pure product Bitcoin kids toys. */
+	static final String CODE_TWENTY_ONE_TOYS = 'twenty-one-toys-company'
 
 	String name
 	String description
 
-	/** Stable code e.g. primary | orange-steak-house | heard-cook-architects */
+	/** Stable code e.g. primary | orange-steak-house | heard-cook-architects | twenty-one-toys-company */
 	String code
 	/** LIVE (operator company) or DEMO (showcase instances) */
 	String kind = KIND_LIVE

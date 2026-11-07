@@ -294,7 +294,7 @@ export default function SettingsPage() {
                 !window.confirm(
                   t('pages.settings.demoConfirmResetOrange', {
                     defaultValue:
-                      'Reset Orange Steak House demo data? Live company and Heard & Cook are not touched.',
+                      'Reset Orange Steak House demo data? Live company and other demos are not touched.',
                   }),
                 )
               ) {
@@ -368,7 +368,7 @@ export default function SettingsPage() {
                 !window.confirm(
                   t('pages.settings.demoConfirmResetHeard', {
                     defaultValue:
-                      'Reset Heard & Cook Architects demo data? Live company and Orange Steak House are not touched.',
+                      'Reset Heard & Cook Architects demo data? Live company and other demos are not touched.',
                   }),
                 )
               ) {
@@ -422,6 +422,82 @@ export default function SettingsPage() {
             }}
           >
             {t('pages.settings.demoSeedHeard', { defaultValue: 'Seed Heard & Cook (if empty)' })}
+          </button>
+        </div>
+
+        <h3 className="section-label">
+          {t('pages.settings.demoToysTitle', { defaultValue: '21 Toys Co.' })}
+        </h3>
+        <p className="muted" style={{ fontSize: 13 }}>
+          {t('pages.settings.demoToysBlurb', {
+            defaultValue:
+              'Austin, TX — Bitcoin-themed kids toys and playsets (pure product catalogue).',
+          })}
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={async () => {
+              if (
+                !window.confirm(
+                  t('pages.settings.demoConfirmResetToys', {
+                    defaultValue:
+                      'Reset 21 Toys Co. demo data? Live company and other demos are not touched.',
+                  }),
+                )
+              ) {
+                return
+              }
+              setBusy(true)
+              setError(null)
+              setSeedMsg(null)
+              try {
+                const r = await setupApi.twentyOneToysReset()
+                setSeedMsg(
+                  r.message ||
+                    t('pages.settings.demoToysResetDone', {
+                      defaultValue: '21 Toys Co. reset complete',
+                    }),
+                )
+              } catch (e) {
+                setError(e.message || String(e))
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {t('pages.settings.demoResetToys', { defaultValue: 'Reset 21 Toys Co.' })}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              setError(null)
+              setSeedMsg(null)
+              try {
+                const r = await setupApi.twentyOneToysSeed()
+                setSeedMsg(
+                  r.message ||
+                    (r.skipped
+                      ? t('pages.settings.demoToysAlready', {
+                          defaultValue: '21 Toys Co. already seeded',
+                        })
+                      : t('pages.settings.demoToysSeeded', {
+                          defaultValue: '21 Toys Co. seeded',
+                        })),
+                )
+              } catch (e) {
+                setError(e.message || String(e))
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {t('pages.settings.demoSeedToys', { defaultValue: 'Seed 21 Toys Co. (if empty)' })}
           </button>
         </div>
       </div>

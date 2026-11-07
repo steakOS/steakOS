@@ -22,6 +22,7 @@ import steakos.User
 import steakos.configuration.DemoSeedService
 import steakos.configuration.OrangeSteakHouseSeedService
 import steakos.configuration.HeardCookArchitectsSeedService
+import steakos.configuration.TwentyOneToysSeedService
 import steakos.configuration.CompanyContextService
 import steakos.configuration.SetupService
 
@@ -44,6 +45,8 @@ class SetupApiController {
             demoReset    : 'POST',
             heardCookSeed: 'POST',
             heardCookReset: 'POST',
+            twentyOneToysSeed: 'POST',
+            twentyOneToysReset: 'POST',
             templateTier : 'POST',
             packOptions  : 'POST',
             privacyHrAck : 'POST'
@@ -53,6 +56,7 @@ class SetupApiController {
     DemoSeedService demoSeedService
     OrangeSteakHouseSeedService orangeSteakHouseSeedService
     HeardCookArchitectsSeedService heardCookArchitectsSeedService
+    TwentyOneToysSeedService twentyOneToysSeedService
     CompanyContextService companyContextService
     SpringSecurityService springSecurityService
 
@@ -117,6 +121,7 @@ class SetupApiController {
             Map demo = null
             boolean wantDemo = body.seedDemo == null || body.seedDemo == true || body.seedDemo == 'true'
             Map heard = null
+            Map toys = null
             if (wantDemo) {
                 try {
                     companyContextService?.ensureBootstrapped()
@@ -128,6 +133,7 @@ class SetupApiController {
                     }
                     demo = orangeSteakHouseSeedService?.ensureAndSeed()
                     heard = heardCookArchitectsSeedService?.ensureAndSeed()
+                    toys = twentyOneToysSeedService?.ensureAndSeed()
                 } catch (Exception e) {
                     demo = [error: e.message]
                 }
@@ -151,7 +157,7 @@ class SetupApiController {
                 ] as JSON))
                 return
             }
-            render([ok: true, status: status, demoSeed: demo, heardCookSeed: heard] as JSON)
+            render([ok: true, status: status, demoSeed: demo, heardCookSeed: heard, twentyOneToysSeed: toys] as JSON)
         } catch (IllegalStateException e) {
             render(status: 400, text: ([error: e.message, code: 'SETUP_INCOMPLETE'] as JSON))
         }
@@ -209,6 +215,31 @@ class SetupApiController {
             render([ok: true] + result as JSON)
         } catch (Exception e) {
             render(status: 400, text: ([error: e.message, code: 'HEARD_COOK_RESET_FAILED'] as JSON))
+        }
+    }
+
+    /** POST /api/setup/twenty-one-toys-seed — ensure 21 Toys Co. pack (PDR-026) */
+    def twentyOneToysSeed() {
+        try {
+            companyContextService?.ensureBootstrapped()
+            render(twentyOneToysSeedService.ensureAndSeed() as JSON)
+        } catch (Exception e) {
+            render(status: 400, text: ([error: e.message] as JSON))
+        }
+    }
+
+    /** POST /api/setup/twenty-one-toys-reset — Admin wipe+reseed 21 Toys Co. only */
+    @Secured(['ROLE_ADMIN'])
+    def twentyOneToysReset() {
+        if (isAgentPrincipal()) {
+            render(status: 403, text: ([error: 'Agents cannot reset demo', code: 'AGENT_DEMO_RESET_DENIED'] as JSON))
+            return
+        }
+        try {
+            Map result = twentyOneToysSeedService.resetDemo()
+            render([ok: true] + result as JSON)
+        } catch (Exception e) {
+            render(status: 400, text: ([error: e.message, code: 'TWENTY_ONE_TOYS_RESET_FAILED'] as JSON))
         }
     }
 

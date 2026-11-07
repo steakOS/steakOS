@@ -30,9 +30,11 @@ class CompanyContextService {
     static final String PREF_ACTIVE_COMPANY_ID = 'ui.activeCompanyId'
     static final String DEMO_NAME = 'Orange Steak House'
     static final String HEARD_COOK_NAME = 'Heard & Cook Architects'
+    static final String TWENTY_ONE_TOYS_NAME = '21 Toys Co.'
     /** Distinct tenant keys for DEMO rows (PDR-026 npub-per-company). */
     static final String DEMO_NPUB = 'company:orange-steak-house'
     static final String HEARD_COOK_NPUB = 'company:heard-cook-architects'
+    static final String TWENTY_ONE_TOYS_NPUB = 'company:twenty-one-toys-company'
     static final String DEFAULT_NPUB = 'user:admin'
 
     steakos.finance.PostingRulesetService postingRulesetService
@@ -46,14 +48,16 @@ class CompanyContextService {
         LegalEntity primary = ensurePrimaryLive()
         LegalEntity demo = ensureDemoShell(primary)
         LegalEntity heard = ensureHeardCookShell()
+        LegalEntity toys = ensureTwentyOneToysShell()
         User.findAllByEnabled(true).each { User u ->
             ensureMembership(u, primary, true)
             ensureMembership(u, demo, false)
             ensureMembership(u, heard, false)
+            ensureMembership(u, toys, false)
         }
         // PDR-027 — posting rules + payroll COA for each company tenant npub
         try {
-            [primary, demo, heard].each { LegalEntity le ->
+            [primary, demo, heard, toys].each { LegalEntity le ->
                 if (le?.npubOwner) {
                     postingRulesetService?.ensureSeeded(le.npubOwner)
                 }
@@ -173,6 +177,48 @@ class CompanyContextService {
         le
     }
 
+    /** Third DEMO — pure product Bitcoin kids toys (PDR-026). */
+    LegalEntity ensureTwentyOneToysShell() {
+        LegalEntity le = LegalEntity.findByCode(LegalEntity.CODE_TWENTY_ONE_TOYS)
+        if (le) {
+            boolean dirty = false
+            if (le.npubOwner != TWENTY_ONE_TOYS_NPUB) {
+                le.npubOwner = TWENTY_ONE_TOYS_NPUB
+                dirty = true
+            }
+            if (le.kind != LegalEntity.KIND_DEMO) {
+                le.kind = LegalEntity.KIND_DEMO
+                dirty = true
+            }
+            if (le.name != TWENTY_ONE_TOYS_NAME) {
+                le.name = TWENTY_ONE_TOYS_NAME
+                dirty = true
+            }
+            if (dirty) {
+                le.save(failOnError: true)
+            }
+            return le
+        }
+        le = new LegalEntity(
+                npubOwner: TWENTY_ONE_TOYS_NPUB,
+                name: TWENTY_ONE_TOYS_NAME,
+                code: LegalEntity.CODE_TWENTY_ONE_TOYS,
+                kind: LegalEntity.KIND_DEMO,
+                description: 'Bitcoin-themed kids toys — pure product demo company. HQ Austin, TX (demo).',
+                countryCode: 'US',
+                functionalCurrency: 'USD',
+                dualSats: Boolean.TRUE,
+                legalForm: 'LLC',
+                registeredAddressText: '2100 Satoshi Ave, Austin, TX 78702, USA',
+                website: 'https://21toys.example',
+                mainEmail: 'hello@21toys.example'
+        )
+        le.markCreatedBy(TWENTY_ONE_TOYS_NPUB)
+        le.markUpdatedBy(TWENTY_ONE_TOYS_NPUB)
+        le.save(failOnError: true)
+        le
+    }
+
     UserCompanyMembership ensureMembership(User user, LegalEntity company, boolean isDefault) {
         if (!user || !company) return null
         UserCompanyMembership m = UserCompanyMembership.findByUserAndLegalEntity(user, company)
@@ -208,7 +254,9 @@ class CompanyContextService {
         if (le.isDemo()) return true
         String code = le.code?.toString()
         return code == LegalEntity.CODE_ORANGE_STEAK || code == LegalEntity.CODE_HEARD_COOK ||
-                le.npubOwner == DEMO_NPUB || le.npubOwner == HEARD_COOK_NPUB
+                code == LegalEntity.CODE_TWENTY_ONE_TOYS ||
+                le.npubOwner == DEMO_NPUB || le.npubOwner == HEARD_COOK_NPUB ||
+                le.npubOwner == TWENTY_ONE_TOYS_NPUB
     }
 
     Map companyMap(LegalEntity le) {

@@ -128,7 +128,7 @@ import json,sys
 d=json.load(sys.stdin)
 cos=d.get('companies') or []
 demo=next((c for c in cos if c.get('demo') or (c.get('kind') or '').upper()=='DEMO'
-           or (c.get('code') or '') in ('orange-steak-house','heard-cook-architects')), None)
+           or (c.get('code') or '') in ('orange-steak-house','heard-cook-architects','twenty-one-toys-company')), None)
 assert demo, ('expected DEMO showcase', cos)
 print(demo['id'])
 ")
@@ -137,7 +137,7 @@ import json,sys
 d=json.load(sys.stdin)
 cos=d.get('companies') or []
 live=next((c for c in cos if (c.get('kind') or '').upper()=='LIVE' and not c.get('demo')
-           and (c.get('code') or '') not in ('orange-steak-house','heard-cook-architects')), None)
+           and (c.get('code') or '') not in ('orange-steak-house','heard-cook-architects','twenty-one-toys-company')), None)
 assert live, ('expected LIVE operator', cos)
 print(live['id'])
 ")

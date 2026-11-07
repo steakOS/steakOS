@@ -146,6 +146,8 @@ class UrlMappings {
         "/api/setup/demo-reset"(controller: 'setupApi', action: 'demoReset', method: 'POST')
         "/api/setup/heard-cook-seed"(controller: 'setupApi', action: 'heardCookSeed', method: 'POST')
         "/api/setup/heard-cook-reset"(controller: 'setupApi', action: 'heardCookReset', method: 'POST')
+        "/api/setup/twenty-one-toys-seed"(controller: 'setupApi', action: 'twentyOneToysSeed', method: 'POST')
+        "/api/setup/twenty-one-toys-reset"(controller: 'setupApi', action: 'twentyOneToysReset', method: 'POST')
         "/api/setup/template-tier"(controller: 'setupApi', action: 'templateTier', method: 'POST')
         "/api/setup/pack-options"(controller: 'setupApi', action: 'packOptions', method: 'POST')
         "/api/setup/privacy/hr-ack"(controller: 'setupApi', action: 'privacyHrAck', method: 'POST')

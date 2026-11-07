@@ -492,6 +492,9 @@ export const setupApi = {
   demoReset: (body = {}) => api('/api/setup/demo-reset', { method: 'POST', body }),
   heardCookSeed: (body = {}) => api('/api/setup/heard-cook-seed', { method: 'POST', body }),
   heardCookReset: (body = {}) => api('/api/setup/heard-cook-reset', { method: 'POST', body }),
+  /** PDR-026 — 21 Toys Co. pure-product demo pack */
+  twentyOneToysSeed: (body = {}) => api('/api/setup/twenty-one-toys-seed', { method: 'POST', body }),
+  twentyOneToysReset: (body = {}) => api('/api/setup/twenty-one-toys-reset', { method: 'POST', body }),
   /** Bronze BR-R6 — acknowledge HR / people-data privacy duties before enabling human family */
   privacyHrAck: (body = {}) => api('/api/setup/privacy/hr-ack', { method: 'POST', body }),
   /** Switch metal pack + families (open metals only). Body: { templateTier, enabledFamilies?, pluginDepth?, messaging? } */
