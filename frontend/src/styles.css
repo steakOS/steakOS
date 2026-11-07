@@ -4075,6 +4075,32 @@ label.content-rail-file-btn {
   background: #fffbeb;
 }
 
+/* My Work Assignments (ADR-056) — below subtitle, above toolbar pills */
+.mywork-assignments {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.mywork-assignments li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.mywork-assignments a {
+  color: var(--steak-ink);
+  text-decoration: none;
+}
+.mywork-assignments a:hover {
+  color: var(--steak-accent, #b45309);
+  text-decoration: underline;
+}
+
 .eisenhower-list {
   list-style: none;
   margin: 0;

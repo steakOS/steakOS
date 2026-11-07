@@ -33,6 +33,10 @@ class UrlMappings {
         }
         "/api/dashboard/ceo"(controller: 'dashboardApi', action: 'ceo', method: 'GET')
 
+        // My Work (ADR-056) — Assignments + Own Tasks
+        "/api/work/assignments"(controller: 'workApi', action: 'assignments', method: 'GET')
+        "/api/work/own-tasks"(controller: 'workApi', action: 'ownTasks', method: 'GET')
+
         // Top-bar global search S0 fan-out (Task 7642)
         "/api/search"(controller: 'searchApi', action: 'index', method: 'GET')
 

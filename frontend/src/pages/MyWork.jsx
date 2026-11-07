@@ -17,27 +17,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Bot, Plus, RefreshCw } from 'lucide-react'
-import { domainsApi } from '../api/client'
+import { workApi } from '../api/client'
 import { entityDisplayLabel } from '../utils/entityDisplayLabel'
 import { statusBadgeClass } from '../utils/humanize'
 
 const LEVELS = [1, 2, 3]
 const LEVEL_LABEL = { 1: 'Low', 2: 'Medium', 3: 'High' }
-const OPEN_STATUSES = new Set([
-  'OPEN',
-  'IN_PROGRESS',
-  '',
-  null,
-  undefined,
-  'AI:new',
-  'AI:conceptualizing',
-  'AI:waiting-go',
-  'AI:analyzing',
-  'AI:fixing',
-])
 
-/** Enough tasks for a full Eisenhower board (list UI removed). */
+/** Enough tasks for a full Own Tasks board (list UI removed). */
 const BOARD_MAX = 500
+const ASSIGNMENTS_MAX = 50
 
 function levelKey(n) {
   const v = Number(n)
@@ -47,7 +36,9 @@ function levelKey(n) {
 
 function isOverdue(task) {
   if (!task?.deadlineAt) return false
-  if (task.status === 'DONE' || task.status === 'CANCELLED' || task.status === 'AI:done') return false
+  if (task.status === 'DONE' || task.status === 'CANCELLED' || task.status === 'VOID' || task.status === 'AI:done') {
+    return false
+  }
   try {
     return new Date(task.deadlineAt) < new Date()
   } catch {
@@ -55,29 +46,52 @@ function isOverdue(task) {
   }
 }
 
-function isOpen(task) {
-  return OPEN_STATUSES.has(task?.status)
+function assignmentLabel(row, t) {
+  const title = entityDisplayLabel(row, { fallback: row?.name || `${row?.resource} #${row?.id}` })
+  const typeLabel = t(`${row.package}.${row.resource}`, {
+    ns: 'domain',
+    defaultValue: row.resource,
+  })
+  return { title, typeLabel }
 }
 
+/**
+ * My Work (ADR-056): Assignments list + Own Tasks Eisenhower board.
+ */
 export default function MyWork() {
   const { t } = useTranslation(['common', 'domain'])
   const [items, setItems] = useState([])
+  const [assignments, setAssignments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [assignmentsLoading, setAssignmentsLoading] = useState(true)
   const [error, setError] = useState(null)
-  /** ADR-051 mode toggle — agentic AI:* queue vs human open board */
+  /** ADR-051 mode toggle — agentic AI:* queue vs human Own Tasks board */
   const [agenticMode, setAgenticMode] = useState(false)
 
-  const load = useCallback(() => {
+  const loadAssignments = useCallback(() => {
+    setAssignmentsLoading(true)
+    workApi
+      .assignments({ max: ASSIGNMENTS_MAX })
+      .then((body) => {
+        const rows = Array.isArray(body?.items) ? body.items : []
+        setAssignments(rows)
+      })
+      .catch((e) => {
+        setError((prev) => prev || e.message || String(e))
+        setAssignments([])
+      })
+      .finally(() => setAssignmentsLoading(false))
+  }, [])
+
+  const loadOwnTasks = useCallback(() => {
     setError(null)
     setLoading(true)
-    const view = agenticMode ? 'agentic' : 'open'
-    domainsApi
-      .list('core', 'Task', {
+    const mode = agenticMode ? 'agentic' : 'human'
+    workApi
+      .ownTasks({
         max: BOARD_MAX,
         offset: 0,
-        view,
-        sort: 'deadlineAt',
-        order: 'asc',
+        mode,
       })
       .then((body) => {
         const rows = Array.isArray(body?.items) ? body.items : Array.isArray(body) ? body : []
@@ -87,14 +101,20 @@ export default function MyWork() {
       .finally(() => setLoading(false))
   }, [agenticMode])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  const load = useCallback(() => {
+    loadAssignments()
+    loadOwnTasks()
+  }, [loadAssignments, loadOwnTasks])
 
-  const boardTasks = useMemo(
-    () => (agenticMode ? items : items.filter(isOpen)),
-    [items, agenticMode],
-  )
+  useEffect(() => {
+    loadAssignments()
+  }, [loadAssignments])
+
+  useEffect(() => {
+    loadOwnTasks()
+  }, [loadOwnTasks])
+
+  const boardTasks = items
 
   const cellMap = useMemo(() => {
     const map = {}
@@ -117,12 +137,50 @@ export default function MyWork() {
         {agenticMode
           ? t('pages.work.subtitleAgentic', {
               defaultValue:
-                'Agentic tasks (AI:* statuses) awaiting human confirmation — Eisenhower board.',
+                'Agentic tasks (AI:* statuses) awaiting human confirmation — Own Tasks board.',
             })
           : t('pages.work.subtitle', {
-              defaultValue: 'Your running tasks — Eisenhower board.',
+              defaultValue:
+                'Assignments across steakOS, plus your Own Tasks on the urgency × importance board.',
             })}
       </p>
+
+      <div className="section-label" style={{ marginTop: '1rem' }}>
+        {t('pages.work.assignments', { defaultValue: 'Assignments' })}
+        {!assignmentsLoading && (
+          <span className="muted" style={{ marginLeft: 8, fontWeight: 600, letterSpacing: 0 }}>
+            ({assignments.length})
+          </span>
+        )}
+      </div>
+      {assignmentsLoading && assignments.length === 0 ? (
+        <p className="muted">{t('actions.loading')}</p>
+      ) : assignments.length === 0 ? (
+        <p className="muted" style={{ marginTop: 0 }}>
+          {t('pages.work.assignmentsEmpty', {
+            defaultValue: 'No open assignments for you right now.',
+          })}
+        </p>
+      ) : (
+        <ul className="mywork-assignments">
+          {assignments.map((row) => {
+            const { title, typeLabel } = assignmentLabel(row, t)
+            const to = `${row.path}?returnTo=%2Fwork`
+            return (
+              <li key={`${row.package}/${row.resource}/${row.id}`}>
+                <Link to={to}>{title}</Link>
+                <span className="muted"> · {typeLabel}</span>
+                {row.status ? (
+                  <>
+                    {' '}
+                    <span className={statusBadgeClass(row.status)}>{row.status}</span>
+                  </>
+                ) : null}
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
       {error && <div className="banner-error">{error}</div>}
 
@@ -130,7 +188,7 @@ export default function MyWork() {
         <Link className="btn btn-primary" to="/domains/core/Task/new?returnTo=%2Fwork">
           <Plus size={16} /> {t('pages.dashboard.newTask', { defaultValue: 'New task' })}
         </Link>
-        <button type="button" className="btn" onClick={load} disabled={loading}>
+        <button type="button" className="btn" onClick={load} disabled={loading || assignmentsLoading}>
           <RefreshCw size={16} /> {t('actions.refresh', { defaultValue: 'Refresh' })}
         </button>
         <button
@@ -141,7 +199,7 @@ export default function MyWork() {
             agenticMode
               ? t('pages.work.agenticToggleHintOn', {
                   defaultValue:
-                    'Showing agentic AI:* queue. Click to return to the human open board.',
+                    'Showing agentic AI:* queue. Click to return to Own Tasks.',
                 })
               : t('pages.work.agenticToggleHintOff', {
                   defaultValue:
@@ -164,8 +222,8 @@ export default function MyWork() {
 
       <div className="section-label" style={{ marginTop: '1.5rem' }}>
         {agenticMode
-          ? t('pages.work.eisenhowerAgentic', { defaultValue: 'Agentic — Action NOW' })
-          : t('pages.work.eisenhower', { defaultValue: 'Action - NOW' })}
+          ? t('pages.work.eisenhowerAgentic', { defaultValue: 'Agentic — Own Tasks' })
+          : t('pages.work.ownTasks', { defaultValue: 'Own Tasks' })}
       </div>
 
       <div className="eisenhower-grid">

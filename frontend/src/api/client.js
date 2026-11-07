@@ -387,6 +387,24 @@ export const dashboardApi = {
   ceo: () => api('/api/dashboard/ceo'),
 }
 
+/** My Work (ADR-056) — Assignments + Own Tasks */
+export const workApi = {
+  assignments: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.max != null) q.set('max', String(params.max))
+    const qs = q.toString()
+    return api(`/api/work/assignments${qs ? `?${qs}` : ''}`)
+  },
+  ownTasks: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.mode) q.set('mode', params.mode)
+    if (params.max != null) q.set('max', String(params.max))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return api(`/api/work/own-tasks${qs ? `?${qs}` : ''}`)
+  },
+}
+
 /** Silver KPI fabric (PR-2/13 registry + feeds; PR-14 Analytics desk) */
 export const kpiApi = {
   catalogue: () => api('/api/kpi/catalogue'),

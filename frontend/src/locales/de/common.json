@@ -338,11 +338,14 @@
     "work": {
       "nav": "Meine Arbeit",
       "title": "Meine Arbeit",
-      "subtitle": "Ihre laufenden Aufgaben — Eisenhower-Board.",
+      "subtitle": "Zuweisungen in steakOS plus Ihre eigenen Aufgaben auf dem Dringlichkeit × Wichtigkeit-Board.",
       "list": "Aufgabenliste",
-      "eisenhower": "Aktivitäten - JETZT",
-      "eisenhowerHint": "Offene Arbeit im 3×3-Board nach Dringlichkeit und Wichtigkeit priorisieren.",
-      "eisenhowerAxes": "Zeilen = Dringlichkeit (hoch → niedrig). Spalten = Wichtigkeit (niedrig → hoch). Nur offene Aufgaben.",
+      "assignments": "Zuweisungen",
+      "assignmentsEmpty": "Keine offenen Zuweisungen für Sie.",
+      "ownTasks": "Eigene Aufgaben",
+      "eisenhower": "Eigene Aufgaben",
+      "eisenhowerHint": "Eigene Aufgaben im 3×3-Board nach Dringlichkeit und Wichtigkeit priorisieren.",
+      "eisenhowerAxes": "Zeilen = Dringlichkeit (hoch → niedrig). Spalten = Wichtigkeit (niedrig → hoch). Nur eigene Aufgaben.",
       "eisenhowerCellTip": "Dringlichkeit: {{urgency}}, Wichtigkeit: {{importance}}",
       "eisenhowerCellCount": "{{count}} offen",
       "level": {
@@ -370,11 +373,11 @@
       "empty": "Keine Aufgaben für diesen Filter.",
       "search": "Aufgaben suchen…",
       "agenticTasks": "Agentische Aufgaben",
-      "agenticToggleHint": "Aufgaben mit AI:*-Status anzeigen, die ein Mensch noch nicht als DONE bestätigt hat. Aus = menschliche offene Board-Ansicht.",
-      "subtitleAgentic": "Agentische Aufgaben (AI:*-Status) warten auf menschliche Bestätigung — Eisenhower-Board.",
-      "eisenhowerAgentic": "Agentisch — Action NOW",
+      "agenticToggleHint": "Aufgaben mit AI:*-Status anzeigen, die ein Mensch noch nicht als DONE bestätigt hat. Aus = eigene Aufgaben.",
+      "subtitleAgentic": "Agentische Aufgaben (AI:*-Status) warten auf menschliche Bestätigung — Board eigene Aufgaben.",
+      "eisenhowerAgentic": "Agentisch — Eigene Aufgaben",
       "agenticToggleHintOff": "Agentische AI:*-Aufgaben anzeigen, die ein Mensch noch nicht als DONE bestätigt hat. Klicken zum Umschalten.",
-      "agenticToggleHintOn": "Agentische AI:*-Warteschlange aktiv. Klicken für das menschliche offene Board."
+      "agenticToggleHintOn": "Agentische AI:*-Warteschlange aktiv. Klicken für eigene Aufgaben."
     },
     "help": {
       "title": "Hilfezentrum",

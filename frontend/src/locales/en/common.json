@@ -338,11 +338,14 @@
     "work": {
       "nav": "My work",
       "title": "My work",
-      "subtitle": "Your running tasks — Eisenhower board.",
+      "subtitle": "Assignments across steakOS, plus your Own Tasks on the urgency × importance board.",
       "list": "Task list",
-      "eisenhower": "Action - NOW",
-      "eisenhowerHint": "Prioritise open work on a 3×3 urgency × importance board.",
-      "eisenhowerAxes": "Rows = urgency (high → low). Columns = importance (low → high). Open tasks only.",
+      "assignments": "Assignments",
+      "assignmentsEmpty": "No open assignments for you right now.",
+      "ownTasks": "Own Tasks",
+      "eisenhower": "Own Tasks",
+      "eisenhowerHint": "Prioritise Own Tasks on a 3×3 urgency × importance board.",
+      "eisenhowerAxes": "Rows = urgency (high → low). Columns = importance (low → high). Own Tasks only.",
       "eisenhowerCellTip": "Urgency: {{urgency}}, importance: {{importance}}",
       "eisenhowerCellCount": "{{count}} open",
       "level": {
@@ -370,11 +373,11 @@
       "empty": "No tasks match this filter.",
       "search": "Search tasks…",
       "agenticTasks": "Agentic Tasks",
-      "agenticToggleHint": "Show tasks with AI:* status that a human has not yet marked DONE. Off returns to the human open board.",
-      "subtitleAgentic": "Agentic tasks (AI:* statuses) awaiting human confirmation — Eisenhower board.",
-      "eisenhowerAgentic": "Agentic — Action NOW",
+      "agenticToggleHint": "Show tasks with AI:* status that a human has not yet marked DONE. Off returns to Own Tasks.",
+      "subtitleAgentic": "Agentic tasks (AI:* statuses) awaiting human confirmation — Own Tasks board.",
+      "eisenhowerAgentic": "Agentic — Own Tasks",
       "agenticToggleHintOff": "Show agentic AI:* tasks not yet confirmed DONE by a human. Click to switch the board.",
-      "agenticToggleHintOn": "Showing agentic AI:* queue. Click to return to the human open board."
+      "agenticToggleHintOn": "Showing agentic AI:* queue. Click to return to Own Tasks."
     },
     "help": {
       "title": "Help center",
