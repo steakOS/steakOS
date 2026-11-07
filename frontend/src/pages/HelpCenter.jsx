@@ -177,13 +177,15 @@ export default function HelpCenter() {
       <h1 className="page-title">{t('pages.help.title')}</h1>
       <p className="page-sub">{t('pages.help.subtitle')}</p>
 
-      <div className="card" style={{ marginTop: 16 }}>
+      <div className="card" style={{ marginTop: 12 }}>
         <h2>{t('nav.itSupport', { defaultValue: 'IT Support' })}</h2>
         <p className="page-sub">
           {t('pages.help.itSupportBody', {
             defaultValue:
               'Open an internal IT ticket (incident or request). Same tickets as Digital → Support.',
-          })}
+          })}{' '}
+          <Link to="/digital">{t('nav.digital', { defaultValue: 'Digital' })}</Link>
+          {'.'}
         </p>
         <p style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Link className="btn btn-primary" to="/help/it-support?new=1">
@@ -192,7 +194,7 @@ export default function HelpCenter() {
               label: t('nav.itSupport', { defaultValue: 'IT Support' }),
             })}
           </Link>
-          <Link className="btn btn-primary" to="/help/it-support">
+          <Link className="btn btn-secondary" to="/help/it-support">
             {t('pages.help.viewTickets', { defaultValue: 'View tickets' })}
           </Link>
         </p>

@@ -6,7 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { X, ExternalLink, Ticket, Plus, AlertTriangle } from 'lucide-react'
 import { digitalApi, helpApi } from '../api/client'
-import { markdownToHtml } from '../utils/markdown'
+import { markdownToHtml, stripRelatedSection } from '../utils/markdown'
 import { isUnboundDataProduct } from '../config/domainRegistry'
 
 /**
@@ -137,7 +137,8 @@ export default function HelpDrawer({
 
   if (!open) return null
 
-  const body = data?.body?.bodyText || ''
+  // Strip markdown ## Related — drawer renders relatedTopics once below
+  const body = stripRelatedSection(data?.body?.bodyText || '')
   const title = data?.topic?.title || t('title')
   const ctx = data?.context || {}
   const actions = data?.suggestedActions || []
@@ -289,23 +290,19 @@ export default function HelpDrawer({
           {related.length > 0 && (
             <div style={{ marginTop: 20 }}>
               <div className="section-label">{t('related')}</div>
-              <ul className="setup-family-list">
+              <div className="help-actions help-related">
                 {related.map((topic) => (
-                  <li key={topic.helpKey}>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      style={{ padding: '2px 0', height: 'auto', textAlign: 'left' }}
-                      onClick={() => setFocusKey(topic.helpKey)}
-                    >
-                      <strong>{topic.title}</strong>
-                    </button>
-                    {topic.routePattern && (
-                      <span className="muted"> · {topic.routePattern}</span>
-                    )}
-                  </li>
+                  <button
+                    key={topic.helpKey}
+                    type="button"
+                    className="btn btn-ghost help-related-link"
+                    title={topic.routePattern || topic.helpKey}
+                    onClick={() => setFocusKey(topic.helpKey)}
+                  >
+                    {topic.title}
+                  </button>
                 ))}
-              </ul>
+              </div>
               {focusKey && (
                 <button
                   type="button"
@@ -319,18 +316,18 @@ export default function HelpDrawer({
             </div>
           )}
 
-          <div className="help-it-support" style={{ marginTop: 24 }}>
+          <div className="help-it-support" style={{ marginTop: 20 }}>
             <div className="section-label">{t('itSupport', { defaultValue: 'IT Support' })}</div>
-            <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
+            <p className="muted" style={{ fontSize: 13, marginTop: 0, marginBottom: 0 }}>
               {t('itSupportHint', {
                 defaultValue:
                   'Need help from IT? Open an internal ticket from this page context, or go to IT Support.',
               })}
             </p>
-            <div className="help-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div className="help-actions">
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-secondary"
                 onClick={() => {
                   setTicketOpen((v) => !v)
                   if (!ticketForm.name) {
@@ -344,7 +341,7 @@ export default function HelpDrawer({
                   : t('ticketCreate', { defaultValue: 'Create IT support ticket' })}
               </button>
               <Link
-                className="btn btn-primary"
+                className="btn btn-secondary"
                 to="/help/it-support"
                 onClick={onClose}
               >

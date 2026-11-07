@@ -3689,6 +3689,22 @@ table.data tbody tr.row-selected td:last-child {
   font-size: 0.85rem;
 }
 
+/* Related topic links: plain text until hover, then pill chrome (like Actions peers) */
+.help-related-link {
+  padding: 0.25rem 0.65rem;
+  height: auto;
+  min-height: 0;
+  font-weight: 600;
+  color: var(--steak-ink);
+  text-align: left;
+}
+.help-related-link:hover,
+.help-related-link:focus-visible {
+  color: var(--steak-ink);
+  background: color-mix(in srgb, var(--steak-accent, #b45309) 12%, #fff);
+  border-color: color-mix(in srgb, var(--steak-accent, #b45309) 28%, var(--steak-border));
+}
+
 .cmd-backdrop {
   position: fixed;
   inset: 0;

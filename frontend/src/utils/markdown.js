@@ -43,6 +43,27 @@ function inlineFormat(text) {
 }
 
 /**
+ * Remove a trailing "## Related" / "## Verwandt" / "## Relacionado" section from
+ * help markdown. The Help drawer renders relatedTopics as a single React section
+ * with section-label + hover pills; leaving the markdown block duplicates it.
+ *
+ * @param {string} md
+ * @returns {string}
+ */
+export function stripRelatedSection(md) {
+  if (!md || !String(md).trim()) return md || ''
+  const text = String(md).replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  // Match Related heading in EN / DE / ES (case-insensitive), consume until next ## or EOF
+  return text
+    .replace(
+      /\n*##\s+(Related|Verwandt|Relacionado)\s*\n[\s\S]*?(?=\n##\s+|$)/gi,
+      '\n',
+    )
+    .replace(/\n{3,}/g, '\n\n')
+    .trimEnd()
+}
+
+/**
  * @param {string} md
  * @returns {string} HTML
  */
