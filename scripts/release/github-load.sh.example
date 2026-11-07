@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Example: copy to ~/.config/github/load.sh (mode 700) and fill env file.
+#   mkdir -p ~/.config/github && chmod 700 ~/.config/github
+#   cp scripts/release/github-env.example ~/.config/github/env && chmod 600 ~/.config/github/env
+#   cp scripts/release/github-load.sh.example ~/.config/github/load.sh && chmod 700 ~/.config/github/load.sh
+set -euo pipefail
+ENV_FILE="${HOME}/.config/github/env"
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+: "${GITHUB_TOKEN:=${GH_TOKEN:-}}"
+: "${GITHUB_OWNER:=steakOS}"
+: "${GITHUB_REPO:=steakOS}"

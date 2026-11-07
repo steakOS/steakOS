@@ -16,6 +16,10 @@
 
 # Build a runnable steakOS distribution (bootJar + SPA assets + helpers + checksums).
 #
+# After uploading the zip to a Forgejo Release, publish the public loudspeaker with:
+#   ./scripts/release/publish-github.sh --tag vX.Y.Z
+# (ADR-057 — Forgejo Release is the GitHub publish gate.)
+#
 # Usage (from anywhere):
 #   ./scripts/release/pack-dist.sh
 #   ./scripts/release/pack-dist.sh --skip-frontend   # reuse existing frontend/dist

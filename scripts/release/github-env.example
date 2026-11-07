@@ -1,0 +1,6 @@
+# ~/.config/github/env — mode 600. Never commit the real file.
+# Fine-grained or classic PAT with contents:write (release upload).
+GITHUB_TOKEN=
+# Optional overrides:
+# GITHUB_OWNER=steakOS
+# GITHUB_REPO=steakOS
