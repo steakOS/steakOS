@@ -1982,9 +1982,15 @@ table.data tbody tr.row-selected td:last-child {
   margin-bottom: 1.25rem;
 }
 
-.section-label {
+/* Shared section chrome: uppercase / largecaps (Help drawer body + Actions/Related/IT) */
+.section-label,
+.help-markdown h1,
+.help-markdown h2,
+.help-markdown h3 {
+  font-family: inherit;
   font-size: 0.75rem;
   font-weight: 800;
+  line-height: 1.35;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--steak-muted);
@@ -3657,8 +3663,11 @@ table.data tbody tr.row-selected td:last-child {
   line-height: 1.4;
   color: #78350f;
 }
-.help-markdown h1 { font-size: 1.25rem; margin: 0 0 0.75rem; }
-.help-markdown h2 { font-size: 1.05rem; margin: 1rem 0 0.5rem; }
+.help-markdown h1:first-child,
+.help-markdown h2:first-child,
+.help-markdown h3:first-child {
+  margin-top: 0;
+}
 .help-markdown p { margin: 0.5rem 0; color: var(--steak-ink); }
 .help-markdown ul { padding-left: 1.2rem; }
 .help-markdown code {
