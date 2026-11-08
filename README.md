@@ -232,7 +232,7 @@ Installs Java and PostgreSQL if needed, downloads the packaged app from the late
 curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.sh | bash
 ```
 
-**Windows 11** (PowerShell):
+**Windows 11** (PowerShell - must be run as administrator):
 
 ```powershell
 irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
