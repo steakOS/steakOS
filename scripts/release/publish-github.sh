@@ -12,6 +12,8 @@
 #   ./scripts/release/publish-github.sh --tag v0.2.4
 #   ./scripts/release/publish-github.sh --tag v0.2.4 --dry-run
 #   ./scripts/release/publish-github.sh --latest
+#   ./scripts/release/publish-github.sh --tag v0.2.4 --push-main    # also update GitHub main
+#   ./scripts/release/publish-github.sh --tag v0.2.4 --force-main   # first sync (replace Initial commit)
 #   ./scripts/release/publish-github.sh --tag v0.2.4 --local-dist   # prefer dist/out over Forgejo download
 #   ./scripts/release/publish-github.sh --tag v0.2.4 --skip-git     # assets only (tag already on GitHub)
 #   ./scripts/release/publish-github.sh --tag v0.2.4 --skip-assets  # git/tag/release metadata only
@@ -19,8 +21,9 @@
 # Prerequisites:
 #   - Forgejo Release already exists for the tag (pack-dist + upload done)
 #   - source ~/.config/forgejo/load.sh  (FORGEJO_USER / FORGEJO_PASSWORD)
-#   - GitHub auth: GITHUB_TOKEN or GH_TOKEN, or source ~/.config/github/load.sh,
-#     or `gh auth login` (gh CLI used when available for release create)
+#   - GitHub auth: GITHUB_TOKEN / GH_TOKEN (PAT — not account password),
+#     or source ~/.config/github/load.sh, or `gh auth login && gh auth setup-git`
+#   - Git never accepts your GitHub account password over HTTPS; only a PAT/token.
 #
 # Env overrides:
 #   FORGEJO_BASE_URL  FORGEJO_OWNER  FORGEJO_REPO   (defaults: umbrel hub)
@@ -40,9 +43,10 @@ SKIP_ASSETS=0
 LOCAL_DIST=0
 ALLOW_PRERELEASE=0
 PUSH_MAIN=0
+FORCE_MAIN=0
 
 usage() {
-  sed -n '2,40p' "$0"
+  sed -n '2,45p' "$0"
   exit "${1:-0}"
 }
 
@@ -77,6 +81,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --push-main)
+      PUSH_MAIN=1
+      shift
+      ;;
+    --force-main)
+      # One-time: allow non-ff update of github main (unrelated Initial commit)
+      FORCE_MAIN=1
       PUSH_MAIN=1
       shift
       ;;
@@ -210,6 +220,8 @@ if [[ "$PRERELEASE" == "true" && "$ALLOW_PRERELEASE" -eq 0 ]]; then
 fi
 
 # --- git: ensure tag exists locally, push to github remote --------------------
+# Never embed the token in the remote URL. Use GIT_ASKPASS (x-access-token + PAT)
+# or gh's credential helper — same pattern as Forgejo pushes.
 ensure_github_remote() {
   if git remote get-url github >/dev/null 2>&1; then
     return 0
@@ -219,32 +231,80 @@ ensure_github_remote() {
   run git remote add github "$url"
 }
 
+with_github_git_auth() {
+  # Run git with HTTPS auth. Args: git subcommand + args (e.g. push github tag)
+  local askpass ec
+  askpass=$(mktemp)
+  chmod 700 "$askpass"
+  cat >"$askpass" <<'EOS'
+#!/usr/bin/env bash
+case "$1" in
+  *Username*) printf '%s\n' "${GIT_USER:-x-access-token}" ;;
+  *Password*) printf '%s\n' "${GIT_PASS}" ;;
+  *) printf '\n' ;;
+esac
+EOS
+  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
+      GIT_USER=x-access-token GIT_PASS="$GITHUB_TOKEN" \
+      git -c credential.helper= "$@"
+    ec=$?
+  elif command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    gh auth setup-git >/dev/null 2>&1 || true
+    GIT_TERMINAL_PROMPT=0 git "$@"
+    ec=$?
+  else
+    rm -f "$askpass"
+    echo "error: no GITHUB_TOKEN and gh is not logged in" >&2
+    return 1
+  fi
+  rm -f "$askpass"
+  return "$ec"
+}
+
 if [[ "$SKIP_GIT" -eq 0 ]]; then
   ensure_github_remote
   if ! git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
     echo "    fetching tag ${TAG} from origin (Forgejo)"
     run git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
   fi
-  echo "    pushing tag ${TAG} → github"
-  # Prefer token in URL only for this push when https + token available
-  if [[ -n "$GITHUB_TOKEN" ]]; then
-    PUSH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_OWNER}/${GITHUB_REPO}.git"
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-      echo "DRY-RUN: git push <redacted-github-url> refs/tags/${TAG}"
-    else
-      git push "$PUSH_URL" "refs/tags/${TAG}"
-    fi
-    if [[ "$PUSH_MAIN" -eq 1 ]]; then
-      if [[ "$DRY_RUN" -eq 1 ]]; then
-        echo "DRY-RUN: git push <redacted-github-url> ${TARGET}:main"
-      else
-        git push "$PUSH_URL" "${TARGET}:main"
-      fi
-    fi
+
+  echo "    preflight  : git ls-remote"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "DRY-RUN: git ls-remote https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}.git HEAD"
   else
-    run git push github "refs/tags/${TAG}"
-    if [[ "$PUSH_MAIN" -eq 1 ]]; then
-      run git push github "${TARGET}:main"
+    if ! with_github_git_auth ls-remote "https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}.git" HEAD >/dev/null; then
+      echo "error: GitHub Git auth failed (ls-remote)." >&2
+      echo "  Use a PAT (Contents: Read and write), not your GitHub account password." >&2
+      echo "  source ~/.config/github/load.sh   # or: gh auth login && gh auth setup-git" >&2
+      exit 1
+    fi
+    echo "    preflight  : ok"
+  fi
+
+  echo "    pushing tag ${TAG} → github"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "DRY-RUN: git push github refs/tags/${TAG}"
+  else
+    with_github_git_auth push github "refs/tags/${TAG}"
+  fi
+  if [[ "$PUSH_MAIN" -eq 1 ]]; then
+    echo "    pushing ${TARGET}:main → github (force=${FORCE_MAIN})"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      if [[ "$FORCE_MAIN" -eq 1 ]]; then
+        echo "DRY-RUN: git push --force github ${TARGET}:main"
+      else
+        echo "DRY-RUN: git push github ${TARGET}:main"
+      fi
+    else
+      if [[ "$FORCE_MAIN" -eq 1 ]]; then
+        with_github_git_auth push --force github "${TARGET}:main"
+      elif ! with_github_git_auth push github "${TARGET}:main"; then
+        echo "error: push to github main failed (often unrelated histories)." >&2
+        echo "  One-time align: re-run with --force-main" >&2
+        echo "  (replaces GitHub main with the Forgejo release tip — ADR-057)" >&2
+        exit 1
+      fi
     fi
   fi
 else
