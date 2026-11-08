@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 The steakOS Authors
 #
-# steakOS bootstrap (Windows 11) — one-line install P3.
+# steakOS bootstrap (Windows 11) - one-line install P3.
 # Ensures Java 21 (Temurin) + PostgreSQL 16 + DB roles, then runs install.ps1.
 #
 # Usage (Admin PowerShell only when deps are missing):
@@ -62,11 +62,19 @@ function Test-IsAdmin {
 }
 
 function Get-JavaMajor {
+    # java -version writes to stderr. Under ErrorActionPreference=Stop that
+    # becomes a terminating error and looks like "Java not found" (major 0).
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     try {
-        $line = (& java -version 2>&1 | Select-Object -First 1) | Out-String
+        $out = & cmd.exe /d /c "java -version 2>&1"
+        $line = @($out) | Select-Object -First 1 | Out-String
         if ($line -match 'version "1\.(\d+)') { return [int]$Matches[1] }
         if ($line -match 'version "(\d+)') { return [int]$Matches[1] }
     } catch { }
+    finally {
+        $ErrorActionPreference = $old
+    }
     return 0
 }
 
@@ -84,6 +92,24 @@ function Test-PostgresReady {
         $tcp.Close()
     } catch { }
     return $false
+}
+
+function Add-PostgresBinToPath {
+    $roots = @(
+        "${env:ProgramFiles}\PostgreSQL",
+        "${env:ProgramFiles(x86)}\PostgreSQL"
+    )
+    foreach ($root in $roots) {
+        if (-not (Test-Path $root)) { continue }
+        $pgBin = Get-ChildItem -Path $root -Filter psql.exe -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+        if ($pgBin) {
+            $env:Path = "$($pgBin.DirectoryName);$env:Path"
+            return $pgBin.FullName
+        }
+    }
+    return $null
 }
 
 function Confirm-Step([string] $Prompt) {
@@ -150,9 +176,11 @@ function Install-Postgres16 {
 function Invoke-DbSetup([string] $SqlPath) {
     if (-not (Test-Path $SqlPath)) { Die "DB setup SQL missing: $SqlPath" }
     Write-Info 'Creating steakOS databases (role + steakos_*)'
+    $found = Add-PostgresBinToPath
     $psql = Get-Command psql -ErrorAction SilentlyContinue
     if (-not $psql) {
-        Write-Warning 'psql not on PATH — run db\setup-postgresql.sql as postgres superuser manually'
+        if ($found) { Write-Warning "psql found at $found but could not be invoked" }
+        else { Write-Warning 'psql not on PATH - run db\setup-postgresql.sql as postgres superuser manually' }
         return
     }
     $env:PGPASSWORD = if ($env:PGPASSWORD) { $env:PGPASSWORD } else { 'postgres' }
@@ -163,7 +191,7 @@ function Invoke-DbSetup([string] $SqlPath) {
 }
 
 # --- deps ---------------------------------------------------------------------
-Write-Info "Windows bootstrap → prefix $Prefix"
+Write-Info "Windows bootstrap -> prefix $Prefix"
 
 $needJava = Test-NeedJava21
 $needPg = -not (Test-PostgresReady)
@@ -174,41 +202,47 @@ if ($needElev -and -not (Test-IsAdmin)) {
 }
 
 if (-not $SkipDeps) {
-    if ($needJava) { Install-Java21 } else { Write-Info "Java $(Get-JavaMajor)+ on PATH — skipping JDK install" }
-    if ($needPg) { Install-Postgres16 } else { Write-Info 'PostgreSQL responding on 5432 — skipping install' }
+    if ($needJava) { Install-Java21 } else { Write-Info "Java $(Get-JavaMajor)+ on PATH - skipping JDK install" }
+    if ($needPg) { Install-Postgres16 } else { Write-Info 'PostgreSQL responding on 5432 - skipping install' }
 } else {
     Write-Info 'Skipping dependency install (-SkipDeps)'
 }
 
-if (-not (Get-Command java -ErrorAction SilentlyContinue)) { Die 'java not found after install — open a new PowerShell and re-run' }
+if (-not (Get-Command java -ErrorAction SilentlyContinue)) { Die 'java not found after install - open a new PowerShell and re-run' }
 if ((Get-JavaMajor) -lt 21) { Die "Java 21+ required (found $(Get-JavaMajor))" }
 
 # --- package installer --------------------------------------------------------
+# iex (one-liner) has no script path. A saved file on Windows PowerShell 5.1
+# also needs ExecutionPolicy Bypass. Always run install.ps1 as a file.
 $here = $PSScriptRoot
-if (-not $here) { $here = Split-Path -Parent $MyInvocation.MyCommand.Path }
-$installer = Join-Path $here 'install.ps1'
-if (-not (Test-Path $installer)) {
+if (-not $here) {
+    try { $here = Split-Path -Parent $MyInvocation.MyCommand.Path } catch { $here = $null }
+}
+$installer = $null
+if ($here) {
+    $candidate = Join-Path $here 'install.ps1'
+    if (Test-Path $candidate) { $installer = $candidate }
+}
+if (-not $installer) {
     Write-Info "Fetching install.ps1 from $RawBase"
     $installer = Join-Path $env:TEMP 'steakos-install.ps1'
     Invoke-WebRequest -UseBasicParsing "$RawBase/scripts/install/install.ps1" -OutFile $installer
 }
 
 $env:STEAKOS_REQUIRE_CHECKSUM = '1'
-$pkgArgs = @{
-    Prefix  = $Prefix
-    NoStart = $true
-}
+$env:GRAILS_ENV = 'production'
+$psArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $installer, '-Prefix', $Prefix, '-NoStart')
 if ($OfflineZip) {
-    $pkgArgs['OfflineZip'] = $OfflineZip
+    $psArgs += @('-OfflineZip', $OfflineZip)
 } else {
     $resolved = Resolve-ReleaseBase
     Write-Info "Release package host: $resolved"
-    $pkgArgs['BaseUrl'] = $resolved
+    $psArgs += @('-BaseUrl', $resolved)
 }
-if ($Version) { $pkgArgs['Version'] = $Version }
+if ($Version) { $psArgs += @('-Version', $Version) }
 
-Write-Info 'Installing steakOS package'
-& $installer @pkgArgs
+Write-Info 'Installing steakOS package (production)'
+& powershell.exe @psArgs
 
 $sql = Join-Path $Prefix 'db\setup-postgresql.sql'
 if (-not $NoDb) {
@@ -231,5 +265,5 @@ Write-Host "  prefix : $Prefix"
 Write-Host "  control: $Prefix\bin\steakos.ps1 {start|stop|status|logs|version}"
 Write-Host "  config : $Prefix\config\steakos.env"
 Write-Host ''
-Write-Host 'Open the URL printed by start. Change the default admin password before sharing the machine.'
-Write-Host 'Prefer to read the script first? Download bootstrap.ps1 from GitHub and run it locally.'
+Write-Host 'Open http://127.0.0.1:9090/tour/ for the introduction, then http://127.0.0.1:9090/setup for the configuration wizard.'
+Write-Host 'This install runs in production. It does not ship a development password.'

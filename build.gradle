@@ -29,8 +29,8 @@ buildscript {
 }
 
 // Product SemVer (VERSIONS.md V6): 0.x until SBM GA → 1.0.0. Source of V for /api/version.
-// 0.2.4 = PDR-026 demo trio + story records (21 Toys Co.; quotes/orders/invoices/POs/opps)
-version = "0.2.4"
+// 0.2.5 = Windows installer: Java detection, ASCII scripts, separate start logs, production
+version = "0.2.5"
 group = "steakos"
 
 apply plugin:"eclipse"

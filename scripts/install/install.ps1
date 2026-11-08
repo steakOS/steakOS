@@ -5,8 +5,8 @@
 #   # or with parameters (download then invoke):
 #   & ([scriptblock]::Create((irm http://steakos.lan:8088/install.ps1))) -BaseUrl http://steakos.lan:8088
 #   .\install.ps1 -BaseUrl http://192.168.1.10:8088 -Prefix "$env:LOCALAPPDATA\steakOS"
-#   .\install.ps1 -OfflineZip C:\path\steakOS-V0.1.6-….zip
-#   .\install.ps1 -BaseUrl … -NoStart
+#   .\install.ps1 -OfflineZip C:\path\steakOS-V0.1.6-....zip
+#   .\install.ps1 -BaseUrl ... -NoStart
 #
 # Environment:
 #   STEAKOS_BASE_URL, STEAKOS_PREFIX, STEAKOS_VERSION
@@ -25,9 +25,20 @@ function Write-Info([string]$msg) { Write-Host "==> $msg" }
 function Assert-Java {
     $java = Get-Command java -ErrorAction SilentlyContinue
     if (-not $java) {
-        throw 'java not found. Install a JRE/JDK 17+ (e.g. Eclipse Temurin) and re-open PowerShell.'
+        throw 'java not found. Install Eclipse Temurin JDK 21 and re-open PowerShell.'
     }
-    Write-Info "Java: $(& java -version 2>&1 | Select-Object -First 1)"
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $line = (& cmd.exe /d /c "java -version 2>&1" | Select-Object -First 1 | Out-String).Trim()
+    $ErrorActionPreference = $old
+    if ($line -notmatch 'version "1\.(\d+)|version "(\d+)') {
+        throw "Java 21+ required (could not read version: $line)"
+    }
+    $major = 0
+    if ($line -match 'version "1\.(\d+)') { $major = [int]$Matches[1] }
+    elseif ($line -match 'version "(\d+)') { $major = [int]$Matches[1] }
+    if ($major -lt 21) { throw "Java 21+ required (found $major)" }
+    Write-Info "Java: $line"
 }
 
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("steakos-install-" + [guid]::NewGuid().ToString('N'))
@@ -55,7 +66,7 @@ try {
                 throw "host latest is softwareVersion=$($meta.softwareVersion) but -Version $Version was requested"
             }
         } catch {
-            Write-Info "latest.json not available — trying latest.zip ($($_.Exception.Message))"
+            Write-Info "latest.json not available - trying latest.zip ($($_.Exception.Message))"
         }
 
         $artUrl = "$BaseUrl/$zipName"
@@ -63,7 +74,7 @@ try {
         Write-Info "Downloading $artUrl"
         Invoke-WebRequest -Uri $artUrl -OutFile $zipPath -UseBasicParsing
 
-        # checksums — required for GitHub / STEAKOS_REQUIRE_CHECKSUM=1
+        # checksums - required for GitHub / STEAKOS_REQUIRE_CHECKSUM=1
         $requireSum = ($env:STEAKOS_REQUIRE_CHECKSUM -eq '1') -or ($BaseUrl -match 'github\.com')
         try {
             $sumUrl = "$BaseUrl/checksums.sha256"
@@ -79,7 +90,7 @@ try {
                 Write-Info 'Checksum OK'
             } else {
                 if ($requireSum) { throw "checksums.sha256 has no entry for $zipName (required on public host)" }
-                Write-Info "checksums.sha256 has no entry for $zipName — skipping"
+                Write-Info "checksums.sha256 has no entry for $zipName - skipping"
             }
         } catch {
             if ($requireSum) { throw }
@@ -124,7 +135,7 @@ try {
         Copy-Item $envBackup (Join-Path $cfgDir 'steakos.env') -Force
     } elseif (-not (Test-Path (Join-Path $Prefix 'config\steakos.env'))) {
         Copy-Item (Join-Path $Prefix 'config\steakos.env.example') (Join-Path $Prefix 'config\steakos.env')
-        Write-Info "Wrote config\steakos.env from example — edit DB password before production use"
+        Write-Info "Wrote config\steakos.env from example - edit DB password before production use"
     }
 
     if (-not $NoStart) {
@@ -133,7 +144,7 @@ try {
         try {
             & $ctl start
         } catch {
-            Write-Warning "start failed — check PostgreSQL and logs under $Prefix\logs"
+            Write-Warning "start failed - check PostgreSQL and logs under $Prefix\logs"
             Write-Warning "DB bootstrap: run db\setup-postgresql.sql as superuser"
         }
     } else {

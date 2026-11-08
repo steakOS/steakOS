@@ -20,7 +20,7 @@ $Jar = Join-Path $AppDir 'steakOS.jar'
 
 function Load-EnvFile {
     $file = if (Test-Path $EnvFile) { $EnvFile } elseif (Test-Path $EnvExample) {
-        Write-Warning "no config/steakos.env — using example defaults"
+        Write-Warning "no config/steakos.env - using example defaults"
         $EnvExample
     } else { $null }
 
@@ -81,7 +81,7 @@ switch ($Command) {
         Get-RuntimeConfig
         if (-not (Test-Path $Jar)) { throw "missing $Jar" }
         $java = Get-Command java -ErrorAction SilentlyContinue
-        if (-not $java) { throw 'java not found (need JRE 17+)' }
+        if (-not $java) { throw 'java not found (need JDK 21+)' }
 
         New-Item -ItemType Directory -Force -Path $RunDir, $LogDir | Out-Null
         $existing = Get-PidIfRunning
@@ -99,18 +99,27 @@ switch ($Command) {
             $Jar
         )
 
+        $errLog = Join-Path $LogDir 'steakos.err.log'
+        New-Item -ItemType Directory -Force -Path $RunDir, $LogDir | Out-Null
+        if (Test-Path $LogFile) { Remove-Item $LogFile -Force -ErrorAction SilentlyContinue }
+        if (Test-Path $errLog) { Remove-Item $errLog -Force -ErrorAction SilentlyContinue }
+
         Write-Output "starting steakOS  env=$($env:GRAILS_ENV)  port=$($env:SERVER_PORT)"
+        # Windows PowerShell refuses to send stdout and stderr to the same file.
         $proc = Start-Process -FilePath 'java' -ArgumentList $argList `
-            -RedirectStandardOutput $LogFile -RedirectStandardError $LogFile `
+            -RedirectStandardOutput $LogFile -RedirectStandardError $errLog `
             -PassThru -WindowStyle Hidden
-        Set-Content -Path $PidFile -Value $proc.Id
-        Start-Sleep -Seconds 1
+        Set-Content -Path $PidFile -Value $proc.Id -Encoding ascii
+        Start-Sleep -Seconds 2
         if (Get-Process -Id $proc.Id -ErrorAction SilentlyContinue) {
             Write-Output "started  pid=$($proc.Id)"
             Write-Output "logs     $LogFile"
-            Write-Output "API      http://$($env:SERVER_ADDRESS):$($env:SERVER_PORT)/"
+            Write-Output "errors   $errLog"
+            Write-Output "open     http://127.0.0.1:$($env:SERVER_PORT)/tour/"
         } else {
-            throw "process exited immediately — see $LogFile"
+            $hint = ''
+            if (Test-Path $errLog) { $hint = (Get-Content $errLog -Tail 20 | Out-String) }
+            throw "process exited immediately - see $errLog`n$hint"
         }
     }
     'stop' {
