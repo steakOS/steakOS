@@ -172,6 +172,7 @@ EOF
 # Start helpers live in scripts/install/runtime/ and are copied into the package
 install -m 0755 "$ROOT/scripts/install/runtime/steakos" "$STAGE/bin/steakos"
 install -m 0644 "$ROOT/scripts/install/runtime/steakos.ps1" "$STAGE/bin/steakos.ps1"
+install -m 0644 "$ROOT/scripts/install/runtime/steakos-panel.ps1" "$STAGE/bin/steakos-panel.ps1"
 
 # --- VERSION / README ---------------------------------------------------------
 cat > "$STAGE/VERSION" <<EOF

@@ -322,6 +322,37 @@ if (Test-Path $envFile) {
     }
 }
 
+function Start-SteakosPanel {
+    $panel = Join-Path $Prefix 'bin\steakos-panel.ps1'
+    if (-not (Test-Path $panel)) {
+        $raw = 'https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/runtime/steakos-panel.ps1'
+        try {
+            New-Item -ItemType Directory -Force -Path (Join-Path $Prefix 'bin') | Out-Null
+            Invoke-WebRequest -Uri $raw -OutFile $panel -UseBasicParsing
+        } catch {
+            Write-Warning "Could not fetch the power panel: $($_.Exception.Message)"
+            return
+        }
+    }
+    Write-Info 'Opening the steakOS power panel (stays up when the app is off)'
+    Start-Process -FilePath 'powershell.exe' -ArgumentList @(
+        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', $panel
+    ) -WindowStyle Hidden
+    $desktop = [Environment]::GetFolderPath('Desktop')
+    if ($desktop) {
+        $lnk = Join-Path $desktop 'steakOS.lnk'
+        $shell = New-Object -ComObject WScript.Shell
+        $sc = $shell.CreateShortcut($lnk)
+        $sc.TargetPath = 'powershell.exe'
+        $sc.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$panel`""
+        $sc.WorkingDirectory = $Prefix
+        $sc.Description = 'steakOS power panel'
+        $sc.Save()
+    }
+}
+
+Start-SteakosPanel
+
 $started = $false
 if (-not $NoStart) {
     $ctl = Join-Path $Prefix 'bin\steakos.ps1'
