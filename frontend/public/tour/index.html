@@ -10,21 +10,51 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
         html, body { height: 100%; }
-        body { font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(ellipse 70% 45% at 50% -8%, rgba(232, 160, 74, 0.10), transparent 60%),
+                #0c0b09;
+        }
         .heading { font-family: 'Space Grotesk', sans-serif; }
         .progress-bar { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .choice-card { transition: all 0.3s; }
-        .choice-card:hover { transform: scale(1.03); border-color: #fbbf24; }
-        /* Compact density for ~1680×1024: most pages fit without page scroll */
+        .choice-card { transition: border-color 0.2s, background 0.2s; }
+        .choice-card:hover { border-color: #e8a04a; background: #221c14; }
         .tour-shell {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            max-height: 100vh;
+            width: min(1040px, calc(100vw - 48px));
+            max-height: calc(100vh - 48px);
             box-sizing: border-box;
-            padding: 0.75rem 1.25rem 0.75rem;
+            padding: 28px 36px 20px;
+            background: #14120f;
+            border: 1px solid #322b22;
+            border-radius: 22px;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
         }
-        .tour-header { flex: 0 0 auto; margin-bottom: 0.5rem; }
+        .tour-header {
+            flex: 0 0 auto;
+            display: grid;
+            grid-template-columns: auto minmax(180px, 1fr) auto;
+            align-items: center;
+            gap: 22px;
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2a241c;
+        }
+        .tour-progress { min-width: 0; }
+        .tour-progress-track {
+            height: 6px;
+            background: #2a241c;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .tour-progress-meta { margin-top: 6px; }
         #content-area {
             flex: 1 1 auto;
             min-height: 0;
@@ -32,72 +62,79 @@
         }
         .tour-nav {
             flex: 0 0 auto;
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid #27272a;
+            margin-top: 8px;
+            padding-top: 14px;
+            border-top: 1px solid #2a241c;
         }
         .tour-page { margin-bottom: 0; }
         .tour-title-row {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 0.65rem;
-            background: #18181b;
-            padding: 0.35rem 0.85rem;
-            border-radius: 1rem;
-            margin-bottom: 0.65rem;
+            gap: 0.75rem;
+            margin-bottom: 1.1rem;
         }
-        .tour-title-row .tour-icon { font-size: 1.75rem; line-height: 1; }
-        .tour-title-row .tour-title { font-size: 1.35rem; font-weight: 600; }
-        /* Examples slightly larger than body; tight gaps */
-        .tour-examples { margin: 0 0 0.65rem; }
-        .tour-examples-label { margin-bottom: 0.35rem; }
-        .tour-examples-list { display: flex; flex-direction: column; gap: 0.35rem; }
-        .tour-example { font-size: 1.2rem; line-height: 1.3; margin: 0; }
-        .tour-body { font-size: 1.05rem; line-height: 1.4; margin: 0; }
-        .tour-section { margin-top: 0.65rem; }
-        .tour-section-label { margin-bottom: 0.35rem; }
+        .tour-title-row .tour-icon { font-size: 1.85rem; line-height: 1; }
+        .tour-title-row .tour-title { font-size: 1.85rem; font-weight: 600; letter-spacing: -0.02em; }
+        .tour-examples { margin: 0 0 1.1rem; }
+        .tour-examples-label { margin-bottom: 0.45rem; letter-spacing: 0.08em; }
+        .tour-examples-list { display: flex; flex-direction: column; gap: 0.45rem; }
+        .tour-example { font-size: 1.2rem; line-height: 1.45; margin: 0; }
+        .tour-body { font-size: 1.125rem; line-height: 1.6; margin: 0; max-width: 68ch; }
+        .tour-section { margin-top: 1.15rem; }
+        .tour-section-label { margin-bottom: 0.5rem; letter-spacing: 0.06em; }
+        .mermaid { overflow-x: auto; }
         .acronym-letter {
             color: #fbbf24;
             font-weight: 700;
             font-size: 1.1em;
             letter-spacing: 0.02em;
         }
-        @media (max-width: 640px) {
-            .tour-shell { padding: 0.5rem 0.75rem; }
+        @media (max-width: 800px) {
+            body { align-items: stretch; background: #0c0b09; }
+            .tour-shell {
+                width: 100%;
+                max-height: 100vh;
+                height: 100vh;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+                padding: 0.75rem 0.9rem;
+            }
+            .tour-header { grid-template-columns: 1fr; gap: 10px; }
             .tour-example { font-size: 1.05rem; }
-            .tour-body { font-size: 0.95rem; }
-            .tour-title-row .tour-title { font-size: 1.15rem; }
+            .tour-body { font-size: 1rem; }
+            .tour-title-row .tour-title { font-size: 1.3rem; }
         }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100">
-    <div class="tour-shell max-w-4xl mx-auto w-full">
-        <!-- Header - only once -->
-        <div class="tour-header flex justify-between items-center gap-3 flex-wrap">
+<body class="text-zinc-100">
+    <div class="tour-shell">
+        <div class="tour-header">
             <div class="flex items-center gap-3">
-                <img src="/logo_small.png" alt="" width="36" height="36" class="rounded-xl object-cover" style="background:#0d1015" aria-hidden="true"/>
+                <img src="/logo_small.png" alt="" width="40" height="40" class="rounded-xl object-cover" style="background:#0d1015" aria-hidden="true"/>
                 <div>
                     <div class="heading text-xl font-bold leading-tight">steakOS</div>
-                    <div class="text-[10px] text-zinc-500 leading-tight">In-app onboarding tour</div>
+                    <div class="text-[11px] text-zinc-500 leading-tight">Onboarding tour</div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-                <a href="/setup" class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400">Setup wizard</a>
-                <a href="/dashboard" data-dashboard-link hidden class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400">App dashboard</a>
-
-                <div class="w-40 sm:w-56 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+            <div class="tour-progress">
+                <div class="tour-progress-track">
                     <div id="progress-bar" class="progress-bar h-full bg-amber-500 w-0"></div>
                 </div>
-                <div class="text-right">
-                    <div id="progress-text" class="text-zinc-400 text-sm font-medium leading-tight">Section 1/11</div>
-                    <div id="section-detail" class="text-[10px] text-zinc-500 leading-tight"></div>
+                <div class="tour-progress-meta flex justify-between gap-3">
+                    <div id="progress-text" class="text-zinc-300 text-sm font-medium leading-tight">Section 1/11</div>
+                    <div id="section-detail" class="text-[12px] text-zinc-500 leading-tight text-right"></div>
                 </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/setup" class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400 whitespace-nowrap">Setup wizard</a>
+                <a href="/dashboard" data-dashboard-link hidden class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400 whitespace-nowrap">App dashboard</a>
             </div>
         </div>
 
         <div id="content-area"></div>
 
-        <!-- Navigation - pinned in viewport -->
+        <!-- Navigation sits under the text, not at the bottom of the monitor -->
         <div class="tour-nav flex justify-between items-center gap-3">
             <button onclick="prevStep()" class="px-5 py-2 border border-zinc-700 hover:bg-zinc-900 rounded-2xl flex items-center gap-2 font-medium text-sm">← Previous</button>
             <div class="flex items-center gap-2">
@@ -272,7 +309,7 @@
                         <div class="tour-section-label text-amber-400 text-xs font-medium">${tourChrome('Make your choice', 'Treffen Sie Ihre Wahl', 'Elija una opción')}</div>
                         <div class="grid md:grid-cols-2 gap-3">
                             ${page.choices.map((choice, i) => `
-                                <div onclick="makeChoice(${i})" class="choice-card cursor-pointer bg-zinc-900 p-4 rounded-2xl border-2 border-transparent hover:border-amber-500 text-sm leading-snug">
+                                <div onclick="makeChoice(${i})" class="choice-card cursor-pointer bg-zinc-900/80 p-4 rounded-2xl border border-zinc-700 text-sm leading-snug">
                                     ${formatText(choice)}
                                 </div>
                             `).join('')}
