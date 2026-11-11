@@ -224,7 +224,7 @@ cd steakOS
 
 ### One-line install
 
-Installs Java and PostgreSQL if needed, downloads the packaged app from the latest GitHub Release, and starts it.
+Installs Java and PostgreSQL if needed, downloads the packaged app, and starts **production** on the introduction. It does not ship a login. Admin and CEO credentials are set in the wizard. The app is not ready for normal work until the tour and the wizard are both finished.
 
 **Linux / macOS:**
 
@@ -238,7 +238,10 @@ curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/instal
 irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
 ```
 
-After install, open **http://localhost:9090**, sign in (packaged default first user is documented on [Getting started](https://steakos.org/getting-started.html)), **change the password**, complete the wizard, and use Help.
+When it finishes, open both of these (port is the one printed; 9090 unless you changed it). If localhost refuses, use 127.0.0.1.
+
+- http://127.0.0.1:9090/tour/
+- http://localhost:9090/tour/
 
 Offline zip: `./scripts/install/install.sh --offline /path/to/steakOS-….zip`
 

@@ -191,7 +191,7 @@ Quick start
 2. cp config/steakos.env.example config/steakos.env   # edit passwords
 3. bin/steakos start          # Linux/macOS
    or:  powershell -File bin/steakos.ps1 start
-4. Open http://localhost:9090  (API / Grails). Full React UI is in web/;
+4. Open both http://127.0.0.1:9090/tour/ and http://localhost:9090/tour/ (use 127.0.0.1 if localhost refuses). Not ready until tour and wizard are finished.
    for day-to-day eval prefer the installer's default path in QUICKSTART.md.
 
 Commands:  start | stop | status | logs | version

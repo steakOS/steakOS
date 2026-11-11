@@ -347,17 +347,60 @@ if [[ "$BOOTSTRAP_DB" -eq 1 ]]; then
   fi
 fi
 
+# PDR-036 / ADR-058: do not start until the schema pack is applied to steakos_prod.
+SCHEMA="$(ls -1 "$PREFIX"/db/schema/steakOS-*.sql 2>/dev/null | sort | tail -1 || true)"
+if [[ -z "$SCHEMA" || ! -f "$SCHEMA" ]]; then
+  die "Production database has no steakOS schema pack in this package. Re-run the installer when the release includes db/schema. Do not switch to development."
+fi
+if command -v psql >/dev/null 2>&1 || [[ -x /usr/bin/psql ]]; then
+  :
+else
+  die "psql not found. Cannot apply the production schema pack. Do not switch to development."
+fi
+marked="$(psql -U postgres -d steakos_prod -tAc "SELECT to_regclass('public.schema_pack')" 2>/dev/null || sudo -u postgres psql -d steakos_prod -tAc "SELECT to_regclass('public.schema_pack')" 2>/dev/null || true)"
+if [[ "$marked" == *schema_pack* ]]; then
+  info "schema_pack already present — not reapplying schema"
+else
+  info "Applying production schema $(basename "$SCHEMA")"
+  if command -v sudo >/dev/null 2>&1 && id postgres >/dev/null 2>&1; then
+    sudo -u postgres psql -d steakos_prod -v ON_ERROR_STOP=1 -f "$SCHEMA" || die "Schema pack failed. Do not switch to development."
+  else
+    psql -d steakos_prod -v ON_ERROR_STOP=1 -f "$SCHEMA" || die "Schema pack failed. Do not switch to development."
+  fi
+fi
+
+ENV_FILE="$PREFIX/config/steakos.env"
+if [[ -f "$ENV_FILE" ]]; then
+  if grep -qE '^[[:space:]]*GRAILS_ENV=' "$ENV_FILE"; then
+    sed -i.bak -E 's/^[[:space:]]*GRAILS_ENV=.*/GRAILS_ENV=production/' "$ENV_FILE"
+    rm -f "$ENV_FILE.bak"
+  else
+    printf '\nGRAILS_ENV=production\n' >> "$ENV_FILE"
+  fi
+fi
+export GRAILS_ENV=production
+
 if [[ "$NO_START" -eq 0 ]]; then
-  info "Starting steakOS"
+  info "Starting steakOS (production)"
   "$PREFIX/bin/steakos" start || warn "start failed — see $PREFIX/logs/steakos.log"
 fi
 
+PORT="9090"
+if [[ -f "$ENV_FILE" ]]; then
+  line="$(grep -E '^[[:space:]]*SERVER_PORT=' "$ENV_FILE" | tail -1 || true)"
+  if [[ "$line" =~ =([0-9]+) ]]; then
+    PORT="${BASH_REMATCH[1]}"
+  fi
+fi
+
 echo ""
-echo "steakOS bootstrap finished"
-echo "  prefix : $PREFIX"
-echo "  control: $PREFIX/bin/steakos {start|stop|status|logs|version}"
-echo "  config : $PREFIX/config/steakos.env"
+echo "steakOS is running in production."
+echo "Open the introduction:"
 echo ""
-echo "Open the URL printed by start (often http://127.0.0.1:9090)."
-echo "Sign in, then change the default admin password before sharing the machine."
-echo "Prefer to read the script first next time? Save bootstrap.sh from GitHub and run it locally."
+echo "  http://127.0.0.1:${PORT}/tour/"
+echo "  http://localhost:${PORT}/tour/"
+echo ""
+echo "If localhost refuses to connect, use 127.0.0.1."
+echo "The configuration wizard comes after the introduction."
+echo "Admin and CEO credentials are set in the wizard, not in this download."
+echo "The app is not ready for normal work until the tour and the wizard are both finished."

@@ -116,6 +116,8 @@ switch ($Command) {
             Write-Output "logs     $LogFile"
             Write-Output "errors   $errLog"
             Write-Output "open     http://127.0.0.1:$($env:SERVER_PORT)/tour/"
+            Write-Output "open     http://localhost:$($env:SERVER_PORT)/tour/"
+            Write-Output "If localhost refuses, use 127.0.0.1. Not ready until tour and wizard are finished."
         } else {
             $hint = ''
             if (Test-Path $errLog) { $hint = (Get-Content $errLog -Tail 20 | Out-String) }

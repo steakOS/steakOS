@@ -249,21 +249,67 @@ if (-not $NoDb) {
     try { Invoke-DbSetup $sql } catch { Write-Warning $_.Exception.Message }
 }
 
+# PDR-036 / ADR-058: do not start production until the schema pack for this jar is applied.
+$schemaDir = Join-Path $Prefix 'db\schema'
+$schema = $null
+if (Test-Path $schemaDir) {
+    $schema = Get-ChildItem -Path $schemaDir -Filter 'steakOS-*.sql' -ErrorAction SilentlyContinue |
+        Sort-Object Name -Descending | Select-Object -First 1
+}
+if (-not $schema) {
+    Die 'Production database has no steakOS schema pack in this package. Re-run the installer when the release includes db/schema. Do not switch to development.'
+}
+Add-PostgresBinToPath | Out-Null
+$psqlCmd = Get-Command psql -ErrorAction SilentlyContinue
+if (-not $psqlCmd) {
+    Die 'psql not found. Cannot apply the production schema pack. Do not switch to development.'
+}
+$env:PGPASSWORD = if ($env:PGPASSWORD) { $env:PGPASSWORD } else { 'postgres' }
+$marked = & psql -U postgres -d steakos_prod -tAc "SELECT to_regclass('public.schema_pack')" 2>$null
+if ($marked -and $marked.Trim() -eq 'schema_pack') {
+    Write-Info 'schema_pack already present - not reapplying schema'
+} else {
+    Write-Info "Applying production schema $($schema.Name)"
+    & psql -U postgres -d steakos_prod -v ON_ERROR_STOP=1 -f $schema.FullName
+    if ($LASTEXITCODE -ne 0) { Die 'Schema pack failed. Do not switch to development.' }
+}
+
+$envFile = Join-Path $Prefix 'config\steakos.env'
+if (Test-Path $envFile) {
+    $rawEnv = [IO.File]::ReadAllText($envFile)
+    if ($rawEnv -match '(?m)^\s*GRAILS_ENV\s*=') {
+        $rawEnv = [regex]::Replace($rawEnv, '(?m)^\s*GRAILS_ENV\s*=.*$', 'GRAILS_ENV=production')
+    } else {
+        $rawEnv += "`r`nGRAILS_ENV=production`r`n"
+    }
+    [IO.File]::WriteAllText($envFile, $rawEnv)
+}
+$env:GRAILS_ENV = 'production'
+
 if (-not $NoStart) {
     $ctl = Join-Path $Prefix 'bin\steakos.ps1'
     if (Test-Path $ctl) {
-        Write-Info 'Starting steakOS'
+        Write-Info 'Starting steakOS (production)'
         & $ctl start
     } else {
         Write-Warning "control script missing: $ctl"
     }
 }
 
+$port = '9090'
+if (Test-Path $envFile) {
+    foreach ($line in Get-Content $envFile) {
+        if ($line -match '^\s*SERVER_PORT\s*=\s*(\d+)') { $port = $Matches[1] }
+    }
+}
 Write-Host ''
-Write-Host 'steakOS bootstrap finished'
-Write-Host "  prefix : $Prefix"
-Write-Host "  control: $Prefix\bin\steakos.ps1 {start|stop|status|logs|version}"
-Write-Host "  config : $Prefix\config\steakos.env"
+Write-Host 'steakOS is running in production.'
+Write-Host 'Open the introduction:'
 Write-Host ''
-Write-Host 'Open http://127.0.0.1:9090/tour/ for the introduction, then http://127.0.0.1:9090/setup for the configuration wizard.'
-Write-Host 'This install runs in production. It does not ship a development password.'
+Write-Host "  http://127.0.0.1:${port}/tour/"
+Write-Host "  http://localhost:${port}/tour/"
+Write-Host ''
+Write-Host 'If localhost refuses to connect, use 127.0.0.1.'
+Write-Host 'The configuration wizard comes after the introduction.'
+Write-Host 'Admin and CEO credentials are set in the wizard, not in this download.'
+Write-Host 'The app is not ready for normal work until the tour and the wizard are both finished.'
