@@ -257,6 +257,9 @@ if ($Version) { $psArgs += @('-Version', $Version) }
 
 Write-Info 'Installing steakOS package (production)'
 & powershell.exe @psArgs
+if ($LASTEXITCODE -ne 0) {
+    Die "Package install failed (exit $LASTEXITCODE). Not applying a schema to a half-installed tree."
+}
 
 $sql = Join-Path $Prefix 'db\setup-postgresql.sql'
 if (-not $NoDb) {

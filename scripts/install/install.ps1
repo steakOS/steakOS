@@ -57,16 +57,27 @@ try {
         $BaseUrl = $BaseUrl.TrimEnd('/')
 
         $metaUrl = "$BaseUrl/latest.json"
-        $zipName = 'latest.zip'
+        $zipName = $null
+        $publicHost = ($BaseUrl -match 'github\.com') -or ($env:STEAKOS_REQUIRE_CHECKSUM -eq '1')
         Write-Info "Fetching $metaUrl"
         try {
-            $meta = Invoke-RestMethod -Uri $metaUrl -UseBasicParsing
+            # GitHub release downloads 302 to the asset. Windows PowerShell 5.1
+            # follows that. Read text ourselves so a bad file is an error, not a silent fallback.
+            $metaRaw = (Invoke-WebRequest -Uri $metaUrl -UseBasicParsing).Content
+            $meta = $metaRaw | ConvertFrom-Json
             if ($meta.zip) { $zipName = [string]$meta.zip }
-            if ($Version -and $meta.softwareVersion -and ($Version -ne $meta.softwareVersion)) {
+            if ($Version -and $meta.softwareVersion -and ($Version -ne [string]$meta.softwareVersion)) {
                 throw "host latest is softwareVersion=$($meta.softwareVersion) but -Version $Version was requested"
             }
         } catch {
+            if ($publicHost) {
+                throw "Cannot read latest.json from $metaUrl. Refusing to guess a zip name. $($_.Exception.Message)"
+            }
             Write-Info "latest.json not available - trying latest.zip ($($_.Exception.Message))"
+            $zipName = 'latest.zip'
+        }
+        if (-not $zipName) {
+            throw "latest.json at $metaUrl has no zip field. Refusing to download latest.zip."
         }
 
         $artUrl = "$BaseUrl/$zipName"

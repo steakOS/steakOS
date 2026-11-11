@@ -335,7 +335,8 @@ if [[ "$BASE_URL" == *github.com* || "$BASE_URL" == */releases/download/* || "${
 fi
 
 info "Installing steakOS package"
-# Install without start first so we can run DB SQL from the package tree
+# Install without start first so we can run DB SQL from the package tree.
+# set -e stops here if the package download or extract fails.
 bash "$INSTALLER" "${PKG_ARGS[@]}" --no-start
 
 SQL="$PREFIX/db/setup-postgresql.sql"

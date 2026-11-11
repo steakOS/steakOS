@@ -85,10 +85,20 @@ else
 
   META_URL="$BASE_URL/latest.json"
   info "Fetching $META_URL"
+  PUBLIC_HOST=0
+  if [[ "$BASE_URL" == *github.com* || "${STEAKOS_REQUIRE_CHECKSUM:-0}" == "1" ]]; then
+    PUBLIC_HOST=1
+  fi
   if curl -fsSL "$META_URL" -o "$TMPDIR_INSTALL/latest.json"; then
     ZIP_NAME="$(sed -n 's/.*"zip"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$TMPDIR_INSTALL/latest.json" | head -1)"
     PKG_VER="$(sed -n 's/.*"softwareVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$TMPDIR_INSTALL/latest.json" | head -1)"
+    if [[ -z "$ZIP_NAME" ]]; then
+      die "latest.json at $META_URL has no zip field. Refusing to guess latest.zip."
+    fi
   else
+    if [[ "$PUBLIC_HOST" -eq 1 ]]; then
+      die "latest.json missing at $META_URL. Refusing to guess latest.zip."
+    fi
     info "latest.json missing — trying latest.zip"
     ZIP_NAME="latest.zip"
     PKG_VER=""
