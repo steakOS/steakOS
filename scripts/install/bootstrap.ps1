@@ -123,7 +123,14 @@ function Install-Java21 {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Die 'winget not found. Install Temurin 21 from https://adoptium.net and re-open PowerShell, or install App Installer.'
     }
-    winget install -e --id EclipseAdoptium.Temurin.21.JDK --accept-package-agreements --accept-source-agreements
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    & winget install -e --id EclipseAdoptium.Temurin.21.JDK --source winget --accept-package-agreements --accept-source-agreements
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = $old
+    if ($code -ne 0) {
+        Die "winget could not install Temurin 21 (exit $code). The Microsoft Store source often fails certificate checks. Retry with: winget install -e --id EclipseAdoptium.Temurin.21.JDK --source winget"
+    }
     # Refresh PATH for current session (common Adoptium location)
     $candidates = @(
         "${env:ProgramFiles}\Eclipse Adoptium\jdk-21*\bin",
@@ -150,9 +157,16 @@ function Install-Postgres16 {
     $ok = $false
     foreach ($id in $ids) {
         try {
-            winget install -e --id $id --accept-package-agreements --accept-source-agreements
-            $ok = $true
-            break
+            $old = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            & winget install -e --id $id --source winget --accept-package-agreements --accept-source-agreements
+            $code = $LASTEXITCODE
+            $ErrorActionPreference = $old
+            if ($code -eq 0) {
+                $ok = $true
+                break
+            }
+            Write-Info "winget id $id failed (exit $code); trying next"
         } catch {
             Write-Info "winget id $id failed; trying next"
         }
