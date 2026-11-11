@@ -208,13 +208,13 @@ try {
         Write-Info 'Starting steakOS'
         $ctl = Join-Path $Prefix 'bin\steakos.ps1'
         try {
-            & $ctl start
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ctl start
         } catch {
             Write-Warning "start failed - check PostgreSQL and logs under $Prefix\logs"
             Write-Warning "DB bootstrap: run db\setup-postgresql.sql as superuser"
         }
     } else {
-        Write-Info "Skipping start (-NoStart). Run: powershell -File `"$Prefix\bin\steakos.ps1`" start"
+        Write-Info "Skipping start (-NoStart). Run: powershell -NoProfile -ExecutionPolicy Bypass -File `"$Prefix\bin\steakos.ps1`" start"
     }
 
     Write-Host ''
@@ -225,7 +225,7 @@ try {
         Write-Host '  version:'
         Get-Content $verFile | ForEach-Object { Write-Host "    $_" }
     }
-    Write-Host "  control: powershell -File `"$Prefix\bin\steakos.ps1`" {start|stop|status|logs|version}"
+    Write-Host "  control: powershell -NoProfile -ExecutionPolicy Bypass -File `"$Prefix\bin\steakos.ps1`" {start|stop|status|logs|version}"
     Write-Host "  config : $Prefix\config\steakos.env"
     Write-Host ''
 } finally {

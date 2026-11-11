@@ -315,7 +315,10 @@ if (-not $NoStart) {
     $ctl = Join-Path $Prefix 'bin\steakos.ps1'
     if (Test-Path $ctl) {
         Write-Info 'Starting steakOS (production)'
-        & $ctl start
+        # Restricted execution policy blocks "& .\steakos.ps1" even when this
+        # bootstrap was started with irm | iex. A child powershell -File Bypass
+        # is the same pattern used for install.ps1.
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ctl start
         if ($LASTEXITCODE -eq 0) { $started = $true }
         else { Write-Warning "start failed - see logs under $Prefix\logs" }
     } else {
@@ -337,9 +340,9 @@ if ($started) {
     Write-Host 'The app is not ready for normal work until the tour and the wizard are both finished.'
 } elseif ($NoStart) {
     Write-Host "Package installed under $Prefix (not started; -NoStart)."
-    Write-Host "When ready: $Prefix\bin\steakos.ps1 start"
+    Write-Host "When ready: powershell -NoProfile -ExecutionPolicy Bypass -File `"$Prefix\bin\steakos.ps1`" start"
     Write-Host "Then open http://127.0.0.1:${port}/tour/ and http://localhost:${port}/tour/"
 } else {
     Write-Host 'Install finished but steakOS did not start.'
-    Write-Host "Fix the error under $Prefix\logs, then: $Prefix\bin\steakos.ps1 start"
+    Write-Host "Fix the error under $Prefix\logs, then: powershell -NoProfile -ExecutionPolicy Bypass -File `"$Prefix\bin\steakos.ps1`" start"
 }

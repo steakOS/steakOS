@@ -1,5 +1,5 @@
 # steakOS package control script (Windows). Lives in dist bin/ after pack-dist.
-# Usage: powershell -File bin/steakos.ps1 {start|stop|status|logs|version|env}
+# Usage: powershell -NoProfile -ExecutionPolicy Bypass -File bin/steakos.ps1 {start|stop|status|logs|version|env}
 param(
     [Parameter(Position = 0)]
     [ValidateSet('start', 'stop', 'status', 'logs', 'version', 'env')]
