@@ -30,7 +30,7 @@ buildscript {
 
 // Product SemVer (VERSIONS.md V6): 0.x until SBM GA → 1.0.0. Source of V for /api/version.
 // 0.2.8 = packaged install serves the setup wizard from web/ at /setup
-version = "0.2.8"
+version = "0.2.9"
 group = "steakos"
 
 apply plugin:"eclipse"

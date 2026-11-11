@@ -33,7 +33,7 @@ class SpaWebFilter implements Filter {
             chain.doFilter(request, response)
             return
         }
-        File web = webRoot()
+        File web = SpaLocations.webRoot()
         if (web == null) {
             chain.doFilter(request, response)
             return
@@ -79,18 +79,6 @@ class SpaWebFilter implements Filter {
                 || uri.startsWith('/brand-') || uri.startsWith('/logo')
                 || uri.startsWith('/icon-') || uri == '/icons.svg'
                 || uri == '/apple-touch-icon.png'
-    }
-
-    private static File webRoot() {
-        String home = System.getProperty('steakos.home')
-        if (!home) {
-            home = System.getenv('STEAKOS_HOME')
-        }
-        if (!home) {
-            return null
-        }
-        File web = new File(home, 'web')
-        return web.isDirectory() ? web : null
     }
 
     private static void writeFile(HttpServletResponse res, File file) {

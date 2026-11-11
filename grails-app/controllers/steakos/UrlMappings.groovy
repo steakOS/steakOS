@@ -675,12 +675,22 @@ class UrlMappings {
         "/tour/"(controller: 'tourStatic', action: 'serve')
         "/tour/$path**"(controller: 'tourStatic', action: 'serve')
 
+        // Configuration wizard and the rest of the packaged React app (prefix/web).
+        "/setup"(controller: 'spa', action: 'page')
+        "/setup/"(controller: 'spa', action: 'page')
+        "/setup/$path**"(controller: 'spa', action: 'page')
+        "/dashboard"(controller: 'spa', action: 'page')
+        "/dashboard/$path**"(controller: 'spa', action: 'page')
+        "/assets/$path**"(controller: 'spa', action: 'asset')
+
         "/$namespace/$controller/$action?/$id?(.$format)?" {}
         "/$controller/$action?/$id?(.$format)?" {
             constraints {
                 // /tour is served by TourStaticController. Without this, index.html
                 // is parsed as controller "tour" and the static file 404s.
-                controller(validator: { val -> val != 'tour' && val != 'tourStatic' })
+                controller(validator: { val ->
+                    val != 'tour' && val != 'tourStatic' && val != 'setup' && val != 'spa' && val != 'dashboard'
+                })
             }
         }
 
