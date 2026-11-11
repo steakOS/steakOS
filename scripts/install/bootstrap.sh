@@ -411,18 +411,50 @@ if [[ "$NO_START" -eq 0 ]]; then
   fi
 fi
 
-echo ""
+OPEN_URL=""
 if [[ "$STARTED" -eq 1 ]]; then
-  echo "steakOS is starting in production."
-  echo "Open the introduction:"
+  info "Waiting until Grails answers on port ${PORT} (up to 4 minutes)"
+  deadline=$((SECONDS + 240))
+  ready=0
+  while (( SECONDS < deadline )); do
+    if [[ -f "$PREFIX/logs/steakos.err.log" ]] && grep -q 'Application run failed' "$PREFIX/logs/steakos.err.log"; then
+      warn "Grails exited during startup. See $PREFIX/logs/steakos.err.log"
+      STARTED=0
+      break
+    fi
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:${PORT}/login/auth" || true)"
+    if [[ "$code" =~ ^[23] ]]; then
+      ready=1
+      break
+    fi
+    sleep 3
+  done
+  if [[ "$ready" -eq 1 ]]; then
+    tour_code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:${PORT}/tour/index.html" || true)"
+    if [[ "$tour_code" == "200" ]]; then
+      OPEN_URL="http://127.0.0.1:${PORT}/tour/index.html"
+    else
+      OPEN_URL="http://127.0.0.1:${PORT}/login/auth"
+      info "Tour page is not served by this build. Opening the login page instead."
+    fi
+    info "Opening $OPEN_URL"
+    if command -v xdg-open >/dev/null 2>&1; then xdg-open "$OPEN_URL" >/dev/null 2>&1 || true
+    elif command -v open >/dev/null 2>&1; then open "$OPEN_URL" >/dev/null 2>&1 || true
+    fi
+  else
+    warn "Grails did not answer on port ${PORT} within 4 minutes."
+  fi
+fi
+
+echo ""
+if [[ "$STARTED" -eq 1 && -n "$OPEN_URL" ]]; then
+  echo "steakOS is up."
+  echo "Opened $OPEN_URL"
   echo ""
-  echo "  http://127.0.0.1:${PORT}/tour/"
-  echo "  http://localhost:${PORT}/tour/"
+  echo "  http://127.0.0.1:${PORT}/login/auth"
+  echo "  http://127.0.0.1:${PORT}/tour/index.html"
   echo ""
-  echo "If localhost refuses to connect, use 127.0.0.1."
-  echo "The configuration wizard comes after the introduction."
-  echo "Admin and CEO credentials are set in the wizard, not in this download."
-  echo "The app is not ready for normal work until the tour and the wizard are both finished."
+  echo "Use 127.0.0.1 if localhost refuses. Admin and CEO passwords are set in the wizard, not in this download."
 elif [[ "$NO_START" -eq 1 ]]; then
   echo "Package installed under $PREFIX (not started; --no-start)."
   echo "When ready: GRAILS_ENV=production $PREFIX/bin/steakos start"

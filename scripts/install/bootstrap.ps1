@@ -338,22 +338,87 @@ if (-not $NoStart) {
     }
 }
 
-Write-Host ''
+function Test-SteakosHttp([string]$Url) {
+    try {
+        $req = [System.Net.HttpWebRequest]::Create($Url)
+        $req.Method = 'GET'
+        $req.Timeout = 4000
+        $req.AllowAutoRedirect = $true
+        $resp = $req.GetResponse()
+        $code = [int]$resp.StatusCode
+        $resp.Close()
+        return $code
+    } catch [System.Net.WebException] {
+        $resp = $_.Exception.Response
+        if ($resp) {
+            $code = [int]$resp.StatusCode
+            $resp.Close()
+            return $code
+        }
+        return 0
+    } catch {
+        return 0
+    }
+}
+
+$openUrl = $null
 if ($started) {
-    Write-Host 'steakOS is starting in production.'
-    Write-Host 'Open the introduction:'
+    $logFile = Join-Path $Prefix 'logs\steakos.log'
+    $errFile = Join-Path $Prefix 'logs\steakos.err.log'
+    $readyUrl = "http://127.0.0.1:${port}/login/auth"
+    Write-Info "Waiting until Grails answers on port $port (up to 4 minutes)"
+    $deadline = (Get-Date).AddMinutes(4)
+    $ready = $false
+    while ((Get-Date) -lt $deadline) {
+        if (Test-Path $errFile) {
+            $errTail = Get-Content $errFile -Tail 30 -ErrorAction SilentlyContinue | Out-String
+            if ($errTail -match 'Application run failed') {
+                Write-Warning 'Grails exited during startup. Last lines of steakos.err.log:'
+                Write-Host $errTail
+                $started = $false
+                break
+            }
+        }
+        $code = Test-SteakosHttp $readyUrl
+        if ($code -ge 200 -and $code -lt 400) {
+            $ready = $true
+            break
+        }
+        if ((Test-Path $logFile) -and ((Get-Content $logFile -Tail 8 -ErrorAction SilentlyContinue | Out-String) -match 'Grails application running')) {
+            # Log says up, but the port may still be a moment behind. One more HTTP try next loop.
+        }
+        Start-Sleep -Seconds 3
+    }
+    if ($ready) {
+        $tourUrl = "http://127.0.0.1:${port}/tour/index.html"
+        $tourCode = Test-SteakosHttp $tourUrl
+        if ($tourCode -eq 200) {
+            $openUrl = $tourUrl
+        } else {
+            # This jar's Grails catch-all 404s /tour. Login is the page that works.
+            $openUrl = $readyUrl
+            Write-Info 'Tour page is not served by this build. Opening the login page instead.'
+        }
+        Write-Info "Opening $openUrl"
+        Start-Process $openUrl
+    } else {
+        Write-Warning "Grails did not answer on port $port within 4 minutes. See $errFile"
+    }
+}
+
+Write-Host ''
+if ($started -and $openUrl) {
+    Write-Host 'steakOS is up.'
+    Write-Host "Opened $openUrl"
     Write-Host ''
-    Write-Host "  http://127.0.0.1:${port}/tour/"
-    Write-Host "  http://localhost:${port}/tour/"
+    Write-Host "  http://127.0.0.1:${port}/login/auth"
+    Write-Host "  http://127.0.0.1:${port}/tour/index.html"
     Write-Host ''
-    Write-Host 'If localhost refuses to connect, use 127.0.0.1.'
-    Write-Host 'The configuration wizard comes after the introduction.'
-    Write-Host 'Admin and CEO credentials are set in the wizard, not in this download.'
-    Write-Host 'The app is not ready for normal work until the tour and the wizard are both finished.'
+    Write-Host 'Use 127.0.0.1 if localhost refuses. Admin and CEO passwords are set in the wizard, not in this download.'
 } elseif ($NoStart) {
     Write-Host "Package installed under $Prefix (not started; -NoStart)."
     Write-Host "When ready: powershell -NoProfile -ExecutionPolicy Bypass -File `"$Prefix\bin\steakos.ps1`" start"
-    Write-Host "Then open http://127.0.0.1:${port}/tour/ and http://localhost:${port}/tour/"
+    Write-Host "Then open http://127.0.0.1:${port}/login/auth (tour: http://127.0.0.1:${port}/tour/index.html when this build serves it)"
 } else {
     Write-Host 'Install finished but steakOS did not start.'
     Write-Host "Fix the error under $Prefix\logs, then: powershell -NoProfile -ExecutionPolicy Bypass -File `"$Prefix\bin\steakos.ps1`" start"

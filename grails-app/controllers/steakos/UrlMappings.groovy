@@ -669,6 +669,12 @@ class UrlMappings {
         // SPA deep-link helper: authenticated users can open /app → redirect note page
         "/app"(controller: 'appBridge', action: 'index')
 
+        // Onboarding tour is a static site under classpath:static/tour.
+        // The catch-all controller mapping below would otherwise 404 /tour.
+        "/tour"(controller: 'tourStatic', action: 'serve')
+        "/tour/"(controller: 'tourStatic', action: 'serve')
+        "/tour/$path**"(controller: 'tourStatic', action: 'serve')
+
         "/$namespace/$controller/$action?/$id?(.$format)?" {}
         "/$controller/$action?/$id?(.$format)?" {
             constraints {
