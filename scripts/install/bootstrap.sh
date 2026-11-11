@@ -359,16 +359,28 @@ else
   die "psql not found. Cannot apply the production schema pack. Do not switch to development."
 fi
 marked="$(psql -U postgres -d steakos_prod -tAc "SELECT to_regclass('public.schema_pack')" 2>/dev/null || sudo -u postgres psql -d steakos_prod -tAc "SELECT to_regclass('public.schema_pack')" 2>/dev/null || true)"
+psql_prod() {
+  if command -v sudo >/dev/null 2>&1 && id postgres >/dev/null 2>&1; then
+    sudo -u postgres psql -d steakos_prod "$@"
+  else
+    psql -U postgres -d steakos_prod "$@"
+  fi
+}
 if [[ "$marked" == *schema_pack* ]]; then
   info "schema_pack already present — not reapplying schema"
 else
   info "Applying production schema $(basename "$SCHEMA")"
-  if command -v sudo >/dev/null 2>&1 && id postgres >/dev/null 2>&1; then
-    sudo -u postgres psql -d steakos_prod -v ON_ERROR_STOP=1 -f "$SCHEMA" || die "Schema pack failed. Do not switch to development."
-  else
-    psql -d steakos_prod -v ON_ERROR_STOP=1 -f "$SCHEMA" || die "Schema pack failed. Do not switch to development."
-  fi
+  psql_prod -v ON_ERROR_STOP=1 -f "$SCHEMA" || die "Schema pack failed. Do not switch to development."
 fi
+# Applied as postgres; the app connects as steakos.
+info "Granting steakos access to steakos_prod tables"
+psql_prod -v ON_ERROR_STOP=1 <<'SQL' || die "Could not grant steakos access to steakos_prod. Do not switch to development."
+GRANT USAGE, CREATE ON SCHEMA public TO steakos;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO steakos;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO steakos;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO steakos;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO steakos;
+SQL
 
 ENV_FILE="$PREFIX/config/steakos.env"
 if [[ -f "$ENV_FILE" ]]; then

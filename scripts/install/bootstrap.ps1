@@ -290,6 +290,18 @@ if ($marked -and $marked.Trim() -eq 'schema_pack') {
     & psql -U postgres -d steakos_prod -v ON_ERROR_STOP=1 -f $schema.FullName
     if ($LASTEXITCODE -ne 0) { Die 'Schema pack failed. Do not switch to development.' }
 }
+# Schema SQL is applied as postgres, so tables are owned by postgres.
+# The app logs in as steakos and otherwise gets "permission denied for table".
+Write-Info 'Granting steakos access to steakos_prod tables'
+$grantSql = @'
+GRANT USAGE, CREATE ON SCHEMA public TO steakos;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO steakos;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO steakos;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO steakos;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO steakos;
+'@
+& psql -U postgres -d steakos_prod -v ON_ERROR_STOP=1 -c $grantSql
+if ($LASTEXITCODE -ne 0) { Die 'Could not grant steakos access to steakos_prod. Do not switch to development.' }
 
 $envFile = Join-Path $Prefix 'config\steakos.env'
 if (Test-Path $envFile) {

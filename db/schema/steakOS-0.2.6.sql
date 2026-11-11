@@ -6247,3 +6247,10 @@ CREATE TABLE public.schema_pack (
 
 INSERT INTO public.schema_pack (id, software_version, install_phase)
 VALUES (1, '0.2.6', 'schema-applied');
+
+-- Applied as the postgres superuser. The app connects as steakos.
+GRANT USAGE, CREATE ON SCHEMA public TO steakos;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO steakos;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO steakos;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO steakos;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO steakos;
