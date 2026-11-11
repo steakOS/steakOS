@@ -41,7 +41,9 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	[pattern: '/assets/**',      access: ['permitAll']],
 	// A4 — public vulnerability contact (RFC 9116)
 	[pattern: '/.well-known/**', access: ['permitAll']],
-	// Onboarding tour (static under src/main/resources/static/tour)
+	// Onboarding tour (TourStaticController serves classpath:static/tour)
+	[pattern: '/tour',           access: ['permitAll']],
+	[pattern: '/tour/',          access: ['permitAll']],
 	[pattern: '/tour/**',        access: ['permitAll']],
 	[pattern: '/**/js/**',       access: ['permitAll']],
 	[pattern: '/**/css/**',      access: ['permitAll']],
@@ -71,7 +73,6 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 grails.plugin.springsecurity.filterChain.chainMap = [
 	[pattern: '/assets/**',      filters: 'none'],
 	[pattern: '/.well-known/**', filters: 'none'],
-	[pattern: '/tour/**',        filters: 'none'],
 	[pattern: '/**/js/**',       filters: 'none'],
 	[pattern: '/**/css/**',      filters: 'none'],
 	[pattern: '/**/images/**',   filters: 'none'],

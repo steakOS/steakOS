@@ -678,6 +678,9 @@ class UrlMappings {
         "/$namespace/$controller/$action?/$id?(.$format)?" {}
         "/$controller/$action?/$id?(.$format)?" {
             constraints {
+                // /tour is served by TourStaticController. Without this, index.html
+                // is parsed as controller "tour" and the static file 404s.
+                controller(validator: { val -> val != 'tour' && val != 'tourStatic' })
             }
         }
 

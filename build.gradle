@@ -29,8 +29,8 @@ buildscript {
 }
 
 // Product SemVer (VERSIONS.md V6): 0.x until SBM GA → 1.0.0. Source of V for /api/version.
-// 0.2.6 = open-source download rules on the one-line installer (PDR-036 / ADR-058)
-version = "0.2.6"
+// 0.2.7 = TourStaticController serves /tour from the API jar (PDR-036)
+version = "0.2.7"
 group = "steakos"
 
 apply plugin:"eclipse"

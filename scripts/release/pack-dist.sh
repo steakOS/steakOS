@@ -122,10 +122,10 @@ if [[ -z "$JAR_SRC" || ! -f "$JAR_SRC" ]]; then
   exit 1
 fi
 JAR_BASE="$(basename "$JAR_SRC")"
-cp -a "$JAR_SRC" "$STAGE/app/$JAR_BASE"
-# stable name for start scripts
+# One copy. Start scripts look for app/steakOS.jar. A second versioned copy
+# doubled the zip (~97 MB) without changing what runs.
 cp -a "$JAR_SRC" "$STAGE/app/steakOS.jar"
-echo "    jar        : $JAR_BASE"
+echo "    jar        : steakOS.jar (from $JAR_BASE)"
 
 # --- db + config + helpers ----------------------------------------------------
 cp -a db/setup-postgresql.sql "$STAGE/db/"
@@ -181,7 +181,7 @@ softwareVersion=${SEMVER_CLEAN}
 V=${V_LABEL}
 buildId=${BUILD_ID}
 productStamp=${PRODUCT_STAMP}
-jar=${JAR_BASE}
+jar=steakOS.jar
 packedAtUtc=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 EOF
 
@@ -189,7 +189,7 @@ cat > "$STAGE/README.txt" <<EOF
 steakOS distribution
 ====================
 Stamp:  ${PRODUCT_STAMP}
-Jar:    app/${JAR_BASE}
+Jar:    app/steakOS.jar (${JAR_BASE})
 SPA:    web/   (static Vite build — use a reverse proxy, or development Vite)
 
 Quick start
@@ -198,7 +198,7 @@ Quick start
 2. cp config/steakos.env.example config/steakos.env   # edit passwords
 3. bin/steakos start          # Linux/macOS
    or:  powershell -File bin/steakos.ps1 start
-4. Open both http://127.0.0.1:9090/tour/ and http://localhost:9090/tour/ (use 127.0.0.1 if localhost refuses). Not ready until tour and wizard are finished.
+4. Open http://127.0.0.1:9090/tour/index.html (use 127.0.0.1 if localhost refuses). Not ready until tour and wizard are finished.
    for day-to-day eval prefer the installer's default path in QUICKSTART.md.
 
 Commands:  start | stop | status | logs | version
