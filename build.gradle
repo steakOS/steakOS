@@ -29,8 +29,8 @@ buildscript {
 }
 
 // Product SemVer (VERSIONS.md V6): 0.x until SBM GA → 1.0.0. Source of V for /api/version.
-// 0.2.5 = Windows installer: Java detection, ASCII scripts, separate start logs, production
-version = "0.2.5"
+// 0.2.6 = open-source download rules on the one-line installer (PDR-036 / ADR-058)
+version = "0.2.6"
 group = "steakos"
 
 apply plugin:"eclipse"
