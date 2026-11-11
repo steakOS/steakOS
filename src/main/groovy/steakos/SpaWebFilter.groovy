@@ -9,20 +9,16 @@ import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.core.Ordered
-import org.springframework.core.annotation.Order
-import org.springframework.stereotype.Component
-
 /**
  * The one-line install runs only the API jar. The configuration wizard is the
- * React app in the package {@code web/} folder. This filter serves that app for
- * {@code /setup} (and the other SPA routes) and serves Vite files under
- * {@code web/assets} when they exist. Grails asset-pipeline files are left alone.
+ * React app in the package {@code web/} folder. This filter serves Vite files
+ * under {@code web/assets} before the Grails asset pipeline can 404 them, and
+ * serves {@code index.html} for {@code /setup}.
  *
- * Requires {@code -Dsteakos.home=<prefix>} from bin/steakos.
+ * Registered from {@link SpaFilterConfig} so it actually runs. A bare
+ * {@code @Component} filter in this tree was not enough: {@code /setup} came
+ * back as an empty page because the module scripts never loaded.
  */
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 class SpaWebFilter implements Filter {
 
     void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
@@ -92,6 +88,8 @@ class SpaWebFilter implements Filter {
         else if (name.endsWith('.png')) type = 'image/png'
         else if (name.endsWith('.ico')) type = 'image/x-icon'
         else if (name.endsWith('.jpg') || name.endsWith('.jpeg')) type = 'image/jpeg'
+        else if (name.endsWith('.woff2')) type = 'font/woff2'
+        else if (name.endsWith('.woff')) type = 'font/woff'
         res.contentType = type
         res.setHeader('Cache-Control', name.endsWith('.html') ? 'no-cache' : 'public, max-age=3600')
         file.withInputStream { input ->

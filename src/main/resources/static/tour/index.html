@@ -75,7 +75,7 @@
         <!-- Header - only once -->
         <div class="tour-header flex justify-between items-center gap-3 flex-wrap">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-amber-500 rounded-2xl flex items-center justify-center text-2xl">🥩</div>
+                <img src="/logo_small.png" alt="" width="36" height="36" class="rounded-xl object-cover" style="background:#0d1015" aria-hidden="true"/>
                 <div>
                     <div class="heading text-xl font-bold leading-tight">steakOS</div>
                     <div class="text-[10px] text-zinc-500 leading-tight">In-app onboarding tour</div>
@@ -83,7 +83,7 @@
             </div>
             <div class="flex items-center gap-2 flex-wrap">
                 <a href="/setup" class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400">Setup wizard</a>
-                <a href="/dashboard" class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400">App dashboard</a>
+                <a href="/dashboard" data-dashboard-link hidden class="text-xs px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400">App dashboard</a>
 
                 <div class="w-40 sm:w-56 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                     <div id="progress-bar" class="progress-bar h-full bg-amber-500 w-0"></div>
@@ -373,23 +373,48 @@
                 currentSectionIndex++;
                 loadSection(currentSectionIndex);
             } else {
-                // End of tour — offer next steps in-app (same origin, no extra server)
-                const area = document.getElementById('content-area');
-                area.innerHTML = `
-                    <div class="text-center py-6">
-                        <div class="text-4xl mb-3">🎉</div>
-                        <h2 class="heading text-2xl font-bold mb-2">Tour complete</h2>
-                        <p class="text-zinc-400 text-sm mb-5 max-w-xl mx-auto leading-snug">
-                            Continue in steakOS — the configuration wizard sets up your company.
-                            Your template choice (if any) is remembered for the wizard.
-                        </p>
-                        <div class="flex flex-wrap gap-3 justify-center">
-                            <a href="/setup" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-2xl text-sm">Open setup wizard</a>
-                            <a href="/dashboard" class="px-6 py-2 border border-zinc-600 hover:bg-zinc-900 rounded-2xl font-medium text-sm">Go to dashboard</a>
-                        </div>
-                    </div>
-                `;
+                showTourFinished();
             }
+        }
+
+        async function setupIsComplete() {
+            try {
+                const res = await fetch('/api/setup/status', { credentials: 'same-origin' });
+                if (!res.ok) return false;
+                const data = await res.json();
+                return !!(data && data.setupComplete);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function applyDashboardLinks(show) {
+            document.querySelectorAll('[data-dashboard-link]').forEach((el) => {
+                el.hidden = !show;
+            });
+        }
+
+        async function showTourFinished() {
+            const showDash = await setupIsComplete();
+            applyDashboardLinks(showDash);
+            const dash = showDash
+                ? '<a href="/dashboard" data-dashboard-link class="px-6 py-2 border border-zinc-600 hover:bg-zinc-900 rounded-2xl font-medium text-sm">Go to dashboard</a>'
+                : '';
+            const area = document.getElementById('content-area');
+            area.innerHTML = `
+                <div class="text-center py-6">
+                    <div class="text-4xl mb-3">🎉</div>
+                    <h2 class="heading text-2xl font-bold mb-2">Tour complete</h2>
+                    <p class="text-zinc-400 text-sm mb-5 max-w-xl mx-auto leading-snug">
+                        Continue in steakOS — the configuration wizard sets up your company.
+                        Your template choice (if any) is remembered for the wizard.
+                    </p>
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <a href="/setup" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-2xl text-sm">Open setup wizard</a>
+                        ${dash}
+                    </div>
+                </div>
+            `;
         }
 
         function prevStep() {
@@ -424,6 +449,7 @@
         });
 
         loadSection(0);
+        setupIsComplete().then(applyDashboardLinks);
     </script>
 </body>
 </html>
