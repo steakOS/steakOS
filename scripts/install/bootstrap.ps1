@@ -286,30 +286,43 @@ if (Test-Path $envFile) {
 }
 $env:GRAILS_ENV = 'production'
 
-if (-not $NoStart) {
-    $ctl = Join-Path $Prefix 'bin\steakos.ps1'
-    if (Test-Path $ctl) {
-        Write-Info 'Starting steakOS (production)'
-        & $ctl start
-    } else {
-        Write-Warning "control script missing: $ctl"
-    }
-}
-
 $port = '9090'
 if (Test-Path $envFile) {
     foreach ($line in Get-Content $envFile) {
         if ($line -match '^\s*SERVER_PORT\s*=\s*(\d+)') { $port = $Matches[1] }
     }
 }
+
+$started = $false
+if (-not $NoStart) {
+    $ctl = Join-Path $Prefix 'bin\steakos.ps1'
+    if (Test-Path $ctl) {
+        Write-Info 'Starting steakOS (production)'
+        & $ctl start
+        if ($LASTEXITCODE -eq 0) { $started = $true }
+        else { Write-Warning "start failed - see logs under $Prefix\logs" }
+    } else {
+        Write-Warning "control script missing: $ctl"
+    }
+}
+
 Write-Host ''
-Write-Host 'steakOS is running in production.'
-Write-Host 'Open the introduction:'
-Write-Host ''
-Write-Host "  http://127.0.0.1:${port}/tour/"
-Write-Host "  http://localhost:${port}/tour/"
-Write-Host ''
-Write-Host 'If localhost refuses to connect, use 127.0.0.1.'
-Write-Host 'The configuration wizard comes after the introduction.'
-Write-Host 'Admin and CEO credentials are set in the wizard, not in this download.'
-Write-Host 'The app is not ready for normal work until the tour and the wizard are both finished.'
+if ($started) {
+    Write-Host 'steakOS is starting in production.'
+    Write-Host 'Open the introduction:'
+    Write-Host ''
+    Write-Host "  http://127.0.0.1:${port}/tour/"
+    Write-Host "  http://localhost:${port}/tour/"
+    Write-Host ''
+    Write-Host 'If localhost refuses to connect, use 127.0.0.1.'
+    Write-Host 'The configuration wizard comes after the introduction.'
+    Write-Host 'Admin and CEO credentials are set in the wizard, not in this download.'
+    Write-Host 'The app is not ready for normal work until the tour and the wizard are both finished.'
+} elseif ($NoStart) {
+    Write-Host "Package installed under $Prefix (not started; -NoStart)."
+    Write-Host "When ready: $Prefix\bin\steakos.ps1 start"
+    Write-Host "Then open http://127.0.0.1:${port}/tour/ and http://localhost:${port}/tour/"
+} else {
+    Write-Host 'Install finished but steakOS did not start.'
+    Write-Host "Fix the error under $Prefix\logs, then: $Prefix\bin\steakos.ps1 start"
+}

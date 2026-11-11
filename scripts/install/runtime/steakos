@@ -103,8 +103,10 @@ cmd_start() {
   if kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
     echo "started  pid=$(cat "$PID_FILE")"
     echo "logs     $LOG_FILE"
-    echo "API      http://${SERVER_ADDRESS}:${SERVER_PORT}/"
-    echo "health   http://127.0.0.1:${SERVER_PORT}/actuator/health  (if enabled)"
+    echo "Open the introduction:"
+    echo "  http://127.0.0.1:${SERVER_PORT}/tour/"
+    echo "  http://localhost:${SERVER_PORT}/tour/"
+    echo "If localhost refuses, use 127.0.0.1. Not ready until tour and wizard are finished."
   else
     die "process exited immediately — see $LOG_FILE"
   fi

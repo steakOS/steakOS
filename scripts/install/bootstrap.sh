@@ -380,11 +380,6 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 export GRAILS_ENV=production
 
-if [[ "$NO_START" -eq 0 ]]; then
-  info "Starting steakOS (production)"
-  "$PREFIX/bin/steakos" start || warn "start failed — see $PREFIX/logs/steakos.log"
-fi
-
 PORT="9090"
 if [[ -f "$ENV_FILE" ]]; then
   line="$(grep -E '^[[:space:]]*SERVER_PORT=' "$ENV_FILE" | tail -1 || true)"
@@ -393,14 +388,33 @@ if [[ -f "$ENV_FILE" ]]; then
   fi
 fi
 
+STARTED=0
+if [[ "$NO_START" -eq 0 ]]; then
+  info "Starting steakOS (production)"
+  if "$PREFIX/bin/steakos" start; then
+    STARTED=1
+  else
+    warn "start failed — see $PREFIX/logs/steakos.log"
+  fi
+fi
+
 echo ""
-echo "steakOS is running in production."
-echo "Open the introduction:"
-echo ""
-echo "  http://127.0.0.1:${PORT}/tour/"
-echo "  http://localhost:${PORT}/tour/"
-echo ""
-echo "If localhost refuses to connect, use 127.0.0.1."
-echo "The configuration wizard comes after the introduction."
-echo "Admin and CEO credentials are set in the wizard, not in this download."
-echo "The app is not ready for normal work until the tour and the wizard are both finished."
+if [[ "$STARTED" -eq 1 ]]; then
+  echo "steakOS is starting in production."
+  echo "Open the introduction:"
+  echo ""
+  echo "  http://127.0.0.1:${PORT}/tour/"
+  echo "  http://localhost:${PORT}/tour/"
+  echo ""
+  echo "If localhost refuses to connect, use 127.0.0.1."
+  echo "The configuration wizard comes after the introduction."
+  echo "Admin and CEO credentials are set in the wizard, not in this download."
+  echo "The app is not ready for normal work until the tour and the wizard are both finished."
+elif [[ "$NO_START" -eq 1 ]]; then
+  echo "Package installed under $PREFIX (not started; --no-start)."
+  echo "When ready: GRAILS_ENV=production $PREFIX/bin/steakos start"
+  echo "Then open http://127.0.0.1:${PORT}/tour/ and http://localhost:${PORT}/tour/"
+else
+  echo "Install finished but steakOS did not start."
+  echo "Fix the error in $PREFIX/logs/steakos.log, then: GRAILS_ENV=production $PREFIX/bin/steakos start"
+fi
