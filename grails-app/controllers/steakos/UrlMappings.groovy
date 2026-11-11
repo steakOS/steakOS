@@ -681,6 +681,7 @@ class UrlMappings {
         "/setup/$path**"(controller: 'spa', action: 'page')
         "/dashboard"(controller: 'spa', action: 'page')
         "/dashboard/$path**"(controller: 'spa', action: 'page')
+        "/ui-static/$path**"(controller: 'spa', action: 'file')
         "/assets/$path**"(controller: 'spa', action: 'asset')
 
         "/$namespace/$controller/$action?/$id?(.$format)?" {}
@@ -689,7 +690,7 @@ class UrlMappings {
                 // /tour is served by TourStaticController. Without this, index.html
                 // is parsed as controller "tour" and the static file 404s.
                 controller(validator: { val ->
-                    val != 'tour' && val != 'tourStatic' && val != 'setup' && val != 'spa' && val != 'dashboard'
+                    val != 'tour' && val != 'tourStatic' && val != 'setup' && val != 'spa' && val != 'dashboard' && val != 'ui-static'
                 })
             }
         }

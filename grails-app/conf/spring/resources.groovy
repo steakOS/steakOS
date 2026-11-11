@@ -20,8 +20,17 @@ import steakos.security.MatrixAccessFilter
 import steakos.security.TotpGateFilter
 import steakos.security.NostrAuthService
 import steakos.security.TotpService
+import org.springframework.boot.web.servlet.FilterRegistrationBean
+import org.springframework.core.Ordered
+import steakos.SpaWebFilter
 
 beans = {
+    // Serve packaged Vite files before the asset pipeline 404s them.
+    spaWebFilterRegistration(FilterRegistrationBean) {
+        filter = new SpaWebFilter()
+        order = Ordered.HIGHEST_PRECEDENCE
+        urlPatterns = ['/*']
+    }
     // ADR-037 — registered into Spring Security chain from BootStrap via clientRegisterFilter
     agentBearerTokenFilter(AgentBearerTokenFilter) {
         agentTokenService = ref('agentTokenService')
