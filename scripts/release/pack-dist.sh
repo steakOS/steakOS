@@ -129,6 +129,13 @@ echo "    jar        : $JAR_BASE"
 
 # --- db + config + helpers ----------------------------------------------------
 cp -a db/setup-postgresql.sql "$STAGE/db/"
+mkdir -p "$STAGE/db/schema"
+if compgen -G "db/schema/steakOS-*.sql" >/dev/null; then
+  cp -a db/schema/steakOS-*.sql "$STAGE/db/schema/"
+  echo "    schema pack: $(ls -1 db/schema/steakOS-*.sql | xargs -n1 basename | paste -sd, -)"
+else
+  echo "warning: no db/schema/steakOS-*.sql — public install will refuse to start (ADR-058)" >&2
+fi
 
 cat > "$STAGE/config/steakos.env.example" <<EOF
 # steakOS runtime environment (copy to steakos.env and edit)
