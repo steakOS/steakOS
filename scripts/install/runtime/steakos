@@ -96,6 +96,7 @@ cmd_start() {
     -Dgrails.env="$GRAILS_ENV" \
     -Dserver.port="$SERVER_PORT" \
     -Dserver.address="$SERVER_ADDRESS" \
+    -Dsteakos.home="$ROOT" \
     -jar "$JAR" \
     >>"$LOG_FILE" 2>&1 &
   echo $! >"$PID_FILE"

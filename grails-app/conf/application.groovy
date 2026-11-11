@@ -45,6 +45,9 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	[pattern: '/tour',           access: ['permitAll']],
 	[pattern: '/tour/',          access: ['permitAll']],
 	[pattern: '/tour/**',        access: ['permitAll']],
+	// Packaged install serves the React wizard from web/ on the API port.
+	[pattern: '/setup',          access: ['permitAll']],
+	[pattern: '/setup/**',       access: ['permitAll']],
 	[pattern: '/**/js/**',       access: ['permitAll']],
 	[pattern: '/**/css/**',      access: ['permitAll']],
 	[pattern: '/**/images/**',   access: ['permitAll']],

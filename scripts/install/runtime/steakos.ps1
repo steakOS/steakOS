@@ -95,6 +95,7 @@ switch ($Command) {
             "-Dgrails.env=$($env:GRAILS_ENV)"
             "-Dserver.port=$($env:SERVER_PORT)"
             "-Dserver.address=$($env:SERVER_ADDRESS)"
+            "-Dsteakos.home=$Root"
             '-jar'
             $Jar
         )
