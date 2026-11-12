@@ -107,7 +107,10 @@ function isHtmlBody(text) {
 let loginRedirectScheduled = false
 
 function goLogin() {
-  if (window.location.pathname.startsWith('/login')) return
+  const path = window.location.pathname || ''
+  if (path.startsWith('/login')) return
+  // First-run wizard must stay on /setup. A 401 there is an error, not a bounce to login.
+  if (path.startsWith('/setup')) return
   if (loginRedirectScheduled) return
   loginRedirectScheduled = true
   window.location.href = '/login/auth'

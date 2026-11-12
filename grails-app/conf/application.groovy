@@ -56,6 +56,9 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	[pattern: '/logout/**',      access: ['permitAll']],
 	[pattern: '/app',            access: ['IS_AUTHENTICATED_REMEMBERED']],
 	[pattern: '/app/**',         access: ['IS_AUTHENTICATED_REMEMBERED']],
+	// First-run wizard (tour → /setup) before any login exists. Controller locks it after setupComplete.
+	[pattern: '/api/setup',      access: ['permitAll']],
+	[pattern: '/api/setup/**',   access: ['permitAll']],
 	[pattern: '/api/locales',    access: ['permitAll']],
 	[pattern: '/api/locales/**', access: ['permitAll']],
 	// OBS-01/03 — public liveness/ready/metrics for Uptime Kuma + Prometheus scrape

@@ -28,8 +28,10 @@ import steakos.configuration.SetupService
 
 /**
  * Config wizard API (ADR-026 / OI-W01–W02).
+ * First-run wizard is anonymous: the tour opens /setup before any account exists.
+ * After setupComplete, the same endpoints require a logged-in operator.
  */
-@Secured(['IS_AUTHENTICATED_REMEMBERED'])
+@Secured(['permitAll'])
 class SetupApiController {
 
     static allowedMethods = [
@@ -51,6 +53,22 @@ class SetupApiController {
             packOptions  : 'POST',
             privacyHrAck : 'POST'
     ]
+
+    def beforeInterceptor = {
+        if (springSecurityService?.isLoggedIn()) {
+            return true
+        }
+        boolean complete = false
+        try {
+            complete = setupService?.statusMap(null)?.setupComplete == true
+        } catch (ignored) {
+        }
+        if (!complete) {
+            return true
+        }
+        render(status: 401, contentType: 'application/json', text: '{"error":"Unauthorized","code":"UNAUTHORIZED"}')
+        return false
+    }
 
     SetupService setupService
     DemoSeedService demoSeedService
