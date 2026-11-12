@@ -504,6 +504,13 @@ export const setupApi = {
   templateTier: (body) => api('/api/setup/template-tier', { method: 'POST', body }),
   /** Settings pack options — messaging toggles / pluginDepth without tier change */
   packOptions: (body) => api('/api/setup/pack-options', { method: 'POST', body }),
+  /** First-run: create Admin + CEO before any login exists */
+  provisionAccounts: (body) => api('/api/setup/accounts', { method: 'POST', body }),
+  accountStatus: (ceo) =>
+    api(`/api/setup/accounts${ceo ? `?ceo=${encodeURIComponent(ceo)}` : ''}`),
+  totpBegin: (username) => api('/api/setup/totp/begin', { method: 'POST', body: { username } }),
+  totpConfirm: (username, code) =>
+    api('/api/setup/totp/confirm', { method: 'POST', body: { username, code } }),
 }
 
 /** Opaque bearer tokens for Hermes agents (human admin session) */

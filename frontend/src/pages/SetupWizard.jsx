@@ -511,36 +511,24 @@ export default function SetupWizard() {
     }
   }, [step, phase, refreshAccountTotpFlags])
 
-  const saveAdminPassword = async () => {
+  const provisionAccounts = async () => {
     const err = validatePassword(draft.adminPassword)
     if (err) throw new Error(`Admin ${err}`)
-    const username = meUser?.username || 'admin'
-    await authApi.usersUpdate({ username, password: draft.adminPassword })
-  }
-
-  const ensureCeoAccount = async () => {
-    const username = (draft.ceoUsername || 'ceo').trim().toLowerCase()
-    if (!username) throw new Error('CEO username required')
+    const ceoName = (draft.ceoUsername || 'ceo').trim().toLowerCase()
+    if (!ceoName) throw new Error('CEO username required')
+    if (ceoName === 'admin') throw new Error('CEO username must be different from admin')
     const ceoPwErr = validatePassword(draft.ceoPassword)
     if (ceoPwErr) throw new Error(`CEO ${ceoPwErr}`)
-    const list = await authApi.usersList()
-    const exists = (list.items || []).some((u) => u.username === username)
-    const authorities = ['ROLE_USER', 'ROLE_CEO', 'ROLE_ADMIN']
-    if (exists) {
-      await authApi.usersUpdate({
-        username,
-        password: draft.ceoPassword,
-        authorities,
-      })
-    } else {
-      await authApi.usersCreate({
-        username,
-        password: draft.ceoPassword,
-        displayName: draft.ceoDisplayName || 'CEO',
-        authorities,
-      })
-    }
-    return username
+    const r = await setupApi.provisionAccounts({
+      adminPassword: draft.adminPassword,
+      ceoUsername: ceoName,
+      ceoPassword: draft.ceoPassword,
+      ceoDisplayName: draft.ceoDisplayName || 'CEO',
+    })
+    setMeUser({ username: r.admin?.username || 'admin', totpEnabled: !!r.admin?.totpEnabled })
+    setAdminTotpOk(!!r.admin?.totpEnabled)
+    setCeoTotpOk(!!r.ceo?.totpEnabled)
+    return r
   }
 
   const beginAdminTotp = async () => {
@@ -548,8 +536,8 @@ export default function SetupWizard() {
     setError(null)
     setAccountsMsg(null)
     try {
-      // Start TOTP first so a password-save glitch cannot block the QR.
-      const r = await authApi.totpBegin()
+      await provisionAccounts()
+      const r = await setupApi.totpBegin('admin')
       if (!r?.secret && !r?.qrDataUrl) {
         throw new Error('Authenticator setup did not return a secret — try again or reload.')
       }
@@ -578,7 +566,7 @@ export default function SetupWizard() {
     setBusy(true)
     setError(null)
     try {
-      const r = await authApi.totpConfirm(adminCode.trim())
+      const r = await setupApi.totpConfirm('admin', adminCode.trim())
       setAdminRecovery(r.recoveryCodes || [])
       setAdminEnrol(null)
       setAdminTotpOk(true)
@@ -595,8 +583,9 @@ export default function SetupWizard() {
     setError(null)
     setAccountsMsg(null)
     try {
-      const username = await ensureCeoAccount()
-      const r = await authApi.totpBeginFor(username)
+      const saved = await provisionAccounts()
+      const username = saved.ceo?.username || (draft.ceoUsername || 'ceo').trim().toLowerCase()
+      const r = await setupApi.totpBegin(username)
       if (!r?.secret && !r?.qrDataUrl) {
         throw new Error('CEO authenticator setup did not return a secret — try again.')
       }
@@ -615,7 +604,7 @@ export default function SetupWizard() {
     setError(null)
     try {
       const username = (draft.ceoUsername || 'ceo').trim().toLowerCase()
-      const r = await authApi.totpConfirmFor(username, ceoCode.trim())
+      const r = await setupApi.totpConfirm(username, ceoCode.trim())
       setCeoRecovery(r.recoveryCodes || [])
       setCeoEnrol(null)
       setCeoTotpOk(true)
@@ -628,12 +617,6 @@ export default function SetupWizard() {
   }
 
   const goNext = async () => {
-    if (STEP_IDS[step] === 'accounts' && (!adminTotpOk || !ceoTotpOk)) {
-      setError(
-        'Set Admin and CEO passwords and enable authenticator apps for both before continuing.',
-      )
-      return
-    }
     if (STEP_IDS[step] === 'bitcoin') {
       const lvl = draft.btcIntegrationLevel || 'DEFERRED'
       if (lvl === 'SINGLE_ADDRESS') {
@@ -704,8 +687,18 @@ export default function SetupWizard() {
     setError(null)
     try {
       if (STEP_IDS[step] === 'accounts') {
-        if (draft.adminPassword) await saveAdminPassword()
-        await ensureCeoAccount()
+        const saved = await provisionAccounts()
+        const adminOk = !!saved.admin?.totpEnabled
+        const ceoOk = !!saved.ceo?.totpEnabled
+        setAdminTotpOk(adminOk)
+        setCeoTotpOk(ceoOk)
+        if (!adminOk || !ceoOk) {
+          const msg =
+            'Passwords saved. Set up the authenticator app for both Admin and CEO, then click Next again.'
+          setAccountsMsg(msg)
+          setError(msg)
+          return
+        }
       }
       // Level ≥ 1 → auto-install + start local nostr-rs-relay (project-local)
       if (STEP_IDS[step] === 'nostr') {
@@ -777,15 +770,14 @@ export default function SetupWizard() {
     }
     // Always read live TOTP flags (React state can be stale after HMR / remount)
     try {
-      const me = await meApi.get()
-      const list = await authApi.usersList().catch(() => ({ items: [] }))
-      const ceoName = (draft.ceoUsername || 'ceo').trim().toLowerCase()
-      const ceo = (list.items || []).find((u) => u.username === ceoName)
-      const adminOk = !!me?.totpEnabled
-      const ceoOk = !!ceo?.totpEnabled
+      const flags = await setupApi.accountStatus((draft.ceoUsername || 'ceo').trim())
+      const adminOk = !!flags?.admin?.totpEnabled
+      const ceoOk = !!flags?.ceo?.totpEnabled
       setAdminTotpOk(adminOk)
       setCeoTotpOk(ceoOk)
-      setMeUser(me)
+      if (flags?.admin?.username) {
+        setMeUser({ username: flags.admin.username, totpEnabled: adminOk })
+      }
       if (!adminOk || !ceoOk) {
         showErr(
           `Authenticator required before finish — Admin 2FA ${adminOk ? 'on' : 'off'}, CEO 2FA ${ceoOk ? 'on' : 'off'}. Go back to Accounts and enable both.`,

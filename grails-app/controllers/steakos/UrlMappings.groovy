@@ -151,6 +151,10 @@ class UrlMappings {
         "/api/setup/template-tier"(controller: 'setupApi', action: 'templateTier', method: 'POST')
         "/api/setup/pack-options"(controller: 'setupApi', action: 'packOptions', method: 'POST')
         "/api/setup/privacy/hr-ack"(controller: 'setupApi', action: 'privacyHrAck', method: 'POST')
+        "/api/setup/accounts"(controller: 'setupApi', action: 'provisionAccounts', method: 'POST')
+        "/api/setup/accounts"(controller: 'setupApi', action: 'accountStatus', method: 'GET')
+        "/api/setup/totp/begin"(controller: 'setupApi', action: 'setupTotpBegin', method: 'POST')
+        "/api/setup/totp/confirm"(controller: 'setupApi', action: 'setupTotpConfirm', method: 'POST')
 
         // OI-NOSTR01 — Nostr integration (Integrations hub)
         "/api/nostr/settings"(controller: 'nostrApi') {

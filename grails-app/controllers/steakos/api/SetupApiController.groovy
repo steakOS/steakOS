@@ -49,6 +49,10 @@ class SetupApiController {
             heardCookReset: 'POST',
             twentyOneToysSeed: 'POST',
             twentyOneToysReset: 'POST',
+            provisionAccounts: 'POST',
+            accountStatus: 'GET',
+            setupTotpBegin: 'POST',
+            setupTotpConfirm: 'POST',
             templateTier : 'POST',
             packOptions  : 'POST',
             privacyHrAck : 'POST'
@@ -71,6 +75,7 @@ class SetupApiController {
     }
 
     SetupService setupService
+    steakos.security.AuthAccountService authAccountService
     DemoSeedService demoSeedService
     OrangeSteakHouseSeedService orangeSteakHouseSeedService
     HeardCookArchitectsSeedService heardCookArchitectsSeedService
@@ -359,6 +364,130 @@ class SetupApiController {
         } catch (Exception e) {
             render(status: 400, text: ([error: e.message] as JSON))
         }
+    }
+
+    /**
+     * POST /api/setup/accounts — create Admin and CEO on a fresh install (no session yet).
+     * Body: adminPassword, ceoUsername, ceoPassword, ceoDisplayName
+     */
+    def provisionAccounts() {
+        if (setupClosed()) return
+        try {
+            Map body = (request.JSON as Map) ?: [:]
+            String adminPassword = body.adminPassword as String
+            String ceoUsername = ((body.ceoUsername as String) ?: 'ceo').trim().toLowerCase()
+            String ceoPassword = body.ceoPassword as String
+            String ceoDisplayName = (body.ceoDisplayName as String) ?: 'CEO'
+            if (!adminPassword || !ceoPassword) {
+                render(status: 400, text: ([error: 'Admin and CEO passwords are required'] as JSON))
+                return
+            }
+            if (ceoUsername == 'admin') {
+                render(status: 400, text: ([error: 'CEO username must be different from admin'] as JSON))
+                return
+            }
+            User admin = authAccountService.createOrUpdateUser(
+                    'admin', adminPassword, ['ROLE_USER', 'ROLE_ADMIN'], 'Admin')
+            User ceo = authAccountService.createOrUpdateUser(
+                    ceoUsername, ceoPassword, ['ROLE_USER', 'ROLE_CEO', 'ROLE_ADMIN'], ceoDisplayName)
+            try {
+                springSecurityService?.reauthenticate('admin')
+            } catch (ignored) {
+            }
+            render([
+                    ok   : true,
+                    admin: [username: admin.username, totpEnabled: !!admin.totpEnabled],
+                    ceo  : [username: ceo.username, totpEnabled: !!ceo.totpEnabled],
+            ] as JSON)
+        } catch (IllegalArgumentException e) {
+            render(status: 400, text: ([error: e.message] as JSON))
+        } catch (Exception e) {
+            render(status: 400, text: ([error: e.message] as JSON))
+        }
+    }
+
+    /** GET /api/setup/accounts — totp flags for the wizard finish check */
+    def accountStatus() {
+        User admin = authAccountService?.findByUsername('admin')
+        String ceoName = params.ceo as String
+        User ceo = ceoName ? authAccountService.findByUsername(ceoName) : null
+        if (!ceo) {
+            ceo = User.list().find { User u ->
+                u.username != 'admin' && u.authorities*.authority?.contains('ROLE_CEO')
+            }
+        }
+        render([
+                admin: admin ? [username: admin.username, totpEnabled: !!admin.totpEnabled] : null,
+                ceo  : ceo ? [username: ceo.username, totpEnabled: !!ceo.totpEnabled] : null,
+        ] as JSON)
+    }
+
+    /** POST /api/setup/totp/begin — enrol authenticator for Admin or CEO during setup */
+    def setupTotpBegin() {
+        if (setupClosed()) return
+        try {
+            Map body = (request.JSON as Map) ?: [:]
+            User target = setupOperator(body.username as String)
+            if (target.totpEnabled) {
+                render(status: 400, text: ([error: 'Authenticator already enabled for this user'] as JSON))
+                return
+            }
+            render(authAccountService.beginTotpEnrol(target) as JSON)
+        } catch (IllegalArgumentException e) {
+            render(status: 400, text: ([error: e.message] as JSON))
+        } catch (Exception e) {
+            render(status: 400, text: ([error: e.message] as JSON))
+        }
+    }
+
+    /** POST /api/setup/totp/confirm — confirm authenticator code during setup */
+    def setupTotpConfirm() {
+        if (setupClosed()) return
+        try {
+            Map body = (request.JSON as Map) ?: [:]
+            User target = setupOperator(body.username as String)
+            Map result = authAccountService.confirmTotpEnrol(target, body.code as String)
+            if (target.username == 'admin') {
+                try {
+                    springSecurityService?.reauthenticate('admin')
+                } catch (ignored) {
+                }
+                session?.setAttribute(steakos.security.TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
+            }
+            render(result as JSON)
+        } catch (IllegalArgumentException e) {
+            render(status: 400, text: ([error: e.message, code: 'INVALID_CODE'] as JSON))
+        } catch (Exception e) {
+            render(status: 400, text: ([error: e.message] as JSON))
+        }
+    }
+
+    /** Account enrolment is only for the open wizard. After setup, these calls stop. */
+    private boolean setupClosed() {
+        boolean complete = false
+        try {
+            complete = setupService?.statusMap(null)?.setupComplete == true
+        } catch (ignored) {
+        }
+        if (!complete) return false
+        render(status: 401, contentType: 'application/json', text: '{"error":"Unauthorized","code":"UNAUTHORIZED"}')
+        return true
+    }
+
+    private User setupOperator(String username) {
+        String u = username?.trim()?.toLowerCase()
+        if (!u) {
+            throw new IllegalArgumentException('username required')
+        }
+        User user = authAccountService.findByUsername(u)
+        if (!user) {
+            throw new IllegalArgumentException('Create the account (save passwords) before setting up the authenticator')
+        }
+        boolean allowed = u == 'admin' || user.authorities*.authority?.contains('ROLE_CEO')
+        if (!allowed) {
+            throw new IllegalArgumentException('Only the Admin and CEO accounts can be enrolled during setup')
+        }
+        user
     }
 
     /** POST /api/setup/privacy/hr-ack — Bronze BR-R6 privacy acknowledgement for HR */
