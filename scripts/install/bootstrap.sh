@@ -219,40 +219,31 @@ postgres_ready() {
   return 1
 }
 
+# Run psql as the postgres superuser. SQL is read from stdin by the calling
+# user and piped in. Do not pass -f with a path under $HOME: the postgres OS
+# user cannot read it (home is typically mode 750) and psql reports
+# "Permission denied", then the databases are never created.
+psql_as_postgres() {
+  if command -v sudo >/dev/null 2>&1 && id postgres >/dev/null 2>&1; then
+    sudo -u postgres psql -v ON_ERROR_STOP=1 "$@"
+  elif command -v psql >/dev/null 2>&1; then
+    psql -U postgres -v ON_ERROR_STOP=1 "$@"
+  else
+    die "psql not found. Cannot set up PostgreSQL. Do not switch to development."
+  fi
+}
+
 run_db_setup() {
   local sql="$1"
+  local db
   [[ -f "$sql" ]] || die "DB setup SQL not found: $sql"
   info "Creating steakOS databases (role + steakos_*)"
-  local os
-  os="$(detect_os)"
-  case "$os" in
-    ubuntu|linuxmint|debian|pop|elementary)
-      sudo -u postgres psql -v ON_ERROR_STOP=1 -f "$sql"
-      for db in steakos_dev steakos_test steakos_prod; do
-        sudo -u postgres psql -d "$db" -v ON_ERROR_STOP=1 -c \
-          "GRANT ALL ON SCHEMA public TO steakos; ALTER SCHEMA public OWNER TO steakos;" || true
-      done
-      ;;
-    macos)
-      # Homebrew postgres typically trusts local user as superuser
-      if command -v psql >/dev/null 2>&1; then
-        psql postgres -v ON_ERROR_STOP=1 -f "$sql" || psql -d postgres -v ON_ERROR_STOP=1 -f "$sql"
-        for db in steakos_dev steakos_test steakos_prod; do
-          psql -d "$db" -v ON_ERROR_STOP=1 -c \
-            "GRANT ALL ON SCHEMA public TO steakos; ALTER SCHEMA public OWNER TO steakos;" || true
-        done
-      else
-        warn "psql not found — skip DB bootstrap; run $sql manually"
-      fi
-      ;;
-    *)
-      if command -v sudo >/dev/null 2>&1 && id postgres >/dev/null 2>&1; then
-        sudo -u postgres psql -v ON_ERROR_STOP=1 -f "$sql" || warn "DB setup failed"
-      else
-        warn "unknown OS for DB bootstrap — run $sql as a Postgres superuser"
-      fi
-      ;;
-  esac
+  # Connect to the maintenance DB. \gexec in the script creates steakos_*.
+  psql_as_postgres -d postgres < "$sql"
+  for db in steakos_dev steakos_test steakos_prod; do
+    printf '%s\n' "GRANT ALL ON SCHEMA public TO steakos; ALTER SCHEMA public OWNER TO steakos;" \
+      | psql_as_postgres -d "$db"
+  done
 }
 
 need_cmd() {
@@ -342,9 +333,9 @@ bash "$INSTALLER" "${PKG_ARGS[@]}" --no-start
 SQL="$PREFIX/db/setup-postgresql.sql"
 if [[ "$BOOTSTRAP_DB" -eq 1 ]]; then
   if [[ -f "$SQL" ]]; then
-    run_db_setup "$SQL" || warn "DB bootstrap had errors — check Postgres and re-run SQL"
+    run_db_setup "$SQL"
   else
-    warn "No $SQL after package install"
+    die "No $SQL after package install. Do not switch to development."
   fi
 fi
 
@@ -358,23 +349,16 @@ if command -v psql >/dev/null 2>&1 || [[ -x /usr/bin/psql ]]; then
 else
   die "psql not found. Cannot apply the production schema pack. Do not switch to development."
 fi
-marked="$(psql -U postgres -d steakos_prod -tAc "SELECT to_regclass('public.schema_pack')" 2>/dev/null || sudo -u postgres psql -d steakos_prod -tAc "SELECT to_regclass('public.schema_pack')" 2>/dev/null || true)"
-psql_prod() {
-  if command -v sudo >/dev/null 2>&1 && id postgres >/dev/null 2>&1; then
-    sudo -u postgres psql -d steakos_prod "$@"
-  else
-    psql -U postgres -d steakos_prod "$@"
-  fi
-}
+marked="$(printf '%s\n' "SELECT to_regclass('public.schema_pack');" | psql_as_postgres -d steakos_prod -tA 2>/dev/null || true)"
 if [[ "$marked" == *schema_pack* ]]; then
   info "schema_pack already present — not reapplying schema"
 else
   info "Applying production schema $(basename "$SCHEMA")"
-  psql_prod -v ON_ERROR_STOP=1 -f "$SCHEMA" || die "Schema pack failed. Do not switch to development."
+  psql_as_postgres -d steakos_prod < "$SCHEMA" || die "Schema pack failed. Do not switch to development."
 fi
 # Applied as postgres; the app connects as steakos.
 info "Granting steakos access to steakos_prod tables"
-psql_prod -v ON_ERROR_STOP=1 <<'SQL' || die "Could not grant steakos access to steakos_prod. Do not switch to development."
+psql_as_postgres -d steakos_prod <<'SQL' || die "Could not grant steakos access to steakos_prod. Do not switch to development."
 GRANT USAGE, CREATE ON SCHEMA public TO steakos;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO steakos;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO steakos;
