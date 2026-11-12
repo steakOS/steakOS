@@ -3461,6 +3461,7 @@ table.data tbody tr.row-selected td:last-child {
   cursor: not-allowed;
   border-style: dashed;
 }
+/* Single-select choice cards (wizard standard, ADR-026). Selected = orange border + warm fill. */
 .setup-tier.is-selected {
   border-color: var(--steak-orange);
   background: #fff7ed;

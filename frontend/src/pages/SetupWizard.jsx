@@ -1426,7 +1426,7 @@ export default function SetupWizard() {
                 <button
                   key={opt.code}
                   type="button"
-                  className={`setup-tier-card${draft.btcIntegrationLevel === opt.code ? ' selected' : ''}`}
+                  className={`setup-tier${draft.btcIntegrationLevel === opt.code ? ' is-selected' : ''}`}
                   onClick={() => {
                     patch({ btcIntegrationLevel: opt.code })
                     if (opt.code !== 'SINGLE_ADDRESS') setBtcAddressError(null)
@@ -1631,7 +1631,7 @@ export default function SetupWizard() {
                 <button
                   key={opt.code}
                   type="button"
-                  className={`setup-tier-card${draft.nostrIntegrationLevel === opt.code ? ' selected' : ''}`}
+                  className={`setup-tier${draft.nostrIntegrationLevel === opt.code ? ' is-selected' : ''}`}
                   onClick={() => patch({ nostrIntegrationLevel: opt.code })}
                 >
                   <strong>{opt.title}</strong>
