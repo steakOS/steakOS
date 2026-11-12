@@ -1,7 +1,7 @@
 # steakOS
 
 <p align="center">
-  <img src="content/brand/wordmark-banner.jpg" alt="steakOS — Run the business. Keep the keys." width="720" />
+  <img src="content/brand/bbq-banner.jpg" alt="steakOS — Run the business. Keep the keys." width="720" />
 </p>
 
 <p align="center">
@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://steakos.org">steakos.org</a> ·
+  <a href="https://steakOS.org">steakOS.org</a> ·
   <a href="https://steakos.ai">steakOS.ai</a> (optional help) ·
   <a href="https://github.com/steakOS/steakOS">GitHub</a> ·
   Apache&nbsp;2.0
@@ -22,6 +22,26 @@
 </p>
 
 <p align="center"><sub><strong>Hero:</strong> Action-NOW — what needs you today across the company, after you sign in.</sub></p>
+
+---
+
+## Fast Start
+
+One command installs Java and PostgreSQL if they are missing, downloads steakOS, and starts it. Run it as your own user. The script asks for your password only when it needs to install packages or create the database. Do not start the whole command with `sudo`.
+
+**Linux / macOS:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.sh | bash
+```
+
+**Windows 11** (PowerShell, run as Administrator):
+
+```powershell
+irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/bootstrap.ps1 | iex
+```
+
+When it finishes, the tour opens on port **9090**. After the tour, run the setup wizard at `/setup` before everyday work.
 
 ---
 
@@ -38,10 +58,10 @@
 | English, German & Spanish screens | Software you can study, change, and share (Apache 2.0) |
 
 > **$0** to use the software — forever free.  
-> **0 tokens** required to open the shop. Cloud AI is optional, not a gate.  
+> **0 tokens** required to run steakOS, but AI is not an afterthought here.  
 > **Your box** — data stays on your computer or your server.
 
-Project home: **[steakos.org](https://steakos.org)**. Standing up a full kitchen can feel overwhelming — **professional help** (install, configuration, integrations, coaching) is available from **[steakOS.ai](https://steakOS.ai)**.
+Project home: **[steakOS.org](https://steakOS.org)**. Standing up a full kitchen can feel overwhelming — **professional help** (install, configuration, integrations, coaching) is available from **[steakOS.ai](https://steakOS.ai)**.
 
 ---
 
@@ -91,7 +111,9 @@ Most desks open with **tab pills** and a **full-width list**. An **Action** colu
 ## Integrations & extras
 
 <p align="center">
-  <img src="content/brand/integrations.svg" alt="steakOS integrations — payments, messaging, AI, monitoring around your core" width="820" />
+  <a href="content/brand/integrations.svg" target="_blank" rel="noopener noreferrer" title="Open the integrations diagram full size in a new tab">
+    <img src="content/brand/integrations.svg" alt="steakOS integrations — payments, messaging, AI, monitoring around your core. Click to open the diagram full size in a new tab." title="Open the integrations diagram full size in a new tab" width="820" />
+  </a>
 </p>
 
 <p align="center"><sub>One required core on your machine. Payments, messaging, helpers, and monitoring are optional — same host or another box you control.</sub></p>
@@ -215,7 +237,7 @@ Optional open messaging for notices and audit breadcrumbs. Your database remains
 ## Get the software
 
 **Public channel:** [github.com/steakOS/steakOS](https://github.com/steakOS/steakOS)  
-Project home: **[steakos.org](https://steakos.org)** · optional paid help: **[steakOS.ai](https://steakOS.ai)**
+Project home: **[steakOS.org](https://steakOS.org)** · optional paid help: **[steakOS.ai](https://steakOS.ai)**
 
 ```bash
 git clone https://github.com/steakOS/steakOS.git
@@ -244,6 +266,8 @@ When it finishes, open both of these (port is the one printed; 9090 unless you c
 - http://localhost:9090/tour/
 
 Offline zip: `./scripts/install/install.sh --offline /path/to/steakOS-….zip`
+
+After the tour, you must run the setup wizard at **[/setup](http://127.0.0.1:9090/setup)** (same port the installer printed). That step creates the first Admin and CEO accounts, their passwords, and authenticator apps (2FA). steakOS is not ready for everyday work until that wizard is finished.
 
 ---
 
@@ -318,11 +342,11 @@ Deep design notes live in a **separate companion project** so this tree stays cl
 
 ## Security & trust
 
-Report security issues privately to **[security@steakos.org](mailto:security@steakos.org)** — do not post exploit steps in a public issue. Details: [`SECURITY.md`](SECURITY.md).
+Report security issues privately to **[security@steakOS.org](mailto:security@steakOS.org)** — do not post exploit steps in a public issue. Details: [`SECURITY.md`](SECURITY.md).
 
 Keep secrets **out of Git**. Use environment variables or your machine’s secret store.
 
-steakos.org sets **no tracking cookies** and does not run analytics beacons.
+steakOS.org sets **no tracking cookies** and does not run analytics beacons.
 
 ---
 
@@ -331,7 +355,7 @@ steakos.org sets **no tracking cookies** and does not run analytics beacons.
 Copyright © The steakOS Authors.  
 Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](LICENSE).
 
-**[steakos.org](https://steakos.org)** — free to use forever.  
+**[steakOS.org](https://steakOS.org)** — free to use forever.  
 **[steakOS.ai](https://steakOS.ai)** — optional human help when you want a seasoned crew in the kitchen.
 
 ---
