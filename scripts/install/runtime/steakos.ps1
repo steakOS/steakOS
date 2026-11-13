@@ -19,12 +19,10 @@ $EnvExample = Join-Path $CfgDir 'steakos.env.example'
 $Jar = Join-Path $AppDir 'steakOS.jar'
 
 function Load-EnvFile {
-    $file = if (Test-Path $EnvFile) { $EnvFile } elseif (Test-Path $EnvExample) {
-        Write-Warning "no config/steakos.env - using example defaults"
-        $EnvExample
-    } else { $null }
-
-    if (-not $file) { return }
+    if (-not (Test-Path $EnvFile)) {
+        throw 'config/steakos.env is missing. Run the installer so it can write database and encryption secrets.'
+    }
+    $file = $EnvFile
 
     Get-Content $file | ForEach-Object {
         $line = $_.Trim()

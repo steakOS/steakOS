@@ -27,6 +27,7 @@ import steakos.configuration.CompanyConfigService
 class TotpGateFilter extends OncePerRequestFilter {
 
     static final String SESSION_TOTP_OK = 'STEAKOS_TOTP_OK'
+    static final String SESSION_TOTP_AT = 'STEAKOS_TOTP_AT'
     static final String SESSION_AUTH_VIA_NOSTR = 'STEAKOS_AUTH_NOSTR'
 
     AuthAccountService authAccountService
@@ -46,10 +47,6 @@ class TotpGateFilter extends OncePerRequestFilter {
             return
         }
         HttpSession session = request.getSession(false)
-        if (session?.getAttribute(SESSION_AUTH_VIA_NOSTR) == Boolean.TRUE) {
-            filterChain.doFilter(request, response)
-            return
-        }
         if (session?.getAttribute(SESSION_TOTP_OK) == Boolean.TRUE) {
             filterChain.doFilter(request, response)
             return
@@ -83,6 +80,9 @@ class TotpGateFilter extends OncePerRequestFilter {
 
     private boolean adminTotpBypass(Authentication auth) {
         try {
+            if (ProductionSecrets.productionFlag()) {
+                return false
+            }
             if (companyConfigService == null || !companyConfigService.isAdminTotpBypassEnabled()) {
                 return false
             }

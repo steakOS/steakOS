@@ -41,7 +41,14 @@ TAG="${LINE}-R${R_MAJOR}.${R_MINOR}-${V}-${BUILD_ID}"
 echo "$TAG"
 
 if [[ "${1:-}" == "--build" ]]; then
+  JAR="$(ls -1 build/libs/steakOS-*.jar 2>/dev/null | grep -v -- '-plain' | sort | tail -1 || true)"
+  if [[ -z "$JAR" ]]; then
+    echo "boot jar missing. Run ./gradlew bootJar first." >&2
+    exit 1
+  fi
   docker build \
+    -f deploy/Dockerfile \
+    --build-arg "JAR=${JAR}" \
     --build-arg "STEAKOS_PRODUCT_LINE=${LINE}" \
     --build-arg "STEAKOS_RELEASE_MAJOR=${R_MAJOR}" \
     --build-arg "STEAKOS_RELEASE_MINOR=${R_MINOR}" \

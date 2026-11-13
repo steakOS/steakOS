@@ -138,10 +138,22 @@ function looksLikeLoginHtml(text) {
  */
 export async function api(path, options = {}) {
   const { redirect: _ignored, ...rest } = options
+  const method = String(rest.method || 'GET').toUpperCase()
+  const mutating = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS'
+  let setupToken = ''
+  if (mutating && String(path).includes('/api/setup')) {
+    try {
+      setupToken = sessionStorage.getItem('steakos.setupToken') || ''
+    } catch {
+      setupToken = ''
+    }
+  }
   const opts = {
     credentials: 'include',
     headers: {
       Accept: 'application/json',
+      ...(mutating ? { 'X-Steakos-Request': '1' } : {}),
+      ...(setupToken ? { 'X-Setup-Token': setupToken } : {}),
       ...(rest.body && !(rest.body instanceof FormData)
         ? { 'Content-Type': 'application/json' }
         : {}),

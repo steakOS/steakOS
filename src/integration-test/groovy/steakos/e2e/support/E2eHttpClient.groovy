@@ -90,6 +90,9 @@ class E2eHttpClient {
         conn.connectTimeout = 15000
         conn.readTimeout = 60000
         conn.setRequestProperty('Accept', 'application/json, text/html, */*')
+        if (!(method in ['GET', 'HEAD', 'OPTIONS'])) {
+            conn.setRequestProperty('X-Steakos-Request', '1')
+        }
         extraHeaders.each { k, v -> conn.setRequestProperty(k as String, v as String) }
         if (sessionCookie) {
             conn.setRequestProperty('Cookie', sessionCookie)

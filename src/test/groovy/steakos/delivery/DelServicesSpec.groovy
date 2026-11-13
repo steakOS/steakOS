@@ -17,7 +17,9 @@ package steakos.delivery
 
 import grails.testing.gorm.DataTest
 import spock.lang.Specification
+import steakos.Role
 import steakos.User
+import steakos.UserRole
 import steakos.catalogue.CatalogueItem
 import steakos.catalogue.CatalogueService
 import steakos.human.HRFile
@@ -42,7 +44,7 @@ class DelServicesSpec extends Specification implements DataTest {
         [
                 CatalogueItem, Resource, ServiceOrder, ServiceOrderLine,
                 Customer, SalesOrder, OrderLine,
-                HRFile, User
+                HRFile, User, UserRole, Role
         ] as Class[]
     }
 

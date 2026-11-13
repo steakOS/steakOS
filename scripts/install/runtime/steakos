@@ -40,9 +40,8 @@ load_env() {
   }
   if [[ -f "$ENV_FILE" ]]; then
     _load_env_file "$ENV_FILE"
-  elif [[ -f "$CFG_DIR/steakos.env.example" ]]; then
-    echo "warn: no config/steakos.env — using example defaults" >&2
-    _load_env_file "$CFG_DIR/steakos.env.example"
+  else
+    die "config/steakos.env is missing. Run the installer so it can write database and encryption secrets."
   fi
   GRAILS_ENV="${GRAILS_ENV:-production}"
   SERVER_PORT="${SERVER_PORT:-9090}"
@@ -75,7 +74,7 @@ cmd_status() {
 cmd_start() {
   load_env
   [[ -f "$JAR" ]] || die "missing $JAR"
-  command -v java >/dev/null 2>&1 || die "java not found (need JRE 17+)"
+  command -v java >/dev/null 2>&1 || die "java not found (need JRE 21+)"
   mkdir -p "$RUN_DIR" "$LOG_DIR"
 
   if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then

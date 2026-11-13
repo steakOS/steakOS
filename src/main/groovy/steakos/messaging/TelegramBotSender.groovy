@@ -102,12 +102,20 @@ class TelegramBotSender implements MessagingAdapter {
     private String decryptSecret(String npub, String key) {
         String raw = companyConfigService.getString(npub, key, null)
         if (!raw) return null
-        if (!fieldEncryptionService) return raw
+        if (!fieldEncryptionService) {
+            throw new IllegalStateException('Field encryption is not available')
+        }
         try {
             return fieldEncryptionService.decrypt(raw)
-        } catch (Exception e) {
-            log.debug("telegram secret decrypt failed; using raw: ${e.message}")
-            return raw
+        } catch (steakos.security.FieldDecryptionException e) {
+            throw e
+        } catch (Exception ignored) {
+            if (System.getenv('STEAKOS_ENCRYPTION_ALLOW_LEGACY_PLAINTEXT') in ['true', '1'] &&
+                    !steakos.security.CiphertextHints.looksLikeCiphertext(raw)) {
+                return raw
+            }
+            log.warn('telegram secret could not be decrypted')
+            throw new steakos.security.FieldDecryptionException('telegram secret could not be decrypted')
         }
     }
 

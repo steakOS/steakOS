@@ -54,13 +54,19 @@ class MessagingOutboundServiceSpec extends Specification {
             audited << e
         }
 
+        def crypto = Stub(steakos.FieldEncryptionService) {
+            decrypt(_) >> { args -> args[0] }
+            encrypt(_) >> { args -> args[0] }
+        }
         EmailSmtpSender email = new EmailSmtpSender(
                 companyConfigService: configs,
-                emailTransport: emailTransport
+                emailTransport: emailTransport,
+                fieldEncryptionService: crypto
         )
         TelegramBotSender telegram = new TelegramBotSender(
                 companyConfigService: configs,
-                telegramTransport: telegramTransport
+                telegramTransport: telegramTransport,
+                fieldEncryptionService: crypto
         )
         service = new MessagingOutboundService(
                 companyConfigService: configs,

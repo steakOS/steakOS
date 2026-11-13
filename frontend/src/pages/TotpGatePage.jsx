@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/client'
 import AuthAppGuide from '../components/AuthAppGuide'
-import { logoutHref } from '../i18n'
+import { postLogout } from '../i18n'
 
 /**
  * AUTH01 — after password login, enter authenticator (or recovery) code.
@@ -82,18 +82,9 @@ export default function TotpGatePage() {
         )}
 
         <p className="muted" style={{ fontSize: '0.85rem', marginTop: '1rem' }}>
-          <a
-            href={logoutHref()}
-            onClick={() => {
-              try {
-                sessionStorage.clear()
-              } catch {
-                /* ignore */
-              }
-            }}
-          >
+          <button type="button" className="btn btn-ghost" onClick={() => postLogout()}>
             {t('pages.totpGate.signOut')}
-          </a>
+          </button>
         </p>
       </div>
     </div>

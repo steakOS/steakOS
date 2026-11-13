@@ -33,7 +33,7 @@ class ContentBlobService {
     static final long HARD_MAX_BYTES = 25L * 1024 * 1024
 
     String blobRoot = System.getenv('STEAKOS_CONTENT_BLOB_ROOT') ?:
-            "${System.getProperty('user.home')}/Dev/grails/steakOS/data/content-blobs"
+            new File(System.getProperty('user.dir') ?: '.', 'data/content-blobs').absolutePath
 
     @Transactional
     ContentBlob store(String npubOwner, byte[] data, String mimeType, String fileName) {

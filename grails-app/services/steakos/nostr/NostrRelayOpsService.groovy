@@ -74,10 +74,29 @@ class NostrRelayOpsService {
     }
 
     /**
+     * Production does not download or compile a relay unless the operator opts in.
+     */
+    private boolean selfInstallAllowed() {
+        String flag = System.getenv('STEAKOS_RELAY_SELF_INSTALL')?.trim()
+        if (flag) {
+            return flag == 'true' || flag == '1'
+        }
+        return !steakos.security.ProductionSecrets.productionFlag()
+    }
+
+    /**
      * Ensure config + binary exist, start relay if not reachable, re-probe.
      * Safe for wizard when Level ≥ 1. Never requires root (project-local).
      */
     Map ensureInstalledAndStarted(String npubOwner) {
+        if (!selfInstallAllowed()) {
+            return status(npubOwner) + [
+                    ensured: false,
+                    error  : 'Relay self-install is disabled on this install.',
+                    code   : 'RELAY_SELF_INSTALL_DISABLED',
+                    steps  : []
+            ]
+        }
         List<String> steps = []
         File data = dataDir()
         data.mkdirs()

@@ -154,7 +154,12 @@ SERVER_ADDRESS=0.0.0.0
 STEAKOS_DB_HOST=localhost
 STEAKOS_DB_PORT=5432
 STEAKOS_DB_USER=steakos
-STEAKOS_DB_PASSWORD=steakos
+# The installer writes STEAKOS_DB_PASSWORD, the encryption secrets, and STEAKOS_REMEMBER_ME_KEY.
+# Leave them empty here. Production will not start until they are set.
+STEAKOS_DB_PASSWORD=
+STEAKOS_FIELD_ENCRYPTION_PASSWORD=
+STEAKOS_FIELD_ENCRYPTION_SALT=
+STEAKOS_REMEMBER_ME_KEY=
 # production datasource uses steakos_prod; override URL only if needed:
 # SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/steakos_prod
 

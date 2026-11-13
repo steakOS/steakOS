@@ -235,15 +235,109 @@ psql_as_postgres() {
 
 run_db_setup() {
   local sql="$1"
+  local dbpass="$2"
   local db
   [[ -f "$sql" ]] || die "DB setup SQL not found: $sql"
+  [[ -n "$dbpass" ]] || die "Database password was not generated. Refusing to create the role."
   info "Creating steakOS databases (role + steakos_*)"
-  # Connect to the maintenance DB. \gexec in the script creates steakos_*.
-  psql_as_postgres -d postgres < "$sql"
+  # Quiet: the role statement contains the password. Errors still print on stderr.
+  psql_as_postgres -q -d postgres -v "dbpass=${dbpass}" < "$sql" >/dev/null
   for db in steakos_dev steakos_test steakos_prod; do
     printf '%s\n' "GRANT ALL ON SCHEMA public TO steakos; ALTER SCHEMA public OWNER TO steakos;" \
       | psql_as_postgres -d "$db"
   done
+}
+
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    printf '%s' "$1" | sha256sum | awk '{print $1}'
+  else
+    printf '%s' "$1" | shasum -a 256 | awk '{print $1}'
+  fi
+}
+
+rand_hex() {
+  local nbytes="$1"
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex "$nbytes"
+    return
+  fi
+  od -An -tx1 -N "$nbytes" /dev/urandom | tr -d ' \n'
+}
+
+env_value() {
+  local file="$1" key="$2" line
+  line="$(grep -E "^[[:space:]]*${key}=" "$file" 2>/dev/null | tail -1 || true)"
+  line="${line#*=}"
+  line="${line%\"}"
+  line="${line#\"}"
+  line="${line%\'}"
+  line="${line#\'}"
+  printf '%s' "$line"
+}
+
+upsert_env() {
+  local file="$1" key="$2" value="$3"
+  if grep -qE "^[[:space:]]*${key}=" "$file"; then
+    sed -i.bak -E "s|^[[:space:]]*${key}=.*|${key}=${value}|" "$file"
+    rm -f "${file}.bak"
+  else
+    printf '%s=%s\n' "$key" "$value" >> "$file"
+  fi
+}
+
+# Replace a secret when it is missing, too short, or a known dev value (hash compare).
+secret_needs_replace() {
+  local value="$1" min="$2" known="$3"
+  [[ -z "$value" ]] && return 0
+  [[ "${#value}" -lt "$min" ]] && return 0
+  [[ "$(sha256_of "$value")" == "$known" ]] && return 0
+  return 1
+}
+
+salt_needs_replace() {
+  local value="$1"
+  [[ -z "$value" ]] && return 0
+  [[ ! "$value" =~ ^[0-9a-fA-F]{32,}$ ]] && return 0
+  [[ "$(sha256_of "$value")" == "b82efc46c073d9d8f6dfd0ad738a7074df7789847dd8f041c62e96000323260c" ]] && return 0
+  return 1
+}
+
+ensure_runtime_secrets() {
+  local file="$PREFIX/config/steakos.env"
+  local db enc salt remember
+  mkdir -p "$PREFIX/config" "$PREFIX/run"
+  if [[ ! -f "$file" ]]; then
+    if [[ -f "$PREFIX/config/steakos.env.example" ]]; then
+      cp "$PREFIX/config/steakos.env.example" "$file"
+    else
+      printf '%s\n' 'GRAILS_ENV=production' 'SERVER_PORT=9090' > "$file"
+    fi
+  fi
+  db="$(env_value "$file" STEAKOS_DB_PASSWORD)"
+  if secret_needs_replace "$db" 32 "f8078ea87fb022c6724aecefd65423c221e629ee6f1a69de6e27c2208049aeb9"; then
+    db="$(rand_hex 32)"
+    upsert_env "$file" STEAKOS_DB_PASSWORD "$db"
+  fi
+  enc="$(env_value "$file" STEAKOS_FIELD_ENCRYPTION_PASSWORD)"
+  if secret_needs_replace "$enc" 32 "62b2d6d03a6df1609aceee67dc1a9ce456c17c83d2d4c5961271886647fe36d4"; then
+    enc="$(rand_hex 32)"
+    upsert_env "$file" STEAKOS_FIELD_ENCRYPTION_PASSWORD "$enc"
+  fi
+  salt="$(env_value "$file" STEAKOS_FIELD_ENCRYPTION_SALT)"
+  if salt_needs_replace "$salt"; then
+    salt="$(rand_hex 16)"
+    upsert_env "$file" STEAKOS_FIELD_ENCRYPTION_SALT "$salt"
+  fi
+  remember="$(env_value "$file" STEAKOS_REMEMBER_ME_KEY)"
+  if secret_needs_replace "$remember" 32 "177e00b4f084d9f0f680928f7b0f3cc882dccaaf41f95f54c1f7f678272d45b8"; then
+    remember="$(rand_hex 32)"
+    upsert_env "$file" STEAKOS_REMEMBER_ME_KEY "$remember"
+  fi
+  chmod 600 "$file"
+  DB_PASS="$db"
+  info "Runtime secrets are in $file (mode 0600)."
+  info "After the first start, the setup token file is $PREFIX/run/setup-token"
 }
 
 need_cmd() {
@@ -331,9 +425,10 @@ info "Installing steakOS package"
 bash "$INSTALLER" "${PKG_ARGS[@]}" --no-start
 
 SQL="$PREFIX/db/setup-postgresql.sql"
+ensure_runtime_secrets
 if [[ "$BOOTSTRAP_DB" -eq 1 ]]; then
   if [[ -f "$SQL" ]]; then
-    run_db_setup "$SQL"
+    run_db_setup "$SQL" "$DB_PASS"
   else
     die "No $SQL after package install. Do not switch to development."
   fi

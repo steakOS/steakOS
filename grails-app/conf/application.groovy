@@ -26,18 +26,27 @@ grails.plugin.springsecurity.successHandler.defaultTargetUrl = '/app'
 grails.plugin.springsecurity.successHandler.alwaysUseDefault = true
 // After logout, show thank-you page at /logout/index
 grails.plugin.springsecurity.logout.afterLogoutUrl = '/logout/index'
-// Allow GET /logout (filter) as well as our LogoutController — clear remember-me
-grails.plugin.springsecurity.logout.postOnly = false
+// Logout is POST only. GET /logout/index renders the thank-you page and does not end the session.
+grails.plugin.springsecurity.logout.postOnly = true
 grails.plugin.springsecurity.logout.handlerNames = [
 		'rememberMeServices',
 		'securityContextLogoutHandler'
 ]
 
+def _grailsEnv = System.getProperty('grails.env') ?: System.getenv('GRAILS_ENV') ?: 'development'
+def _rememberKey = System.getenv('STEAKOS_REMEMBER_ME_KEY') ?: ''
+if (!_rememberKey && !(_grailsEnv in ['production', 'prod'])) {
+	_rememberKey = 'dev-remember-me-key-not-for-production-use!!'
+}
+grails.plugin.springsecurity.rememberMe.key = _rememberKey
+grails.plugin.springsecurity.rememberMe.useSecureCookie = (_grailsEnv in ['production', 'prod'])
+grails.plugin.springsecurity.useSessionFixationPrevention = true
+
 
 // Plugin defaults: form login at /login/auth, POST /login/authenticate
 grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	[pattern: '/error',          access: ['permitAll']],
-	[pattern: '/shutdown',       access: ['permitAll']],
+	[pattern: '/shutdown',       access: ['denyAll']],
 	[pattern: '/assets/**',      access: ['permitAll']],
 	// A4 — public vulnerability contact (RFC 9116)
 	[pattern: '/.well-known/**', access: ['permitAll']],
@@ -90,7 +99,8 @@ grails.plugin.springsecurity.filterChain.chainMap = [
 	[pattern: '/api/health',     filters: 'none'],
 	[pattern: '/api/health/**',  filters: 'none'],
 	[pattern: '/api/ops/metrics', filters: 'none'],
-	// JSON SPA API: session auth via Vite proxy; CSRF off for API mutations (dev skeleton)
+	// Cookie-authenticated API mutations are guarded by MutatingRequestGuardFilter
+	// (X-Steakos-Request plus Origin / Sec-Fetch-Site). Bearer and webhook calls are exempt.
 	[pattern: '/api/**',         filters: 'JOINED_FILTERS,-csrfFilter'],
 	[pattern: '/**',             filters: 'JOINED_FILTERS']
 ]

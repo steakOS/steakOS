@@ -121,6 +121,30 @@ export function logoutHref() {
   return `/logout/index?lang=${encodeURIComponent(full)}&locale=${encodeURIComponent(full)}&ui_lang=${encodeURIComponent(short)}`
 }
 
+/** End the session with POST. GET /logout/index only shows the thank-you page. */
+export async function postLogout() {
+  const href = logoutHref()
+  try {
+    sessionStorage.clear()
+  } catch {
+    /* ignore */
+  }
+  try {
+    await fetch(href, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        Accept: 'text/html',
+        'X-Steakos-Request': '1',
+      },
+      redirect: 'manual',
+    })
+  } catch {
+    /* still leave the app shell */
+  }
+  window.location.assign(href)
+}
+
 /** Optional ?lang= / ?locale= on SPA entry (AppBridge after login). */
 export function readLocaleFromUrl() {
   try {

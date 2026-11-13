@@ -18,6 +18,7 @@ export default function SecuritySettingsPage() {
   const [err, setErr] = useState(null)
   const [busy, setBusy] = useState(false)
   const [bypass, setBypass] = useState(false)
+  const [bypassAvailable, setBypassAvailable] = useState(false)
   const [bypassWarning, setBypassWarning] = useState('')
 
   const refresh = () => meApi.get().then(setMe).catch((e) => setErr(e.message))
@@ -27,11 +28,12 @@ export default function SecuritySettingsPage() {
     authApi
       .adminTotpBypassGet()
       .then((r) => {
+        setBypassAvailable(true)
         setBypass(!!r.enabled)
         setBypassWarning(r.warning || '')
       })
-      .catch(() => {
-        /* non-admin or API not yet rebuilt */
+      .catch((e) => {
+        if (e?.status === 404) setBypassAvailable(false)
       })
   }
 
@@ -181,7 +183,7 @@ export default function SecuritySettingsPage() {
         )}
       </section>
 
-      {me?.isAdmin && (
+      {me?.isAdmin && bypassAvailable && (
         <section className="card" style={{ marginTop: '1rem', padding: '1rem' }}>
           <h2 className="section-label" style={{ marginTop: 0 }}>
             {t('pages.security.bypassTitle')}

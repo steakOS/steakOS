@@ -31,8 +31,16 @@ class LogoutController {
     static final String REMEMBER_ME_COOKIE = 'grails_remember_me'
 
     def index() {
-        // Apply SPA language before session wipe so thank-you GSP is localized.
+        // Apply SPA language so the thank-you GSP is localized.
         applyUiLocale()
+
+        // GET only shows the page. Ending the session is POST.
+        if (request.method != 'POST') {
+            response.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+            response.setHeader('Pragma', 'no-cache')
+            render(view: '/logout/index')
+            return
+        }
 
         def authentication = SecurityContextHolder.context?.authentication
         boolean wasLoggedIn = springSecurityService?.isLoggedIn() ||

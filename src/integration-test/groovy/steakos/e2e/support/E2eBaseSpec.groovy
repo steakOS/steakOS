@@ -63,7 +63,7 @@ abstract class E2eBaseSpec extends Specification {
     }
 
     protected void loginAsAdmin() {
-        http.loginSession('admin', 'admin')
+        http.loginSession('admin')
     }
 
     protected void assertJsonOk(Map res, int expectedStatus = 200) {

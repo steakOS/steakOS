@@ -37,7 +37,11 @@ PGPORT="${PGPORT:-5432}"
 PGUSER="${PGUSER:-steakos}"
 PGDATABASE="${PGDATABASE:-steakos_dev}"
 # Prefer env; fall back to project dev default (local only)
-export PGPASSWORD="${PGPASSWORD:-${STEAKOS_DB_PASSWORD:-steakos}}"
+export PGPASSWORD="${PGPASSWORD:-${STEAKOS_DB_PASSWORD:-}}"
+if [[ -z "${PGPASSWORD}" ]]; then
+  echo "Set STEAKOS_DB_PASSWORD or PGPASSWORD before backing up." >&2
+  exit 1
+fi
 
 KEEP_DB_DUMPS="${KEEP_DB_DUMPS:-14}"   # how many .dump files to keep (0 = keep all)
 LOG_FILE="${LOG_FILE:-}"               # empty = log only to stderr/stdout + DEST_ROOT/backup.log

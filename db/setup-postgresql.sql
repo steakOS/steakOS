@@ -1,17 +1,18 @@
 -- steakOS PostgreSQL setup
--- Run as superuser, e.g.:
---   sudo -u postgres psql -v ON_ERROR_STOP=1 -f db/setup-postgresql.sql
---   then grant schema on each DB (see comments at bottom)
+-- Run as superuser. The installer passes the role password as a psql variable.
+--   psql -v ON_ERROR_STOP=1 -v dbpass='<secret>' -d postgres -f db/setup-postgresql.sql
+-- Do not put a password in this file.
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'steakos') THEN
-    CREATE ROLE steakos LOGIN PASSWORD 'steakos';
-  ELSE
-    ALTER ROLE steakos WITH LOGIN PASSWORD 'steakos';
-  END IF;
-END
-$$;
+\if :{?dbpass}
+\else
+\echo 'steakOS: psql variable dbpass is required. Refusing to create the role without it.'
+\quit 1
+\endif
+
+SELECT format('CREATE ROLE steakos LOGIN PASSWORD %L', :'dbpass')
+WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'steakos')\gexec
+
+SELECT format('ALTER ROLE steakos WITH LOGIN PASSWORD %L', :'dbpass')\gexec
 
 SELECT 'CREATE DATABASE steakos_dev OWNER steakos'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'steakos_dev')\gexec

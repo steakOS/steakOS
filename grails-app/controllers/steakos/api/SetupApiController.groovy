@@ -59,22 +59,55 @@ class SetupApiController {
     ]
 
     def beforeInterceptor = {
-        if (springSecurityService?.isLoggedIn()) {
-            return true
-        }
-        boolean complete = false
+        boolean complete
         try {
             complete = setupService?.statusMap(null)?.setupComplete == true
-        } catch (ignored) {
+        } catch (Exception ignored) {
+            render(status: 503, contentType: 'application/json',
+                    text: '{"error":"Setup status unavailable","code":"SETUP_STATUS_UNAVAILABLE"}')
+            return false
         }
+
+        String action = actionName?.toString()
+        if (action in MAINTENANCE_ACTIONS) {
+            return allowMaintenance(action)
+        }
+
         if (!complete) {
+            String method = request.method?.toUpperCase()
+            boolean openRead = method in ['GET', 'HEAD'] && action in OPEN_READS
+            if (openRead) {
+                return true
+            }
+            if (setupTokenService?.allows(request.getHeader('X-Setup-Token'))) {
+                return true
+            }
+            if (springSecurityService?.isLoggedIn() || !setupTokenService?.enforced()) {
+                return true
+            }
+            render(status: 401, contentType: 'application/json',
+                    text: '{"error":"Setup token required","code":"SETUP_TOKEN_REQUIRED"}')
+            return false
+        }
+
+        if (springSecurityService?.isLoggedIn()) {
             return true
         }
         render(status: 401, contentType: 'application/json', text: '{"error":"Unauthorized","code":"UNAUTHORIZED"}')
         return false
     }
 
+    private static final Set<String> OPEN_READS = [
+            'status', 'check', 'profile', 'accountStatus', 'draftGet'
+    ] as Set
+
+    private static final Set<String> MAINTENANCE_ACTIONS = [
+            'reset', 'demoSeed', 'demoReset', 'heardCookSeed', 'heardCookReset',
+            'twentyOneToysSeed', 'twentyOneToysReset'
+    ] as Set
+
     SetupService setupService
+    steakos.security.SetupTokenService setupTokenService
     steakos.security.AuthAccountService authAccountService
     DemoSeedService demoSeedService
     OrangeSteakHouseSeedService orangeSteakHouseSeedService
@@ -85,7 +118,13 @@ class SetupApiController {
 
     /** GET /api/setup/status */
     def status() {
-        render(setupService.statusMap(resolveNpub(null)) as JSON)
+        Map body = setupService.statusMap(resolveNpub(null))
+        boolean tokenRequired = setupTokenService?.enforced() && body?.setupComplete != true
+        if (tokenRequired) {
+            setupTokenService.ensureMaterial()
+        }
+        body.setupTokenRequired = tokenRequired
+        render(body as JSON)
     }
 
     /** GET /api/setup/draft */
@@ -172,6 +211,9 @@ class SetupApiController {
             } catch (ignored) {
             }
             Map status = setupService.statusMap(npub)
+            if (status?.setupComplete) {
+                setupTokenService?.discard()
+            }
             if (!status?.setupComplete) {
                 render(status: 500, text: ([
                         error: 'Setup complete did not persist setupComplete=true',
@@ -464,13 +506,52 @@ class SetupApiController {
 
     /** Account enrolment is only for the open wizard. After setup, these calls stop. */
     private boolean setupClosed() {
-        boolean complete = false
+        boolean complete
         try {
             complete = setupService?.statusMap(null)?.setupComplete == true
-        } catch (ignored) {
+        } catch (Exception ignored) {
+            render(status: 503, contentType: 'application/json',
+                    text: '{"error":"Setup status unavailable","code":"SETUP_STATUS_UNAVAILABLE"}')
+            return true
         }
         if (!complete) return false
         render(status: 401, contentType: 'application/json', text: '{"error":"Unauthorized","code":"UNAUTHORIZED"}')
+        return true
+    }
+
+    /** Destructive setup actions: admin, and in production a recent authenticator step-up plus the wipe flag. */
+    private boolean allowMaintenance(String action) {
+        if (isAgentPrincipal()) {
+            render(status: 403, contentType: 'application/json',
+                    text: '{"error":"Agents cannot perform this action","code":"AGENT_DENIED"}')
+            return false
+        }
+        if (!springSecurityService?.isLoggedIn()) {
+            render(status: 401, contentType: 'application/json', text: '{"error":"Unauthorized","code":"UNAUTHORIZED"}')
+            return false
+        }
+        Collection auths = springSecurityService.authentication?.authorities*.authority ?: []
+        if (!auths.contains('ROLE_ADMIN')) {
+            render(status: 403, contentType: 'application/json', text: '{"error":"Forbidden","code":"FORBIDDEN"}')
+            return false
+        }
+        boolean wipe = action in ['reset', 'demoReset', 'heardCookReset', 'twentyOneToysReset']
+        if (wipe && steakos.security.ProductionSecrets.productionFlag()) {
+            String flag = System.getenv('STEAKOS_MAINTENANCE_WIPE')
+            boolean enabled = flag == 'true' || flag == '1'
+            if (!enabled) {
+                render(status: 403, contentType: 'application/json',
+                        text: '{"error":"Forbidden","code":"WIPE_DISABLED"}')
+                return false
+            }
+            Long at = session?.getAttribute(steakos.security.TotpGateFilter.SESSION_TOTP_AT) as Long
+            long age = at == null ? Long.MAX_VALUE : (System.currentTimeMillis() - at.longValue())
+            if (age > 5L * 60L * 1000L) {
+                render(status: 403, contentType: 'application/json',
+                        text: '{"error":"Forbidden","code":"STEP_UP_REQUIRED"}')
+                return false
+            }
+        }
         return true
     }
 

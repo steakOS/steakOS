@@ -35,8 +35,7 @@ class EncryptedStringConverter implements AttributeConverter<String, String> {
         }
         FieldEncryptionService svc = encryptionService
         if (svc == null) {
-            // Unit tests / no Spring context — store plaintext
-            return attribute
+            throw new IllegalStateException('Field encryption is not available')
         }
         return svc.encrypt(attribute)
     }
@@ -48,14 +47,23 @@ class EncryptedStringConverter implements AttributeConverter<String, String> {
         }
         FieldEncryptionService svc = encryptionService
         if (svc == null) {
-            return dbData
+            throw new IllegalStateException('Field encryption is not available')
         }
         try {
             return svc.decrypt(dbData)
+        } catch (FieldDecryptionException e) {
+            throw e
         } catch (Exception ignored) {
-            // Allow reading legacy/plaintext rows during migration
-            return dbData
+            if (allowLegacyPlaintext() && !CiphertextHints.looksLikeCiphertext(dbData)) {
+                return dbData
+            }
+            throw new FieldDecryptionException('Encrypted field could not be read')
         }
+    }
+
+    private static boolean allowLegacyPlaintext() {
+        String raw = System.getenv('STEAKOS_ENCRYPTION_ALLOW_LEGACY_PLAINTEXT')
+        return raw == 'true' || raw == '1'
     }
 
     private static FieldEncryptionService getEncryptionService() {

@@ -43,7 +43,7 @@ import CommandPalette from '../components/CommandPalette'
 import GlobalSearch from '../components/GlobalSearch'
 import { useLocaleBootstrap } from '../hooks/useLocaleBootstrap'
 import useNarrowViewport from '../hooks/useNarrowViewport'
-import { logoutHref } from '../i18n'
+import { postLogout } from '../i18n'
 import { domainResourceLabel } from '../utils/domainLabels'
 import { allowsSilverSurfaces } from '../utils/silverSurfaces'
 import {
@@ -927,20 +927,16 @@ export default function AppShell() {
             >
               <HelpCircle size={16} />
             </button>
-            <a
+            <button
+              type="button"
               className="btn btn-ghost"
-              href={logoutHref()}
               title={t('shell.signOut', { defaultValue: 'Sign out' })}
               onClick={() => {
-                try {
-                  sessionStorage.clear()
-                } catch {
-                  /* ignore */
-                }
+                postLogout()
               }}
             >
               <LogOut size={16} /> <span className="topbar-logout-label">{t('nav.logout')}</span>
-            </a>
+            </button>
           </div>
         </header>
         <main className="content">

@@ -17,7 +17,9 @@ package steakos.human
 
 import grails.testing.gorm.DataTest
 import spock.lang.Specification
+import steakos.Role
 import steakos.User
+import steakos.UserRole
 import steakos.finance.PayrollItem
 import steakos.finance.FinancePayrollService
 
@@ -37,7 +39,7 @@ class HrServicesSpec extends Specification implements DataTest {
     Class[] getDomainClassesToMock() {
         [
                 HRFile, Candidate, TimeTrack, Payroll, HeadcountPlan, Goal, Policy, PartyAccess,
-                User, PayrollItem
+                User, UserRole, Role, PayrollItem
         ] as Class[]
     }
 

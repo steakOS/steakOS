@@ -21,7 +21,13 @@ class PaymentSettingsServiceSpec extends Specification implements DataTest {
 
     def setup() {
         configs = new CompanyConfigService()
-        service = new PaymentSettingsService(companyConfigService: configs)
+        service = new PaymentSettingsService(
+                companyConfigService: configs,
+                fieldEncryptionService: Stub(steakos.FieldEncryptionService) {
+                    decrypt(_) >> { args -> args[0] }
+                    encrypt(_) >> { args -> args[0] }
+                }
+        )
     }
 
     def "DEMO company always resolves MOCK and surfaces demoForcedMock"() {

@@ -5,7 +5,7 @@
 #
 # Pre-GA: software V is 0.x (build.gradle). At SBM GA flip to 1.0.0.
 
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 ARG STEAKOS_PRODUCT_LINE=SBM
 ARG STEAKOS_RELEASE_MAJOR=1
@@ -24,11 +24,19 @@ ENV STEAKOS_PRODUCT_LINE=${STEAKOS_PRODUCT_LINE} \
     STEAKOS_RELEASE_MINOR=${STEAKOS_RELEASE_MINOR} \
     STEAKOS_BUILD_ID=${STEAKOS_BUILD_ID}
 
+# Pass the boot jar: --build-arg JAR=build/libs/steakOS-0.2.16.jar
+ARG JAR=build/libs/steakOS.jar
+
 WORKDIR /app
 
-# Expect a bootable WAR/JAR produced by Gradle (bootWar / bootJar)
-COPY build/libs/*.war /app/app.war
+RUN groupadd --system steakos \
+    && useradd --system --gid steakos --home-dir /app --shell /usr/sbin/nologin steakos
+
+COPY ${JAR} /app/app.jar
+RUN chown steakos:steakos /app/app.jar
+
+USER steakos
 
 EXPOSE 9090
 
-ENTRYPOINT ["java", "-Dgrails.env=production", "-jar", "/app/app.war"]
+ENTRYPOINT ["java", "-Dgrails.env=production", "-jar", "/app/app.jar"]

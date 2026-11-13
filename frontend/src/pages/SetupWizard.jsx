@@ -190,6 +190,8 @@ export default function SetupWizard() {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  const [setupTokenNeeded, setSetupTokenNeeded] = useState(false)
+  const [setupTokenInput, setSetupTokenInput] = useState('')
   /** Inline BTC address feedback on wizard bitcoin step (Task 7620). */
   const [btcAddressError, setBtcAddressError] = useState(null)
   /** Soft (non-blocking) company-name special-char tip (Task 7622). */
@@ -262,6 +264,17 @@ export default function SetupWizard() {
       }
       setStatus(st)
       setTiers(st.tiers || [])
+      if (st.setupTokenRequired) {
+        let saved = ''
+        try {
+          saved = sessionStorage.getItem('steakos.setupToken') || ''
+        } catch {
+          saved = ''
+        }
+        setSetupTokenNeeded(!saved)
+      } else {
+        setSetupTokenNeeded(false)
+      }
 
       if (st.setupComplete) {
         // Already done: show finale (not step 1 + "Setup already complete" errors)
@@ -997,6 +1010,41 @@ export default function SetupWizard() {
 
       <main className="setup-main">
         {error && <div className="setup-error">{error}</div>}
+
+        {setupTokenNeeded && (
+          <section className="setup-card">
+            <h1>Setup token</h1>
+            <p>
+              Paste the token from the file <code>run/setup-token</code> on this server. The
+              installer prints that path. The token stays in this browser tab.
+            </p>
+            <label>
+              Token
+              <input
+                value={setupTokenInput}
+                autoComplete="off"
+                onChange={(e) => setSetupTokenInput(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ marginTop: 12 }}
+              onClick={() => {
+                const token = setupTokenInput.trim()
+                if (!token) return
+                try {
+                  sessionStorage.setItem('steakos.setupToken', token)
+                } catch {
+                  /* ignore */
+                }
+                setSetupTokenNeeded(false)
+              }}
+            >
+              Save token
+            </button>
+          </section>
+        )}
 
         {step === 0 && (
           <section className="setup-card">

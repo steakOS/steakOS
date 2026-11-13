@@ -50,13 +50,14 @@ class MeApiController {
         boolean isCeo = authorities?.contains('ROLE_CEO')
         boolean totpEnabled = !!u?.totpEnabled
         boolean totpVerified = session.getAttribute(steakos.security.TotpGateFilter.SESSION_TOTP_OK) == Boolean.TRUE
-        boolean authViaNostr = session.getAttribute(steakos.security.TotpGateFilter.SESSION_AUTH_VIA_NOSTR) == Boolean.TRUE
         boolean adminTotpBypass = false
         try {
-            adminTotpBypass = isAdmin && !!companyConfigService?.isAdminTotpBypassEnabled()
-            if (adminTotpBypass && !totpVerified) {
-                session.setAttribute(steakos.security.TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
-                totpVerified = true
+            if (!steakos.security.ProductionSecrets.productionFlag()) {
+                adminTotpBypass = isAdmin && !!companyConfigService?.isAdminTotpBypassEnabled()
+                if (adminTotpBypass && !totpVerified) {
+                    session.setAttribute(steakos.security.TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
+                    totpVerified = true
+                }
             }
         } catch (ignored) {
         }
@@ -64,9 +65,11 @@ class MeApiController {
         List enabledFamilies = null
         String templateTier = TemplateTiers.DEFAULT_OPERATOR_TIER
         try {
-            String npub = u?.npub ?: 'user:admin'
-            templateTier = companyConfigService?.getString(npub, 'template.tier', TemplateTiers.DEFAULT_OPERATOR_TIER) ?: TemplateTiers.DEFAULT_OPERATOR_TIER
-            enabledFamilies = companyConfigService?.enabledFamilies(npub) as List
+            String npub = u?.npub?.trim()
+            if (npub) {
+                templateTier = companyConfigService?.getString(npub, 'template.tier', TemplateTiers.DEFAULT_OPERATOR_TIER) ?: TemplateTiers.DEFAULT_OPERATOR_TIER
+                enabledFamilies = companyConfigService?.enabledFamilies(npub) as List
+            }
         } catch (ignored) {
         }
 
@@ -115,8 +118,8 @@ class MeApiController {
                 isAdmin       : isAdmin,
                 isCeo         : isCeo,
                 totpEnabled   : totpEnabled,
-                totpVerified  : totpVerified || authViaNostr || !totpEnabled || adminTotpBypass,
-                totpRequired  : totpEnabled && !totpVerified && !authViaNostr && !adminTotpBypass,
+                totpVerified  : totpVerified || !totpEnabled || adminTotpBypass,
+                totpRequired  : totpEnabled && !totpVerified && !adminTotpBypass,
                 adminTotpBypass: adminTotpBypass,
                 hasNpub       : u?.npub && !u.npub.startsWith('user:'),
                 defaultHome   : defaultHome,

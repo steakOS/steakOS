@@ -39,15 +39,13 @@ class FieldEncryptionService {
 
     @PostConstruct
     void init() {
-        String password = environment.getProperty(
-                'steakos.encryption.password',
-                'steakos-dev-only-change-me!!'
-        )
-        // Must be hex-encoded salt (Encryptors API)
-        String saltHex = environment.getProperty(
-                'steakos.encryption.salt',
-                'a1b2c3d4e5f60718'
-        )
+        String password = environment.getProperty('steakos.encryption.password')
+        String saltHex = environment.getProperty('steakos.encryption.salt')
+        if (!password?.trim() || !saltHex?.trim()) {
+            throw new IllegalStateException(
+                    'Field encryption is not configured. Set STEAKOS_FIELD_ENCRYPTION_PASSWORD and STEAKOS_FIELD_ENCRYPTION_SALT.'
+            )
+        }
         encryptor = Encryptors.delux(password, saltHex)
     }
 

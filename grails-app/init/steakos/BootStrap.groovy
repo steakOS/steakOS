@@ -99,6 +99,13 @@ class BootStrap {
             )
         } catch (Exception ignored) {
         }
+        try {
+            SpringSecurityUtils.clientRegisterFilter(
+                    'mutatingRequestGuardFilter',
+                    SecurityFilterPosition.CSRF_FILTER.order
+            )
+        } catch (Exception ignored) {
+        }
 
         seedContentTypes()
         seedContentProfiles()

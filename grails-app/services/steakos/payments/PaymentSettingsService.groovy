@@ -292,11 +292,20 @@ class PaymentSettingsService {
 
     private String decryptOptional(String stored) {
         if (!stored?.trim()) return null
+        if (!fieldEncryptionService) {
+            throw new IllegalStateException('Field encryption is not available')
+        }
         try {
             return fieldEncryptionService.decrypt(stored)
-        } catch (Exception e) {
-            log.warn('Failed to decrypt payment setting (treating as plain for migration): {}', e.message)
-            return stored
+        } catch (steakos.security.FieldDecryptionException e) {
+            throw e
+        } catch (Exception ignored) {
+            if (System.getenv('STEAKOS_ENCRYPTION_ALLOW_LEGACY_PLAINTEXT') in ['true', '1'] &&
+                    !steakos.security.CiphertextHints.looksLikeCiphertext(stored)) {
+                return stored
+            }
+            log.warn('payment setting could not be decrypted')
+            throw new steakos.security.FieldDecryptionException('payment setting could not be decrypted')
         }
     }
 

@@ -124,6 +124,10 @@ class NostrApiController {
         try {
             String npub = resolveNpub(params)
             def result = c.call(npub)
+            if (result instanceof Map && result.code == 'RELAY_SELF_INSTALL_DISABLED') {
+                render(status: 409, text: (result as JSON).toString())
+                return
+            }
             render(result as JSON)
         } catch (IllegalArgumentException | IllegalStateException e) {
             render(status: 400, text: ([error: e.message] as JSON))

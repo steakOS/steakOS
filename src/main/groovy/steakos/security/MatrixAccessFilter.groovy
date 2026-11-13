@@ -51,25 +51,33 @@ class MatrixAccessFilter extends OncePerRequestFilter {
 
         User user = resolveUser(auth)
         if (!user) {
-            filterChain.doFilter(request, response)
+            forbid(response, 'Not authorized', 'MATRIX_USER_UNKNOWN')
+            return
+        }
+
+        String npub = user.npub?.trim()
+        if (!npub) {
+            forbid(response, 'Not authorized', 'MATRIX_USER_UNKNOWN')
             return
         }
 
         List enabledFamilies = null
         String templateTier = null
         try {
-            String npub = user.npub ?: 'user:admin'
             enabledFamilies = companyConfigService?.enabledFamilies(npub) as List
             templateTier = companyConfigService?.getString(npub, 'template.tier', null)
-        } catch (ignored) {
+        } catch (Exception e) {
+            log.warn('matrix company config failed')
+            unavailable(response, method)
+            return
         }
 
         Map eff
         try {
             eff = roleProfileService.effectivePermissions(user, enabledFamilies, templateTier)
         } catch (Exception e) {
-            log.warn("matrix resolve failed: ${e.message}")
-            filterChain.doFilter(request, response)
+            log.warn('matrix resolve failed')
+            unavailable(response, method)
             return
         }
 
@@ -132,5 +140,16 @@ class MatrixAccessFilter extends OncePerRequestFilter {
         response.contentType = 'application/json;charset=UTF-8'
         String safe = (message ?: 'Forbidden').replace('"', "'")
         response.writer.write("{\"error\":\"${safe}\",\"code\":\"${code}\"}")
+    }
+
+    private static void unavailable(HttpServletResponse response, String method) throws IOException {
+        String m = (method ?: 'GET').toUpperCase()
+        if (m == 'GET' || m == 'HEAD') {
+            forbid(response, 'Not authorized', 'MATRIX_UNAVAILABLE')
+            return
+        }
+        response.status = 503
+        response.contentType = 'application/json;charset=UTF-8'
+        response.writer.write('{"error":"Authorization is unavailable","code":"AUTHZ_UNAVAILABLE"}')
     }
 }

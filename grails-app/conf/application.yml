@@ -58,15 +58,25 @@ grails:
                 scriptlet: html
 
 ---
-# Field encryption for sensitive User attributes (nsec, npub, bunker). Override in production.
+# Field encryption for sensitive User attributes (nsec, npub, bunker).
+# Production must set the env vars. Dev and test profiles supply local defaults below.
 steakos:
     # Operator/dev harness flag — OFF by default on install. Enable only on lab hosts
     # (STEAKOS_DEVELOPMENT_MODE=true). Gates the Coder agent and AI:* task workflow.
     developmentMode: ${STEAKOS_DEVELOPMENT_MODE:false}
     encryption:
-        password: ${STEAKOS_FIELD_ENCRYPTION_PASSWORD:steakos-dev-only-change-me!!}
-        # Hex-encoded salt required by Spring Encryptors (min 8 bytes → 16 hex chars)
-        salt: ${STEAKOS_FIELD_ENCRYPTION_SALT:a1b2c3d4e5f60718}
+        password: ${STEAKOS_FIELD_ENCRYPTION_PASSWORD:}
+        # Hex salt. Production requires at least 16 bytes (32 hex characters).
+        salt: ${STEAKOS_FIELD_ENCRYPTION_SALT:}
+        allow-legacy-plaintext: ${STEAKOS_ENCRYPTION_ALLOW_LEGACY_PLAINTEXT:false}
+    security:
+        rememberMeKey: ${STEAKOS_REMEMBER_ME_KEY:}
+        setupTokenRequired: false
+    maintenance:
+        wipe:
+            enabled: false
+    relay:
+        selfInstall: false
     frontend:
         url: ${STEAKOS_FRONTEND_URL:http://localhost:9001}
     # Product release stamp — docs/versions/VERSIONS.md (V1–V7)
@@ -117,7 +127,7 @@ dataSource:
     driverClassName: org.postgresql.Driver
     dialect: org.hibernate.dialect.PostgreSQLDialect
     username: ${STEAKOS_DB_USER:steakos}
-    password: ${STEAKOS_DB_PASSWORD:steakos}
+    password: ${STEAKOS_DB_PASSWORD:}
     # Shared pool defaults; production tightens these further
     properties:
         jmxEnabled: true
@@ -142,6 +152,13 @@ dataSource:
 # Content rail FILE uploads (ContentBlobService.HARD_MAX = 25 MiB). Grails default is 128000 bytes.
 server:
     forward-headers-strategy: framework
+    servlet:
+        session:
+            timeout: 30m
+            cookie:
+                http-only: true
+                secure: false
+                same-site: lax
     tomcat:
         max-http-form-post-size: 31457280
         max-swallow-size: 31457280
@@ -165,25 +182,68 @@ environments:
         server:
             port: 6060
             forward-headers-strategy: framework
+        steakos:
+            encryption:
+                password: ${STEAKOS_FIELD_ENCRYPTION_PASSWORD:steakos-dev-only-change-me!!}
+                salt: ${STEAKOS_FIELD_ENCRYPTION_SALT:a1b2c3d4e5f60718}
+            security:
+                rememberMeKey: ${STEAKOS_REMEMBER_ME_KEY:dev-remember-me-key-not-for-production-use!!}
+                setupTokenRequired: false
+            maintenance:
+                wipe:
+                    enabled: true
+            relay:
+                selfInstall: true
         dataSource:
             dbCreate: update
+            password: ${STEAKOS_DB_PASSWORD:steakos}
             url: jdbc:postgresql://${STEAKOS_DB_HOST:localhost}:${STEAKOS_DB_PORT:5432}/steakos_dev
     dev: *dev
     test:
         server:
             port: 7070
             forward-headers-strategy: framework
+        steakos:
+            encryption:
+                password: ${STEAKOS_FIELD_ENCRYPTION_PASSWORD:steakos-dev-only-change-me!!}
+                salt: ${STEAKOS_FIELD_ENCRYPTION_SALT:a1b2c3d4e5f60718}
+            security:
+                rememberMeKey: ${STEAKOS_REMEMBER_ME_KEY:dev-remember-me-key-not-for-production-use!!}
+                setupTokenRequired: false
+            maintenance:
+                wipe:
+                    enabled: true
+            relay:
+                selfInstall: true
         dataSource:
             dbCreate: update
+            password: ${STEAKOS_DB_PASSWORD:steakos}
             url: jdbc:postgresql://${STEAKOS_DB_HOST:localhost}:${STEAKOS_DB_PORT:5432}/steakos_test
     production: &prod
         server:
             port: 9090
             forward-headers-strategy: framework
+            servlet:
+                session:
+                    timeout: 30m
+                    cookie:
+                        http-only: true
+                        secure: true
+                        same-site: lax
+        steakos:
+            security:
+                setupTokenRequired: true
+            maintenance:
+                wipe:
+                    enabled: ${STEAKOS_MAINTENANCE_WIPE:false}
+            relay:
+                selfInstall: false
         dataSource:
             dbCreate: none
+            jmxExport: false
             url: jdbc:postgresql://${STEAKOS_DB_HOST:localhost}:${STEAKOS_DB_PORT:5432}/steakos_prod
             properties:
+                jmxEnabled: false
                 initialSize: 5
                 maxActive: 50
                 minIdle: 5

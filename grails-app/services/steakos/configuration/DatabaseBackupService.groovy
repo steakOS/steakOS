@@ -114,10 +114,12 @@ class DatabaseBackupService {
     private Map jdbcParts() {
         String url = ''
         String user = System.getenv('STEAKOS_DB_USER') ?: 'steakos'
-        String password = System.getenv('STEAKOS_DB_PASSWORD') ?: 'steakos'
+        String password = System.getenv('STEAKOS_DB_PASSWORD') ?: ''
         String host = System.getenv('STEAKOS_DB_HOST') ?: 'localhost'
         int port = (System.getenv('STEAKOS_DB_PORT') ?: '5432') as int
-        String database = System.getenv('STEAKOS_DB_NAME') ?: 'steakos_dev'
+        String envName = System.getProperty('grails.env') ?: System.getenv('GRAILS_ENV') ?: 'development'
+        String database = System.getenv('STEAKOS_DB_NAME') ?:
+                (envName in ['production', 'prod'] ? 'steakos_prod' : 'steakos_dev')
 
         try {
             def cfg = grailsApplication?.config

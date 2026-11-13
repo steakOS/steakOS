@@ -187,8 +187,78 @@ function Install-Postgres16 {
     }
 }
 
+function Get-Sha256Text([string] $Value) {
+    $bytes = [Text.Encoding]::UTF8.GetBytes([string]$Value)
+    $hash = [Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+    return ([BitConverter]::ToString($hash) -replace '-', '').ToLower()
+}
+
+function New-HexSecret([int] $ByteCount) {
+    $buf = New-Object byte[] $ByteCount
+    [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($buf)
+    return ([BitConverter]::ToString($buf) -replace '-', '').ToLower()
+}
+
+function Read-EnvValue([string] $Text, [string] $Key) {
+    foreach ($line in ($Text -split "`n")) {
+        if ($line -match "^\s*$([regex]::Escape($Key))\s*=\s*(.*)$") {
+            return $Matches[1].Trim().Trim('"').Trim("'")
+        }
+    }
+    return ''
+}
+
+function Set-EnvValue([string] $Text, [string] $Key, [string] $Value) {
+    $pattern = "(?m)^\s*$([regex]::Escape($Key))\s*=.*$"
+    if ($Text -match $pattern) {
+        return [regex]::Replace($Text, $pattern, "$Key=$Value")
+    }
+    return ($Text.TrimEnd() + "`r`n$Key=$Value`r`n")
+}
+
+function Test-SecretNeedsReplace([string] $Value, [int] $Min, [string] $KnownHash) {
+    if ([string]::IsNullOrEmpty($Value)) { return $true }
+    if ($Value.Length -lt $Min) { return $true }
+    return ((Get-Sha256Text $Value) -eq $KnownHash)
+}
+
+function Ensure-RuntimeSecrets {
+    $dir = Join-Path $Prefix 'config'
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $Prefix 'run') | Out-Null
+    $file = Join-Path $dir 'steakos.env'
+    if (-not (Test-Path $file)) {
+        $example = Join-Path $dir 'steakos.env.example'
+        if (Test-Path $example) { Copy-Item $example $file }
+        else { Set-Content -Path $file -Value "GRAILS_ENV=production`r`nSERVER_PORT=9090`r`n" -Encoding ascii }
+    }
+    $text = [IO.File]::ReadAllText($file)
+    $script:DbPass = Read-EnvValue $text 'STEAKOS_DB_PASSWORD'
+    if (Test-SecretNeedsReplace $script:DbPass 32 'f8078ea87fb022c6724aecefd65423c221e629ee6f1a69de6e27c2208049aeb9') {
+        $script:DbPass = New-HexSecret 32
+        $text = Set-EnvValue $text 'STEAKOS_DB_PASSWORD' $script:DbPass
+    }
+    $enc = Read-EnvValue $text 'STEAKOS_FIELD_ENCRYPTION_PASSWORD'
+    if (Test-SecretNeedsReplace $enc 32 '62b2d6d03a6df1609aceee67dc1a9ce456c17c83d2d4c5961271886647fe36d4') {
+        $text = Set-EnvValue $text 'STEAKOS_FIELD_ENCRYPTION_PASSWORD' (New-HexSecret 32)
+    }
+    $salt = Read-EnvValue $text 'STEAKOS_FIELD_ENCRYPTION_SALT'
+    $saltWeak = [string]::IsNullOrEmpty($salt) -or ($salt -notmatch '^[0-9a-fA-F]{32,}$') -or ((Get-Sha256Text $salt) -eq 'b82efc46c073d9d8f6dfd0ad738a7074df7789847dd8f041c62e96000323260c')
+    if ($saltWeak) {
+        $text = Set-EnvValue $text 'STEAKOS_FIELD_ENCRYPTION_SALT' (New-HexSecret 16)
+    }
+    $remember = Read-EnvValue $text 'STEAKOS_REMEMBER_ME_KEY'
+    if (Test-SecretNeedsReplace $remember 32 '177e00b4f084d9f0f680928f7b0f3cc882dccaaf41f95f54c1f7f678272d45b8') {
+        $text = Set-EnvValue $text 'STEAKOS_REMEMBER_ME_KEY' (New-HexSecret 32)
+    }
+    [IO.File]::WriteAllText($file, $text)
+    Write-Info "Runtime secrets are in $file"
+    Write-Info "After the first start, the setup token file is $(Join-Path $Prefix 'run\setup-token')"
+}
+
 function Invoke-DbSetup([string] $SqlPath) {
     if (-not (Test-Path $SqlPath)) { Die "DB setup SQL missing: $SqlPath" }
+    if (-not $script:DbPass) { Die 'Database password was not generated. Refusing to create the role.' }
     Write-Info 'Creating steakOS databases (role + steakos_*)'
     $found = Add-PostgresBinToPath
     $psql = Get-Command psql -ErrorAction SilentlyContinue
@@ -198,7 +268,9 @@ function Invoke-DbSetup([string] $SqlPath) {
         return
     }
     $env:PGPASSWORD = if ($env:PGPASSWORD) { $env:PGPASSWORD } else { 'postgres' }
-    & psql -U postgres -v ON_ERROR_STOP=1 -f $SqlPath
+    # Quiet stdout: the role statement contains the password. Errors still surface.
+    & psql -U postgres -q -v ON_ERROR_STOP=1 -v "dbpass=$($script:DbPass)" -d postgres -f $SqlPath > $null
+    if ($LASTEXITCODE -ne 0) { Die 'Database setup failed.' }
     foreach ($db in @('steakos_dev', 'steakos_test', 'steakos_prod')) {
         & psql -U postgres -d $db -v ON_ERROR_STOP=1 -c 'GRANT ALL ON SCHEMA public TO steakos; ALTER SCHEMA public OWNER TO steakos;' 2>$null
     }
@@ -261,9 +333,10 @@ if ($LASTEXITCODE -ne 0) {
     Die "Package install failed (exit $LASTEXITCODE). Not applying a schema to a half-installed tree."
 }
 
+Ensure-RuntimeSecrets
 $sql = Join-Path $Prefix 'db\setup-postgresql.sql'
 if (-not $NoDb) {
-    try { Invoke-DbSetup $sql } catch { Write-Warning $_.Exception.Message }
+    try { Invoke-DbSetup $sql } catch { Die $_.Exception.Message }
 }
 
 # PDR-036 / ADR-058: do not start production until the schema pack for this jar is applied.

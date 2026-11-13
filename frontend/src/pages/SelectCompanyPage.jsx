@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { meApi } from '../api/client'
-import { logoutHref } from '../i18n'
+import { postLogout } from '../i18n'
 
 /**
  * PDR-026 — pick active company when the user has 2+ memberships.
@@ -97,7 +97,9 @@ export default function SelectCompanyPage() {
           <p className="muted">{t('pages.selectCompany.loading')}</p>
         )}
         <p className="muted" style={{ fontSize: 13, marginTop: '1rem' }}>
-          <a href={logoutHref()}>{t('pages.selectCompany.signOut')}</a>
+          <button type="button" className="btn btn-ghost" onClick={() => postLogout()}>
+            {t('pages.selectCompany.signOut')}
+          </button>
         </p>
       </div>
     </div>

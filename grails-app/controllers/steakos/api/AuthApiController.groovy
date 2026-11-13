@@ -82,7 +82,7 @@ class AuthApiController {
             Map body = (request.JSON as Map) ?: [:]
             User u = currentUser()
             Map result = authAccountService.confirmTotpEnrol(u, body.code as String)
-            session.setAttribute(TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
+            markStepUp()
             render(result as JSON)
         } catch (IllegalArgumentException e) {
             render(status: 400, text: ([error: e.message, code: 'INVALID_CODE'] as JSON))
@@ -101,7 +101,7 @@ class AuthApiController {
                 render(status: 401, text: ([error: 'Invalid code', code: 'INVALID_CODE'] as JSON))
                 return
             }
-            session.setAttribute(TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
+            markStepUp()
             render([ok: true] as JSON)
         } catch (Exception e) {
             render(status: 400, text: ([error: e.message] as JSON))
@@ -131,6 +131,10 @@ class AuthApiController {
      */
     @Secured(['ROLE_ADMIN'])
     def adminTotpBypassGet() {
+        if (steakos.security.ProductionSecrets.productionFlag()) {
+            render(status: 404, text: '{"error":"Not found"}')
+            return
+        }
         boolean enabled = !!companyConfigService?.isAdminTotpBypassEnabled()
         render([
                 enabled    : enabled,
@@ -141,6 +145,10 @@ class AuthApiController {
 
     @Secured(['ROLE_ADMIN'])
     def adminTotpBypassPut() {
+        if (steakos.security.ProductionSecrets.productionFlag()) {
+            render(status: 404, text: '{"error":"Not found"}')
+            return
+        }
         try {
             Map body = (request.JSON as Map) ?: [:]
             boolean enabled = body.enabled == true || body.enabled == 'true' || body.enabled == 1
@@ -472,15 +480,28 @@ class AuthApiController {
     }
 
     private void establishSession(User user, boolean viaNostr) {
+        try {
+            request?.changeSessionId()
+        } catch (Exception ignored) {
+        }
         List authorities = user.authorities.collect { new SimpleGrantedAuthority(it.authority) }
         def token = new UsernamePasswordAuthenticationToken(user.username, null, authorities)
         SecurityContextHolder.context.authentication = token
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.context)
         if (viaNostr) {
             session.setAttribute(TotpGateFilter.SESSION_AUTH_VIA_NOSTR, Boolean.TRUE)
-            session.setAttribute(TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
         } else if (!user.totpEnabled) {
             session.setAttribute(TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
         }
+    }
+
+    /** Rotate the session and record a fresh authenticator step-up. */
+    private void markStepUp() {
+        try {
+            request?.changeSessionId()
+        } catch (Exception ignored) {
+        }
+        session.setAttribute(TotpGateFilter.SESSION_TOTP_OK, Boolean.TRUE)
+        session.setAttribute(TotpGateFilter.SESSION_TOTP_AT, System.currentTimeMillis())
     }
 }

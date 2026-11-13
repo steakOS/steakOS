@@ -18,6 +18,7 @@ import steakos.security.AgentBearerTokenFilter
 import steakos.security.ReadOnlyAccessFilter
 import steakos.security.MatrixAccessFilter
 import steakos.security.TotpGateFilter
+import steakos.security.MutatingRequestGuardFilter
 import steakos.security.NostrAuthService
 import steakos.security.TotpService
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -53,4 +54,6 @@ beans = {
         authAccountService = ref('authAccountService')
         companyConfigService = ref('companyConfigService')
     }
+
+    mutatingRequestGuardFilter(MutatingRequestGuardFilter)
 }

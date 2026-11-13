@@ -10,9 +10,9 @@ function ensureMermaid() {
   if (mermaidReady) return
   mermaid.initialize({
     startOnLoad: false,
-    securityLevel: 'loose',
+    securityLevel: 'strict',
     theme: 'neutral',
-    flowchart: { curve: 'basis', htmlLabels: true, padding: 12 },
+    flowchart: { curve: 'basis', htmlLabels: false, padding: 12 },
   })
   mermaidReady = true
 }
