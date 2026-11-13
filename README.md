@@ -118,17 +118,21 @@ Most desks open with **tab pills** and a **full-width list**. An **Action** colu
 
 <p align="center"><sub>One required core on your machine. Payments, messaging, helpers, and monitoring are optional — same host or another box you control.</sub></p>
 
-### Bitcoin (and Lightning)
+### Sovereign money = Bitcoin (and Lightning)
 
 Connect a **self-hosted Bitcoin payment processor** so invoices can be paid in Bitcoin. steakOS does **not** custody customer coins. On a **DEMO** company, settlement stays fake on purpose so you can practice safely.
 
-### AI helpers (including zero-token)
+### Sovereign AI helpers (including zero-token)
 
-AI was designed into the desks from the start — not glued on later. Use cloud models when you want them, or run **without any token bill**. Helpers may draft wording or suggest next steps; **anything that moves money still needs a human yes**.
+AI was designed into the system from the start — not glued on later. Use cloud models when you want them, or run **without any token bill** with local inference. Helpers may draft wording or suggest next steps; **anything that moves money still needs a human yes**.
 
-### Nostr
+### Sovereign Communications = Nostr
 
-Optional open messaging for notices and audit breadcrumbs. Your database remains the source of truth for balances and documents.
+Optional decentralized messaging via Nostr protocol, for notices and audit breadcrumbs. Your database remains the source of truth for balances and documents.
+
+### Observability
+
+Optional observability hooks to ensure reliable operations. Simple and advanced variants available with UptimeKuma and Grafana, both can be hosted locally.
 
 ### Help, tour, and setup
 
