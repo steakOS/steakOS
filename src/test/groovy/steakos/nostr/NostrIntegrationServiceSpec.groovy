@@ -20,7 +20,12 @@ class NostrIntegrationServiceSpec extends Specification implements DataTest {
         [LegalEntity, CompanySetting] as Class[]
     }
 
+    def cleanup() {
+        NostrIntegrationService.botKeyOverride = null
+    }
+
     def setup() {
+        NostrIntegrationService.botKeyOverride = null
         configs = new CompanyConfigService()
         service = new NostrIntegrationService(companyConfigService: configs)
         publish = new NostrPublishService(
@@ -157,8 +162,7 @@ class NostrIntegrationServiceSpec extends Specification implements DataTest {
         live('npub-nostr-real')
         service.applyFromWizard('npub-nostr-real', [nostrIntegrationLevel: '1'], 'admin')
         // Store plain hex as sealed value when FieldEncryptionService absent
-        configs.put('npub-nostr-real', NostrIntegrationService.KEY_BOT_NSEC,
-                '67dea2ed018072d675f5415ecfaed7d2597555e202d85b3d65ea4e58d2d92ffa', 'nostr', 'string')
+        NostrIntegrationService.botKeyOverride = '67dea2ed018072d675f5415ecfaed7d2597555e202d85b3d65ea4e58d2d92ffa'
         NostrRelayWsClient mockClient = Mock(NostrRelayWsClient)
         publish.nostrRelayWsClient = mockClient
 

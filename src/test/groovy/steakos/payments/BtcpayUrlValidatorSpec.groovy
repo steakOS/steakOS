@@ -19,28 +19,49 @@ import spock.lang.Specification
 
 class BtcpayUrlValidatorSpec extends Specification {
 
+    def setup() {
+        BtcpayUrlValidator.addressResolver = { String host ->
+            [InetAddress.getByAddress(host, [1, 2, 3, 4] as byte[])]
+        }
+    }
+
     def "normalizes https production URL"() {
         expect:
         BtcpayUrlValidator.validateAndNormalize('https://pay.example.com/btcpay/') == 'https://pay.example.com/btcpay'
     }
 
-    def "blocks private hosts when not allowed"() {
+    def "blocks private hosts when not on the allowlist"() {
         when:
-        BtcpayUrlValidator.validateAndNormalize('https://127.0.0.1:49392', false)
+        BtcpayUrlValidator.validateAndNormalize('https://127.0.0.1:49392')
 
         then:
         def e = thrown(PaymentProviderException)
         e.code == 'SSRF'
     }
 
-    def "allows localhost when allowPrivate"() {
+    def "allows a named internal host"() {
         expect:
-        BtcpayUrlValidator.validateAndNormalize('http://localhost:49392', true) == 'http://localhost:49392'
+        BtcpayUrlValidator.validateAndNormalize('http://btcpay.internal:23000', ['btcpay.internal']) ==
+                'http://btcpay.internal:23000'
+    }
+
+    def "rejects a name that resolves to a private address"() {
+        given:
+        BtcpayUrlValidator.addressResolver = { String host ->
+            [InetAddress.getByAddress(host, [10, 0, 0, 5] as byte[])]
+        }
+
+        when:
+        BtcpayUrlValidator.validateAndNormalize('https://pay.internal')
+
+        then:
+        def e = thrown(PaymentProviderException)
+        e.code == 'SSRF'
     }
 
     def "rejects non-http schemes"() {
         when:
-        BtcpayUrlValidator.validateAndNormalize('ftp://pay.example.com', false)
+        BtcpayUrlValidator.validateAndNormalize('ftp://pay.example.com')
 
         then:
         thrown(PaymentProviderException)

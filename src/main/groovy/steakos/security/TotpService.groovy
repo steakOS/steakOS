@@ -29,7 +29,7 @@ class TotpService {
         return base32Encode(buf)
     }
 
-    List<String> generateRecoveryCodes(int count = 8) {
+    List<String> generateRecoveryCodes(int count = 10) {
         (1..count).collect {
             String.format('%04d-%04d', random.nextInt(10000), random.nextInt(10000))
         }
@@ -50,17 +50,22 @@ class TotpService {
     }
 
     boolean verifyCode(String base32Secret, String code, int window = 1) {
-        if (!base32Secret || !code) return false
+        return matchingStep(base32Secret, code, window) != null
+    }
+
+    /** Timestep that matched, or null. Callers reject a step at or before the last accepted one. */
+    Long matchingStep(String base32Secret, String code, int window = 1) {
+        if (!base32Secret || !code) return null
         String digits = code.replaceAll('\\D', '')
-        if (digits.length() != 6) return false
+        if (digits.length() != 6) return null
         long timestep = (long) (System.currentTimeMillis() / 30000L)
         byte[] key = base32Decode(base32Secret)
         for (int w = -window; w <= window; w++) {
             if (generateCode(key, timestep + w) == digits) {
-                return true
+                return timestep + w
             }
         }
-        return false
+        return null
     }
 
     private static String generateCode(byte[] key, long timestep) {

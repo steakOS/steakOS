@@ -43,7 +43,7 @@ irm https://raw.githubusercontent.com/steakOS/steakOS/main/scripts/install/boots
 
 When it finishes, the tour opens on port **9090**. After the tour, run the setup wizard at `/setup` before everyday work. The installer writes database and encryption secrets into `config/steakos.env` and does not print them. After the first start, paste the setup token from `run/setup-token` on that computer into the wizard.
 
-**0.2.16** is a security release. If you already run steakOS, upgrade to this version or a newer one as soon as you can.
+**0.2.17** is a security release. If you already run steakOS, upgrade to this version or a newer one as soon as you can. Sign-in attempts are limited. The company Nostr signing key belongs in `STEAKOS_BOT_NSEC` or `config/bot-nsec`, not in the database. User secret keys are not stored.
 
 ---
 

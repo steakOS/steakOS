@@ -97,8 +97,14 @@ class AuthApiController {
         try {
             Map body = (request.JSON as Map) ?: [:]
             User u = currentUser()
-            if (!authAccountService.verifyTotpOrRecovery(u, body.code as String)) {
-                render(status: 401, text: ([error: 'Invalid code', code: 'INVALID_CODE'] as JSON))
+            try {
+                if (!authAccountService.verifyTotpOrRecovery(u, body.code as String)) {
+                    render(status: 401, text: ([error: 'Invalid code', code: 'INVALID_CODE'] as JSON))
+                    return
+                }
+            } catch (steakos.security.RateLimitedException limited) {
+                response.setHeader('Retry-After', String.valueOf(limited.retryAfterSeconds))
+                render(status: 429, text: ([error: 'Too many attempts', code: 'RATE_LIMIT'] as JSON))
                 return
             }
             markStepUp()
@@ -211,8 +217,18 @@ class AuthApiController {
     @Secured(['permitAll'])
     def nostrChallenge() {
         if (!nostrAuthService) {
-            nostrAuthService = new NostrAuthService()
+            render(status: 503, text: ([error: 'Nostr login is unavailable', code: 'NOSTR_UNAVAILABLE'] as JSON))
+            return
         }
+        String ip = request.remoteAddr ?: 'unknown'
+        String key = "nostr:challenge:${ip}"
+        if (!authAccountService?.attemptLimiter?.allow(key, steakos.security.AttemptLimiter.NOSTR_CHALLENGE_PER_IP, steakos.security.AttemptLimiter.NOSTR_CHALLENGE_WINDOW_MS)) {
+            long retry = authAccountService.attemptLimiter.retryAfterSeconds(key, steakos.security.AttemptLimiter.NOSTR_CHALLENGE_WINDOW_MS)
+            response.setHeader('Retry-After', String.valueOf(retry))
+            render(status: 429, text: ([error: 'Too many attempts', code: 'RATE_LIMIT'] as JSON))
+            return
+        }
+        authAccountService.attemptLimiter.record(key, steakos.security.AttemptLimiter.NOSTR_CHALLENGE_WINDOW_MS)
         render([challenge: nostrAuthService.issueChallenge(), expiresInSec: 300] as JSON)
     }
 
@@ -220,12 +236,13 @@ class AuthApiController {
     def nostrVerify() {
         try {
             if (!nostrAuthService) {
-                nostrAuthService = new NostrAuthService()
+                render(status: 503, text: ([error: 'Nostr login is unavailable', code: 'NOSTR_UNAVAILABLE'] as JSON))
+                return
             }
             Map body = (request.JSON as Map) ?: [:]
             String challenge = body.challenge as String
             Map event = body.event as Map
-            String pubkey = nostrAuthService.verifyLoginEvent(event, challenge)
+            String pubkey = nostrAuthService.verifyLoginEvent(event, challenge, requestOrigin())
             // Prefer hex pubkey match; also try npub field if stored as hex
             User user = User.findByNpub(pubkey)
             if (!user) {
@@ -255,12 +272,13 @@ class AuthApiController {
     def nostrLink() {
         try {
             if (!nostrAuthService) {
-                nostrAuthService = new NostrAuthService()
+                render(status: 503, text: ([error: 'Nostr login is unavailable', code: 'NOSTR_UNAVAILABLE'] as JSON))
+                return
             }
             Map body = (request.JSON as Map) ?: [:]
             String challenge = body.challenge as String
             Map event = body.event as Map
-            String pubkey = nostrAuthService.verifyLoginEvent(event, challenge)
+            String pubkey = nostrAuthService.verifyLoginEvent(event, challenge, requestOrigin())
             User other = User.list().find { User u ->
                 u.id != currentUser()?.id && u.npub && u.npub.equalsIgnoreCase(pubkey)
             } as User
@@ -477,6 +495,14 @@ class AuthApiController {
                             !x.authorities*.authority?.contains('ROLE_CEO')))
         } as int
         admins <= 1
+    }
+
+    private String requestOrigin() {
+        String scheme = request.scheme ?: 'http'
+        String host = request.serverName ?: 'localhost'
+        int port = request.serverPort
+        boolean defaultPort = (scheme == 'https' && port == 443) || (scheme == 'http' && port == 80)
+        return defaultPort ? "${scheme}://${host}" : "${scheme}://${host}:${port}"
     }
 
     private void establishSession(User user, boolean viaNostr) {

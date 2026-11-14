@@ -19,6 +19,8 @@ import steakos.security.ReadOnlyAccessFilter
 import steakos.security.MatrixAccessFilter
 import steakos.security.TotpGateFilter
 import steakos.security.MutatingRequestGuardFilter
+import steakos.security.LoginRateLimitFilter
+import steakos.security.SecurityHeadersFilter
 import steakos.security.NostrAuthService
 import steakos.security.TotpService
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -56,4 +58,6 @@ beans = {
     }
 
     mutatingRequestGuardFilter(MutatingRequestGuardFilter)
+    loginRateLimitFilter(LoginRateLimitFilter)
+    securityHeadersFilter(SecurityHeadersFilter)
 }

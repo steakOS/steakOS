@@ -26,6 +26,7 @@ class AuthAccountService {
     static final String ROLE_USER = 'ROLE_USER'
 
     TotpService totpService = new TotpService()
+    AttemptLimiter attemptLimiter = new AttemptLimiter()
     SpringSecurityService springSecurityService
     steakos.configuration.CompanyContextService companyContextService
 
@@ -67,9 +68,9 @@ class AuthAccountService {
         if (!totpService.verifyCode(user.totpSecret, code)) {
             throw new IllegalArgumentException('invalid authenticator code')
         }
-        List<String> codes = totpService.generateRecoveryCodes()
+        List<String> codes = totpService.generateRecoveryCodes(10)
         user.totpEnabled = true
-        user.totpRecoveryCodes = JsonOutput.toJson(codes)
+        user.totpRecoveryCodes = JsonOutput.toJson(hashRecoveryCodes(codes))
         user.save(failOnError: true, flush: true)
         [ok: true, recoveryCodes: codes]
     }
@@ -78,10 +79,33 @@ class AuthAccountService {
         if (!user?.totpEnabled || !user.totpSecret) {
             return true
         }
-        if (totpService.verifyCode(user.totpSecret, code)) {
+        String key = "totp:${user.username}"
+        if (!attemptLimiter.allow(key, AttemptLimiter.TOTP_LIMIT, AttemptLimiter.TOTP_WINDOW_MS)) {
+            throw new RateLimitedException(attemptLimiter.retryAfterSeconds(key, AttemptLimiter.TOTP_WINDOW_MS))
+        }
+        Long step = totpService.matchingStep(user.totpSecret, code)
+        if (step != null) {
+            Long previous = user.lastTotpStep
+            if (previous != null && step <= previous) {
+                attemptLimiter.record(key, AttemptLimiter.TOTP_WINDOW_MS)
+                return false
+            }
+            user.lastTotpStep = step
+            user.save(failOnError: true, flush: true)
             return true
         }
-        return consumeRecoveryCode(user, code)
+        if (consumeRecoveryCode(user, code)) {
+            return true
+        }
+        attemptLimiter.record(key, AttemptLimiter.TOTP_WINDOW_MS)
+        return false
+    }
+
+    private List<String> hashRecoveryCodes(List<String> codes) {
+        def encoder = springSecurityService?.passwordEncoder
+        codes.collect { String plain ->
+            encoder ? encoder.encode(plain) : plain
+        }
     }
 
     private boolean consumeRecoveryCode(User user, String code) {
@@ -93,7 +117,15 @@ class AuthAccountService {
         } catch (ignored) {
             return false
         }
-        int idx = list.findIndexOf { String c -> c == normalized }
+        def encoder = springSecurityService?.passwordEncoder
+        int idx = list.findIndexOf { Object stored ->
+            String value = stored?.toString()
+            if (!value) return false
+            if (value.startsWith('$2') && encoder) {
+                return encoder.matches(normalized, value)
+            }
+            return value == normalized
+        }
         if (idx < 0) return false
         list.remove(idx)
         user.totpRecoveryCodes = JsonOutput.toJson(list)

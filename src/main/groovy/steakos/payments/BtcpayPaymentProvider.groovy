@@ -147,8 +147,7 @@ class BtcpayPaymentProvider implements BitcoinPaymentProvider {
     @Override
     boolean verifyWebhook(byte[] rawBody, Map headers) {
         if (!webhookSecret?.trim()) {
-            log.warn('BTCPay webhook secret not configured — skipping HMAC (re-fetch still required)')
-            return true
+            return false
         }
         String sig = headerIgnoreCase(headers, 'BTCPAY-SIG') ?: headerIgnoreCase(headers, 'btcpay-sig')
         if (!sig?.trim()) {

@@ -240,17 +240,25 @@ class NostrIntegrationService {
         ensureMigrated(npub) == LEVEL_LOGIN_AUDIT_NOTIFY
     }
 
-    /** Decrypted company bot nsec or null. */
+    /** Test hook. Production leaves this null and reads the environment or file. */
+    static String botKeyOverride = null
+
+    /** Company bot key from the environment or a mode-0600 file. The database copy is not used. */
     String decryptedBotNsec(String npubOwner) {
-        String npub = requireNpub(npubOwner)
-        String sealed = companyConfigService.getString(npub, KEY_BOT_NSEC, null)
-        if (!sealed?.trim()) return null
-        try {
-            return fieldEncryptionService ? fieldEncryptionService.decrypt(sealed) : sealed
-        } catch (Exception e) {
-            log.warn('company bot nsec decrypt failed: {}', e.message)
-            return null
+        requireNpub(npubOwner)
+        if (botKeyOverride != null) return botKeyOverride.trim() ?: null
+        String fromEnv = System.getenv('STEAKOS_BOT_NSEC')?.trim()
+        if (fromEnv) return fromEnv
+        String path = System.getenv('STEAKOS_BOT_NSEC_FILE')?.trim()
+        if (!path) {
+            String home = System.getProperty('steakos.home') ?: System.getenv('STEAKOS_HOME')
+            if (home) path = new File(home, 'config/bot-nsec').absolutePath
         }
+        if (!path) return null
+        File file = new File(path)
+        if (!file.isFile()) return null
+        String text = file.getText('UTF-8')?.trim()
+        return text ?: null
     }
 
     /** Linked npub on current user if any (hex or npub). */

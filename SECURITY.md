@@ -22,6 +22,7 @@ We aim to acknowledge reports within **3 business days** and complete severity t
 - Prefer environment variables and host secret stores. Commit only templates (for example `.env.example`) and variable **names**.
 - If a required secret is missing at runtime, fail closed — do not fall back to a committed default password.
 - Production startup exits unless the database password, field-encryption secret, and remember-me key are set in the environment. The installer writes them to `config/steakos.env`.
+- Sign-in attempts are limited. A company Nostr signing key is read from the environment or a file, not from the database. User secret keys are not stored.
 
 ## Operator responsibilities
 

@@ -155,7 +155,7 @@ class PaymentSettingsService {
         if (btcpay.baseUrl != null) {
             String url = btcpay.baseUrl?.toString()?.trim() ?: ''
             if (url) {
-                url = BtcpayUrlValidator.validateAndNormalize(url, allowPrivateUrls())
+                url = BtcpayUrlValidator.validateAndNormalize(url, internalBtcpayHosts())
             }
             companyConfigService.put(npub, KEY_BASE_URL, url, CAT, 'string')
         }
@@ -258,8 +258,9 @@ class PaymentSettingsService {
         environment?.getProperty('steakos.payments.http-timeout-ms', Integer, 15000) ?: 15000
     }
 
-    boolean allowPrivateUrls() {
-        environment?.getProperty('steakos.payments.url-allow-private', Boolean, false) ?: false
+    Set<String> internalBtcpayHosts() {
+        String raw = environment?.getProperty('steakos.payments.btcpay.internal-hosts') ?: ''
+        raw.split(',').collect { String host -> host?.trim()?.toLowerCase() }.findAll { it } as Set
     }
 
     /**
@@ -272,7 +273,7 @@ class PaymentSettingsService {
             return [ok: false, error: 'baseUrl, storeId, and apiKey required']
         }
         try {
-            String base = BtcpayUrlValidator.validateAndNormalize(cfg.baseUrl as String, allowPrivateUrls())
+            String base = BtcpayUrlValidator.validateAndNormalize(cfg.baseUrl as String, internalBtcpayHosts())
             BtcpayGreenfieldClient client = new BtcpayGreenfieldClient(
                     base, cfg.storeId as String, cfg.apiKey as String, httpTimeoutMs()
             )

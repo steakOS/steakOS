@@ -112,8 +112,9 @@ steakos:
         http-timeout-ms: ${STEAKOS_PAYMENTS_HTTP_TIMEOUT_MS:15000}
         reconcile-cron: ${STEAKOS_PAYMENTS_RECONCILE_CRON:0 */5 * * * *}
         webhook-max-skew-sec: ${STEAKOS_PAYMENTS_WEBHOOK_SKEW_SEC:300}
-        # Allow private/link-local BTCPay URLs only in local dev
-        url-allow-private: ${STEAKOS_PAYMENTS_URL_ALLOW_PRIVATE:false}
+        # Comma-separated hosts that may use http or a private address. Everyone else must be https.
+        btcpay:
+            internal-hosts: ${STEAKOS_BTCPAY_INTERNAL_HOSTS:}
 
 ---
 hibernate:
@@ -151,7 +152,12 @@ dataSource:
 # Trust X-Forwarded-* from Vite (or reverse proxy) so login redirects use the browser host, not 127.0.0.1:6060
 # Content rail FILE uploads (ContentBlobService.HARD_MAX = 25 MiB). Grails default is 128000 bytes.
 server:
-    forward-headers-strategy: framework
+    forward-headers-strategy: native
+    tomcat:
+        remoteip:
+            internal-proxies: ${STEAKOS_TRUSTED_PROXIES:127\.0\.0\.1|::1}
+        max-http-form-post-size: 31457280
+        max-swallow-size: 31457280
     servlet:
         session:
             timeout: 30m
@@ -159,15 +165,17 @@ server:
                 http-only: true
                 secure: false
                 same-site: lax
-    tomcat:
-        max-http-form-post-size: 31457280
-        max-swallow-size: 31457280
 grails:
     controllers:
         upload:
             maxFileSize: 26214400
             maxRequestSize: 31457280
 spring:
+    flyway:
+        enabled: true
+        baseline-on-migrate: true
+        baseline-version: 16
+        locations: classpath:db/migration
     servlet:
         multipart:
             max-file-size: 25MB
@@ -181,7 +189,7 @@ environments:
     development: &dev
         server:
             port: 6060
-            forward-headers-strategy: framework
+            forward-headers-strategy: native
         steakos:
             encryption:
                 password: ${STEAKOS_FIELD_ENCRYPTION_PASSWORD:steakos-dev-only-change-me!!}
@@ -202,7 +210,7 @@ environments:
     test:
         server:
             port: 7070
-            forward-headers-strategy: framework
+            forward-headers-strategy: native
         steakos:
             encryption:
                 password: ${STEAKOS_FIELD_ENCRYPTION_PASSWORD:steakos-dev-only-change-me!!}
@@ -222,7 +230,7 @@ environments:
     production: &prod
         server:
             port: 9090
-            forward-headers-strategy: framework
+            forward-headers-strategy: native
             servlet:
                 session:
                     timeout: 30m

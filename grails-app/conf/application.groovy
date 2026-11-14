@@ -76,6 +76,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	[pattern: '/api/ops/metrics', access: ['permitAll']],
 	// AUTH NIP-07 login (public challenge/verify)
 	[pattern: '/api/auth/nostr/**', access: ['permitAll']],
+	[pattern: '/api/finance/treasury/webhook/btcpay', access: ['permitAll']],
 	[pattern: '/api/**',         access: ['IS_AUTHENTICATED_REMEMBERED']],
 	// Homepage requires login
 	[pattern: '/',               access: ['IS_AUTHENTICATED_REMEMBERED']],

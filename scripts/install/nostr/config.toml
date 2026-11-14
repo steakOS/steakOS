@@ -34,11 +34,9 @@ event_kind_allowlist = [
 ]
 
 [authorization]
-# Empty whitelist = any authenticated client may write until you lock it down.
-# Prefer filling hex pubkeys (not npub) for company bot + operators.
-# pubkey_whitelist = [
-#   "YOUR_COMPANY_BOT_HEX_PUBKEY",
-# ]
+# Only these hex pubkeys may publish. An empty list rejects every write.
+# steakOS fills this from the company bot and linked operator keys.
+pubkey_whitelist = []
 nip42_auth = true
 nip42_dms = true
 

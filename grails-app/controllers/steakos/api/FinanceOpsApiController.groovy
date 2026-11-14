@@ -90,19 +90,66 @@ class FinanceOpsApiController {
     /**
      * Payment rail webhook. Mock: steakOS invoiceId. BTCPay: Greenfield invoiceId + BTCPAY-SIG.
      */
+    @Secured(['permitAll'])
     def btcpayWebhook() {
-        wrapBody { String npub, Map body ->
-            body.npubOwner = npub
-            Map headers = [:]
-            request.headerNames?.each { String name ->
-                headers[name] = request.getHeader(name)
+        byte[] raw = request.inputStream?.bytes ?: new byte[0]
+        Map body = [:]
+        if (raw.length) {
+            try {
+                body = new groovy.json.JsonSlurper().parse(raw) as Map
+            } catch (Exception ignored) {
+                render(status: 400, text: ([error: 'Bad request', code: 'BAD_REQUEST'] as JSON))
+                return
             }
-            // Also common casing
-            if (request.getHeader('BTCPAY-SIG')) {
-                headers['BTCPAY-SIG'] = request.getHeader('BTCPAY-SIG')
-            }
-            paymentSettlementService.handleInboundWebhook(npub, body, headers, null)
         }
+        String npub = null
+        try {
+            npub = tenantNpubService?.resolve(session, body)
+        } catch (Exception ignored) {
+            npub = null
+        }
+        if (!npub && body.storeId) {
+            def match = steakos.configuration.CompanySetting.findBySettingKeyAndSettingValue(
+                    steakos.payments.PaymentSettingsService.KEY_STORE_ID, body.storeId.toString())
+            npub = match?.npubOwner
+        }
+        if (!npub) {
+            render(status: 401, text: ([error: 'Unauthorized', code: 'WEBHOOK_VERIFY'] as JSON))
+            return
+        }
+        Long skew = grailsApplication?.config?.getProperty('steakos.payments.webhook-max-skew-sec', Long, 300L)
+        if (!webhookTimestampFresh(body, skew ?: 300L)) {
+            render(status: 401, text: ([error: 'Unauthorized', code: 'WEBHOOK_VERIFY'] as JSON))
+            return
+        }
+        String deliveryId = (body.deliveryId ?: body.originalDeliveryId)?.toString()
+        if (deliveryId && steakos.payments.WebhookDelivery.findByDeliveryId(deliveryId)) {
+            render([ok: true, duplicate: true] as JSON)
+            return
+        }
+        Map headers = [:]
+        request.headerNames?.each { String name ->
+            headers[name] = request.getHeader(name)
+        }
+        try {
+            Map result = paymentSettlementService.handleInboundWebhook(npub, body, headers, raw)
+            if (deliveryId) {
+                new steakos.payments.WebhookDelivery(deliveryId: deliveryId).save(failOnError: true)
+            }
+            render(result as JSON)
+        } catch (steakos.payments.PaymentProviderException e) {
+            int status = e.httpStatus ?: 400
+            render(status: status, text: ([error: 'Webhook rejected', code: e.code ?: 'WEBHOOK'] as JSON))
+        }
+    }
+
+    private static boolean webhookTimestampFresh(Map body, long skewSec) {
+        def raw = body?.timestamp ?: body?.time
+        if (raw == null) return false
+        long ts = raw instanceof Number ? (raw as Number).longValue() : Long.parseLong(raw.toString())
+        if (ts > 10_000_000_000L) ts = (long) (ts / 1000L)
+        long now = (long) (System.currentTimeMillis() / 1000L)
+        return Math.abs(now - ts) <= skewSec
     }
 
     /** Redacted payment settings (OI-F27). */

@@ -38,6 +38,9 @@ class PaymentSettlementService {
     Map handleInboundWebhook(String npubOwner, Map body, Map headers = [:], byte[] rawBody = null) {
         String npub = requireNpub(npubOwner)
         BitcoinPaymentProvider provider = paymentProviderService.providerFor(npub)
+        if (provider instanceof steakos.payments.BtcpayPaymentProvider && !provider.webhookSecret?.trim()) {
+            throw new PaymentProviderException('webhook secret is not configured', 'WEBHOOK_SECRET', 503)
+        }
         byte[] raw = rawBody
         if (raw == null || raw.length == 0) {
             raw = body ? groovy.json.JsonOutput.toJson(body).getBytes('UTF-8') : new byte[0]

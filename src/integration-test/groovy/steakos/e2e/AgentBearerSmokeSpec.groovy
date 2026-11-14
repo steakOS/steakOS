@@ -30,9 +30,10 @@ class AgentBearerSmokeSpec extends E2eBaseSpec {
 
     def "mint agent token then GET version with Bearer"() {
         when: 'create hive + agent member, then mint'
+        String agentKey = "e2e-bookkeeper-${System.currentTimeMillis()}"
         Map agent = http.postJson('/api/agents/agents', [
                 name       : 'E2E Bookkeeper',
-                agentKey   : 'e2e-bookkeeper',
+                agentKey   : agentKey,
                 agentStatus: 'ACTIVE',
                 runtimeKind: 'HERMES',
         ])
@@ -60,7 +61,7 @@ class AgentBearerSmokeSpec extends E2eBaseSpec {
         def tokenPayload = mint.body.result ?: mint.body
         tokenPayload.token
         tokenPayload.token.toString().startsWith('sos_')
-        tokenPayload.username == 'E2EHive:e2e-bookkeeper'
+        tokenPayload.username == "E2EHive:${agentKey}"
 
         when: 'drop session; use bearer only'
         String token = tokenPayload.token as String

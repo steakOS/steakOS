@@ -106,6 +106,20 @@ class BootStrap {
             )
         } catch (Exception ignored) {
         }
+        try {
+            SpringSecurityUtils.clientRegisterFilter(
+                    'loginRateLimitFilter',
+                    SecurityFilterPosition.FORM_LOGIN_FILTER.order - 1
+            )
+        } catch (Exception ignored) {
+        }
+        try {
+            SpringSecurityUtils.clientRegisterFilter(
+                    'securityHeadersFilter',
+                    SecurityFilterPosition.FIRST.order
+            )
+        } catch (Exception ignored) {
+        }
 
         seedContentTypes()
         seedContentProfiles()

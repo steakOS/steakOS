@@ -20,7 +20,9 @@ import java.util.concurrent.ConcurrentHashMap
 @CompileStatic
 class NostrAuthService {
 
-    private static final long TTL_MS = 5 * 60 * 1000L
+    static final long TTL_MS = 5 * 60 * 1000L
+    static final int MAX_CHALLENGES = 10_000
+    static final long MAX_SKEW_SEC = 120L
     private final ConcurrentHashMap<String, Long> challenges = new ConcurrentHashMap<>()
     private final SecureRandom random = new SecureRandom()
     private final Secp256k1 secp = Secp256k1.get()
@@ -29,8 +31,26 @@ class NostrAuthService {
         byte[] buf = new byte[32]
         random.nextBytes(buf)
         String challenge = bytesToHex(buf)
+        evictExpired()
+        while (challenges.size() >= MAX_CHALLENGES) {
+            String oldest = null
+            long oldestExp = Long.MAX_VALUE
+            for (Map.Entry<String, Long> entry : challenges.entrySet()) {
+                if (entry.value < oldestExp) {
+                    oldestExp = entry.value
+                    oldest = entry.key
+                }
+            }
+            if (oldest == null) break
+            challenges.remove(oldest)
+        }
         challenges.put(challenge, System.currentTimeMillis() + TTL_MS)
         challenge
+    }
+
+    private void evictExpired() {
+        long now = System.currentTimeMillis()
+        challenges.entrySet().removeIf { Map.Entry<String, Long> e -> e.value < now }
     }
 
     boolean consumeChallenge(String challenge) {
@@ -45,11 +65,24 @@ class NostrAuthService {
      * @return hex pubkey if valid
      */
     String verifyLoginEvent(Map event, String expectedChallenge) {
+        verifyLoginEvent(event, expectedChallenge, null)
+    }
+
+    String verifyLoginEvent(Map event, String expectedChallenge, String expectedOrigin) {
         if (!event || !expectedChallenge) {
             throw new IllegalArgumentException('event and challenge required')
         }
         if (!consumeChallenge(expectedChallenge)) {
             throw new IllegalArgumentException('challenge expired or unknown')
+        }
+        int kind = (event.kind instanceof Number) ? (event.kind as Number).intValue() : Integer.parseInt(event.kind?.toString() ?: '0')
+        if (kind != 22242) {
+            throw new IllegalArgumentException('event kind must be 22242')
+        }
+        long created = (event.created_at instanceof Number) ? (event.created_at as Number).longValue() : Long.parseLong(event.created_at?.toString() ?: '0')
+        long nowSec = (long) (System.currentTimeMillis() / 1000L)
+        if (Math.abs(nowSec - created) > MAX_SKEW_SEC) {
+            throw new IllegalArgumentException('event timestamp is outside the allowed window')
         }
         String pubkey = (event.pubkey as String)?.toLowerCase()
         String sig = (event.sig as String)?.toLowerCase()
@@ -57,18 +90,22 @@ class NostrAuthService {
         if (!pubkey || pubkey.length() != 64 || !sig || sig.length() != 128 || !id || id.length() != 64) {
             throw new IllegalArgumentException('invalid event fields')
         }
-        // challenge must appear in tags
-        boolean found = false
+        boolean foundChallenge = false
+        boolean foundOrigin = false
         List tags = event.tags as List ?: []
         tags.each { Object t ->
-            if (t instanceof List && (t as List).size() >= 2) {
-                if ((t as List)[0]?.toString() == 'challenge' && (t as List)[1]?.toString() == expectedChallenge) {
-                    found = true
-                }
-            }
+            if (!(t instanceof List) || (t as List).size() < 2) return
+            List row = t as List
+            String tag = row[0]?.toString()
+            String value = row[1]?.toString()
+            if (tag == 'challenge' && value == expectedChallenge) foundChallenge = true
+            if ((tag == 'relay' || tag == 'origin') && originMatches(value, expectedOrigin)) foundOrigin = true
         }
-        if (!found && (event.content as String) != expectedChallenge) {
-            throw new IllegalArgumentException('challenge not present in event')
+        if (!foundChallenge) {
+            throw new IllegalArgumentException('challenge tag required')
+        }
+        if (expectedOrigin && !foundOrigin) {
+            throw new IllegalArgumentException('origin tag required')
         }
 
         String computed = computeEventId(event)
@@ -85,6 +122,23 @@ class NostrAuthService {
     }
 
     /** Convert hex pubkey to npub-ish storage form (hex ok; bech32 optional later). */
+    static boolean originMatches(String tagValue, String expectedOrigin) {
+        if (!expectedOrigin) return true
+        if (!tagValue) return false
+        String tag = tagValue.trim().toLowerCase()
+        String origin = expectedOrigin.trim().toLowerCase()
+        if (tag == origin) return true
+        try {
+            URI originUri = new URI(origin)
+            URI tagUri = tag.contains('://') ? new URI(tag) : null
+            String originHost = originUri.host
+            if (tagUri?.host && originHost && tagUri.host.equalsIgnoreCase(originHost)) return true
+            if (originHost && tag == originHost) return true
+        } catch (ignored) {
+        }
+        return false
+    }
+
     static String normalizePubkey(String pubkeyOrNpub) {
         String p = pubkeyOrNpub?.trim()
         if (!p) return null

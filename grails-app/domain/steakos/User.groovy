@@ -38,10 +38,6 @@ class User implements Serializable {
 	boolean accountLocked
 	boolean passwordExpired
 
-	/** Nostr secret key (bech32 nsec… or hex) — stored encrypted at rest */
-	@Convert(converter = EncryptedStringConverter)
-	String nsec
-
 	/** Nostr public key (bech32 npub… or hex) — stored encrypted at rest */
 	@Convert(converter = EncryptedStringConverter)
 	String npub
@@ -55,6 +51,9 @@ class User implements Serializable {
 	String totpSecret
 
 	boolean totpEnabled = false
+
+	/** Last accepted TOTP timestep. A code at or before this step is rejected. */
+	Long lastTotpStep
 
 	/** JSON array of one-time recovery codes (hashed or plaintext encrypted blob) */
 	@Convert(converter = EncryptedStringConverter)
@@ -92,7 +91,6 @@ class User implements Serializable {
 	static constraints = {
 		password nullable: false, blank: false, password: true
 		username nullable: false, blank: false, unique: true
-		nsec nullable: true, blank: true, maxSize: 4000, password: true
 		npub nullable: true, blank: true, maxSize: 4000
 		bunker nullable: true, blank: true, maxSize: 4000, validator: { String val ->
 			if (val == null || val.isEmpty()) {
@@ -110,6 +108,7 @@ class User implements Serializable {
 		}
 		totpSecret nullable: true, blank: true, maxSize: 4000, password: true
 		totpEnabled nullable: false
+		lastTotpStep nullable: true
 		totpRecoveryCodes nullable: true, blank: true, maxSize: 8000
 		displayName nullable: true, blank: true, maxSize: 255
 		roleProfileId nullable: true, blank: true, maxSize: 64
@@ -119,7 +118,6 @@ class User implements Serializable {
 	static mapping = {
 		table name: '`user`'
 		password column: '`password`'
-		nsec type: 'text'
 		npub type: 'text'
 		bunker type: 'text'
 		totpSecret type: 'text'

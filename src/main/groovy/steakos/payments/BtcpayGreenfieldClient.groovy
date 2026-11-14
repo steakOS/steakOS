@@ -47,7 +47,7 @@ class BtcpayGreenfieldClient {
         this.timeoutMs = timeoutMs
         this.http = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofMillis(timeoutMs as long))
-                .followRedirects(HttpClient.Redirect.NORMAL)
+                .followRedirects(HttpClient.Redirect.NEVER)
                 .build()
     }
 

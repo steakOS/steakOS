@@ -23,10 +23,10 @@ final class BtcpayUrlValidator {
     private BtcpayUrlValidator() {}
 
     /**
-     * @param allowPrivate when true (dev), allow localhost / private ranges
-     * @return normalized base URL without trailing slash
+     * Public processors must be https. A private or http address is accepted only
+     * when its host is on the named allowlist. Redirects are not followed by the client.
      */
-    static String validateAndNormalize(String raw, boolean allowPrivate = false) {
+    static String validateAndNormalize(String raw, Collection<String> internalHosts = []) {
         if (!raw?.trim()) {
             throw new PaymentProviderException('btcpay.baseUrl is required', 'CONFIG')
         }
@@ -34,32 +34,62 @@ final class BtcpayUrlValidator {
         try {
             uri = URI.create(raw.trim())
         } catch (Exception e) {
-            throw new PaymentProviderException("invalid btcpay.baseUrl: ${e.message}", 'CONFIG')
+            throw new PaymentProviderException('invalid btcpay.baseUrl', 'CONFIG')
         }
         String scheme = uri.scheme?.toLowerCase()
         if (!(scheme in ['https', 'http'])) {
             throw new PaymentProviderException('btcpay.baseUrl must be http or https', 'CONFIG')
         }
-        if (scheme == 'http' && !allowPrivate) {
-            throw new PaymentProviderException('btcpay.baseUrl must use https outside dev', 'CONFIG')
-        }
         String host = uri.host
         if (!host) {
             throw new PaymentProviderException('btcpay.baseUrl missing host', 'CONFIG')
         }
-        if (!allowPrivate && isBlockedHost(host)) {
-            throw new PaymentProviderException("btcpay.baseUrl host not allowed: ${host}", 'SSRF')
+        boolean listed = internalHosts?.any { String allowed -> allowed?.equalsIgnoreCase(host) }
+        if (!listed) {
+            if (scheme != 'https') {
+                throw new PaymentProviderException('btcpay.baseUrl must use https', 'CONFIG')
+            }
+            if (isBlockedHost(host) || resolvesToBlockedAddress(host)) {
+                throw new PaymentProviderException('btcpay.baseUrl host not allowed', 'SSRF')
+            }
         }
         String path = uri.path ?: ''
         if (path.endsWith('/')) {
             path = path.length() > 1 ? path[0..-2] : ''
         }
         String base = "${scheme}://${host}"
-        if (uri.port > 0 && uri.port != 80 && uri.port != 443) {
-            base += ":${uri.port}"
+        if (uri.port > 0) {
+            boolean defaultPort = (scheme == 'https' && uri.port == 443) || (scheme == 'http' && uri.port == 80)
+            if (!defaultPort || rawContainsExplicitPort(raw, uri.port)) {
+                base += ":${uri.port}"
+            }
         }
         base += path
         return base
+    }
+
+    /** Test hook. Production uses DNS. */
+    static Closure<List<InetAddress>> addressResolver = { String host ->
+        InetAddress.getAllByName(host).toList()
+    }
+
+    private static boolean rawContainsExplicitPort(String raw, int port) {
+        return raw.contains(":${port}")
+    }
+
+    static boolean resolvesToBlockedAddress(String host) {
+        if (isLiteralAddress(host)) return false
+        try {
+            List<InetAddress> addresses = addressResolver.call(host) ?: []
+            if (addresses.isEmpty()) return true
+            return addresses.any { InetAddress address -> isBlockedAddress(address) }
+        } catch (Exception ignored) {
+            return true
+        }
+    }
+
+    private static boolean isLiteralAddress(String host) {
+        return host ==~ /^[\d.]+$/ || host.contains(':')
     }
 
     static boolean isBlockedHost(String host) {
@@ -76,6 +106,20 @@ final class BtcpayUrlValidator {
         if (h ==~ /^192\.168\.\d+\.\d+$/) return true
         if (h ==~ /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/) return true
         if (h ==~ /^169\.254\.\d+\.\d+$/) return true
+        if (h ==~ /^100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7])\.\d+\.\d+$/) return true
+        if (h ==~ /^0\.\d+\.\d+\.\d+$/) return true
+        if (h ==~ /^198\.1[89]\.\d+\.\d+$/) return true
+        if (h.startsWith('[') && (h.contains('fd') || h.contains('fe80') || h.contains('ffff:127') || h.contains('ffff:10.'))) {
+            return true
+        }
         return false
+    }
+
+    static boolean isBlockedAddress(InetAddress address) {
+        if (address == null) return true
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+            return true
+        }
+        return isBlockedHost(address.hostAddress)
     }
 }

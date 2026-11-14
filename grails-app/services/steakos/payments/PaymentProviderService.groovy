@@ -46,7 +46,7 @@ class PaymentProviderService {
         Map cfg = paymentSettingsService.decryptedBtcpayConfig(npubOwner)
         String base = BtcpayUrlValidator.validateAndNormalize(
                 cfg.baseUrl as String,
-                paymentSettingsService.allowPrivateUrls()
+                paymentSettingsService.internalBtcpayHosts()
         )
         BtcpayGreenfieldClient client = new BtcpayGreenfieldClient(
                 base,
